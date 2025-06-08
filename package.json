@@ -1,0 +1,52 @@
+{
+  "name": "simple-inventory",
+  "version": "0.1.0",
+  "description": "Home Assistant Simple Inventory Integration Card",
+  "author": "Blaine Venturine",
+  "license": "MIT",
+  "main": "dist/simple-inventory-card.js",
+  "card_type": "simple-inventory-card",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/blaineventurine/simple-inventory-card.git"
+  },
+  "keywords": [
+    "home-assistant",
+    "lovelace",
+    "custom-card",
+    "inventory"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build --config vite.config.ts",
+    "preview": "vite preview",
+    "type-check": "tsc --noEmit",
+    "lint:js": "eslint src/**/*.ts",
+    "lint:js:fix": "eslint src/**/*.ts --fix",
+    "format:js": "prettier --write src/**/*.ts"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.1",
+    "@eslint/js": "^9.28.0",
+    "@types/node": "^22.15.30",
+    "@typescript-eslint/eslint-plugin": "^8.33.1",
+    "@typescript-eslint/parser": "^8.33.1",
+    "eslint": "^9.28.0",
+    "globals": "^16.2.0",
+    "prettier": "^3.5.3",
+    "terser": "^5.41.0",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5"
+  },
+  "prettier": {
+    "semi": true,
+    "singleQuote": true,
+    "tabWidth": 2,
+    "trailingComma": "es5",
+    "printWidth": 100
+  },
+  "dependencies": {
+    "lit": "^3.3.0",
+    "tslib": "^2.8.1"
+  }
+}

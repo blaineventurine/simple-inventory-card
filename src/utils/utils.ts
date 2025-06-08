@@ -1,0 +1,373 @@
+import { DEFAULT_INVENTORY_NAME } from './constants';
+import { HassEntity, HomeAssistant } from '../types/home-assistant';
+import { FilterState } from '../types/filterState';
+
+/**
+ * Interface for input values storage
+ */
+interface InputValues {
+  [id: string]: string | boolean | number;
+}
+
+/**
+ * Interface for item data validation result
+ */
+interface ValidationResult {
+  isValid: boolean;
+  errors: string[];
+}
+
+/**
+ * Interface for sanitized item data
+ */
+interface SanitizedItemData {
+  name: string;
+  quantity: number;
+  unit: string;
+  category: string;
+  expiryDate: string;
+  todoList: string;
+  threshold: number;
+  autoAddEnabled: boolean;
+}
+
+/**
+ * Interface for item data to be validated or sanitized
+ */
+interface ItemData {
+  name?: string;
+  quantity?: number;
+  unit?: string;
+  category?: string;
+  expiryDate?: string;
+  todoList?: string;
+  threshold?: number;
+  autoAddEnabled?: boolean;
+}
+
+/**
+ * Utility class providing helper methods for the inventory card
+ */
+export class Utils {
+  /**
+   * Gets a user-friendly inventory name from entity state
+   * @param state - The entity state
+   * @param entityId - The entity ID
+   * @returns A user-friendly inventory name
+   */
+  static getInventoryName(state: HassEntity | undefined, entityId: string): string {
+    if (state?.attributes?.friendly_name) {
+      return state.attributes.friendly_name;
+    }
+
+    const nameParts = entityId.split('.');
+    if (nameParts.length > 1) {
+      return nameParts[1]
+        .split('_')
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ')
+        .replace(/Inventory$/, ''); // Remove "Inventory" suffix if present
+    }
+
+    return DEFAULT_INVENTORY_NAME;
+  }
+
+  /**
+   * Gets the inventory ID from entity state
+   * @param hass - Home Assistant instance
+   * @param entityId - The entity ID
+   * @returns The inventory ID
+   */
+  static getInventoryId(hass: HomeAssistant, entityId: string): string {
+    const state = hass.states[entityId];
+    if (state?.attributes?.inventory_id) {
+      return state.attributes.inventory_id;
+    }
+
+    if (state?.attributes?.unique_id) {
+      const uniqueId = state.attributes.unique_id;
+      if (uniqueId?.startsWith('inventory_')) {
+        return uniqueId.substring(10);
+      }
+    }
+
+    // Fallback: use the entity_id without the domain
+    const parts = entityId.split('.');
+    return parts.length > 1 ? parts[1] : entityId;
+  }
+
+  /**
+   * Preserves input values from form elements
+   * @param shadowRoot - The shadow root containing the elements
+   * @param elementIds - Array of element IDs to preserve
+   * @returns Object with preserved values
+   */
+  static preserveInputValues(shadowRoot: ShadowRoot, elementIds: string[]): InputValues {
+    const values: InputValues = {};
+
+    elementIds.forEach((id) => {
+      const element = shadowRoot.getElementById(id) as HTMLInputElement | null;
+      if (element) {
+        if (element.type === 'checkbox') {
+          values[id] = element.checked;
+        } else if (element.type === 'number') {
+          values[id] = parseFloat(element.value) || 0;
+        } else {
+          values[id] = element.value;
+        }
+      }
+    });
+
+    return values;
+  }
+
+  /**
+   * Restores input values to form elements
+   * @param shadowRoot - The shadow root containing the elements
+   * @param values - Object with values to restore
+   */
+  static restoreInputValues(shadowRoot: ShadowRoot, values: InputValues | null): void {
+    if (!values) {
+      return;
+    }
+
+    Object.entries(values).forEach(([id, value]) => {
+      const element = shadowRoot.getElementById(id) as HTMLInputElement | null;
+      if (element) {
+        if (element.type === 'checkbox') {
+          element.checked = Boolean(value);
+        } else {
+          element.value = String(value);
+        }
+      }
+    });
+  }
+
+  /**
+   * Formats a date string to localized format
+   * @param dateString - ISO date string
+   * @returns Formatted date string
+   */
+  static formatDate(dateString: string | undefined): string {
+    if (!dateString) {
+      return '';
+    }
+
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return dateString;
+      }
+      return date.toLocaleDateString();
+    } catch (e) {
+      return dateString;
+    }
+  }
+
+  /**
+   * Checks if a date is in the past
+   * @param dateString - ISO date string
+   * @returns True if the date is expired
+   */
+  static isExpired(dateString: string | undefined): boolean {
+    if (!dateString) {
+      return false;
+    }
+
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return false;
+      }
+
+      const today = this.getStartOfDay(new Date());
+      return date < today;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /**
+   * Checks if a date is within the next week
+   * @param dateString - ISO date string
+   * @returns True if the date is expiring soon
+   */
+  static isExpiringSoon(dateString: string | undefined): boolean {
+    if (!dateString) {
+      return false;
+    }
+
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return false;
+      }
+
+      const today = this.getStartOfDay(new Date());
+      const nextWeek = this.addDaysToDate(today, 7);
+
+      return date >= today && date <= nextWeek;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /**
+   * Creates a debounced function
+   * @param func - Function to debounce
+   * @param wait - Wait time in milliseconds
+   * @returns Debounced function
+   */
+  static debounce<T extends (...args: any[]) => any>(
+    func: T,
+    wait: number
+  ): (...args: Parameters<T>) => void {
+    let timeout: ReturnType<typeof setTimeout> | null = null;
+
+    return function executedFunction(...args: Parameters<T>): void {
+      const later = () => {
+        if (timeout) {
+          clearTimeout(timeout);
+          timeout = null;
+        }
+        func(...args);
+      };
+
+      if (timeout) {
+        clearTimeout(timeout);
+      }
+      timeout = setTimeout(later, wait);
+    };
+  }
+
+  /**
+   * Validates item data for required fields and formats
+   * @param itemData - The item data to validate
+   * @returns Validation result with errors if any
+   */
+  static validateItemData(itemData: ItemData): ValidationResult {
+    const errors: string[] = [];
+
+    if (!itemData.name?.trim()) {
+      errors.push('Item name is required');
+    }
+
+    if (itemData.quantity !== undefined && (isNaN(itemData.quantity) || itemData.quantity < 0)) {
+      errors.push('Quantity must be a non-negative number');
+    }
+
+    if (itemData.threshold !== undefined && (isNaN(itemData.threshold) || itemData.threshold < 0)) {
+      errors.push('Threshold must be a non-negative number');
+    }
+
+    if (itemData.expiryDate && !this.isValidDate(itemData.expiryDate)) {
+      errors.push('Invalid expiry date format');
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+    };
+  }
+
+  /**
+   * Checks if a string is a valid date
+   * @param dateString - Date string to validate
+   * @returns True if the date is valid
+   */
+  static isValidDate(dateString: string): boolean {
+    try {
+      const date = new Date(dateString);
+      return !isNaN(date.getTime());
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /**
+   * Sanitizes HTML string to prevent XSS
+   * @param str - String to sanitize
+   * @returns Sanitized HTML string
+   */
+  static sanitizeHtml(str: string): string {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  /**
+   * Groups items by their category
+   * @param items - Array of inventory items
+   * @returns Object with items grouped by category
+   */
+  static groupItemsByCategory<T extends { category?: string }>(
+    items: readonly T[]
+  ): Record<string, T[]> {
+    return items.reduce<Record<string, T[]>>((groups, item) => {
+      const category = item.category || 'Uncategorized';
+      if (!groups[category]) {
+        groups[category] = [];
+      }
+      groups[category].push(item);
+      return groups;
+    }, {});
+  }
+
+  /**
+   * Sanitizes item data to ensure valid values
+   * @param itemData - Item data to sanitize
+   * @returns Sanitized item data
+   */
+  static sanitizeItemData(itemData: ItemData): SanitizedItemData {
+    return {
+      name: this.sanitizeString(itemData.name, 100),
+      quantity: Math.max(0, Math.min(999999, Number(itemData.quantity) || 0)),
+      unit: this.sanitizeString(itemData.unit, 20),
+      category: this.sanitizeString(itemData.category, 50),
+      expiryDate: itemData.expiryDate || '',
+      todoList: this.sanitizeString(itemData.todoList, 100),
+      threshold: Math.max(0, Number(itemData.threshold) || 0),
+      autoAddEnabled: Boolean(itemData.autoAddEnabled),
+    };
+  }
+
+  /**
+   * Sanitizes a string by trimming and limiting length
+   * @param str - String to sanitize
+   * @param maxLength - Maximum allowed length
+   * @returns Sanitized string
+   */
+  static sanitizeString(str: string | undefined, maxLength: number): string {
+    if (!str || typeof str !== 'string') {
+      return '';
+    }
+    return str.trim().substring(0, maxLength);
+  }
+
+  static hasActiveFilters(filters: FilterState): boolean {
+    return Boolean(filters.searchText || filters.category || filters.quantity || filters.expiry);
+  }
+
+  /**
+   * Gets the start of day for a date
+   * @param date - Date to adjust
+   * @returns Date set to start of day
+   */
+  private static getStartOfDay(date: Date): Date {
+    const newDate = new Date(date);
+    newDate.setHours(0, 0, 0, 0);
+    return newDate;
+  }
+
+  /**
+   * Adds days to a date
+   * @param date - Base date
+   * @param days - Number of days to add
+   * @returns New date with days added
+   */
+  private static addDaysToDate(date: Date, days: number): Date {
+    const newDate = new Date(date);
+    newDate.setDate(date.getDate() + days);
+    return newDate;
+  }
+}
