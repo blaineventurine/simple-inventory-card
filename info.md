@@ -3,7 +3,7 @@ A custom card for managing Simple Inventory integration.
 ## Requirements
 
 This card requires the Simple Inventory integration to be installed:
-<https://github.com/yourusername/simple-inventory>
+<https://github.com/blaineventurine/simple_inventory>
 
 ## Installation
 
