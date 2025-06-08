@@ -563,11 +563,8 @@ class SimpleInventoryCard extends LitElement {
     return document.createElement('simple-inventory-config-editor');
   }
 
-  static getStubConfig(): InventoryConfig {
-    return {
-      entity: '',
-      type: 'simple-inventory-card',
-    };
+  static getStubConfig(): InventoryConfig | {} {
+    return {};
   }
 }
 
@@ -608,6 +605,6 @@ window.setTimeout(() => {
 }, 2000);
 
 console.info(
-  `%c STATUS-CARD %c ${packageJson.version} `,
+  `%c Simple Inventory Card %c ${packageJson.version} `,
   'color: steelblue; background: black; font-weight: bold;'
 );
