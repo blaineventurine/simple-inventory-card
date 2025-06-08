@@ -173,7 +173,3 @@ class ConfigEditor extends LitElement {
 }
 
 export { ConfigEditor };
-
-// IMPORTANT: This name must match what's returned by getConfigElement()
-// @ts-ignore
-customElements.define('simple-inventory-config-editor', ConfigEditor);

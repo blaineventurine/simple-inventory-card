@@ -4,10 +4,11 @@ import { Filters } from '../services/filters';
 import { Renderer } from '../services/renderer';
 import { State } from '../services/state';
 import { Utils } from '../utils/utils';
-import { ELEMENTS, ACTIONS, DEFAULTS, MESSAGES, TIMING, CSS_CLASSES } from '../utils/constants';
+import { ELEMENTS, ACTIONS, DEFAULTS, MESSAGES, CSS_CLASSES } from '../utils/constants';
 import { HomeAssistant, InventoryItem, InventoryConfig } from '../types/home-assistant';
-import './configEditor';
+import { ConfigEditor } from './configEditor';
 import { LitElement } from 'https://cdn.jsdelivr.net/gh/lit/dist@2/core/lit-core.min.js';
+import packageJson from '../../package.json';
 
 declare global {
   interface Window {
@@ -578,6 +579,12 @@ if (!customElements.get('simple-inventory-card')) {
   console.log('✅ Simple Inventory Card element defined');
 }
 
+if (!customElements.get('simple-inventory-config-editor')) {
+  // IMPORTANT: This name must match what's returned by getConfigElement()
+  // @ts-ignore
+  customElements.define('simple-inventory-config-editor', ConfigEditor);
+}
+
 window.customCards = window.customCards || [];
 const cardConfig = {
   type: 'simple-inventory-card',
@@ -590,7 +597,6 @@ const cardConfig = {
 const existingCard = window.customCards.find((card) => card.type === 'simple-inventory-card');
 if (!existingCard) {
   window.customCards.push(cardConfig);
-  console.log('✅ Simple Inventory Card registered with Home Assistant');
 }
 
 window.setTimeout(() => {
@@ -599,6 +605,9 @@ window.setTimeout(() => {
     cancelable: false,
   });
   document.dispatchEvent(event);
-  console.info('✅ Custom card update event dispatched');
 }, 2000);
-console.log('✅ Simple Inventory Card loaded successfully');
+
+console.info(
+  `%c STATUS-CARD %c ${packageJson.version} `,
+  'color: steelblue; background: black; font-weight: bold;'
+);
