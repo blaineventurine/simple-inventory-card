@@ -573,7 +573,6 @@ export { SimpleInventoryCard };
 if (!customElements.get('simple-inventory-card')) {
   // @ts-ignore - LitElement does extend HTMLElement at runtime
   customElements.define('simple-inventory-card', SimpleInventoryCard);
-  console.log('✅ Simple Inventory Card element defined');
 }
 
 if (!customElements.get('simple-inventory-config-editor')) {

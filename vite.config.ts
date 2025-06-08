@@ -22,9 +22,10 @@ export default defineConfig({
     },
     // Ensure we're producing a clean, optimized build
     minify: 'terser',
-    sourcemap: true,
+    sourcemap: false,
   },
   resolve: {
+    extensions: ['.js', '.ts'],
     alias: {
       '@': resolve(__dirname, 'src'),
     },
