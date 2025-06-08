@@ -81,6 +81,6 @@ export interface InventoryItem {
 }
 
 export interface InventoryConfig extends LovelaceCardConfig {
-  type: string;
-  entity: string;
+  type?: string;
+  entity?: string;
 }

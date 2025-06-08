@@ -6,6 +6,11 @@ class ConfigEditor extends LitElement {
   public hass?: HomeAssistant;
   private _config?: InventoryConfig;
 
+  constructor() {
+    super();
+    this._config = {};
+  }
+
   static get properties() {
     return {
       hass: { type: Object },
