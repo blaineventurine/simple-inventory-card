@@ -14,6 +14,7 @@ class ConfigEditor extends LitElement {
   }
 
   setConfig(config: InventoryConfig): void {
+    console.log('ConfigEditor setConfig called with:', config);
     this._config = { ...config };
   }
 
@@ -22,6 +23,11 @@ class ConfigEditor extends LitElement {
   }
 
   render(): TemplateResult {
+    console.log('ConfigEditor render called with:', {
+      hass: !!this.hass,
+      config: this._config,
+    });
+
     if (!this.hass || !this._config) {
       return html`<div>Loading...</div>`;
     }
