@@ -3,14 +3,15 @@ import { HomeAssistant, InventoryItem, InventoryConfig } from '../types/home-ass
 import { Utils } from '../utils/utils';
 
 export interface ItemData {
-  name: string;
-  quantity: number;
-  unit: string;
+  autoAddEnabled: boolean;
   category: string;
   expiryDate: string;
+  expiryThreshold: number;
+  name: string;
+  quantity: number;
+  threshold: number; // Quantity threshold for auto-add
   todoList: string;
-  threshold: number;
-  autoAddEnabled: boolean;
+  unit: string;
 }
 
 export interface InventoryServiceResult {
@@ -63,6 +64,7 @@ export class Modals {
     if (modal) {
       modal.classList.add(CSS_CLASSES.SHOW);
       this.focusElementWithDelay(ELEMENTS.ITEM_NAME);
+      this.setupExpiryThresholdInteraction();
     } else {
       console.warn('Add modal not found in DOM');
     }
@@ -99,6 +101,7 @@ export class Modals {
     if (modal) {
       modal.classList.add(CSS_CLASSES.SHOW);
       this.focusElementWithDelay(ELEMENTS.MODAL_ITEM_NAME, true);
+      this.setupExpiryThresholdInteraction();
     }
   }
 
@@ -123,6 +126,7 @@ export class Modals {
       { id: ELEMENTS.MODAL_ITEM_CATEGORY, value: item.category ?? '' },
       { id: ELEMENTS.MODAL_ITEM_EXPIRY, value: item.expiry_date ?? '' },
       { id: ELEMENTS.MODAL_THRESHOLD, value: (item.threshold ?? 0).toString() },
+      { id: ELEMENTS.MODAL_EXPIRY_THRESHOLD, value: (item.threshold ?? 7).toString() },
       { id: ELEMENTS.MODAL_TODO_LIST, value: item.todo_list ?? '' },
     ];
 
@@ -131,6 +135,53 @@ export class Modals {
     const autoAddCheckbox = this.getElement<HTMLInputElement>(ELEMENTS.MODAL_AUTO_ADD);
     if (autoAddCheckbox) {
       autoAddCheckbox.checked = item.auto_add_enabled ?? false;
+    }
+
+    this.updateExpiryThresholdState(false);
+  }
+
+  private updateExpiryThresholdState(isAddModal: boolean): void {
+    console.log('updateExpiryThresholdState called', { isAddModal });
+
+    const expiryElementId = isAddModal ? ELEMENTS.ITEM_EXPIRY : ELEMENTS.MODAL_ITEM_EXPIRY;
+    const thresholdElementId = isAddModal
+      ? ELEMENTS.ITEM_EXPIRY_THRESHOLD
+      : ELEMENTS.MODAL_EXPIRY_THRESHOLD;
+
+    console.log('Looking for elements:', { expiryElementId, thresholdElementId });
+
+    const expiryInput = this.getElement<HTMLInputElement>(expiryElementId);
+    const thresholdInput = this.getElement<HTMLInputElement>(thresholdElementId);
+
+    console.log('Found elements:', {
+      expiryInput: !!expiryInput,
+      thresholdInput: !!thresholdInput,
+      expiryValue: expiryInput?.value,
+      thresholdValue: thresholdInput?.value,
+    });
+
+    if (!expiryInput || !thresholdInput) {
+      console.warn('Elements not found!');
+      return;
+    }
+
+    const hasExpiryDate = expiryInput.value.trim() !== '';
+    console.log('Has expiry date:', hasExpiryDate);
+
+    if (hasExpiryDate) {
+      console.log('Enabling threshold field');
+      thresholdInput.disabled = false;
+      thresholdInput.placeholder = 'Days before expiry to alert (default: 7)';
+
+      if (!thresholdInput.value.trim()) {
+        thresholdInput.value = '7';
+        console.log('Set default threshold value: 7');
+      }
+    } else {
+      console.log('Disabling threshold field');
+      thresholdInput.disabled = true;
+      thresholdInput.value = '';
+      thresholdInput.placeholder = 'Set expiry date first';
     }
   }
 
@@ -141,8 +192,9 @@ export class Modals {
       unit: this.getInputValue(ELEMENTS.ITEM_UNIT),
       category: this.getInputValue(ELEMENTS.ITEM_CATEGORY),
       expiryDate: this.getInputValue(ELEMENTS.ITEM_EXPIRY),
+      expiryThreshold: this.getInputNumber(ELEMENTS.ITEM_EXPIRY_THRESHOLD, 7), // NEW
       todoList: this.getInputValue(ELEMENTS.ITEM_TODO_LIST),
-      threshold: this.getInputNumber(ELEMENTS.ITEM_THRESHOLD, DEFAULTS.THRESHOLD),
+      threshold: this.getInputNumber(ELEMENTS.ITEM_THRESHOLD, DEFAULTS.THRESHOLD), // Quantity threshold
       autoAddEnabled: this.getInputChecked(ELEMENTS.ITEM_AUTO_ADD),
     };
   }
@@ -154,8 +206,9 @@ export class Modals {
       unit: this.getInputValue(ELEMENTS.MODAL_ITEM_UNIT),
       category: this.getInputValue(ELEMENTS.MODAL_ITEM_CATEGORY),
       expiryDate: this.getInputValue(ELEMENTS.MODAL_ITEM_EXPIRY),
-      threshold: this.getInputNumber(ELEMENTS.MODAL_THRESHOLD),
+      expiryThreshold: this.getInputNumber(ELEMENTS.MODAL_EXPIRY_THRESHOLD, 7), // NEW
       todoList: this.getInputValue(ELEMENTS.MODAL_TODO_LIST),
+      threshold: this.getInputNumber(ELEMENTS.MODAL_THRESHOLD), // Quantity threshold
       autoAddEnabled: this.getInputChecked(ELEMENTS.MODAL_AUTO_ADD),
     };
   }
@@ -166,6 +219,7 @@ export class Modals {
       { id: ELEMENTS.ITEM_UNIT, value: '' },
       { id: ELEMENTS.ITEM_CATEGORY, value: '' },
       { id: ELEMENTS.ITEM_EXPIRY, value: '' },
+      { id: ELEMENTS.ITEM_EXPIRY_THRESHOLD, value: '' },
       { id: ELEMENTS.ITEM_TODO_LIST, value: '' },
       { id: ELEMENTS.ITEM_QUANTITY, value: DEFAULTS.QUANTITY.toString() },
       { id: ELEMENTS.ITEM_THRESHOLD, value: DEFAULTS.THRESHOLD.toString() },
@@ -177,6 +231,9 @@ export class Modals {
     if (autoAddCheckbox) {
       autoAddCheckbox.checked = DEFAULTS.AUTO_ADD_ENABLED;
     }
+    setTimeout(() => {
+      this.updateExpiryThresholdState(true); // true = add modal
+    }, 10);
   }
 
   public async addItem(config: InventoryConfig): Promise<boolean> {
@@ -184,6 +241,12 @@ export class Modals {
       const autoAddValidation = this.validateAutoAddFields(true);
       if (!autoAddValidation.isValid) {
         this.showError(autoAddValidation.message || 'Please fill in required auto-add fields');
+        return false;
+      }
+
+      const expiryValidation = this.validateExpiryThreshold(true);
+      if (!expiryValidation.isValid) {
+        this.showError(expiryValidation.message || 'Please check expiry threshold settings');
         return false;
       }
 
@@ -221,6 +284,12 @@ export class Modals {
     const autoAddValidation = this.validateAutoAddFields(false);
     if (!autoAddValidation.isValid) {
       this.showError(autoAddValidation.message || 'Please fill in required auto-add fields');
+      return false;
+    }
+
+    const expiryValidation = this.validateExpiryThreshold(false);
+    if (!expiryValidation.isValid) {
+      this.showError(expiryValidation.message || 'Please check expiry threshold settings');
       return false;
     }
 
@@ -309,6 +378,33 @@ export class Modals {
     }
   }
 
+  public setupExpiryThresholdInteraction(): void {
+    // Setup for add modal
+    this.setupThresholdFieldForModal(true);
+
+    // Setup for settings modal
+    this.setupThresholdFieldForModal(false);
+  }
+
+  private setupThresholdFieldForModal(isAddModal: boolean): void {
+    const expiryElementId = isAddModal ? ELEMENTS.ITEM_EXPIRY : ELEMENTS.MODAL_ITEM_EXPIRY;
+    const expiryInput = this.getElement<HTMLInputElement>(expiryElementId);
+
+    if (!expiryInput) return;
+
+    // Update state immediately
+    this.updateExpiryThresholdState(isAddModal);
+
+    // Listen for changes
+    expiryInput.addEventListener('input', () => {
+      this.updateExpiryThresholdState(isAddModal);
+    });
+
+    expiryInput.addEventListener('change', () => {
+      this.updateExpiryThresholdState(isAddModal);
+    });
+  }
+
   private getElement<T extends HTMLElement>(id: string): T | null {
     return this.shadowRoot.getElementById(id) as T | null;
   }
@@ -358,7 +454,6 @@ export class Modals {
 
   private validateAutoAddFields(isAddModal = true): { isValid: boolean; message?: string } {
     const autoAddElementId = isAddModal ? ELEMENTS.ITEM_AUTO_ADD : ELEMENTS.MODAL_AUTO_ADD;
-    const thresholdElementId = isAddModal ? ELEMENTS.ITEM_THRESHOLD : ELEMENTS.MODAL_THRESHOLD;
     const todoListElementId = isAddModal ? ELEMENTS.ITEM_TODO_LIST : ELEMENTS.MODAL_TODO_LIST;
 
     const autoAddCheckbox = this.getElement<HTMLInputElement>(autoAddElementId);
@@ -367,30 +462,64 @@ export class Modals {
       return { isValid: true }; // No validation needed if auto-add is disabled
     }
 
-    const thresholdInput = this.getElement<HTMLInputElement>(thresholdElementId);
     const todoListSelect = this.getElement<HTMLSelectElement>(todoListElementId);
 
     // Reset any previous error styling
-    if (thresholdInput) thresholdInput.style.borderColor = '';
     if (todoListSelect) todoListSelect.style.borderColor = '';
-
-    let isValid = true;
-    let message = '';
-
-    if (!thresholdInput?.value || parseFloat(thresholdInput.value) < 0) {
-      if (thresholdInput) thresholdInput.style.borderColor = 'var(--error-color)';
-      message = 'Threshold amount is required when auto-add is enabled';
-      isValid = false;
-    }
 
     if (!todoListSelect?.value) {
       if (todoListSelect) todoListSelect.style.borderColor = 'var(--error-color)';
-      message = isValid
-        ? 'Todo list selection is required when auto-add is enabled'
-        : 'Threshold and Todo list are required when auto-add is enabled';
-      isValid = false;
+      return {
+        isValid: false,
+        message: 'Todo list selection is required when auto-add is enabled',
+      };
     }
 
-    return { isValid, message };
+    return { isValid: true };
+  }
+
+  private validateExpiryThreshold(isAddModal = true): { isValid: boolean; message?: string } {
+    const expiryElementId = isAddModal ? ELEMENTS.ITEM_EXPIRY : ELEMENTS.MODAL_ITEM_EXPIRY;
+    const thresholdElementId = isAddModal
+      ? ELEMENTS.ITEM_EXPIRY_THRESHOLD
+      : ELEMENTS.MODAL_EXPIRY_THRESHOLD;
+
+    const expiryInput = this.getElement<HTMLInputElement>(expiryElementId);
+    const thresholdInput = this.getElement<HTMLInputElement>(thresholdElementId);
+
+    // Reset any previous error styling
+    if (thresholdInput) thresholdInput.style.borderColor = '';
+
+    const hasExpiryDate = expiryInput?.value?.trim();
+    const thresholdValue = thresholdInput?.value?.trim();
+
+    // If there's an expiry date but no threshold, use default
+    if (hasExpiryDate && !thresholdValue) {
+      if (thresholdInput) thresholdInput.value = '7'; // Set default
+      return { isValid: true };
+    }
+
+    // If there's a threshold but no expiry date, that's an error
+    if (thresholdValue && !hasExpiryDate) {
+      if (thresholdInput) thresholdInput.style.borderColor = 'var(--error-color)';
+      return {
+        isValid: false,
+        message: 'Expiry threshold requires an expiry date to be set',
+      };
+    }
+
+    // If threshold is set, validate it's a positive number
+    if (thresholdValue) {
+      const threshold = parseFloat(thresholdValue);
+      if (isNaN(threshold) || threshold < 0) {
+        if (thresholdInput) thresholdInput.style.borderColor = 'var(--error-color)';
+        return {
+          isValid: false,
+          message: 'Expiry threshold must be a positive number',
+        };
+      }
+    }
+
+    return { isValid: true };
   }
 }

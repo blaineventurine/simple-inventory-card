@@ -4,7 +4,7 @@ import { TodoList } from './types/todoList';
 import { FilterState } from './types/filterState';
 import { Utils } from './utils/utils';
 
-interface ModalConfig {
+export interface ModalConfig {
   id: string;
   title: string;
   primaryButtonText: string;
@@ -16,8 +16,9 @@ interface ModalConfig {
     unit: string;
     category: string;
     expiry: string;
+    expiryThreshold: string;
     autoAdd: string;
-    threshold: string;
+    threshold: string; // This is the quantity threshold for auto-add
     todoList: string;
   };
   defaults?: {
@@ -227,6 +228,22 @@ export function createUnifiedModal(todoLists: TodoList[], config: ModalConfig): 
             <input type="date" id="${config.elements.expiry}" />
           </div>
           
+          <div class="form-group expiry-threshold-section">
+            <label for="${config.elements.expiryThreshold}" class="form-label">
+              Expiry Alert Threshold
+              <span class="optional">(days before expiry)</span>
+            </label>
+            <input 
+              type="number" 
+              id="${config.elements.expiryThreshold}" 
+              min="1" 
+              max="365"
+              placeholder="Set expiry date first"
+              disabled
+            />
+            <small class="help-text">How many days before expiry to show alerts</small>
+          </div>
+          
           <div class="form-group auto-add-section">
             <input type="checkbox" id="${config.elements.autoAdd}" class="auto-add-checkbox" />
             <label for="${config.elements.autoAdd}" class="checkbox-label">
@@ -236,18 +253,21 @@ export function createUnifiedModal(todoLists: TodoList[], config: ModalConfig): 
             <div class="auto-add-controls">
               <div class="form-row">
                 <div class="input-group">
-                  <label for="${config.elements.threshold}">Threshold *</label>
+                  <label for="${config.elements.threshold}">
+                    Quantity Threshold
+                  </label>
                   <input 
                     type="number" 
                     id="${config.elements.threshold}" 
                     ${config.defaults?.threshold ? `value="${config.defaults.threshold}"` : ''} 
                     min="0"
                     class="auto-add-required"
+                    placeholder="Minimum quantity"
                   />
                 </div>
                 
                 <div class="input-group">
-                  <label for="${config.elements.todoList}">Todo List *</label>
+                  <label for="${config.elements.todoList}">Todo List</label>
                   <select id="${config.elements.todoList}" class="auto-add-required">
                     <option value="">Select list...</option>
                     ${todoLists
@@ -279,6 +299,7 @@ export function createAddModal(todoLists: TodoList[]): string {
     elements: {
       name: ELEMENTS.ITEM_NAME,
       quantity: ELEMENTS.ITEM_QUANTITY,
+      expiryThreshold: ELEMENTS.ITEM_EXPIRY_THRESHOLD,
       unit: ELEMENTS.ITEM_UNIT,
       category: ELEMENTS.ITEM_CATEGORY,
       expiry: ELEMENTS.ITEM_EXPIRY,
@@ -303,6 +324,7 @@ export function createSettingsModal(todoLists: TodoList[]): string {
       quantity: ELEMENTS.MODAL_ITEM_QUANTITY,
       unit: ELEMENTS.MODAL_ITEM_UNIT,
       category: ELEMENTS.MODAL_ITEM_CATEGORY,
+      expiryThreshold: ELEMENTS.MODAL_EXPIRY_THRESHOLD,
       expiry: ELEMENTS.MODAL_ITEM_EXPIRY,
       autoAdd: ELEMENTS.MODAL_AUTO_ADD,
       threshold: ELEMENTS.MODAL_THRESHOLD,
