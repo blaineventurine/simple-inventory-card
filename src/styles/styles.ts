@@ -1,3 +1,5 @@
+import { ELEMENTS } from '../utils/constants.ts';
+
 export const styles = `
   ha-card {
     padding: 16px;
@@ -6,6 +8,29 @@ export const styles = `
   .card-header {
     padding: 16px;
     border-bottom: 1px solid var(--divider-color);
+  }
+
+  /* Hide the auto-add controls by default */
+  .auto-add-controls {
+    display: none;
+  }
+
+  /* Show the controls when the checkbox is checked */
+  #item-auto-add:checked ~ .auto-add-controls {
+    display: flex;
+  }
+
+  /* Style the checkbox and label */
+  .checkbox-label {
+    cursor: pointer;
+    margin-left: 8px;
+    display: inline-block;
+    margin-bottom: 12px;
+  }
+
+  /* Optional: Add some spacing to the checkbox */
+  #item-auto-add {
+    margin-right: 4px;
   }
 
   .inventory-title {

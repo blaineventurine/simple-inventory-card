@@ -73,7 +73,13 @@ export function createAddItemModal(todoLists: TodoList[]): string {
         
         <div class="form-group">
           <label class="form-label">Auto-Add Settings</label>
-          <div class="form-row">
+          
+          <input type="checkbox" id="item-auto-add">
+          <label for="item-auto-add" class="checkbox-label">
+            Enable auto-add when quantity reaches threshold
+          </label>
+          
+          <div class="form-row auto-add-controls">
             <div class="input-group">
               <label>Todo List</label>
               <select id="item-todo-list">
@@ -86,14 +92,10 @@ export function createAddItemModal(todoLists: TodoList[]): string {
               </select>
             </div>
             <div class="input-group">
-              <label>Threshold</label>
+              <label>Threshold Amount</label>
               <input type="number" id="item-threshold" value="0" min="0" class="small" />
             </div>
           </div>
-          <label class="checkbox-label">
-            <input type="checkbox" id="item-auto-add">
-            Enable auto-add when quantity reaches threshold
-          </label>
         </div>
         
         <div class="modal-buttons">
