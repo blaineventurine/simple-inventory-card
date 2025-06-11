@@ -32,7 +32,7 @@ export const PARAMS = {
 };
 
 export const ELEMENTS = {
-  ADD_MODAL: 'add-item-modal',
+  ADD_MODAL: 'add-modal',
   SETTINGS_MODAL: 'settings-modal',
 
   // Inputs - Add Modal

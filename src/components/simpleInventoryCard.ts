@@ -222,6 +222,19 @@ class SimpleInventoryCard extends LitElement {
     this.shadowRoot.addEventListener('click', this.boundClickHandler);
     this.shadowRoot.addEventListener('change', this.boundChangeHandler);
 
+    this.shadowRoot.addEventListener('change', (e: Event) => {
+      const target = e.target as HTMLInputElement;
+      if (
+        target.type === 'checkbox' &&
+        (target.id.includes('auto') || target.id.includes('AUTO_ADD'))
+      ) {
+        const controls = target.parentElement?.querySelector('.auto-add-controls') as HTMLElement;
+        if (controls) {
+          controls.style.display = target.checked ? 'block' : 'none';
+        }
+      }
+    });
+
     if (this._config && this.filters) {
       this.filters.setupSearchInput(this._config.entity, () => this._handleSearchChange());
     }

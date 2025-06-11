@@ -180,7 +180,6 @@ export const styles = `
     font-weight: 500;
   }
   
-  /* Fixed: Exclude checkboxes from general input styling */
   input:not([type="checkbox"]), select {
     padding: 14px 16px;
     border: 2px solid var(--divider-color);
@@ -205,7 +204,6 @@ export const styles = `
     opacity: 0.7;
   }
 
-  /* Fixed checkbox styling with higher specificity */
   input[type="checkbox"] {
     appearance: none !important;
     width: 20px !important;
@@ -258,19 +256,36 @@ export const styles = `
     font-size: 0.95em;
     color: var(--primary-text-color);
     font-weight: 500;
-    margin: 0 0 16px 0;
+    margin: 0;
     line-height: 1.5;
     padding: 4px 0;
   }
 
-  /* Auto-add section styling */
   .auto-add-section {
     border-top: 1px solid var(--divider-color);
     padding-top: 20px;
     margin-top: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
   }
 
-  /* Fixed auto-add controls with multiple selectors */
+  .auto-add-section .checkbox-label {
+    cursor: pointer;
+    font-size: 0.95em;
+    color: var(--primary-text-color);
+    font-weight: 500;
+    margin: 0;
+    line-height: 1.5;
+    flex: 1;
+  }
+
+  .auto-add-section .auto-add-controls {
+    flex-basis: 100%;
+    margin-top: 8px;
+  }
+
   .auto-add-controls {
     display: none;
     margin-top: 16px;
@@ -291,16 +306,18 @@ export const styles = `
     letter-spacing: 0.5px;
   }
 
-  /* Multiple selectors to catch different checkbox IDs */
-  input[type="checkbox"]:checked ~ .auto-add-controls,
-  input[id*="auto"]:checked ~ .auto-add-controls,
-  input[id*="AUTO_ADD"]:checked ~ .auto-add-controls,
-  #item-auto-add:checked ~ .auto-add-controls,
-  #modal-auto-add:checked ~ .auto-add-controls {
+  input[type="checkbox"]:checked + label + .auto-add-controls,
+  input[type="checkbox"]:checked ~ .auto-add-controls {
     display: block !important;
   }
 
-  /* Required field styling for auto-add controls */
+  #item-auto-add:checked ~ .auto-add-controls,
+  #modal-auto-add:checked ~ .auto-add-controls,
+  [id$="auto-add"]:checked ~ .auto-add-controls,
+  [id$="AUTO_ADD"]:checked ~ .auto-add-controls {
+    display: block !important;
+  }
+
   .auto-add-required {
     border-color: var(--primary-color) !important;
   }
@@ -369,7 +386,6 @@ export const styles = `
     padding: 20px;
   }
   
-  /* Modal Styles */
   .modal {
     display: none;
     position: fixed;
