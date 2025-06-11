@@ -261,7 +261,7 @@ export function createUnifiedModal(todoLists: TodoList[], config: ModalConfig): 
         </div>
         
         <div class="modal-buttons">
-          <button ${config.primaryButtonId ? `id="${config.primaryButtonId}"` : ''} class="primary-btn">${config.primaryButtonText}</button>
+          <button ${config.primaryButtonId ? `id="${config.primaryButtonId}"` : ''} class="save-btn">${config.primaryButtonText}</button>
           <button class="cancel-btn" ${config.closeAction ? `data-action="${config.closeAction}"` : ''}>Cancel</button>
         </div>
       </div>
