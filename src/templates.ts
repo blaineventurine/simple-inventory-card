@@ -31,82 +31,6 @@ export function createItemRowTemplate(item: InventoryItem, todoLists: TodoList[]
   `;
 }
 
-export function createAddItemModal(todoLists: TodoList[]): string {
-  return `
-    <div class="modal" id="add-item-modal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <div class="modal-title">Add New Item</div>
-          <button class="close-btn" data-action="close_add_modal">&times;</button>
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">Item Name *</label>
-          <input type="text" id="item-name" placeholder="Enter item name" />
-        </div>
-        
-        <div class="form-group">
-          <div class="form-row">
-            <div class="input-group">
-              <label>Quantity</label>
-              <input type="number" id="item-quantity" value="1" min="1" />
-            </div>
-            <div class="input-group">
-              <label>Unit</label>
-              <input type="text" id="item-unit" placeholder="boxes, lbs, etc." />
-            </div>
-          </div>
-        </div>
-        
-        <div class="form-group">
-          <div class="form-row">
-            <div class="input-group">
-              <label>Category</label>
-              <input type="text" id="item-category" placeholder="Frozen Foods, Meat, etc." />
-            </div>
-            <div class="input-group">
-              <label>Expiry Date</label>
-              <input type="date" id="item-expiry" />
-            </div>
-          </div>
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">Auto-Add Settings</label>
-          
-          <input type="checkbox" id="item-auto-add">
-          <label for="item-auto-add" class="checkbox-label">
-            Enable auto-add when quantity reaches threshold
-          </label>
-          
-          <div class="form-row auto-add-controls">
-            <div class="input-group">
-              <label>Todo List</label>
-              <select id="item-todo-list">
-                <option value="">None</option>
-                ${todoLists
-                  .map(
-                    (list) => `<option value="${list.entity_id || list.id}">${list.name}</option>`
-                  )
-                  .join('')}
-              </select>
-            </div>
-            <div class="input-group">
-              <label>Threshold Amount</label>
-              <input type="number" id="item-threshold" value="0" min="0" class="small" />
-            </div>
-          </div>
-        </div>
-        
-        <div class="modal-buttons">
-          <button class="cancel-btn" data-action="close_add_modal">Cancel</button>
-          <button class="add-btn" id="add-item-btn">Add Item</button>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
 export function createSearchAndFilters(filters: FilterState, categories: string[]): string {
   return `
     <div class="search-row">
@@ -282,14 +206,12 @@ export function createAddModal(todoLists: TodoList[]): string {
           </div>
           
           <div class="auto-add-section">
-            <div class="input-group">
-              <label>
-                <input type="checkbox" id="${ELEMENTS.ITEM_AUTO_ADD}" />
-                Auto-add to todo list when low
-              </label>
-            </div>
+            <input type="checkbox" id="${ELEMENTS.ITEM_AUTO_ADD}" />
+            <label for="${ELEMENTS.ITEM_AUTO_ADD}" class="checkbox-label">
+              Auto-add to todo list when low
+            </label>
             
-            <div class="input-row">
+            <div class="input-row auto-add-controls">
               <div class="input-group">
                 <label for="${ELEMENTS.ITEM_THRESHOLD}">Threshold</label>
                 <input type="number" id="${ELEMENTS.ITEM_THRESHOLD}" value="${DEFAULTS.THRESHOLD}" min="0" />
