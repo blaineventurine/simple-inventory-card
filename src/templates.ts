@@ -227,37 +227,35 @@ export function createUnifiedModal(todoLists: TodoList[], config: ModalConfig): 
             <input type="date" id="${config.elements.expiry}" />
           </div>
           
-        </div>
+          <div class="form-group auto-add-section">
+          <label for="${config.elements.autoAdd}" class="checkbox-label">
+            <input type="checkbox" id="${config.elements.autoAdd}" class="auto-add-checkbox" />
+            Auto-add to todo list when low
+          </label>
 
-        <div class="form-group auto-add-section">
-        <label for="${config.elements.autoAdd}" class="checkbox-label">
-          <input type="checkbox" id="${config.elements.autoAdd}" class="auto-add-checkbox" />
-          Auto-add to todo list when low
-        </label>
-
-        <div class="auto-add-controls" data-checkbox="${config.elements.autoAdd}">
-          <div class="form-row">
-            <div class="input-group">
-              <label for="${config.elements.threshold}">Threshold *</label>
-              <input 
-                type="number" 
-                id="${config.elements.threshold}" 
-                ${config.defaults?.threshold ? `value="${config.defaults.threshold}"` : ''} 
-                min="0"
-                class="auto-add-required"
-              />
-            </div>
-            
-            <div class="input-group">
-              <label for="${config.elements.todoList}">Todo List *</label>
-              <select id="${config.elements.todoList}" class="auto-add-required">
-                <option value="">Select list...</option>
-                ${todoLists.map((list) => `<option value="${list.id}">${list.name}</option>`).join('')}
-              </select>
+          <div class="auto-add-controls" data-checkbox="${config.elements.autoAdd}">
+            <div class="form-row">
+              <div class="input-group">
+                <label for="${config.elements.threshold}">Threshold *</label>
+                <input 
+                  type="number" 
+                  id="${config.elements.threshold}" 
+                  ${config.defaults?.threshold ? `value="${config.defaults.threshold}"` : ''} 
+                  min="0"
+                  class="auto-add-required"
+                />
+              </div>
+              
+              <div class="input-group">
+                <label for="${config.elements.todoList}">Todo List *</label>
+                <select id="${config.elements.todoList}" class="auto-add-required">
+                  <option value="">Select list...</option>
+                  ${todoLists.map((list) => `<option value="${list.id}">${list.name}</option>`).join('')}
+                </select>
+              </div>
             </div>
           </div>
         </div>
-      </div>>
         
         <div class="modal-buttons">
           <button ${config.primaryButtonId ? `id="${config.primaryButtonId}"` : ''} class="primary-btn">${config.primaryButtonText}</button>
