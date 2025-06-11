@@ -227,13 +227,14 @@ export function createUnifiedModal(todoLists: TodoList[], config: ModalConfig): 
             <input type="date" id="${config.elements.expiry}" />
           </div>
           
-        </div<div class="form-group auto-add-section">
+        </div>
 
+        <div class="form-group auto-add-section">
         <label for="${config.elements.autoAdd}" class="checkbox-label">
           <input type="checkbox" id="${config.elements.autoAdd}" class="auto-add-checkbox" />
           Auto-add to todo list when low
         </label>
-        
+
         <div class="auto-add-controls" data-checkbox="${config.elements.autoAdd}">
           <div class="form-row">
             <div class="input-group">
