@@ -10,27 +10,83 @@ export const styles = `
     border-bottom: 1px solid var(--divider-color);
   }
 
-  /* Hide the auto-add controls by default */
   .auto-add-controls {
     display: none;
+    margin-top: 16px;
+    padding: 16px;
+    background: var(--secondary-background-color, #f8f9fa);
+    border-radius: 8px;
+    border: 1px solid var(--divider-color, #e9ecef);
   }
 
-  /* Show the controls when the checkbox is checked */
-  #item-auto-add:checked ~ .auto-add-controls {
-    display: flex;
+  [id*="auto-add"]:checked ~ .auto-add-controls {
+    display: block;
   }
 
-  /* Style the checkbox and label */
+  .auto-add-section {
+    margin-bottom: 20px;
+  }
+
+  .auto-add-section input[type="checkbox"] {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--primary-color);
+    border-radius: 4px;
+    background: var(--card-background-color);
+    cursor: pointer;
+    position: relative;
+    margin-right: 12px;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  .auto-add-section input[type="checkbox"]:checked {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+  }
+
+  .auto-add-section input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--text-primary-color, white);
+    font-size: 14px;
+    font-weight: bold;
+  }
+
+  .auto-add-section input[type="checkbox"]:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(var(--rgb-primary-color, 25, 118, 210), 0.1);
+  }
+
   .checkbox-label {
     cursor: pointer;
-    margin-left: 8px;
-    display: inline-block;
-    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    font-size: 0.95em;
+    color: var(--primary-text-color);
+    font-weight: 500;
+    margin-bottom: 0;
+    line-height: 1.4;
   }
 
-  /* Optional: Add some spacing to the checkbox */
-  #item-auto-add {
-    margin-right: 4px;
+  /* Auto-add controls section styling */
+  .auto-add-controls .form-row {
+    gap: 16px;
+  }
+
+  .auto-add-controls::before {
+    content: "Auto-add Settings";
+    display: block;
+    font-size: 0.9em;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
   }
 
   .inventory-title {
@@ -79,25 +135,6 @@ export const styles = `
   .add-new-btn:active {
     transform: translateY(0);
   }
-
-  .add-new-btn {
-    width: 100%;
-    padding: 16px;
-    margin-top: 16px;
-    background: var(--primary-color);
-    color: var(--text-primary-color, white);
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-
-  .add-new-btn:hover {
-    opacity: 0.9;
-    transform: translateY(-1px);
-  }  
 
   .item-row {
     display: flex;
@@ -192,20 +229,20 @@ export const styles = `
   }
   
   .form-group {
-    margin-bottom: 16px;
+    margin-bottom: 20px;
   }
   
   .form-label {
     display: block;
-    font-weight: bold;
-    margin-bottom: 4px;
+    font-weight: 600;
+    margin-bottom: 6px;
     color: var(--primary-text-color);
     font-size: 0.9em;
   }
   
   .form-row {
     display: flex;
-    gap: 8px;
+    gap: 12px;
     margin-bottom: 8px;
     flex-wrap: wrap;
   }
@@ -219,18 +256,13 @@ export const styles = `
     font-size: 16px;
     background: var(--card-background-color);
     color: var(--primary-text-color);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
   }
   
   input:focus, select:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 2px rgba(var(--rgb-primary-color), 0.2);
-  }
-  
-  input[type="checkbox"] {
-    width: auto;
-    flex: none;
-    margin-right: 8px;
+    box-shadow: 0 0 0 3px rgba(var(--rgb-primary-color), 0.1);
   }
   
   input[type="number"].small {
@@ -248,6 +280,7 @@ export const styles = `
     font-size: 14px;
     white-space: nowrap;
     transition: all 0.2s ease;
+    font-weight: 500;
   }
   
   button:hover {
@@ -289,25 +322,16 @@ export const styles = `
     padding: 20px;
   }
   
-  .checkbox-label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.9em;
-    color: var(--primary-text-color);
-    cursor: pointer;
-  }
-  
   .input-group {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 6px;
   }
   
   .input-group label {
-    font-size: 0.8em;
+    font-size: 0.85em;
     color: var(--secondary-text-color);
-    font-weight: normal;
+    font-weight: 500;
   }
   
   /* Modal Styles */
@@ -320,6 +344,7 @@ export const styles = `
     width: 100%;
     height: 100%;
     background-color: rgba(0,0,0,0.5);
+    backdrop-filter: blur(2px);
   }
   
   .modal.show {
@@ -330,39 +355,46 @@ export const styles = `
   
   .modal-content {
     background-color: var(--card-background-color);
-    padding: 20px;
+    padding: 24px;
     border-radius: 12px;
     width: 90%;
     max-width: 500px;
-    max-height: 80vh;
+    max-height: 85vh;
     overflow-y: auto;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
   }
   
   .modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid var(--divider-color);
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--divider-color);
+  }
+  
+  .modal-header h3 {
+    font-size: 1.4em;
+    font-weight: 600;
+    color: var(--primary-text-color);
+    margin: 0;
   }
   
   .modal-title {
-    font-size: 1.3em;
-    font-weight: bold;
+    font-size: 1.4em;
+    font-weight: 600;
     color: var(--primary-text-color);
   }
   
- .close-btn {
+  .close-btn {
     background: transparent;
     border: none;
     font-size: 24px;
     cursor: pointer;
     color: var(--secondary-text-color);
-    padding: 4px;
-    width: 32px;
-    height: 32px;
+    padding: 6px;
+    width: 36px;
+    height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -379,15 +411,15 @@ export const styles = `
   .modal-buttons {
     display: flex;
     gap: 12px;
-    margin-top: 20px;
+    margin-top: 24px;
     justify-content: flex-end;
   }
   
- .modal-buttons button {
-    padding: 12px 20px;
-    min-width: 80px;
+  .modal-buttons button {
+    padding: 12px 24px;
+    min-width: 100px;
     border-radius: 8px;
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
   }
@@ -405,7 +437,7 @@ export const styles = `
   }
 
   .search-controls {
-    margin-bottom: 20px; /* Increased space after search controls */
+    margin-bottom: 20px;
     padding: 12px;
     background: var(--secondary-background-color, #f5f5f5);
     border-radius: 8px;
@@ -413,14 +445,14 @@ export const styles = `
 
   .search-row {
     display: flex;
-    gap: 12px; /* More space between search input and filters button */
+    gap: 12px;
     align-items: center;
     margin-bottom: 0;
   }
 
   .search-row input {
     flex: 1;
-    min-width: 0; /* Allows the input to shrink properly */
+    min-width: 0;
   }
 
   .toggle-btn {
@@ -439,7 +471,7 @@ export const styles = `
     opacity: 0.9;
   }
 
- .sorting-controls {
+  .sorting-controls {
     margin-bottom: 20px;
     padding: 12px;
     background: var(--secondary-background-color, #f5f5f5);
@@ -484,7 +516,7 @@ export const styles = `
 
   .filter-row {
     display: flex;
-    gap: 16px; /* More space between filter groups */
+    gap: 16px;
     margin-bottom: 12px;
     flex-wrap: wrap;
   }
@@ -566,6 +598,16 @@ export const styles = `
     .add-new-btn {
       width: 100%;
       margin-top: 8px;
+    }
+
+    .modal-content {
+      padding: 20px;
+      margin: 16px;
+      width: calc(100% - 32px);
+    }
+
+    .form-row {
+      flex-direction: column;
     }
   }
   
