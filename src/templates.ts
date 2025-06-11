@@ -4,6 +4,28 @@ import { TodoList } from './types/todoList';
 import { FilterState } from './types/filterState';
 import { Utils } from './utils/utils';
 
+interface ModalConfig {
+  id: string;
+  title: string;
+  primaryButtonText: string;
+  primaryButtonId?: string;
+  closeAction?: string;
+  elements: {
+    name: string;
+    quantity: string;
+    unit: string;
+    category: string;
+    expiry: string;
+    autoAdd: string;
+    threshold: string;
+    todoList: string;
+  };
+  defaults?: {
+    quantity?: number;
+    threshold?: number;
+  };
+}
+
 export function createItemRowTemplate(item: InventoryItem, todoLists: TodoList[]): string {
   const getTodoListName = (entityId: string): string => {
     const list = todoLists.find((l) => l.entity_id === entityId || l.id === entityId);
@@ -168,146 +190,117 @@ export function createItemsByCategory(items: InventoryItem[], todoLists: TodoLis
     .join('');
 }
 
-export function createAddModal(todoLists: TodoList[]): string {
+export function createUnifiedModal(todoLists: TodoList[], config: ModalConfig): string {
   return `
-    <div id="${ELEMENTS.ADD_MODAL}" class="modal">
+    <div id="${config.id}" class="modal">
       <div class="modal-content">
         <div class="modal-header">
-          <h3>Add Item</h3>
-          <button class="${CSS_CLASSES.CLOSE_BTN}" data-action="${ACTIONS.CLOSE_ADD_MODAL}">×</button>
+          <h3>${config.title}</h3>
+          <button class="${CSS_CLASSES.CLOSE_BTN}" ${config.closeAction ? `data-action="${config.closeAction}"` : ''}>×</button>
         </div>
 
         <div class="modal-body">
-          <div class="input-group">
-            <label for="${ELEMENTS.ITEM_NAME}">Name *</label>
-            <input type="text" id="${ELEMENTS.ITEM_NAME}" required />
+          <div class="form-group">
+            <label for="${config.elements.name}" class="form-label">Name *</label>
+            <input type="text" id="${config.elements.name}" required />
           </div>
           
-          <div class="input-row">
+          <div class="form-row">
             <div class="input-group">
-              <label for="${ELEMENTS.ITEM_QUANTITY}">Quantity</label>
-              <input type="number" id="${ELEMENTS.ITEM_QUANTITY}" value="${DEFAULTS.QUANTITY}" min="0" />
+              <label for="${config.elements.quantity}">Quantity</label>
+              <input type="number" id="${config.elements.quantity}" ${config.defaults?.quantity ? `value="${config.defaults.quantity}"` : ''} min="0" />
             </div>
             
             <div class="input-group">
-              <label for="${ELEMENTS.ITEM_UNIT}">Unit</label>
-              <input type="text" id="${ELEMENTS.ITEM_UNIT}" placeholder="kg, pcs, etc." />
+              <label for="${config.elements.unit}">Unit</label>
+              <input type="text" id="${config.elements.unit}" placeholder="kg, pcs, etc." />
             </div>
           </div>
           
-          <div class="input-group">
-            <label for="${ELEMENTS.ITEM_CATEGORY}">Category</label>
-            <input type="text" id="${ELEMENTS.ITEM_CATEGORY}" placeholder="Food, Cleaning, etc." />
+          <div class="form-group">
+            <label for="${config.elements.category}" class="form-label">Category</label>
+            <input type="text" id="${config.elements.category}" placeholder="Food, Cleaning, etc." />
           </div>
           
-          <div class="input-group">
-            <label for="${ELEMENTS.ITEM_EXPIRY}">Expiry Date</label>
-            <input type="date" id="${ELEMENTS.ITEM_EXPIRY}" />
+          <div class="form-group">
+            <label for="${config.elements.expiry}" class="form-label">Expiry Date</label>
+            <input type="date" id="${config.elements.expiry}" />
           </div>
           
-          <div class="auto-add-section">
-            <input type="checkbox" id="${ELEMENTS.ITEM_AUTO_ADD}" />
-            <label for="${ELEMENTS.ITEM_AUTO_ADD}" class="checkbox-label">
+          <div class="form-group auto-add-section">
+            <input type="checkbox" id="${config.elements.autoAdd}" class="auto-add-checkbox" />
+            <label for="${config.elements.autoAdd}" class="checkbox-label">
               Auto-add to todo list when low
             </label>
             
-            <div class="input-row auto-add-controls">
-              <div class="input-group">
-                <label for="${ELEMENTS.ITEM_THRESHOLD}">Threshold</label>
-                <input type="number" id="${ELEMENTS.ITEM_THRESHOLD}" value="${DEFAULTS.THRESHOLD}" min="0" />
-              </div>
-              
-              <div class="input-group">
-                <label for="${ELEMENTS.ITEM_TODO_LIST}">Todo List</label>
-                <select id="${ELEMENTS.ITEM_TODO_LIST}">
-                  <option value="">Select list...</option>
-                  ${todoLists
-                    .map((list) => `<option value="${list.id}">${list.name}</option>`)
-                    .join('')}
-                </select>
+            <div class="auto-add-controls" data-checkbox="${config.elements.autoAdd}">
+              <div class="form-row">
+                <div class="input-group">
+                  <label for="${config.elements.threshold}">Threshold</label>
+                  <input type="number" id="${config.elements.threshold}" ${config.defaults?.threshold ? `value="${config.defaults.threshold}"` : ''} min="0" />
+                </div>
+                
+                <div class="input-group">
+                  <label for="${config.elements.todoList}">Todo List</label>
+                  <select id="${config.elements.todoList}">
+                    <option value="">Select list...</option>
+                    ${todoLists
+                      .map((list) => `<option value="${list.id}">${list.name}</option>`)
+                      .join('')}
+                  </select>
+                </div>
               </div>
             </div>
           </div>
         </div>
         
         <div class="modal-buttons">
-          <button id="${ELEMENTS.ADD_ITEM_BTN}" class="save-btn">Add Item</button>
-          <button class="cancel-btn" data-action="${ACTIONS.CLOSE_ADD_MODAL}">Cancel</button>
+          <button ${config.primaryButtonId ? `id="${config.primaryButtonId}"` : ''} class="primary-btn">${config.primaryButtonText}</button>
+          <button class="cancel-btn" ${config.closeAction ? `data-action="${config.closeAction}"` : ''}>Cancel</button>
         </div>
       </div>
     </div>
   `;
 }
 
-export function createSettingsModal(todoLists: TodoList[]): string {
-  return `
-    <div id="${ELEMENTS.SETTINGS_MODAL}" class="modal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3>Edit Item</h3>
-          <button class="${CSS_CLASSES.CLOSE_BTN}">×</button>
-        </div>
+export function createAddModal(todoLists: TodoList[]): string {
+  return createUnifiedModal(todoLists, {
+    id: ELEMENTS.ADD_MODAL,
+    title: 'Add Item',
+    primaryButtonText: 'Add Item',
+    primaryButtonId: ELEMENTS.ADD_ITEM_BTN,
+    closeAction: ACTIONS.CLOSE_ADD_MODAL,
+    elements: {
+      name: ELEMENTS.ITEM_NAME,
+      quantity: ELEMENTS.ITEM_QUANTITY,
+      unit: ELEMENTS.ITEM_UNIT,
+      category: ELEMENTS.ITEM_CATEGORY,
+      expiry: ELEMENTS.ITEM_EXPIRY,
+      autoAdd: ELEMENTS.ITEM_AUTO_ADD,
+      threshold: ELEMENTS.ITEM_THRESHOLD,
+      todoList: ELEMENTS.ITEM_TODO_LIST,
+    },
+    defaults: {
+      quantity: DEFAULTS.QUANTITY,
+      threshold: DEFAULTS.THRESHOLD,
+    },
+  });
+}
 
-        <div class="modal-body">
-          <div class="input-group">
-            <label for="${ELEMENTS.MODAL_ITEM_NAME}">Name *</label>
-            <input type="text" id="${ELEMENTS.MODAL_ITEM_NAME}" required />
-          </div>
-          
-          <div class="input-row">
-            <div class="input-group">
-              <label for="${ELEMENTS.MODAL_ITEM_QUANTITY}">Quantity</label>
-              <input type="number" id="${ELEMENTS.MODAL_ITEM_QUANTITY}" min="0" />
-            </div>
-            
-            <div class="input-group">
-              <label for="${ELEMENTS.MODAL_ITEM_UNIT}">Unit</label>
-              <input type="text" id="${ELEMENTS.MODAL_ITEM_UNIT}" />
-            </div>
-          </div>
-          
-          <div class="input-group">
-            <label for="${ELEMENTS.MODAL_ITEM_CATEGORY}">Category</label>
-            <input type="text" id="${ELEMENTS.MODAL_ITEM_CATEGORY}" />
-          </div>
-          
-          <div class="input-group">
-            <label for="${ELEMENTS.MODAL_ITEM_EXPIRY}">Expiry Date</label>
-            <input type="date" id="${ELEMENTS.MODAL_ITEM_EXPIRY}" />
-          </div>
-          
-          <div class="auto-add-section">
-            <div class="input-group">
-              <label>
-                <input type="checkbox" id="${ELEMENTS.MODAL_AUTO_ADD}" />
-                Auto-add to todo list when low
-              </label>
-            </div>
-            
-            <div class="input-row">
-              <div class="input-group">
-                <label for="${ELEMENTS.MODAL_THRESHOLD}">Threshold</label>
-                <input type="number" id="${ELEMENTS.MODAL_THRESHOLD}" min="0" />
-              </div>
-              
-              <div class="input-group">
-                <label for="${ELEMENTS.MODAL_TODO_LIST}">Todo List</label>
-                <select id="${ELEMENTS.MODAL_TODO_LIST}">
-                  <option value="">Select list...</option>
-                  ${todoLists
-                    .map((list) => `<option value="${list.id}">${list.name}</option>`)
-                    .join('')}
-                </select>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="modal-buttons">
-          <button class="save-btn">Save Changes</button>
-          <button class="cancel-btn">Cancel</button>
-        </div>
-      </div>
-    </div>
-  `;
+export function createSettingsModal(todoLists: TodoList[]): string {
+  return createUnifiedModal(todoLists, {
+    id: ELEMENTS.SETTINGS_MODAL,
+    title: 'Edit Item',
+    primaryButtonText: 'Save Changes',
+    elements: {
+      name: ELEMENTS.MODAL_ITEM_NAME,
+      quantity: ELEMENTS.MODAL_ITEM_QUANTITY,
+      unit: ELEMENTS.MODAL_ITEM_UNIT,
+      category: ELEMENTS.MODAL_ITEM_CATEGORY,
+      expiry: ELEMENTS.MODAL_ITEM_EXPIRY,
+      autoAdd: ELEMENTS.MODAL_AUTO_ADD,
+      threshold: ELEMENTS.MODAL_THRESHOLD,
+      todoList: ELEMENTS.MODAL_TODO_LIST,
+    },
+  });
 }

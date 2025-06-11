@@ -1,5 +1,3 @@
-import { ELEMENTS } from '../utils/constants.ts';
-
 export const styles = `
   ha-card {
     padding: 16px;
@@ -13,80 +11,98 @@ export const styles = `
   .auto-add-controls {
     display: none;
     margin-top: 16px;
-    padding: 16px;
-    background: var(--secondary-background-color, #f8f9fa);
-    border-radius: 8px;
+    padding: 20px;
+    background: var(--secondary-background-color, rgba(var(--rgb-primary-color), 0.05));
+    border-radius: 12px;
     border: 1px solid var(--divider-color, #e9ecef);
+    position: relative;
   }
 
-  [id*="auto-add"]:checked ~ .auto-add-controls {
+  .auto-add-controls::before {
+    content: "Auto-add Settings";
+    display: block;
+    font-size: 0.85em;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .auto-add-checkbox:checked ~ .auto-add-controls,
+  input[id*="auto"]:checked ~ .auto-add-controls,
+  input[id*="AUTO_ADD"]:checked ~ .auto-add-controls {
     display: block;
   }
 
-  .auto-add-section {
-    margin-bottom: 20px;
-  }
-
-  .auto-add-section input[type="checkbox"] {
+  .auto-add-checkbox,
+  input[id*="auto"][type="checkbox"],
+  input[id*="AUTO_ADD"][type="checkbox"] {
     appearance: none;
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
     border: 2px solid var(--primary-color);
-    border-radius: 4px;
+    border-radius: 6px;
     background: var(--card-background-color);
     cursor: pointer;
     position: relative;
-    margin-right: 12px;
-    transition: all 0.2s ease;
+    margin: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     flex-shrink: 0;
   }
 
-  .auto-add-section input[type="checkbox"]:checked {
+  .auto-add-checkbox:checked,
+  input[id*="auto"][type="checkbox"]:checked,
+  input[id*="AUTO_ADD"][type="checkbox"]:checked {
     background: var(--primary-color);
     border-color: var(--primary-color);
+    transform: scale(1.05);
   }
 
-  .auto-add-section input[type="checkbox"]:checked::after {
+  .auto-add-checkbox:checked::after,
+  input[id*="auto"][type="checkbox"]:checked::after,
+  input[id*="AUTO_ADD"][type="checkbox"]:checked::after {
     content: '✓';
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%) scale(1);
     color: var(--text-primary-color, white);
     font-size: 14px;
     font-weight: bold;
+    animation: checkmark 0.2s ease-in-out;
   }
 
-  .auto-add-section input[type="checkbox"]:hover {
+  @keyframes checkmark {
+    0% { transform: translate(-50%, -50%) scale(0); }
+    50% { transform: translate(-50%, -50%) scale(1.2); }
+    100% { transform: translate(-50%, -50%) scale(1); }
+  }
+
+  .auto-add-checkbox:hover,
+  input[id*="auto"][type="checkbox"]:hover,
+  input[id*="AUTO_ADD"][type="checkbox"]:hover {
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 2px rgba(var(--rgb-primary-color, 25, 118, 210), 0.1);
+    box-shadow: 0 0 0 3px rgba(var(--rgb-primary-color, 25, 118, 210), 0.1);
   }
 
   .checkbox-label {
     cursor: pointer;
     display: flex;
     align-items: center;
+    gap: 12px;
     font-size: 0.95em;
     color: var(--primary-text-color);
     font-weight: 500;
-    margin-bottom: 0;
-    line-height: 1.4;
+    margin: 0;
+    line-height: 1.5;
+    padding: 4px 0;
   }
 
-  /* Auto-add controls section styling */
-  .auto-add-controls .form-row {
-    gap: 16px;
-  }
-
-  .auto-add-controls::before {
-    content: "Auto-add Settings";
-    display: block;
-    font-size: 0.9em;
-    font-weight: 600;
-    color: var(--primary-color);
-    margin-bottom: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+  .auto-add-section {
+    border-top: 1px solid var(--divider-color);
+    padding-top: 20px;
+    margin-top: 8px;
   }
 
   .inventory-title {
