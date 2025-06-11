@@ -8,114 +8,6 @@ export const styles = `
     border-bottom: 1px solid var(--divider-color);
   }
 
-  .auto-add-controls {
-    display: none;
-    margin-top: 16px;
-    padding: 20px;
-    background: var(--secondary-background-color, rgba(var(--rgb-primary-color), 0.05));
-    border-radius: 12px;
-    border: 1px solid var(--divider-color, #e9ecef);
-    position: relative;
-  }
-
-  .auto-add-controls::before {
-    content: "Auto-add Settings";
-    display: block;
-    font-size: 0.85em;
-    font-weight: 600;
-    color: var(--primary-color);
-    margin-bottom: 16px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  .auto-add-checkbox:checked ~ .auto-add-controls,
-  input[id*="auto"]:checked ~ .auto-add-controls,
-  input[id*="AUTO_ADD"]:checked ~ .auto-add-controls {
-    display: block;
-  }
-
-  .auto-add-checkbox,
-  input[id*="auto"][type="checkbox"],
-  input[id*="AUTO_ADD"][type="checkbox"] {
-    appearance: none;
-    width: 22px;
-    height: 22px;
-    border: 2px solid var(--primary-color);
-    border-radius: 6px;
-    background: var(--card-background-color);
-    cursor: pointer;
-    position: relative;
-    margin: 0;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    flex-shrink: 0;
-  }
-
-  .auto-add-checkbox:checked,
-  input[id*="auto"][type="checkbox"]:checked,
-  input[id*="AUTO_ADD"][type="checkbox"]:checked {
-    background: var(--primary-color);
-    border-color: var(--primary-color);
-    transform: scale(1.05);
-  }
-
-  .auto-add-checkbox:checked::after,
-  input[id*="auto"][type="checkbox"]:checked::after,
-  input[id*="AUTO_ADD"][type="checkbox"]:checked::after {
-    content: '✓';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(1);
-    color: var(--text-primary-color, white);
-    font-size: 14px;
-    font-weight: bold;
-    animation: checkmark 0.2s ease-in-out;
-  }
-
-  @keyframes checkmark {
-    0% { transform: translate(-50%, -50%) scale(0); }
-    50% { transform: translate(-50%, -50%) scale(1.2); }
-    100% { transform: translate(-50%, -50%) scale(1); }
-  }
-
-  .auto-add-checkbox:hover,
-  input[id*="auto"][type="checkbox"]:hover,
-  input[id*="AUTO_ADD"][type="checkbox"]:hover {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(var(--rgb-primary-color, 25, 118, 210), 0.1);
-  }
-
-  .checkbox-label {
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-size: 0.95em;
-    color: var(--primary-text-color);
-    font-weight: 500;
-    margin: 0 0 16px 0;
-    line-height: 1.5;
-    padding: 4px 0;
-  }
-
-  .auto-add-required {
-    border-color: var(--primary-color) !important;
-  }
-
-  .auto-add-controls label:has(+ .auto-add-required)::after,
-  .auto-add-controls .input-group:has(.auto-add-required) label::after {
-    content: " *";
-    color: var(--error-color, #f44336);
-    font-weight: bold;
-  }
-
-  .auto-add-section {
-    border-top: 1px solid var(--divider-color);
-    padding-top: 20px;
-    margin-top: 8px;
-  }
-
   .inventory-title {
     margin: 0;
     font-size: 1.3em;
@@ -262,57 +154,185 @@ export const styles = `
   .form-label {
     display: block;
     font-weight: 600;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
     color: var(--primary-text-color);
     font-size: 0.9em;
   }
   
   .form-row {
     display: flex;
-    gap: 12px;
-    margin-bottom: 8px;
+    gap: 16px;
+    margin-bottom: 0;
     flex-wrap: wrap;
   }
   
-  input, select {
-    padding: 12px;
-    border: 1px solid var(--divider-color);
-    border-radius: 8px;
+  .input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
     flex: 1;
-    min-width: 0;
+    min-width: 120px;
+  }
+  
+  .input-group label {
+    font-size: 0.85em;
+    color: var(--secondary-text-color);
+    font-weight: 500;
+  }
+  
+  /* Fixed: Exclude checkboxes from general input styling */
+  input:not([type="checkbox"]), select {
+    padding: 14px 16px;
+    border: 2px solid var(--divider-color);
+    border-radius: 8px;
     font-size: 16px;
     background: var(--card-background-color);
     color: var(--primary-text-color);
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 100%;
+    box-sizing: border-box;
   }
   
-  input:focus, select:focus {
+  input:not([type="checkbox"]):focus, select:focus {
     outline: none;
     border-color: var(--primary-color);
     box-shadow: 0 0 0 3px rgba(var(--rgb-primary-color), 0.1);
+    transform: translateY(-1px);
   }
   
-  input[type="number"].small {
-    width: 100px;
-    flex: none;
+  input::placeholder {
+    color: var(--secondary-text-color);
+    opacity: 0.7;
+  }
+
+  /* Fixed checkbox styling with higher specificity */
+  input[type="checkbox"] {
+    appearance: none !important;
+    width: 20px !important;
+    height: 20px !important;
+    border: 2px solid var(--primary-color) !important;
+    border-radius: 4px !important;
+    background: var(--card-background-color) !important;
+    cursor: pointer !important;
+    position: relative !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    flex-shrink: 0 !important;
+  }
+
+  input[type="checkbox"]:checked {
+    background: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+    transform: scale(1.05) !important;
+  }
+
+  input[type="checkbox"]:checked::after {
+    content: '✓' !important;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) scale(1) !important;
+    color: var(--text-primary-color, white) !important;
+    font-size: 12px !important;
+    font-weight: bold !important;
+    animation: checkmark 0.2s ease-in-out !important;
+  }
+
+  @keyframes checkmark {
+    0% { transform: translate(-50%, -50%) scale(0); }
+    50% { transform: translate(-50%, -50%) scale(1.2); }
+    100% { transform: translate(-50%, -50%) scale(1); }
+  }
+
+  input[type="checkbox"]:hover {
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 3px rgba(var(--rgb-primary-color, 25, 118, 210), 0.1) !important;
+  }
+
+  .checkbox-label {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.95em;
+    color: var(--primary-text-color);
+    font-weight: 500;
+    margin: 0 0 16px 0;
+    line-height: 1.5;
+    padding: 4px 0;
+  }
+
+  /* Auto-add section styling */
+  .auto-add-section {
+    border-top: 1px solid var(--divider-color);
+    padding-top: 20px;
+    margin-top: 8px;
+  }
+
+  /* Fixed auto-add controls with multiple selectors */
+  .auto-add-controls {
+    display: none;
+    margin-top: 16px;
+    padding: 20px;
+    background: var(--secondary-background-color, rgba(var(--rgb-primary-color), 0.05));
+    border-radius: 12px;
+    border: 1px solid var(--divider-color, #e9ecef);
+  }
+
+  .auto-add-controls::before {
+    content: "Auto-add Settings";
+    display: block;
+    font-size: 0.85em;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* Multiple selectors to catch different checkbox IDs */
+  input[type="checkbox"]:checked ~ .auto-add-controls,
+  input[id*="auto"]:checked ~ .auto-add-controls,
+  input[id*="AUTO_ADD"]:checked ~ .auto-add-controls,
+  #item-auto-add:checked ~ .auto-add-controls,
+  #modal-auto-add:checked ~ .auto-add-controls {
+    display: block !important;
+  }
+
+  /* Required field styling for auto-add controls */
+  .auto-add-required {
+    border-color: var(--primary-color) !important;
+  }
+
+  .auto-add-controls label:has(+ .auto-add-required)::after,
+  .auto-add-controls .input-group:has(.auto-add-required) label::after {
+    content: " *";
+    color: var(--error-color, #f44336);
+    font-weight: bold;
   }
   
   button {
-    padding: 12px 16px;
-    background: var(--primary-color);
-    color: var(--text-primary-color);
+    padding: 14px 24px;
     border: none;
     border-radius: 8px;
     cursor: pointer;
     font-size: 14px;
+    font-weight: 600;
     white-space: nowrap;
-    transition: all 0.2s ease;
-    font-weight: 500;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    min-height: 48px;
   }
   
-  button:hover {
+  .primary-btn, .save-btn {
+    background: var(--primary-color);
+    color: var(--text-primary-color, white);
+  }
+  
+  .primary-btn:hover, .save-btn:hover {
     opacity: 0.9;
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(var(--rgb-primary-color), 0.3);
   }
   
   .control-btn {
@@ -349,18 +369,6 @@ export const styles = `
     padding: 20px;
   }
   
-  .input-group {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-  
-  .input-group label {
-    font-size: 0.85em;
-    color: var(--secondary-text-color);
-    font-weight: 500;
-  }
-  
   /* Modal Styles */
   .modal {
     display: none;
@@ -370,8 +378,8 @@ export const styles = `
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0,0,0,0.5);
-    backdrop-filter: blur(2px);
+    background-color: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
   }
   
   .modal.show {
@@ -382,63 +390,65 @@ export const styles = `
   
   .modal-content {
     background-color: var(--card-background-color);
-    padding: 24px;
-    border-radius: 12px;
+    padding: 32px;
+    border-radius: 16px;
     width: 90%;
     max-width: 500px;
     max-height: 85vh;
     overflow-y: auto;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    position: relative;
   }
   
   .modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 24px;
-    padding-bottom: 12px;
+    margin-bottom: 28px;
+    padding-bottom: 16px;
     border-bottom: 2px solid var(--divider-color);
   }
   
   .modal-header h3 {
-    font-size: 1.4em;
-    font-weight: 600;
+    font-size: 1.5em;
+    font-weight: 700;
     color: var(--primary-text-color);
     margin: 0;
   }
   
   .modal-title {
-    font-size: 1.4em;
-    font-weight: 600;
+    font-size: 1.5em;
+    font-weight: 700;
     color: var(--primary-text-color);
   }
   
   .close-btn {
     background: transparent;
     border: none;
-    font-size: 24px;
+    font-size: 28px;
     cursor: pointer;
     color: var(--secondary-text-color);
-    padding: 6px;
-    width: 36px;
-    height: 36px;
+    padding: 8px;
+    width: 40px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 50%;
     transition: all 0.2s ease;
+    min-height: auto;
   }
 
   .close-btn:hover {
     background: var(--secondary-background-color);
     color: var(--primary-text-color);
-    transform: none;
+    transform: rotate(90deg);
   }
    
   .modal-buttons {
     display: flex;
-    gap: 12px;
-    margin-top: 24px;
+    gap: 16px;
+    margin-top: 32px;
     justify-content: flex-end;
   }
   
@@ -454,12 +464,11 @@ export const styles = `
   .cancel-btn {
     background: var(--secondary-background-color, #f0f0f0);
     color: var(--primary-text-color);
-    border: 1px solid var(--divider-color, #e0e0e0);
+    border: 2px solid var(--divider-color, #e0e0e0);
   }
 
   .cancel-btn:hover {
     background: var(--primary-background-color);
-    color: var(--primary-text-color);
     transform: translateY(-1px);
   }
 
@@ -628,13 +637,23 @@ export const styles = `
     }
 
     .modal-content {
-      padding: 20px;
+      padding: 24px;
       margin: 16px;
       width: calc(100% - 32px);
+      border-radius: 12px;
     }
 
     .form-row {
       flex-direction: column;
+      gap: 12px;
+    }
+
+    .modal-buttons {
+      flex-direction: column-reverse;
+    }
+
+    .modal-buttons button {
+      width: 100%;
     }
   }
   
