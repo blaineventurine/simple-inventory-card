@@ -8,6 +8,20 @@ on:
       - '**.md'
       - '.github/**'
       - '!.github/workflows/release.yml'
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: 'Release type'
+        required: true
+        default: 'release'
+        type: choice
+        options:
+          - release
+          - beta
+      beta_version:
+        description: 'Beta version suffix (e.g., beta.1, beta.2)'
+        required: false
+        default: 'beta.1'
 
 jobs:
   build_and_release:
@@ -34,6 +48,33 @@ jobs:
         id: package_version
         run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
 
+      - name: Determine release version and type
+        id: release_info
+        run: |
+          PACKAGE_VERSION="${{ steps.package_version.outputs.version }}"
+
+          # Check if this is a manual beta release
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.release_type }}" == "beta" ]]; then
+            RELEASE_VERSION="${PACKAGE_VERSION}-${{ github.event.inputs.beta_version }}"
+            IS_PRERELEASE="true"
+            echo "type=beta" >> $GITHUB_OUTPUT
+          # Check if package.json version contains beta/alpha/rc
+          elif [[ "$PACKAGE_VERSION" =~ (beta|alpha|rc) ]]; then
+            RELEASE_VERSION="$PACKAGE_VERSION"
+            IS_PRERELEASE="true"
+            echo "type=prerelease" >> $GITHUB_OUTPUT
+          else
+            RELEASE_VERSION="$PACKAGE_VERSION"
+            IS_PRERELEASE="false"
+            echo "type=release" >> $GITHUB_OUTPUT
+          fi
+
+          echo "version=$RELEASE_VERSION" >> $GITHUB_OUTPUT
+          echo "is_prerelease=$IS_PRERELEASE" >> $GITHUB_OUTPUT
+
+          echo "Release version: $RELEASE_VERSION"
+          echo "Is prerelease: $IS_PRERELEASE"
+
       - name: Debug
         run: echo "$(ls ./dist)"
 
@@ -42,7 +83,9 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          tag: v${{ steps.package_version.outputs.version }}
+          tag: v${{ steps.release_info.outputs.version }}
           file: ./dist/simple-inventory-card.js
           asset_name: simple-inventory-card.js
           overwrite: true
+          prerelease: ${{ steps.release_info.outputs.is_prerelease }}
+          release_name: ${{ steps.release_info.outputs.type == 'beta' && format('v{0} (Beta)', steps.release_info.outputs.version) || format('v{0}', steps.release_info.outputs.version) }}
