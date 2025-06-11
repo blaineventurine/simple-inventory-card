@@ -94,9 +94,20 @@ export const styles = `
     font-size: 0.95em;
     color: var(--primary-text-color);
     font-weight: 500;
-    margin: 0;
+    margin: 0 0 16px 0;
     line-height: 1.5;
     padding: 4px 0;
+  }
+
+  .auto-add-required {
+    border-color: var(--primary-color) !important;
+  }
+
+  .auto-add-controls label:has(+ .auto-add-required)::after,
+  .auto-add-controls .input-group:has(.auto-add-required) label::after {
+    content: " *";
+    color: var(--error-color, #f44336);
+    font-weight: bold;
   }
 
   .auto-add-section {

@@ -181,6 +181,12 @@ export class Modals {
 
   public async addItem(config: InventoryConfig): Promise<boolean> {
     try {
+      const autoAddValidation = this.validateAutoAddFields(true);
+      if (!autoAddValidation.isValid) {
+        this.showError(autoAddValidation.message || 'Please fill in required auto-add fields');
+        return false;
+      }
+
       const itemData = this.getAddModalData();
 
       const validation = Utils.validateItemData(itemData);
@@ -209,6 +215,12 @@ export class Modals {
 
   public async saveSettingsModal(config: InventoryConfig): Promise<boolean> {
     if (!this.currentSettingsItem) {
+      return false;
+    }
+
+    const autoAddValidation = this.validateAutoAddFields(false);
+    if (!autoAddValidation.isValid) {
+      this.showError(autoAddValidation.message || 'Please fill in required auto-add fields');
       return false;
     }
 
@@ -342,5 +354,43 @@ export class Modals {
 
   private showError(message: string): void {
     alert(message);
+  }
+
+  private validateAutoAddFields(isAddModal = true): { isValid: boolean; message?: string } {
+    const autoAddElementId = isAddModal ? ELEMENTS.ITEM_AUTO_ADD : ELEMENTS.MODAL_AUTO_ADD;
+    const thresholdElementId = isAddModal ? ELEMENTS.ITEM_THRESHOLD : ELEMENTS.MODAL_THRESHOLD;
+    const todoListElementId = isAddModal ? ELEMENTS.ITEM_TODO_LIST : ELEMENTS.MODAL_TODO_LIST;
+
+    const autoAddCheckbox = this.getElement<HTMLInputElement>(autoAddElementId);
+
+    if (!autoAddCheckbox?.checked) {
+      return { isValid: true }; // No validation needed if auto-add is disabled
+    }
+
+    const thresholdInput = this.getElement<HTMLInputElement>(thresholdElementId);
+    const todoListSelect = this.getElement<HTMLSelectElement>(todoListElementId);
+
+    // Reset any previous error styling
+    if (thresholdInput) thresholdInput.style.borderColor = '';
+    if (todoListSelect) todoListSelect.style.borderColor = '';
+
+    let isValid = true;
+    let message = '';
+
+    if (!thresholdInput?.value || parseFloat(thresholdInput.value) < 0) {
+      if (thresholdInput) thresholdInput.style.borderColor = 'var(--error-color)';
+      message = 'Threshold amount is required when auto-add is enabled';
+      isValid = false;
+    }
+
+    if (!todoListSelect?.value) {
+      if (todoListSelect) todoListSelect.style.borderColor = 'var(--error-color)';
+      message = isValid
+        ? 'Todo list selection is required when auto-add is enabled'
+        : 'Threshold and Todo list are required when auto-add is enabled';
+      isValid = false;
+    }
+
+    return { isValid, message };
   }
 }
