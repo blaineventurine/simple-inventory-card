@@ -192,22 +192,19 @@ export class Utils {
    * @param dateString - ISO date string
    * @returns True if the date is expiring soon
    */
-  static isExpiringSoon(dateString: string | undefined): boolean {
-    if (!dateString) {
-      return false;
-    }
+  static isExpiringSoon(expiryDate: string, threshold: number = 7): boolean {
+    if (!expiryDate) return false;
 
     try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) {
-        return false;
-      }
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
 
-      const today = this.getStartOfDay(new Date());
-      const nextWeek = this.addDaysToDate(today, 7);
+      const expiry = new Date(expiryDate);
+      const diffTime = expiry.getTime() - today.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-      return date >= today && date <= nextWeek;
-    } catch (e) {
+      return diffDays >= 0 && diffDays <= threshold;
+    } catch {
       return false;
     }
   }

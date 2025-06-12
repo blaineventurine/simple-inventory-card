@@ -100,16 +100,19 @@ export class Filters {
         if (!item.expiry_date) {
           return false;
         }
-        return Utils.isExpiringSoon(item.expiry_date);
+        // Use per-item threshold instead of global threshold
+        const itemThreshold = item.threshold || 7;
+        return Utils.isExpiringSoon(item.expiry_date, itemThreshold);
 
       case FILTER_VALUES.EXPIRY.FUTURE:
         if (!item.expiry_date) {
           return false;
         }
         const futureDate = new Date(item.expiry_date);
-        const weekFromNow = new Date(today);
-        weekFromNow.setDate(today.getDate() + 7);
-        return futureDate > weekFromNow;
+        const itemThreshold2 = item.threshold || 7;
+        const thresholdDate = new Date(today);
+        thresholdDate.setDate(today.getDate() + itemThreshold2);
+        return futureDate > thresholdDate;
 
       default:
         return true;

@@ -40,7 +40,8 @@ export class Renderer {
       filters,
       sortMethod,
       categories,
-      todoLists
+      todoLists,
+      allItems
     );
   }
 
@@ -70,20 +71,73 @@ export class Renderer {
     `;
   }
 
+  private getExpiringItemsCount(items: InventoryItem[]): number {
+    return items.filter((item) => {
+      if (!item.expiry_date) return false;
+      const threshold = item.threshold || 7;
+      return Utils.isExpiringSoon(item.expiry_date, threshold);
+    }).length;
+  }
+
+  private getExpiredItemsCount(items: InventoryItem[]): number {
+    return items.filter((item) => {
+      if (!item.expiry_date) return false;
+      return Utils.isExpired(item.expiry_date);
+    }).length;
+  }
+
+  private createInventoryHeader(inventoryName: string, allItems: InventoryItem[]): string {
+    const expiringCount = this.getExpiringItemsCount(allItems);
+    const expiredCount = this.getExpiredItemsCount(allItems);
+
+    return `
+      <div class="card-header">
+        <h2 class="inventory-title">${Utils.sanitizeHtml(inventoryName)}</h2>
+        ${
+          expiredCount > 0 || expiringCount > 0
+            ? `
+          <div class="expiry-indicators">
+            ${
+              expiredCount > 0
+                ? `
+              <span class="expired-badge" title="${expiredCount} items expired">
+                <ha-icon icon="mdi:calendar-remove"></ha-icon>
+                ${expiredCount}
+              </span>
+            `
+                : ''
+            }
+            ${
+              expiringCount > 0
+                ? `
+              <span class="expiring-badge" title="${expiringCount} items expiring soon">
+                <ha-icon icon="mdi:calendar-alert"></ha-icon>
+                ${expiringCount}
+              </span>
+            `
+                : ''
+            }
+          </div>
+        `
+            : ''
+        }
+      </div>
+    `;
+  }
+
   private generateCardHTML(
     inventoryName: string,
     items: InventoryItem[],
     filters: FilterState,
     sortMethod: string,
     categories: string[],
-    todoLists: TodoList[]
+    todoLists: TodoList[],
+    allItems: readonly InventoryItem[]
   ): string {
     return `
       <style>${styles}</style>
       <ha-card>
-        <div class="card-header">
-          <h2 class="inventory-title">${Utils.sanitizeHtml(inventoryName)}</h2>
-        </div>
+        ${this.createInventoryHeader(inventoryName, allItems as InventoryItem[])}
         
         <div class="controls-row">
           <div class="sorting-controls">
