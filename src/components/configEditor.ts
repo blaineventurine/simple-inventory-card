@@ -8,7 +8,7 @@ class ConfigEditor extends LitElement {
 
   constructor() {
     super();
-    this._config = {};
+    this._config = { config: null, entity: '' };
   }
 
   static get properties() {

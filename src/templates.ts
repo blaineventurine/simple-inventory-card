@@ -1,31 +1,8 @@
-import { ELEMENTS, CSS_CLASSES, ACTIONS, DEFAULTS, MESSAGES } from './utils/constants';
+import { ELEMENTS, CSS_CLASSES, MESSAGES } from './utils/constants';
 import { InventoryItem } from './types/home-assistant';
 import { TodoList } from './types/todoList';
 import { FilterState } from './types/filterState';
 import { Utils } from './utils/utils';
-
-export interface ModalConfig {
-  id: string;
-  title: string;
-  primaryButtonText: string;
-  primaryButtonId?: string;
-  closeAction?: string;
-  elements: {
-    name: string;
-    quantity: string;
-    unit: string;
-    category: string;
-    expiry: string;
-    expiryThreshold: string;
-    autoAdd: string;
-    threshold: string; // This is the quantity threshold for auto-add
-    todoList: string;
-  };
-  defaults?: {
-    quantity?: number;
-    threshold?: number;
-  };
-}
 
 export function createItemRowTemplate(item: InventoryItem, todoLists: TodoList[]): string {
   const getTodoListName = (entityId: string): string => {
@@ -41,11 +18,11 @@ export function createItemRowTemplate(item: InventoryItem, todoLists: TodoList[]
           <span class="quantity">${item.quantity} ${item.unit || ''}</span>
           ${item.category ? `<span class="category">${item.category}</span>` : ''}
           ${item.expiry_date ? `<span class="expiry">Exp: ${item.expiry_date}</span>` : ''}
-          ${item.auto_add_enabled ? `<span class="auto-add-info">Auto-add at ≤${item.threshold || 0} → ${getTodoListName(item.todo_list || '')}</span>` : ''}
+          ${item.auto_add_enabled ? `<span class="auto-add-info">Auto-add at ≤${item.auto_add_to_list_quantity || 0} → ${getTodoListName(item.todo_list || '')}</span>` : ''}
         </div>
       </div>
       <div class="item-controls">
-        <button class="settings-btn" data-action="open_settings" data-name="${item.name}">⚙️</button>
+        <button class="edit-btn" data-action="open_edit" data-name="${item.name}">⚙️</button>
         <button class="control-btn" data-action="decrement" data-name="${item.name}" ${item.quantity === 0 ? 'disabled' : ''}>➖</button>
         <button class="control-btn" data-action="increment" data-name="${item.name}">➕</button>
         <button class="control-btn" data-action="remove" data-name="${item.name}">❌</button>
@@ -189,146 +166,4 @@ export function createItemsByCategory(items: InventoryItem[], todoLists: TodoLis
       `
     )
     .join('');
-}
-
-export function createUnifiedModal(todoLists: TodoList[], config: ModalConfig): string {
-  return `
-    <div id="${config.id}" class="modal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3>${config.title}</h3>
-          <button class="${CSS_CLASSES.CLOSE_BTN}" ${config.closeAction ? `data-action="${config.closeAction}"` : ''}>×</button>
-        </div>
-
-        <div class="modal-body">
-          <div class="form-group">
-            <label for="${config.elements.name}" class="form-label">Name *</label>
-            <input type="text" id="${config.elements.name}" required />
-          </div>
-          
-          <div class="form-row">
-            <div class="input-group">
-              <label for="${config.elements.quantity}">Quantity</label>
-              <input type="number" id="${config.elements.quantity}" ${config.defaults?.quantity ? `value="${config.defaults.quantity}"` : ''} min="0" />
-            </div>
-            
-            <div class="input-group">
-              <label for="${config.elements.unit}">Unit</label>
-              <input type="text" id="${config.elements.unit}" placeholder="kg, pcs, etc." />
-            </div>
-          </div>
-          
-          <div class="form-group">
-            <label for="${config.elements.category}" class="form-label">Category</label>
-            <input type="text" id="${config.elements.category}" placeholder="Food, Cleaning, etc." />
-          </div>
-          
-          <div class="form-group">
-            <label for="${config.elements.expiry}" class="form-label">Expiry Date</label>
-            <input type="date" id="${config.elements.expiry}" />
-          </div>
-          
-          <div class="form-group expiry-threshold-section">
-            <label for="${config.elements.expiryThreshold}" class="form-label">
-              Expiry Alert Threshold
-              <span class="optional">(days before expiry)</span>
-            </label>
-            <input 
-              type="number" 
-              id="${config.elements.expiryThreshold}" 
-              min="1" 
-              max="365"
-              placeholder="Set expiry date first"
-              disabled
-            />
-            <small class="help-text">How many days before expiry to show alerts</small>
-          </div>
-          
-          <div class="form-group auto-add-section">
-            <input type="checkbox" id="${config.elements.autoAdd}" class="auto-add-checkbox" />
-            <label for="${config.elements.autoAdd}" class="checkbox-label">
-              Auto-add to todo list when low
-            </label>
-            
-            <div class="auto-add-controls">
-              <div class="form-row">
-                <div class="input-group">
-                  <label for="${config.elements.threshold}">
-                    Quantity Threshold
-                  </label>
-                  <input 
-                    type="number" 
-                    id="${config.elements.threshold}" 
-                    ${config.defaults?.threshold ? `value="${config.defaults.threshold}"` : ''} 
-                    min="0"
-                    class="auto-add-required"
-                    placeholder="Minimum quantity"
-                  />
-                </div>
-                
-                <div class="input-group">
-                  <label for="${config.elements.todoList}">Todo List</label>
-                  <select id="${config.elements.todoList}" class="auto-add-required">
-                    <option value="">Select list...</option>
-                    ${todoLists
-                      .map((list) => `<option value="${list.id}">${list.name}</option>`)
-                      .join('')}
-                  </select>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="modal-buttons">
-          <button ${config.primaryButtonId ? `id="${config.primaryButtonId}"` : ''} class="save-btn">${config.primaryButtonText}</button>
-          <button class="cancel-btn" ${config.closeAction ? `data-action="${config.closeAction}"` : ''}>Cancel</button>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-export function createAddModal(todoLists: TodoList[]): string {
-  return createUnifiedModal(todoLists, {
-    id: ELEMENTS.ADD_MODAL,
-    title: 'Add Item',
-    primaryButtonText: 'Add Item',
-    primaryButtonId: ELEMENTS.ADD_ITEM_BTN,
-    closeAction: ACTIONS.CLOSE_ADD_MODAL,
-    elements: {
-      name: ELEMENTS.ITEM_NAME,
-      quantity: ELEMENTS.ITEM_QUANTITY,
-      expiryThreshold: ELEMENTS.ITEM_EXPIRY_THRESHOLD,
-      unit: ELEMENTS.ITEM_UNIT,
-      category: ELEMENTS.ITEM_CATEGORY,
-      expiry: ELEMENTS.ITEM_EXPIRY,
-      autoAdd: ELEMENTS.ITEM_AUTO_ADD,
-      threshold: ELEMENTS.ITEM_THRESHOLD,
-      todoList: ELEMENTS.ITEM_TODO_LIST,
-    },
-    defaults: {
-      quantity: DEFAULTS.QUANTITY,
-      threshold: DEFAULTS.THRESHOLD,
-    },
-  });
-}
-
-export function createSettingsModal(todoLists: TodoList[]): string {
-  return createUnifiedModal(todoLists, {
-    id: ELEMENTS.SETTINGS_MODAL,
-    title: 'Edit Item',
-    primaryButtonText: 'Save Changes',
-    elements: {
-      name: ELEMENTS.MODAL_ITEM_NAME,
-      quantity: ELEMENTS.MODAL_ITEM_QUANTITY,
-      unit: ELEMENTS.MODAL_ITEM_UNIT,
-      category: ELEMENTS.MODAL_ITEM_CATEGORY,
-      expiryThreshold: ELEMENTS.MODAL_EXPIRY_THRESHOLD,
-      expiry: ELEMENTS.MODAL_ITEM_EXPIRY,
-      autoAdd: ELEMENTS.MODAL_AUTO_ADD,
-      threshold: ELEMENTS.MODAL_THRESHOLD,
-      todoList: ELEMENTS.MODAL_TODO_LIST,
-    },
-  });
 }

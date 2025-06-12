@@ -173,7 +173,7 @@ export const styles = `
     font-weight: bold;
   }
   
-  .settings-btn {
+  .edit-btn {
     padding: 6px 8px;
     font-size: 12px;
     min-width: auto;
@@ -183,7 +183,7 @@ export const styles = `
     border: 1px solid var(--divider-color);
   }
   
-  .settings-btn:hover {
+  .editbtn:hover {
     background: var(--primary-color);
     color: var(--text-primary-color);
   }

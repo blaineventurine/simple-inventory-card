@@ -1,53 +1,17 @@
 import { DEFAULT_INVENTORY_NAME } from './constants';
 import { HassEntity, HomeAssistant } from '../types/home-assistant';
 import { FilterState } from '../types/filterState';
+import { ItemData, SanitizedItemData } from '../types/inventoryItem';
 
-/**
- * Interface for input values storage
- */
 interface InputValues {
   [id: string]: string | boolean | number;
 }
 
-/**
- * Interface for item data validation result
- */
 interface ValidationResult {
   isValid: boolean;
   errors: string[];
 }
 
-/**
- * Interface for sanitized item data
- */
-interface SanitizedItemData {
-  name: string;
-  quantity: number;
-  unit: string;
-  category: string;
-  expiryDate: string;
-  todoList: string;
-  threshold: number;
-  autoAddEnabled: boolean;
-}
-
-/**
- * Interface for item data to be validated or sanitized
- */
-interface ItemData {
-  name?: string;
-  quantity?: number;
-  unit?: string;
-  category?: string;
-  expiryDate?: string;
-  todoList?: string;
-  threshold?: number;
-  autoAddEnabled?: boolean;
-}
-
-/**
- * Utility class providing helper methods for the inventory card
- */
 export class Utils {
   /**
    * Gets a user-friendly inventory name from entity state
@@ -253,7 +217,10 @@ export class Utils {
       errors.push('Quantity must be a non-negative number');
     }
 
-    if (itemData.threshold !== undefined && (isNaN(itemData.threshold) || itemData.threshold < 0)) {
+    if (
+      itemData.autoAddToListQuantity !== undefined &&
+      (isNaN(itemData.autoAddToListQuantity) || itemData.autoAddToListQuantity < 0)
+    ) {
       errors.push('Threshold must be a non-negative number');
     }
 
@@ -317,14 +284,15 @@ export class Utils {
    */
   static sanitizeItemData(itemData: ItemData): SanitizedItemData {
     return {
+      autoAddEnabled: Boolean(itemData.autoAddEnabled),
+      autoAddToListQuantity: Math.max(0, Number(itemData.autoAddToListQuantity) || 0),
+      category: this.sanitizeString(itemData.category, 50),
+      expiryAlertDays: itemData.expiryAlertDays || 7,
+      expiryDate: itemData.expiryDate || '',
       name: this.sanitizeString(itemData.name, 100),
       quantity: Math.max(0, Math.min(999999, Number(itemData.quantity) || 0)),
-      unit: this.sanitizeString(itemData.unit, 20),
-      category: this.sanitizeString(itemData.category, 50),
-      expiryDate: itemData.expiryDate || '',
       todoList: this.sanitizeString(itemData.todoList, 100),
-      threshold: Math.max(0, Number(itemData.threshold) || 0),
-      autoAddEnabled: Boolean(itemData.autoAddEnabled),
+      unit: this.sanitizeString(itemData.unit, 20),
     };
   }
 

@@ -4,9 +4,8 @@ import {
   createSortOptions,
   createActiveFiltersDisplay,
   createItemsList,
-  createAddModal,
-  createSettingsModal,
 } from '../templates';
+import { createAddModal, createEditModal } from '../templates/modalTemplates';
 import { Utils } from '../utils/utils';
 import { styles } from '../styles/styles';
 import { HassEntity, InventoryItem } from '../types/home-assistant';
@@ -26,8 +25,6 @@ export class Renderer {
   ): void {
     const inventoryName = Utils.getInventoryName(state, entityId);
     const allItems: readonly InventoryItem[] = state?.attributes?.items || [];
-
-    // Extract unique categories and sort them alphabetically
     const categories = [
       ...new Set(
         allItems.map((item) => item.category).filter((category): category is string => !!category)
@@ -73,15 +70,15 @@ export class Renderer {
 
   private getExpiringItemsCount(items: InventoryItem[]): number {
     return items.filter((item) => {
-      if (!item.expiry_date) return false;
-      const threshold = item.threshold || 7;
+      if (!item.expiry_date || (item.quantity ?? 0) <= 0) return false;
+      const threshold = item.expiry_alert_days || 7;
       return Utils.isExpiringSoon(item.expiry_date, threshold);
     }).length;
   }
 
   private getExpiredItemsCount(items: InventoryItem[]): number {
     return items.filter((item) => {
-      if (!item.expiry_date) return false;
+      if (!item.expiry_date || (item.quantity ?? 0) <= 0) return false;
       return Utils.isExpired(item.expiry_date);
     }).length;
   }
@@ -161,7 +158,7 @@ export class Renderer {
         </div>
         
         ${createAddModal(todoLists)}
-        ${createSettingsModal(todoLists)}
+        ${createEditModal(todoLists)}
       </ha-card>
     `;
   }

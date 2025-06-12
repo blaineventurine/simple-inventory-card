@@ -154,8 +154,6 @@ class SimpleInventoryCard extends LitElement {
       this.renderer.renderCard(state, entityId, sortedItems, filters, sortMethod, this._todoLists);
       this._setupEventListeners();
       this.filters.updateFilterIndicators(filters);
-
-      // Track user interaction for state management
       this._trackUserInteraction();
     } catch (error) {
       console.error('Error rendering card:', error);
@@ -287,7 +285,7 @@ class SimpleInventoryCard extends LitElement {
             e.preventDefault();
             e.stopPropagation();
             const nameInput = this.shadowRoot?.getElementById(
-              ELEMENTS.ITEM_NAME
+              ELEMENTS.NAME
             ) as HTMLInputElement | null;
             const name = nameInput?.value?.trim();
             if (name) {
@@ -298,16 +296,16 @@ class SimpleInventoryCard extends LitElement {
       });
     }
 
-    const settingsModal = this.shadowRoot.getElementById(ELEMENTS.SETTINGS_MODAL);
-    if (settingsModal) {
-      const inputs = settingsModal.querySelectorAll('input:not([type="checkbox"])');
+    const editModal = this.shadowRoot.getElementById(ELEMENTS.EDIT_MODAL);
+    if (editModal) {
+      const inputs = editModal.querySelectorAll('input:not([type="checkbox"])');
       inputs.forEach((input: HTMLInputElement) => {
         input.addEventListener('keypress', (e: Event) => {
           const keyEvent = e as KeyboardEvent;
           if (keyEvent.key === 'Enter') {
             e.preventDefault();
             e.stopPropagation();
-            this._handleSaveSettings();
+            this._handleSaveEdits();
           }
         });
       });
@@ -374,8 +372,8 @@ class SimpleInventoryCard extends LitElement {
     if (target.classList.contains(CSS_CLASSES.SAVE_BTN)) {
       e.preventDefault();
       e.stopPropagation();
-      if (target.closest(`#${ELEMENTS.SETTINGS_MODAL}`)) {
-        this._handleSaveSettings();
+      if (target.closest(`#${ELEMENTS.EDIT_MODAL}`)) {
+        this._handleSaveEdits();
       }
       return;
     }
@@ -385,8 +383,8 @@ class SimpleInventoryCard extends LitElement {
       e.stopPropagation();
       if (target.closest(`#${ELEMENTS.ADD_MODAL}`)) {
         this.modals?.closeAddModal();
-      } else if (target.closest(`#${ELEMENTS.SETTINGS_MODAL}`)) {
-        this.modals?.closeSettingsModal();
+      } else if (target.closest(`#${ELEMENTS.EDIT_MODAL}`)) {
+        this.modals?.closeEditModal();
       }
       return;
     }
@@ -409,12 +407,12 @@ class SimpleInventoryCard extends LitElement {
     }
   }
 
-  private async _handleSaveSettings(): Promise<void> {
+  private async _handleSaveEdits(): Promise<void> {
     if (!this._config || !this.modals) return;
 
-    const success = await this.modals.saveSettingsModal(this._config);
+    const success = await this.modals.saveEditModal(this._config);
     if (success) {
-      this.modals.closeSettingsModal();
+      this.modals.closeEditModal();
     }
   }
 
@@ -450,8 +448,8 @@ class SimpleInventoryCard extends LitElement {
         }
         break;
 
-      case ACTIONS.OPEN_SETTINGS:
-        this.modals?.openSettingsModal(itemName, this._hass, this._config);
+      case ACTIONS.OPEN_EDIT_MODAL:
+        this.modals?.openEditModal(itemName, this._hass, this._config);
         break;
     }
   }

@@ -68,19 +68,19 @@ export interface LovelaceCardEditor extends HTMLElement {
   setConfig(config: LovelaceCardConfig): void;
 }
 
-// Add your specific types
 export interface InventoryItem {
+  auto_add_enabled: boolean;
+  auto_add_to_list_quantity?: number;
+  category: string;
+  expiry_alert_days?: number;
+  expiry_date: string;
   name: string;
   quantity: number;
-  unit?: string;
-  category?: string;
-  expiry_date?: string;
-  auto_add_enabled?: boolean;
-  threshold?: number;
-  todo_list?: string;
+  todo_list: string;
+  unit: string;
 }
 
 export interface InventoryConfig extends LovelaceCardConfig {
   type?: string;
-  entity?: string;
+  entity: string;
 }
