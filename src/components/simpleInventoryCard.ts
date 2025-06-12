@@ -28,13 +28,12 @@ class SimpleInventoryCard extends LitElement {
   private filters: Filters | null = null;
   private renderer: Renderer | null = null;
   private state: State | null = null;
-  private boundClickHandler: ((e: Event) => void) | null = null;
-  private boundChangeHandler: ((e: Event) => void) | null = null;
   private _config: InventoryConfig | null = null;
   private _hass: HomeAssistant | null = null;
   private _todoLists: Array<{ id: string; name: string }> = [];
   private _isInitialized = false;
-  private _renderTimeout: ReturnType<typeof setTimeout> | null = null;
+  private _eventListenersSetup = false;
+  private _updateTimeout: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
     super();
@@ -57,16 +56,13 @@ class SimpleInventoryCard extends LitElement {
     this._hass = hass;
     this._updateTodoLists();
 
-    // Always render on first load
     if (!oldHass) {
       this.render();
       return;
     }
 
-    // Check if our entity actually changed
     const entityId = this._config?.entity;
     if (entityId && this.state && this.state.hasRealEntityChange(hass, entityId)) {
-      // If user is interacting, delay the render
       if (this.state.userInteracting) {
         this.state.debouncedRender();
       } else {
@@ -89,8 +85,6 @@ class SimpleInventoryCard extends LitElement {
       this.filters = new Filters(this.shadowRoot);
       this.renderer = new Renderer(this.shadowRoot);
       this.state = new State();
-
-      // Set up the render callback for state management
       this.state.setRenderCallback(() => this.render());
 
       const getInventoryId = (entityId: string) => Utils.getInventoryId(this._hass!, entityId);
@@ -169,8 +163,6 @@ class SimpleInventoryCard extends LitElement {
       return;
     }
 
-    // Use the templates function to create items list HTML
-    // This needs to be imported from templates.ts
     import('../templates')
       .then(({ createItemsList }) => {
         itemsContainer.innerHTML = createItemsList(items, sortMethod, this._todoLists);
@@ -190,7 +182,6 @@ class SimpleInventoryCard extends LitElement {
         return false;
       }
 
-      // Ensure valid data types
       item.quantity =
         typeof item.quantity === 'number' && !isNaN(item.quantity) ? item.quantity : 0;
       item.unit = typeof item.unit === 'string' ? item.unit : '';
@@ -205,39 +196,16 @@ class SimpleInventoryCard extends LitElement {
   }
 
   private _setupEventListeners(): void {
-    if (!this.shadowRoot) return;
+    if (this._eventListenersSetup || !this.shadowRoot) return;
 
-    if (this.boundClickHandler) {
-      this.shadowRoot.removeEventListener('click', this.boundClickHandler);
-    }
-    if (this.boundChangeHandler) {
-      this.shadowRoot.removeEventListener('change', this.boundChangeHandler);
-    }
-
-    this.boundClickHandler = this._handleClick.bind(this);
-    this.boundChangeHandler = this._handleChange.bind(this);
-
-    this.shadowRoot.addEventListener('click', this.boundClickHandler);
-    this.shadowRoot.addEventListener('change', this.boundChangeHandler);
-
-    this.shadowRoot.addEventListener('change', (e: Event) => {
-      const target = e.target as HTMLInputElement;
-      if (
-        target.type === 'checkbox' &&
-        (target.id.includes('auto') || target.id.includes('AUTO_ADD'))
-      ) {
-        const controls = target.parentElement?.querySelector('.auto-add-controls') as HTMLElement;
-        if (controls) {
-          controls.style.display = target.checked ? 'block' : 'none';
-        }
-      }
-    });
+    this.shadowRoot.addEventListener('click', this._handleClick.bind(this));
+    this.shadowRoot.addEventListener('change', this._handleChange.bind(this));
 
     if (this._config && this.filters) {
       this.filters.setupSearchInput(this._config.entity, () => this._handleSearchChange());
     }
 
-    this._setupEnterKeySupport();
+    this._eventListenersSetup = true;
   }
 
   private _trackUserInteraction(): void {
@@ -272,130 +240,112 @@ class SimpleInventoryCard extends LitElement {
     this.filters.updateFilterIndicators(filters);
   }
 
-  private _setupEnterKeySupport(): void {
-    if (!this.shadowRoot) return;
-
-    const addModal = this.shadowRoot.getElementById(ELEMENTS.ADD_MODAL);
-    if (addModal) {
-      const inputs = addModal.querySelectorAll('input:not([type="checkbox"])');
-      inputs.forEach((input: HTMLInputElement) => {
-        input.addEventListener('keypress', ((e: Event) => {
-          const keyEvent = e as KeyboardEvent;
-          if (keyEvent.key === 'Enter') {
-            e.preventDefault();
-            e.stopPropagation();
-            const nameInput = this.shadowRoot?.getElementById(
-              ELEMENTS.NAME
-            ) as HTMLInputElement | null;
-            const name = nameInput?.value?.trim();
-            if (name) {
-              this._handleAddItem();
-            }
-          }
-        }) as EventListener);
-      });
-    }
-
-    const editModal = this.shadowRoot.getElementById(ELEMENTS.EDIT_MODAL);
-    if (editModal) {
-      const inputs = editModal.querySelectorAll('input:not([type="checkbox"])');
-      inputs.forEach((input: HTMLInputElement) => {
-        input.addEventListener('keypress', (e: Event) => {
-          const keyEvent = e as KeyboardEvent;
-          if (keyEvent.key === 'Enter') {
-            e.preventDefault();
-            e.stopPropagation();
-            this._handleSaveEdits();
-          }
-        });
-      });
-    }
-  }
-
-  private _handleClick(e: Event): void {
+  private async _handleClick(e: Event): Promise<void> {
     const target = e.target as HTMLElement;
 
-    // Let modals handle their clicks first
-    if (this.modals) {
-      const modalHandled = this.modals.handleModalClick(e as MouseEvent);
-      if (modalHandled) {
+    if (target.tagName === 'BUTTON' && target.hasAttribute('data-processing')) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+
+    if (target.dataset.action && target.dataset.name) {
+      e.preventDefault();
+      e.stopPropagation();
+      await this._handleItemAction(target, target.dataset.action, target.dataset.name);
+      return;
+    }
+
+    // Handle modal clicks first (let modals handle their own logic)
+    if (this.modals?.handleModalClick(e as MouseEvent)) {
+      return; // Don't prevent default - let modals handle it
+    }
+
+    const buttonId = target.id;
+    if (buttonId && target.tagName === 'BUTTON') {
+      switch (buttonId) {
+        case ELEMENTS.OPEN_ADD_MODAL:
+          e.preventDefault();
+          e.stopPropagation();
+          this.modals?.openAddModal();
+          break;
+        case ELEMENTS.ADD_ITEM_BTN:
+          e.preventDefault();
+          e.stopPropagation();
+          await this._handleAddItem();
+          break;
+        case ELEMENTS.ADVANCED_SEARCH_TOGGLE:
+          e.preventDefault();
+          e.stopPropagation();
+          this._toggleAdvancedFilters();
+          break;
+        case ELEMENTS.APPLY_FILTERS:
+          e.preventDefault();
+          e.stopPropagation();
+          this._applyFilters();
+          break;
+        case ELEMENTS.CLEAR_FILTERS:
+          e.preventDefault();
+          e.stopPropagation();
+          this._clearFilters();
+          break;
+        default:
+          // Don't prevent default for buttons we don't handle
+          return;
+      }
+      return;
+    }
+
+    if (target.tagName === 'BUTTON') {
+      if (target.classList.contains(CSS_CLASSES.SAVE_BTN)) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (target.closest(`#${ELEMENTS.EDIT_MODAL}`)) {
+          await this._handleSaveEdits();
+        }
         return;
       }
-    }
 
-    // Use more specific selectors for buttons to prevent overlap
-    if (target.dataset.action) {
-      e.preventDefault();
-      e.stopPropagation();
-      this._handleItemAction(target);
-      return;
-    }
-
-    // Handle specific button IDs
-    if (target.id === ELEMENTS.OPEN_ADD_MODAL) {
-      e.preventDefault();
-      e.stopPropagation();
-      this.modals?.openAddModal();
-      return;
-    }
-
-    if (target.id === ELEMENTS.ADVANCED_SEARCH_TOGGLE) {
-      e.preventDefault();
-      e.stopPropagation();
-      this._toggleAdvancedFilters();
-      return;
-    }
-
-    if (target.id === ELEMENTS.APPLY_FILTERS) {
-      e.preventDefault();
-      e.stopPropagation();
-      this._applyFilters();
-      return;
-    }
-
-    if (target.id === ELEMENTS.CLEAR_FILTERS) {
-      e.preventDefault();
-      e.stopPropagation();
-      this._clearFilters();
-      return;
-    }
-
-    // Handle other button types
-    if (target.id === ELEMENTS.ADD_ITEM_BTN) {
-      e.preventDefault();
-      e.stopPropagation();
-      this._handleAddItem();
-      return;
-    }
-
-    // Handle class-based buttons
-    if (target.classList.contains(CSS_CLASSES.SAVE_BTN)) {
-      e.preventDefault();
-      e.stopPropagation();
-      if (target.closest(`#${ELEMENTS.EDIT_MODAL}`)) {
-        this._handleSaveEdits();
+      if (target.classList.contains(CSS_CLASSES.CANCEL_BTN)) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (target.closest(`#${ELEMENTS.ADD_MODAL}`)) {
+          this.modals?.closeAddModal();
+        } else if (target.closest(`#${ELEMENTS.EDIT_MODAL}`)) {
+          this.modals?.closeEditModal();
+        }
+        return;
       }
-      return;
-    }
-
-    if (target.classList.contains(CSS_CLASSES.CANCEL_BTN)) {
-      e.preventDefault();
-      e.stopPropagation();
-      if (target.closest(`#${ELEMENTS.ADD_MODAL}`)) {
-        this.modals?.closeAddModal();
-      } else if (target.closest(`#${ELEMENTS.EDIT_MODAL}`)) {
-        this.modals?.closeEditModal();
-      }
-      return;
     }
   }
 
   private _handleChange(e: Event): void {
     const target = e.target as HTMLElement;
+
     if (target.id === ELEMENTS.SORT_METHOD) {
-      this.render();
+      this._debouncedRender();
       return;
     }
+
+    if (
+      target instanceof HTMLInputElement &&
+      target.type === 'checkbox' &&
+      (target.id.includes('auto') || target.id.includes('AUTO_ADD'))
+    ) {
+      setTimeout(() => {
+        const controls = target.parentElement?.querySelector('.auto-add-controls') as HTMLElement;
+        if (controls) {
+          controls.style.display = target.checked ? 'block' : 'none';
+        }
+      }, 0);
+    }
+  }
+
+  private _debouncedRender(): void {
+    if (this._updateTimeout) {
+      clearTimeout(this._updateTimeout);
+    }
+    this._updateTimeout = setTimeout(() => this.render(), 100);
   }
 
   private async _handleAddItem(): Promise<void> {
@@ -416,41 +366,55 @@ class SimpleInventoryCard extends LitElement {
     }
   }
 
-  private async _handleItemAction(target: HTMLElement): Promise<void> {
-    const isDisabled =
-      target.hasAttribute('disabled') || target.getAttribute('aria-disabled') === 'true';
-
-    if (isDisabled || !this._config || !this._hass || !this.services) {
+  private async _handleItemAction(
+    button: HTMLElement,
+    action: string,
+    itemName: string
+  ): Promise<void> {
+    if (!this._config || !this._hass || !this.services) {
+      console.warn('Missing required dependencies for item action');
       return;
     }
 
-    const action = target.dataset.action;
-    const itemName = target.dataset.name;
-
-    if (!action || !itemName) {
+    if (button.hasAttribute('disabled') || button.getAttribute('aria-disabled') === 'true') {
       return;
     }
 
-    const inventoryId = Utils.getInventoryId(this._hass, this._config.entity);
+    button.setAttribute('data-processing', 'true');
+    button.setAttribute('disabled', 'true');
+    button.style.opacity = '0.6';
+    button.style.pointerEvents = 'none';
 
-    switch (action) {
-      case ACTIONS.INCREMENT:
-        await this.services.incrementItem(inventoryId, itemName);
-        break;
+    try {
+      const inventoryId = Utils.getInventoryId(this._hass, this._config.entity);
 
-      case ACTIONS.DECREMENT:
-        await this.services.decrementItem(inventoryId, itemName);
-        break;
-
-      case ACTIONS.REMOVE:
-        if (confirm(MESSAGES.CONFIRM_REMOVE(itemName))) {
-          await this.services.removeItem(inventoryId, itemName);
-        }
-        break;
-
-      case ACTIONS.OPEN_EDIT_MODAL:
-        this.modals?.openEditModal(itemName, this._hass, this._config);
-        break;
+      switch (action) {
+        case ACTIONS.INCREMENT:
+          await this.services.incrementItem(inventoryId, itemName);
+          break;
+        case ACTIONS.DECREMENT:
+          await this.services.decrementItem(inventoryId, itemName);
+          break;
+        case ACTIONS.REMOVE:
+          if (confirm(MESSAGES.CONFIRM_REMOVE(itemName))) {
+            await this.services.removeItem(inventoryId, itemName);
+          }
+          break;
+        case ACTIONS.OPEN_EDIT_MODAL:
+          this.modals?.openEditModal(itemName, this._hass, this._config);
+          break;
+        default:
+          console.warn(`Unknown action: ${action}`);
+      }
+    } catch (error) {
+      console.error(`Error performing ${action} on ${itemName}:`, error);
+    } finally {
+      setTimeout(() => {
+        button.removeAttribute('data-processing');
+        button.removeAttribute('disabled');
+        button.style.opacity = '1';
+        button.style.pointerEvents = 'auto';
+      }, 200);
     }
   }
 
@@ -532,7 +496,6 @@ class SimpleInventoryCard extends LitElement {
     if (this.renderer) {
       this.renderer.renderError(message);
     } else {
-      // Fallback if renderer isn't initialized
       this.shadowRoot.innerHTML = `
         <ha-card>
           <div class="card-content">
@@ -550,8 +513,8 @@ class SimpleInventoryCard extends LitElement {
   }
 
   disconnectedCallback(): void {
-    if (this._renderTimeout) {
-      clearTimeout(this._renderTimeout);
+    if (this._updateTimeout) {
+      clearTimeout(this._updateTimeout);
     }
 
     if (this.state) {
@@ -562,11 +525,10 @@ class SimpleInventoryCard extends LitElement {
       this.modals.destroy();
     }
 
-    if (this.boundClickHandler && this.shadowRoot) {
-      this.shadowRoot.removeEventListener('click', this.boundClickHandler);
-    }
-    if (this.boundChangeHandler && this.shadowRoot) {
-      this.shadowRoot.removeEventListener('change', this.boundChangeHandler);
+    if (this._eventListenersSetup && this.shadowRoot) {
+      this.shadowRoot.removeEventListener('click', this._handleClick);
+      this.shadowRoot.removeEventListener('change', this._handleChange);
+      this._eventListenersSetup = false;
     }
   }
 
