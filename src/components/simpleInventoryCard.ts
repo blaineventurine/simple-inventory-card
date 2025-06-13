@@ -171,7 +171,7 @@ class SimpleInventoryCard extends LitElement {
       return;
     }
 
-    import('../templates')
+    import('../templates/itemList.ts')
       .then(({ createItemsList }) => {
         itemsContainer.innerHTML = createItemsList(items, sortMethod, this._todoLists);
       })
@@ -481,39 +481,6 @@ class SimpleInventoryCard extends LitElement {
       this.render();
     } catch (error) {
       console.error('Error toggling advanced filters:', error);
-    }
-  }
-
-  private _applyFilters(): void {
-    if (!this._config || !this.filters || !this.shadowRoot) return;
-
-    try {
-      const filters = this.filters.getCurrentFilters(this._config.entity);
-      const categoryElement = this.shadowRoot.getElementById(
-        ELEMENTS.FILTER_CATEGORY
-      ) as HTMLSelectElement | null;
-      const quantityElement = this.shadowRoot.getElementById(
-        ELEMENTS.FILTER_QUANTITY
-      ) as HTMLSelectElement | null;
-      const expiryElement = this.shadowRoot.getElementById(
-        ELEMENTS.FILTER_EXPIRY
-      ) as HTMLSelectElement | null;
-
-      if (categoryElement) {
-        filters.category = categoryElement.value;
-      }
-      if (quantityElement) {
-        filters.quantity = quantityElement.value;
-      }
-      if (expiryElement) {
-        filters.expiry = expiryElement.value;
-      }
-
-      this.filters.saveFilters(this._config.entity, filters);
-      this.render();
-    } catch (error) {
-      console.error('Error applying filters:', error);
-      alert('Error applying filters. Please try again.');
     }
   }
 
