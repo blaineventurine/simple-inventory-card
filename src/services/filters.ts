@@ -5,6 +5,7 @@ import { FilterState } from '../types/filterState';
 
 export class Filters {
   private searchTimeout: ReturnType<typeof setTimeout> | null = null;
+  private searchListenerSetup = false;
 
   constructor(private shadowRoot: ShadowRoot) {}
 
@@ -230,6 +231,8 @@ export class Filters {
   }
 
   setupSearchInput(entityId: string, onFilterChange: () => void): void {
+    if (this.searchListenerSetup) return;
+
     const searchInput = this.shadowRoot.getElementById(
       ELEMENTS.SEARCH_INPUT
     ) as HTMLInputElement | null;
@@ -250,6 +253,7 @@ export class Filters {
         }, 300);
       });
     }
+    this.searchListenerSetup = true;
   }
 
   updateFilterIndicators(filters: FilterState): void {

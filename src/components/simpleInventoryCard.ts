@@ -34,10 +34,18 @@ class SimpleInventoryCard extends LitElement {
   private _isInitialized = false;
   private _eventListenersSetup = false;
   private _updateTimeout: ReturnType<typeof setTimeout> | null = null;
+  private static _globalEventListenersSetup = false;
+  private static _currentInstance: SimpleInventoryCard | null = null;
 
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
+
+    if (SimpleInventoryCard._currentInstance && SimpleInventoryCard._currentInstance !== this) {
+      SimpleInventoryCard._currentInstance._cleanupEventListeners();
+    }
+
+    SimpleInventoryCard._currentInstance = this;
   }
 
   setConfig(config: InventoryConfig): void {
@@ -69,46 +77,6 @@ class SimpleInventoryCard extends LitElement {
         this.render();
       }
     }
-  }
-
-  private _initializeModules(): boolean {
-    if (this._isInitialized) {
-      return true;
-    }
-
-    if (!this._hass || !this._config || !this.shadowRoot) {
-      return false;
-    }
-
-    try {
-      this.services = new Services(this._hass);
-      this.filters = new Filters(this.shadowRoot);
-      this.renderer = new Renderer(this.shadowRoot);
-      this.state = new State();
-      this.state.setRenderCallback(() => this.render());
-
-      const getInventoryId = (entityId: string) => Utils.getInventoryId(this._hass!, entityId);
-      this.modals = new Modals(this.shadowRoot, this.services, getInventoryId);
-
-      this._isInitialized = true;
-      return true;
-    } catch (error) {
-      console.error('Failed to initialize modules:', error);
-      return false;
-    }
-  }
-
-  private _updateTodoLists(): void {
-    if (!this._hass) {
-      return;
-    }
-
-    this._todoLists = Object.keys(this._hass.states)
-      .filter((entityId) => entityId.startsWith('todo.'))
-      .map((entityId) => ({
-        id: entityId,
-        name: this._hass!.states[entityId].attributes?.friendly_name || entityId.split('.')[1],
-      }));
   }
 
   render(): void {
@@ -155,6 +123,46 @@ class SimpleInventoryCard extends LitElement {
     }
   }
 
+  private _initializeModules(): boolean {
+    if (this._isInitialized) {
+      return true;
+    }
+
+    if (!this._hass || !this._config || !this.shadowRoot) {
+      return false;
+    }
+
+    try {
+      this.services = new Services(this._hass);
+      this.filters = new Filters(this.shadowRoot);
+      this.renderer = new Renderer(this.shadowRoot);
+      this.state = new State();
+      this.state.setRenderCallback(() => this.render());
+
+      const getInventoryId = (entityId: string) => Utils.getInventoryId(this._hass!, entityId);
+      this.modals = new Modals(this.shadowRoot, this.services, getInventoryId);
+
+      this._isInitialized = true;
+      return true;
+    } catch (error) {
+      console.error('Failed to initialize modules:', error);
+      return false;
+    }
+  }
+
+  private _updateTodoLists(): void {
+    if (!this._hass) {
+      return;
+    }
+
+    this._todoLists = Object.keys(this._hass.states)
+      .filter((entityId) => entityId.startsWith('todo.'))
+      .map((entityId) => ({
+        id: entityId,
+        name: this._hass!.states[entityId].attributes?.friendly_name || entityId.split('.')[1],
+      }));
+  }
+
   private _updateItemsOnly(items: InventoryItem[], sortMethod: string): void {
     if (!this.shadowRoot) return;
 
@@ -195,17 +203,29 @@ class SimpleInventoryCard extends LitElement {
     });
   }
 
-  private _setupEventListeners(): void {
-    if (this._eventListenersSetup || !this.shadowRoot) return;
+  private _cleanupEventListeners(): void {
+    if (this.shadowRoot && this._boundClickHandler) {
+      this.shadowRoot.removeEventListener('click', this._boundClickHandler);
+      this.shadowRoot.removeEventListener('change', this._boundChangeHandler);
+    }
+    SimpleInventoryCard._globalEventListenersSetup = false;
+  }
 
-    this.shadowRoot.addEventListener('click', this._handleClick.bind(this));
-    this.shadowRoot.addEventListener('change', this._handleChange.bind(this));
+  private _setupEventListeners(): void {
+    if (SimpleInventoryCard._globalEventListenersSetup || !this.shadowRoot) {
+      return;
+    }
+
+    this._boundClickHandler = this._handleClick.bind(this);
+    this._boundChangeHandler = this._handleChange.bind(this);
+    this.shadowRoot.addEventListener('click', this._boundClickHandler);
+    this.shadowRoot.addEventListener('change', this._boundChangeHandler);
 
     if (this._config && this.filters) {
       this.filters.setupSearchInput(this._config.entity, () => this._handleSearchChange());
     }
 
-    this._eventListenersSetup = true;
+    SimpleInventoryCard._globalEventListenersSetup = true;
   }
 
   private _trackUserInteraction(): void {
@@ -419,18 +439,15 @@ class SimpleInventoryCard extends LitElement {
   }
 
   private _toggleAdvancedFilters(): void {
-    if (!this._config || !this.filters) {
-      console.log('Missing config or filters:', {
-        config: !!this._config,
-        filters: !!this.filters,
-      });
-      return;
-    }
+    if (!this._config || !this.filters) return;
 
     try {
-      const filters = this.filters.getCurrentFilters(this._config.entity);
+      const entityId = this._config.entity;
+      const filters = this.filters.getCurrentFilters(entityId);
+
       filters.showAdvanced = !filters.showAdvanced;
-      this.filters.saveFilters(this._config.entity, filters);
+
+      this.filters.saveFilters(entityId, filters);
       this.render();
     } catch (error) {
       console.error('Error toggling advanced filters:', error);
@@ -513,6 +530,7 @@ class SimpleInventoryCard extends LitElement {
   }
 
   disconnectedCallback(): void {
+    this._cleanupEventListeners();
     if (this._updateTimeout) {
       clearTimeout(this._updateTimeout);
     }
