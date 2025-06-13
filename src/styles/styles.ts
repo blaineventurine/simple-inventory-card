@@ -1,60 +1,4 @@
-const expiryIndicatorStyles = `
-  .card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid var(--divider-color);
-  }
-
-  .inventory-title {
-    margin: 0;
-    font-size: 1.5em;
-    font-weight: 500;
-  }
-
-  .expiry-indicators {
-    display: flex;
-    gap: 8px;
-  }
-
-  .expiring-badge, .expired-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 0px 6px;
-    border-radius: 60px;
-    font-size: 0.85em;
-    font-weight: 500;
-    white-space: nowrap;
-  }
-
-  .expiring-badge {
-    background-color: var(--warning-color, #ff9800);
-    color: var(--text-primary-color, white);
-  }
-
-  .expired-badge {
-    background-color: var(--error-color, #f44336);
-    color: var(--text-primary-color, white);
-  }
-
-  .expiring-badge ha-icon,
-  .expired-badge ha-icon {
-    --mdc-icon-size: 14px;
-  }
-
-  @media (max-width: 480px) {
-    .card-header {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 8px;
-    }
-    
-    .expiry-indicators {
-      align-self: flex-end;
-    }
-  }
-`;
+import { cardHeaderStyles } from './cardHeader';
 
 export const styles = `
   ha-card {
@@ -736,5 +680,5 @@ export const styles = `
       margin-top: 0;
     }
   }
-${expiryIndicatorStyles}
+${cardHeaderStyles}
 `;

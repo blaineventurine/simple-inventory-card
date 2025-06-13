@@ -18,6 +18,7 @@ export class Renderer {
     todoLists: TodoList[]
   ): void {
     const inventoryName = Utils.getInventoryName(state, entityId);
+    const description = Utils.getInventoryDescription(state, entityId);
     const allItems: readonly InventoryItem[] = state?.attributes?.items || [];
     const categories = [
       ...new Set(
@@ -32,7 +33,8 @@ export class Renderer {
       sortMethod,
       categories,
       todoLists,
-      allItems
+      allItems,
+      description
     );
   }
 

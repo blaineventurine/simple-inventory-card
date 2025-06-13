@@ -17,12 +17,13 @@ export function generateCardHTML(
   sortMethod: string,
   categories: string[],
   todoLists: TodoList[],
-  allItems: readonly InventoryItem[]
+  allItems: readonly InventoryItem[],
+  description: string | undefined
 ): string {
   return `
     <style>${styles}</style>
     <ha-card>
-      ${createInventoryHeader(inventoryName, allItems as InventoryItem[])}
+      ${createInventoryHeader(inventoryName, allItems as InventoryItem[], description)}
       
       <div class="controls-row">
         <div class="sorting-controls">

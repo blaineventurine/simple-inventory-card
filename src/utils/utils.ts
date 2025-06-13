@@ -36,6 +36,17 @@ export class Utils {
     return DEFAULT_INVENTORY_NAME;
   }
 
+  static getInventoryDescription(
+    state: HassEntity | undefined,
+    entityId: string
+  ): string | undefined {
+    console.log('getInventoryDescription', state, entityId);
+    if (state?.attributes?.description) {
+      return state.attributes.description;
+    }
+    return undefined;
+  }
+
   /**
    * Gets the inventory ID from entity state
    * @param hass - Home Assistant instance

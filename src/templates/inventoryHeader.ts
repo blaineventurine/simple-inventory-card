@@ -1,13 +1,24 @@
 import { Utils } from '../utils/utils';
 import { InventoryItem } from '../types/home-assistant';
 
-export function createInventoryHeader(inventoryName: string, allItems: InventoryItem[]): string {
+export function createInventoryHeader(
+  inventoryName: string,
+  allItems: InventoryItem[],
+  description?: string
+): string {
   const expiringCount = getExpiringItemsCount(allItems);
   const expiredCount = getExpiredItemsCount(allItems);
 
   return `
       <div class="card-header">
-        <h2 class="inventory-title">${Utils.sanitizeHtml(inventoryName)}</h2>
+        <div class="header-content">
+          <h2 class="inventory-title">${Utils.sanitizeHtml(inventoryName)}</h2>
+          ${
+            description && description.trim()
+              ? `<p class="inventory-description">${Utils.sanitizeHtml(description)}</p>`
+              : ''
+          }
+        </div>
         ${
           expiredCount > 0 || expiringCount > 0
             ? `
