@@ -299,11 +299,6 @@ class SimpleInventoryCard extends LitElement {
           e.stopPropagation();
           this._toggleAdvancedFilters();
           break;
-        case ELEMENTS.APPLY_FILTERS:
-          e.preventDefault();
-          e.stopPropagation();
-          this._applyFilters();
-          break;
         case ELEMENTS.CLEAR_FILTERS:
           e.preventDefault();
           e.stopPropagation();
@@ -342,6 +337,16 @@ class SimpleInventoryCard extends LitElement {
   private _handleChange(e: Event): void {
     const target = e.target as HTMLElement;
 
+    if (
+      target instanceof HTMLSelectElement &&
+      (target.id === ELEMENTS.FILTER_CATEGORY ||
+        target.id === ELEMENTS.FILTER_QUANTITY ||
+        target.id === ELEMENTS.FILTER_EXPIRY)
+    ) {
+      this._autoApplyFilter(target);
+      return;
+    }
+
     if (target.id === ELEMENTS.SORT_METHOD) {
       this._debouncedRender();
       return;
@@ -358,6 +363,31 @@ class SimpleInventoryCard extends LitElement {
           controls.style.display = target.checked ? 'block' : 'none';
         }
       }, 0);
+    }
+  }
+
+  private _autoApplyFilter(selectElement: HTMLSelectElement): void {
+    if (!this._config || !this.filters) return;
+
+    try {
+      const filters = this.filters.getCurrentFilters(this._config.entity);
+
+      switch (selectElement.id) {
+        case ELEMENTS.FILTER_CATEGORY:
+          filters.category = selectElement.value;
+          break;
+        case ELEMENTS.FILTER_QUANTITY:
+          filters.quantity = selectElement.value;
+          break;
+        case ELEMENTS.FILTER_EXPIRY:
+          filters.expiry = selectElement.value;
+          break;
+      }
+
+      this.filters.saveFilters(this._config.entity, filters);
+      this.render();
+    } catch (error) {
+      console.error('Error auto-applying filter:', error);
     }
   }
 

@@ -80,8 +80,7 @@ export function createSearchAndFilters(filters: FilterState, categories: string[
       </div>
       
       <div class="filter-actions">
-        <button id="${ELEMENTS.APPLY_FILTERS}">Apply</button>
-        <button id="${ELEMENTS.CLEAR_FILTERS}">Clear</button>
+        <button id="${ELEMENTS.CLEAR_FILTERS}" class="clear-only-btn">Clear All Filters</button>
       </div>
     </div>
   `;
