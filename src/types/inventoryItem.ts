@@ -21,3 +21,15 @@ export interface ItemData {
   todoList?: string;
   unit?: string;
 }
+
+export interface RawFormData {
+  name: string;
+  quantity: string;
+  autoAddEnabled: boolean;
+  autoAddToListQuantity: string;
+  todoList: string;
+  expiryDate: string;
+  expiryAlertDays: string;
+  category: string;
+  unit: string;
+}

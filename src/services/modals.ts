@@ -1,7 +1,7 @@
 import { ELEMENTS, CSS_CLASSES, MESSAGES, TIMING, DEFAULTS } from '../utils/constants';
 import { HomeAssistant, InventoryItem, InventoryConfig } from '../types/home-assistant';
 import { Utils } from '../utils/utils';
-import { SanitizedItemData, ItemData } from '../types/inventoryItem';
+import { SanitizedItemData, RawFormData, ValidationError } from '../types/inventoryItem';
 
 export interface InventoryServiceResult {
   success: boolean;
@@ -51,9 +51,11 @@ export class Modals {
   public openAddModal(): void {
     const modal = this.getElement<HTMLElement>(ELEMENTS.ADD_MODAL);
     if (modal) {
+      this.clearError(true);
       modal.classList.add(CSS_CLASSES.SHOW);
       this.focusElementWithDelay(ELEMENTS.NAME);
       this.setupExpiryThresholdInteraction();
+      this.setupValidationListeners();
     } else {
       console.warn('Add modal not found in DOM');
     }
@@ -88,9 +90,11 @@ export class Modals {
 
     const modal = this.getElement<HTMLElement>(ELEMENTS.EDIT_MODAL);
     if (modal) {
+      this.clearError(false);
       modal.classList.add(CSS_CLASSES.SHOW);
       this.focusElementWithDelay(ELEMENTS.NAME, true);
       this.setupExpiryThresholdInteraction();
+      this.setupValidationListeners();
     }
   }
 
@@ -160,30 +164,30 @@ export class Modals {
     }
   }
 
-  public getAddModalData(): ItemData {
+  public getRawAddModalData(): RawFormData {
     return {
-      autoAddEnabled: this.getInputChecked(`add-${ELEMENTS.AUTO_ADD_ENABLED}`),
-      autoAddToListQuantity: this.getInputNumber(`add-${ELEMENTS.AUTO_ADD_TO_LIST_QUANTITY}`, 0),
-      category: this.getInputValue(`add-${ELEMENTS.CATEGORY}`),
-      expiryAlertDays: this.getInputNumber(`add-${ELEMENTS.EXPIRY_ALERT_DAYS}`, 7),
-      expiryDate: this.getInputValue(`add-${ELEMENTS.EXPIRY_DATE}`),
       name: this.getInputValue(`add-${ELEMENTS.NAME}`),
-      quantity: this.getInputNumber(`add-${ELEMENTS.QUANTITY}`, DEFAULTS.QUANTITY),
+      quantity: this.getInputValue(`add-${ELEMENTS.QUANTITY}`),
+      autoAddEnabled: this.getInputChecked(`add-${ELEMENTS.AUTO_ADD_ENABLED}`),
+      autoAddToListQuantity: this.getInputValue(`add-${ELEMENTS.AUTO_ADD_TO_LIST_QUANTITY}`),
       todoList: this.getInputValue(`add-${ELEMENTS.TODO_LIST}`),
+      expiryDate: this.getInputValue(`add-${ELEMENTS.EXPIRY_DATE}`),
+      expiryAlertDays: this.getInputValue(`add-${ELEMENTS.EXPIRY_ALERT_DAYS}`),
+      category: this.getInputValue(`add-${ELEMENTS.CATEGORY}`),
       unit: this.getInputValue(`add-${ELEMENTS.UNIT}`),
     };
   }
 
-  public getEditModalData(): ItemData {
+  public getRawEditModalData(): RawFormData {
     return {
-      autoAddEnabled: this.getInputChecked(`edit-${ELEMENTS.AUTO_ADD_ENABLED}`),
-      autoAddToListQuantity: this.getInputNumber(`edit-${ELEMENTS.AUTO_ADD_TO_LIST_QUANTITY}`, 0),
-      category: this.getInputValue(`edit-${ELEMENTS.CATEGORY}`),
-      expiryAlertDays: this.getInputNumber(`edit-${ELEMENTS.EXPIRY_ALERT_DAYS}`, 7),
-      expiryDate: this.getInputValue(`edit-${ELEMENTS.EXPIRY_DATE}`),
       name: this.getInputValue(`edit-${ELEMENTS.NAME}`),
-      quantity: this.getInputNumber(`edit-${ELEMENTS.QUANTITY}`),
+      quantity: this.getInputValue(`edit-${ELEMENTS.QUANTITY}`),
+      autoAddEnabled: this.getInputChecked(`edit-${ELEMENTS.AUTO_ADD_ENABLED}`),
+      autoAddToListQuantity: this.getInputValue(`edit-${ELEMENTS.AUTO_ADD_TO_LIST_QUANTITY}`),
       todoList: this.getInputValue(`edit-${ELEMENTS.TODO_LIST}`),
+      expiryDate: this.getInputValue(`edit-${ELEMENTS.EXPIRY_DATE}`),
+      expiryAlertDays: this.getInputValue(`edit-${ELEMENTS.EXPIRY_ALERT_DAYS}`),
+      category: this.getInputValue(`edit-${ELEMENTS.CATEGORY}`),
       unit: this.getInputValue(`edit-${ELEMENTS.UNIT}`),
     };
   }
@@ -191,7 +195,7 @@ export class Modals {
   public clearAddModalForm(): void {
     const fields: ModalField[] = [
       { id: `add-${ELEMENTS.NAME}`, value: '' },
-      { id: `add-edit-${ELEMENTS.QUANTITY}`, value: '0' },
+      { id: `add-${ELEMENTS.QUANTITY}`, value: '0' },
       { id: `add-${ELEMENTS.UNIT}`, value: '' },
       { id: `add-${ELEMENTS.CATEGORY}`, value: '' },
       { id: `add-${ELEMENTS.EXPIRY_DATE}`, value: '' },
@@ -200,7 +204,7 @@ export class Modals {
         id: `add-${ELEMENTS.AUTO_ADD_TO_LIST_QUANTITY}`,
         value: '0',
       },
-      { id: `add--${ELEMENTS.TODO_LIST}`, value: '' },
+      { id: `add-${ELEMENTS.TODO_LIST}`, value: '' },
     ];
 
     this.setFormValues(fields);
@@ -216,26 +220,21 @@ export class Modals {
 
   public async addItem(config: InventoryConfig): Promise<boolean> {
     try {
-      const autoAddValidation = this.validateAutoAddFields(true);
-      if (!autoAddValidation.isValid) {
-        this.showError(autoAddValidation.message || 'Please fill in required auto-add fields');
-        return false;
-      }
+      this.clearError(true);
 
-      const expiryValidation = this.validateExpiryThreshold(true);
-      if (!expiryValidation.isValid) {
-        this.showError(expiryValidation.message || 'Please check expiry threshold settings');
-        return false;
-      }
+      // Get raw form data first
+      const rawFormData = this.getRawAddModalData();
 
-      const itemData = this.getAddModalData();
-
-      const validation = Utils.validateItemData(itemData);
+      // Validate raw data
+      const validation = Utils.validateRawFormData(rawFormData);
       if (!validation.isValid) {
-        this.showError(validation.errors[0] || MESSAGES.ERROR_NO_NAME);
+        this.highlightInvalidFields(validation.errors, true);
+        this.showError(validation.errors[0].message, true);
         return false;
       }
 
+      // Convert to ItemData only after validation passes
+      const itemData = Utils.convertRawFormDataToItemData(rawFormData);
       const sanitizedData = Utils.sanitizeItemData(itemData);
       const inventoryId = this.getInventoryId(config.entity);
       const result = await this.services.addItem(inventoryId, sanitizedData);
@@ -244,12 +243,12 @@ export class Modals {
         this.clearAddModalForm();
         return true;
       } else {
-        this.showError(`Error adding item: ${result.error}`);
+        this.showError(`Error adding item: ${result.error}`, true);
         return false;
       }
     } catch (error) {
       console.error('Error in addItem:', error);
-      this.showError('An error occurred while adding the item');
+      this.showError('An error occurred while adding the item', true);
       return false;
     }
   }
@@ -259,29 +258,23 @@ export class Modals {
       return false;
     }
 
-    const autoAddValidation = this.validateAutoAddFields(false);
-    if (!autoAddValidation.isValid) {
-      this.showError(autoAddValidation.message || 'Please fill in required auto-add fields');
-      return false;
-    }
-
-    const expiryValidation = this.validateExpiryThreshold(false);
-    if (!expiryValidation.isValid) {
-      this.showError(expiryValidation.message || 'Please check expiry threshold settings');
-      return false;
-    }
-
-    const itemData = this.getEditModalData();
-    const validation = Utils.validateItemData(itemData);
-
-    if (!validation.isValid) {
-      this.showError(validation.errors[0] || MESSAGES.ERROR_NO_NAME);
-      return false;
-    }
-
-    const sanitizedData = Utils.sanitizeItemData(itemData);
-
     try {
+      this.clearError(false);
+
+      // Get raw form data first
+      const rawFormData = this.getRawEditModalData();
+
+      // Validate raw data
+      const validation = Utils.validateRawFormData(rawFormData);
+      if (!validation.isValid) {
+        this.highlightInvalidFields(validation.errors, false);
+        this.showError(validation.errors[0].message, false);
+        return false;
+      }
+
+      // Convert to ItemData only after validation passes
+      const itemData = Utils.convertRawFormDataToItemData(rawFormData);
+      const sanitizedData = Utils.sanitizeItemData(itemData);
       const inventoryId = this.getInventoryId(config.entity);
       const result = await this.services.updateItem(
         inventoryId,
@@ -292,13 +285,64 @@ export class Modals {
       if (result.success) {
         return true;
       } else {
-        this.showError(`Error updating item: ${result.error}`);
+        this.showError(`Error updating item: ${result.error}`, false);
         return false;
       }
     } catch (error) {
       console.error('Error in saveEditModal:', error);
-      this.showError('An error occurred while updating the item');
+      this.showError('An error occurred while updating the item', false);
       return false;
+    }
+  }
+
+  private highlightInvalidFields(errors: ValidationError[], isAddModal: boolean): void {
+    const prefix = isAddModal ? 'add' : 'edit';
+
+    // Clear previous error styling
+    this.clearFieldErrors(isAddModal);
+
+    // Map field names to element IDs and highlight errors
+    errors.forEach((error) => {
+      let elementId = '';
+
+      switch (error.field) {
+        case 'name':
+          elementId = `${prefix}-${ELEMENTS.NAME}`;
+          break;
+        case 'quantity':
+          elementId = `${prefix}-${ELEMENTS.QUANTITY}`;
+          break;
+        case 'autoAddToListQuantity':
+          elementId = `${prefix}-${ELEMENTS.AUTO_ADD_TO_LIST_QUANTITY}`;
+          break;
+        case 'todoList':
+          elementId = `${prefix}-${ELEMENTS.TODO_LIST}`;
+          break;
+        case 'expiryDate':
+          elementId = `${prefix}-${ELEMENTS.EXPIRY_DATE}`;
+          break;
+        case 'expiryAlertDays':
+          elementId = `${prefix}-${ELEMENTS.EXPIRY_ALERT_DAYS}`;
+          break;
+      }
+
+      if (elementId) {
+        const element = this.getElement<HTMLInputElement>(elementId);
+        if (element) element.classList.add('input-error');
+      }
+    });
+  }
+
+  private clearFieldErrors(isAddModal: boolean): void {
+    const prefix = isAddModal ? 'add' : 'edit';
+    const modalId = isAddModal ? ELEMENTS.ADD_MODAL : ELEMENTS.EDIT_MODAL;
+
+    // Remove error styling from all inputs in the modal
+    const modal = this.getElement<HTMLElement>(modalId);
+    if (modal) {
+      modal.querySelectorAll('.input-error').forEach((field) => {
+        field.classList.remove('input-error');
+      });
     }
   }
 
@@ -403,14 +447,6 @@ export class Modals {
     return element?.value?.trim() ?? '';
   }
 
-  private getInputNumber(id: string, defaultValue = 0): number {
-    const element = this.getElement<HTMLInputElement>(id);
-    if (!element) return defaultValue;
-
-    const value = parseInt(element.value);
-    return isNaN(value) ? defaultValue : Math.max(0, value);
-  }
-
   private getInputChecked(id: string): boolean {
     const element = this.getElement<HTMLInputElement>(id);
     return element?.checked ?? false;
@@ -425,83 +461,83 @@ export class Modals {
     });
   }
 
-  private showError(message: string): void {
-    alert(message);
-  }
+  private showError(message: string, isAddModal: boolean = true): void {
+    const prefix = isAddModal ? 'add' : 'edit';
+    const validationMessage = this.getElement<HTMLElement>(`${prefix}-validation-message`);
+    const validationText = validationMessage?.querySelector('.validation-text');
 
-  private validateAutoAddFields(isAddModal = true): { isValid: boolean; message?: string } {
-    const autoAddElementId = isAddModal
-      ? `add-${ELEMENTS.AUTO_ADD_TO_LIST_QUANTITY}`
-      : `edit-${ELEMENTS.AUTO_ADD_TO_LIST_QUANTITY}`;
-    const todoListElementId = isAddModal
-      ? `add-${ELEMENTS.TODO_LIST}`
-      : `edit-${ELEMENTS.TODO_LIST}`;
+    if (validationMessage && validationText) {
+      validationText.textContent = message;
+      validationMessage.classList.add('show');
 
-    const autoAddCheckbox = this.getElement<HTMLInputElement>(autoAddElementId);
-
-    if (!autoAddCheckbox?.checked) {
-      return { isValid: true };
-    }
-
-    const todoListSelect = this.getElement<HTMLSelectElement>(todoListElementId);
-
-    // Reset any previous error styling
-    if (todoListSelect) todoListSelect.style.borderColor = '';
-
-    if (!todoListSelect?.value) {
-      if (todoListSelect) todoListSelect.style.borderColor = 'var(--error-color)';
-      return {
-        isValid: false,
-        message: 'Todo list selection is required when auto-add is enabled',
-      };
-    }
-
-    return { isValid: true };
-  }
-
-  private validateExpiryThreshold(isAddModal = true): { isValid: boolean; message?: string } {
-    const expiryElementId = isAddModal
-      ? `add-${ELEMENTS.EXPIRY_DATE}`
-      : `edit-${ELEMENTS.EXPIRY_DATE}`;
-    const thresholdElementId = isAddModal
-      ? `add-${ELEMENTS.EXPIRY_ALERT_DAYS}`
-      : `edit-${ELEMENTS.EXPIRY_ALERT_DAYS}`;
-
-    const expiryInput = this.getElement<HTMLInputElement>(expiryElementId);
-    const thresholdInput = this.getElement<HTMLInputElement>(thresholdElementId);
-
-    // Reset any previous error styling
-    if (thresholdInput) thresholdInput.style.borderColor = '';
-
-    const hasExpiryDate = expiryInput?.value?.trim();
-    const thresholdValue = thresholdInput?.value?.trim();
-
-    // If there's an expiry date but no threshold, use default
-    if (hasExpiryDate && !thresholdValue) {
-      if (thresholdInput) thresholdInput.value = '7';
-      return { isValid: true };
-    }
-
-    // If there's a threshold but no expiry date, that's an error
-    if (thresholdValue && !hasExpiryDate) {
-      if (thresholdInput) thresholdInput.style.borderColor = 'var(--error-color)';
-      return {
-        isValid: false,
-        message: 'Expiry threshold requires an expiry date to be set',
-      };
-    }
-
-    if (thresholdValue) {
-      const threshold = parseFloat(thresholdValue);
-      if (isNaN(threshold) || threshold < 0) {
-        if (thresholdInput) thresholdInput.style.borderColor = 'var(--error-color)';
-        return {
-          isValid: false,
-          message: 'Expiry threshold must be a positive number',
-        };
+      // Scroll to the top of the modal to ensure the error is visible
+      const modalContent = validationMessage.closest('.modal-content');
+      if (modalContent) {
+        modalContent.scrollTop = 0;
       }
-    }
 
-    return { isValid: true };
+      // Auto-hide after 5 seconds (optional)
+      setTimeout(() => {
+        this.clearError(isAddModal);
+      }, 5000);
+    } else {
+      console.error('Validation Error:', message);
+    }
+  }
+
+  private clearError(isAddModal: boolean = true): void {
+    const prefix = isAddModal ? 'add' : 'edit';
+    const validationMessage = this.getElement<HTMLElement>(`${prefix}-validation-message`);
+
+    if (validationMessage) {
+      validationMessage.classList.remove('show');
+    }
+  }
+
+  public setupValidationListeners(): void {
+    const setupClearErrorsForModal = (isAddModal: boolean) => {
+      const prefix = isAddModal ? 'add' : 'edit';
+
+      const quantityField = this.getElement<HTMLInputElement>(`${prefix}-${ELEMENTS.QUANTITY}`);
+      const quantityThresholdField = this.getElement<HTMLInputElement>(
+        `${prefix}-${ELEMENTS.AUTO_ADD_TO_LIST_QUANTITY}`
+      );
+      const todoListField = this.getElement<HTMLSelectElement>(`${prefix}-${ELEMENTS.TODO_LIST}`);
+      const autoAddCheckbox = this.getElement<HTMLInputElement>(
+        `${prefix}-${ELEMENTS.AUTO_ADD_ENABLED}`
+      );
+      const nameField = this.getElement<HTMLInputElement>(`${prefix}-${ELEMENTS.NAME}`);
+      const expiryField = this.getElement<HTMLInputElement>(`${prefix}-${ELEMENTS.EXPIRY_DATE}`);
+
+      // Clear errors when user starts interacting with any field
+      [quantityField, quantityThresholdField, todoListField, nameField, expiryField].forEach(
+        (field) => {
+          if (field) {
+            field.addEventListener('input', () => {
+              field.classList.remove('input-error');
+              this.clearError(isAddModal);
+            });
+            field.addEventListener('change', () => {
+              field.classList.remove('input-error');
+              this.clearError(isAddModal);
+            });
+          }
+        }
+      );
+
+      // Clear errors when auto-add is unchecked
+      if (autoAddCheckbox) {
+        autoAddCheckbox.addEventListener('change', () => {
+          if (!autoAddCheckbox.checked) {
+            quantityThresholdField?.classList.remove('input-error');
+            todoListField?.classList.remove('input-error');
+            this.clearError(isAddModal);
+          }
+        });
+      }
+    };
+
+    setupClearErrorsForModal(true); // Add modal
+    setupClearErrorsForModal(false); // Edit modal
   }
 }

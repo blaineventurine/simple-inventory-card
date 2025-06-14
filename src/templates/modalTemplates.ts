@@ -14,6 +14,11 @@ export function createUnifiedModal(todoLists: TodoList[], config: ModalConfig): 
         </div>
 
         <div class="modal-body">
+          <!-- Add validation message container -->
+          <div id="${prefix}-validation-message" class="validation-message">
+            <span class="validation-text"></span>
+          </div>
+
           <div class="form-group">
             <label for="${prefix}-${ELEMENTS.NAME}" class="form-label">Name *</label>
             <input type="text" id="${prefix}-${ELEMENTS.NAME}" required />
@@ -63,11 +68,11 @@ export function createUnifiedModal(todoLists: TodoList[], config: ModalConfig): 
               Auto-add to todo list when low
             </label>
             
-            <div class="auto-add-controls">
+            <div class="auto-add-controls" id="${prefix}-auto-add-controls">
               <div class="form-row">
                 <div class="input-group">
                   <label for="${prefix}-${ELEMENTS.AUTO_ADD_TO_LIST_QUANTITY}">
-                    Quantity Threshold
+                    Quantity Threshold *
                   </label>
                   <input 
                     type="number" 
@@ -79,7 +84,7 @@ export function createUnifiedModal(todoLists: TodoList[], config: ModalConfig): 
                 </div>
                 
                 <div class="input-group">
-                  <label for="${prefix}-${ELEMENTS.TODO_LIST}">Todo List</label>
+                  <label for="${prefix}-${ELEMENTS.TODO_LIST}">Todo List *</label>
                   <select id="${prefix}-${ELEMENTS.TODO_LIST}" class="auto-add-required">
                     <option value="">Select list...</option>
                     ${todoLists

@@ -1,4 +1,59 @@
 export const formStyles = `
+  .validation-message {
+    background: var(--error-color, #f44336);
+    color: white;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 0.9em;
+    display: none;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
+    border-left: 4px solid rgba(255, 255, 255, 0.3);
+    position: relative;
+  }
+
+  .validation-message.show {
+    display: flex;
+    animation: slideInDown 0.3s ease-out;
+  }
+
+  .validation-message::before {
+    content: '⚠️';
+    font-size: 1.1em;
+    flex-shrink: 0;
+  }
+
+  .validation-text {
+    flex: 1;
+    line-height: 1.4;
+    font-weight: 500;
+  }
+
+  @keyframes slideInDown {
+    from {
+      transform: translateY(-10px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .input-error {
+    border-color: var(--error-color, #f44336) !important;
+    box-shadow: 0 0 0 2px rgba(244, 67, 54, 0.2) !important;
+    animation: shake 0.3s ease-in-out;
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-2px); }
+    75% { transform: translateX(2px); }
+  }
+
   .add-item-form {
     margin-top: 20px;
     padding-top: 20px;
@@ -192,5 +247,14 @@ export const formStyles = `
     content: " *";
     color: var(--error-color, #f44336);
     font-weight: bold;
+  }
+
+  .auto-add-controls.has-errors {
+    border-color: var(--error-color, #f44336);
+    background: rgba(244, 67, 54, 0.05);
+  }
+
+  .input-error:focus {
+    animation: none; /* Stop shake when user focuses to fix */
   }
 `;

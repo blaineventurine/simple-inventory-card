@@ -18,7 +18,7 @@ export class Renderer {
     todoLists: TodoList[]
   ): void {
     const inventoryName = Utils.getInventoryName(state, entityId);
-    const description = Utils.getInventoryDescription(state, entityId);
+    const description = Utils.getInventoryDescription(state);
     const allItems: readonly InventoryItem[] = state?.attributes?.items || [];
     const categories = [
       ...new Set(

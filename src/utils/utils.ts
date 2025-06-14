@@ -1,7 +1,8 @@
 import { DEFAULT_INVENTORY_NAME } from './constants';
 import { HassEntity, HomeAssistant } from '../types/home-assistant';
 import { FilterState } from '../types/filterState';
-import { ItemData, SanitizedItemData } from '../types/inventoryItem';
+import { ItemData, SanitizedItemData, RawFormData } from '../types/inventoryItem';
+import { ValidationError } from '../types/validationError';
 
 interface InputValues {
   [id: string]: string | boolean | number;
@@ -9,7 +10,7 @@ interface InputValues {
 
 interface ValidationResult {
   isValid: boolean;
-  errors: string[];
+  errors: ValidationError[];
 }
 
 export class Utils {
@@ -36,11 +37,7 @@ export class Utils {
     return DEFAULT_INVENTORY_NAME;
   }
 
-  static getInventoryDescription(
-    state: HassEntity | undefined,
-    entityId: string
-  ): string | undefined {
-    console.log('getInventoryDescription', state, entityId);
+  static getInventoryDescription(state: HassEntity | undefined): string | undefined {
     if (state?.attributes?.description) {
       return state.attributes.description;
     }
@@ -213,11 +210,119 @@ export class Utils {
   }
 
   /**
-   * Validates item data for required fields and formats
+   * Validates raw form data before processing
+   * @param formData - Raw form data from inputs
+   * @returns Validation result with field-specific errors
+   */
+  static validateRawFormData(formData: RawFormData): ValidationResult {
+    const errors: ValidationError[] = [];
+
+    if (!formData.name?.trim()) {
+      errors.push({ field: 'name', message: 'Item name is required' });
+    }
+
+    if (formData.quantity?.trim()) {
+      const quantityNum = parseFloat(formData.quantity);
+      if (isNaN(quantityNum)) {
+        errors.push({ field: 'quantity', message: 'Quantity must be a valid number' });
+      } else if (quantityNum < 0) {
+        errors.push({ field: 'quantity', message: 'Quantity cannot be negative' });
+      }
+    }
+
+    if (formData.autoAddEnabled) {
+      if (!formData.autoAddToListQuantity?.trim()) {
+        errors.push({
+          field: 'autoAddToListQuantity',
+          message: 'Quantity threshold is required when auto-add is enabled',
+        });
+      } else {
+        const thresholdNum = parseFloat(formData.autoAddToListQuantity);
+        if (isNaN(thresholdNum)) {
+          errors.push({
+            field: 'autoAddToListQuantity',
+            message: 'Quantity threshold must be a valid number',
+          });
+        } else if (thresholdNum < 0) {
+          errors.push({
+            field: 'autoAddToListQuantity',
+            message: 'Quantity cannot be negative',
+          });
+        }
+      }
+
+      if (!formData.todoList?.trim()) {
+        errors.push({
+          field: 'todoList',
+          message: 'Todo list selection is required when auto-add is enabled',
+        });
+      }
+    }
+
+    if (formData.expiryDate?.trim() && !this.isValidDate(formData.expiryDate)) {
+      errors.push({ field: 'expiryDate', message: 'Invalid expiry date format' });
+    }
+
+    if (formData.expiryAlertDays?.trim()) {
+      const alertDays = parseFloat(formData.expiryAlertDays);
+      if (isNaN(alertDays)) {
+        errors.push({
+          field: 'expiryAlertDays',
+          message: 'Expiry alert days must be a valid number',
+        });
+      } else if (alertDays < 0) {
+        errors.push({
+          field: 'expiryAlertDays',
+          message: 'Expiry alert days cannot be negative',
+        });
+      }
+    }
+
+    const hasExpiryDate = formData.expiryDate?.trim();
+    const hasThreshold = formData.expiryAlertDays?.trim();
+
+    if (hasThreshold && !hasExpiryDate) {
+      errors.push({
+        field: 'expiryAlertDays',
+        message: 'Expiry threshold requires an expiry date to be set',
+      });
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+    };
+  }
+
+  /**
+   * Converts raw form data to ItemData after validation passes
+   * @param formData - Raw form data
+   * @returns Converted ItemData
+   */
+  static convertRawFormDataToItemData(formData: RawFormData): ItemData {
+    return {
+      name: formData.name?.trim() || '',
+      quantity: formData.quantity?.trim() ? Math.max(0, parseFloat(formData.quantity) || 0) : 0,
+      autoAddEnabled: Boolean(formData.autoAddEnabled),
+      autoAddToListQuantity: formData.autoAddToListQuantity?.trim()
+        ? Math.max(0, parseFloat(formData.autoAddToListQuantity) || 0)
+        : 0,
+      todoList: formData.todoList?.trim() || '',
+      expiryDate: formData.expiryDate?.trim() || '',
+      expiryAlertDays: formData.expiryAlertDays?.trim()
+        ? Math.max(1, parseFloat(formData.expiryAlertDays) || 7)
+        : 7,
+      category: formData.category?.trim() || '',
+      unit: formData.unit?.trim() || '',
+    };
+  }
+
+  /**
+   * Validates item data for required fields and formats (legacy method - use validateRawFormData instead)
    * @param itemData - The item data to validate
    * @returns Validation result with errors if any
    */
-  static validateItemData(itemData: ItemData): ValidationResult {
+  static validateItemData(itemData: ItemData): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
 
     if (!itemData.name?.trim()) {
