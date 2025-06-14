@@ -18,42 +18,33 @@ export const SERVICES = {
 
 // Service Parameters (must match backend)
 export const PARAMS = {
+  AMOUNT: 'amount',
+  AUTO_ADD_ENABLED: 'auto_add_enabled',
+  AUTO_ADD_TO_LIST_QUANTITY: 'auto_add_to_list_quantity',
+  CATEGORY: 'category',
+  EXPIRY_ALERT_DAYS: 'expiry_alert_days',
+  EXPIRY_DATE: 'expiry_date',
   INVENTORY_ID: 'inventory_id',
   NAME: 'name',
   OLD_NAME: 'old_name',
   QUANTITY: 'quantity',
-  UNIT: 'unit',
-  CATEGORY: 'category',
-  EXPIRY_DATE: 'expiry_date',
-  AUTO_ADD_ENABLED: 'auto_add_enabled',
-  THRESHOLD: 'threshold',
   TODO_LIST: 'todo_list',
-  AMOUNT: 'amount',
+  UNIT: 'unit',
 };
 
 export const ELEMENTS = {
-  ADD_MODAL: 'add-item-modal',
-  SETTINGS_MODAL: 'settings-modal',
+  ADD_MODAL: 'add-modal',
+  EDIT_MODAL: 'edit-modal',
 
-  // Inputs - Add Modal
-  ITEM_NAME: 'item-name',
-  ITEM_QUANTITY: 'item-quantity',
-  ITEM_UNIT: 'item-unit',
-  ITEM_CATEGORY: 'item-category',
-  ITEM_EXPIRY: 'item-expiry',
-  ITEM_TODO_LIST: 'item-todo-list',
-  ITEM_THRESHOLD: 'item-threshold',
-  ITEM_AUTO_ADD: 'item-auto-add',
-
-  // Inputs - Settings Modal
-  MODAL_ITEM_NAME: 'modal-item-name',
-  MODAL_ITEM_QUANTITY: 'modal-item-quantity',
-  MODAL_ITEM_UNIT: 'modal-item-unit',
-  MODAL_ITEM_CATEGORY: 'modal-item-category',
-  MODAL_ITEM_EXPIRY: 'modal-item-expiry',
-  MODAL_AUTO_ADD: 'modal-auto-add',
-  MODAL_THRESHOLD: 'modal-threshold',
-  MODAL_TODO_LIST: 'modal-todo-list',
+  NAME: 'name',
+  QUANTITY: 'quantity',
+  UNIT: 'unit',
+  CATEGORY: 'category',
+  EXPIRY_DATE: 'expiry-date',
+  EXPIRY_ALERT_DAYS: 'expiry-alert-days',
+  AUTO_ADD_ENABLED: 'auto-add-enabled',
+  AUTO_ADD_TO_LIST_QUANTITY: 'auto-add-to-list-quantity',
+  TODO_LIST: 'todo-list',
 
   ADD_ITEM_BTN: 'add-item-btn',
   OPEN_ADD_MODAL: 'open-add-modal',
@@ -84,7 +75,7 @@ export const ACTIONS = {
   INCREMENT: 'increment',
   DECREMENT: 'decrement',
   REMOVE: 'remove',
-  OPEN_SETTINGS: 'open_settings',
+  OPEN_EDIT_MODAL: 'open_edit',
   CLOSE_ADD_MODAL: 'close_add_modal',
 };
 
