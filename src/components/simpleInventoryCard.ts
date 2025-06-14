@@ -140,7 +140,9 @@ class SimpleInventoryCard extends LitElement {
       this.state.setRenderCallback(() => this.render());
 
       const getInventoryId = (entityId: string) => Utils.getInventoryId(this._hass!, entityId);
-      this.modals = new Modals(this.shadowRoot, this.services, getInventoryId);
+      this.modals = new Modals(this.shadowRoot, this.services, getInventoryId, () =>
+        this._refreshAfterSave()
+      );
 
       this._isInitialized = true;
       return true;
@@ -148,6 +150,14 @@ class SimpleInventoryCard extends LitElement {
       console.error('Failed to initialize modules:', error);
       return false;
     }
+  }
+
+  private _refreshAfterSave(): void {
+    setTimeout(() => {
+      if (this._hass && this._config) {
+        this.render();
+      }
+    }, 50);
   }
 
   private _updateTodoLists(): void {

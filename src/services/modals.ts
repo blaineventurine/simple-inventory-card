@@ -1,7 +1,8 @@
 import { ELEMENTS, CSS_CLASSES, MESSAGES, TIMING, DEFAULTS } from '../utils/constants';
 import { HomeAssistant, InventoryItem, InventoryConfig } from '../types/home-assistant';
 import { Utils } from '../utils/utils';
-import { SanitizedItemData, RawFormData, ValidationError } from '../types/inventoryItem';
+import { SanitizedItemData, RawFormData } from '../types/inventoryItem';
+import { ValidationError } from '../types/validationError';
 
 export interface InventoryServiceResult {
   success: boolean;
@@ -30,7 +31,8 @@ export class Modals {
   constructor(
     private readonly shadowRoot: ShadowRoot,
     private readonly services: InventoryServices,
-    private readonly getInventoryId: (entityId: string) => string
+    private readonly getInventoryId: (entityId: string) => string,
+    private readonly onDataChanged?: () => void
   ) {
     this.setupEventListeners();
   }
@@ -222,18 +224,15 @@ export class Modals {
     try {
       this.clearError(true);
 
-      // Get raw form data first
       const rawFormData = this.getRawAddModalData();
-
-      // Validate raw data
       const validation = Utils.validateRawFormData(rawFormData);
+
       if (!validation.isValid) {
         this.highlightInvalidFields(validation.errors, true);
         this.showError(validation.errors[0].message, true);
         return false;
       }
 
-      // Convert to ItemData only after validation passes
       const itemData = Utils.convertRawFormDataToItemData(rawFormData);
       const sanitizedData = Utils.sanitizeItemData(itemData);
       const inventoryId = this.getInventoryId(config.entity);
@@ -241,6 +240,9 @@ export class Modals {
 
       if (result.success) {
         this.clearAddModalForm();
+        if (this.onDataChanged) {
+          this.onDataChanged();
+        }
         return true;
       } else {
         this.showError(`Error adding item: ${result.error}`, true);
@@ -261,18 +263,15 @@ export class Modals {
     try {
       this.clearError(false);
 
-      // Get raw form data first
       const rawFormData = this.getRawEditModalData();
-
-      // Validate raw data
       const validation = Utils.validateRawFormData(rawFormData);
+
       if (!validation.isValid) {
         this.highlightInvalidFields(validation.errors, false);
         this.showError(validation.errors[0].message, false);
         return false;
       }
 
-      // Convert to ItemData only after validation passes
       const itemData = Utils.convertRawFormDataToItemData(rawFormData);
       const sanitizedData = Utils.sanitizeItemData(itemData);
       const inventoryId = this.getInventoryId(config.entity);
@@ -283,6 +282,10 @@ export class Modals {
       );
 
       if (result.success) {
+        if (this.onDataChanged) {
+          this.onDataChanged();
+        }
+
         return true;
       } else {
         this.showError(`Error updating item: ${result.error}`, false);
@@ -298,10 +301,8 @@ export class Modals {
   private highlightInvalidFields(errors: ValidationError[], isAddModal: boolean): void {
     const prefix = isAddModal ? 'add' : 'edit';
 
-    // Clear previous error styling
     this.clearFieldErrors(isAddModal);
 
-    // Map field names to element IDs and highlight errors
     errors.forEach((error) => {
       let elementId = '';
 
@@ -334,10 +335,8 @@ export class Modals {
   }
 
   private clearFieldErrors(isAddModal: boolean): void {
-    const prefix = isAddModal ? 'add' : 'edit';
     const modalId = isAddModal ? ELEMENTS.ADD_MODAL : ELEMENTS.EDIT_MODAL;
 
-    // Remove error styling from all inputs in the modal
     const modal = this.getElement<HTMLElement>(modalId);
     if (modal) {
       modal.querySelectorAll('.input-error').forEach((field) => {
@@ -400,10 +399,7 @@ export class Modals {
   }
 
   public setupExpiryThresholdInteraction(): void {
-    // Setup for add modal
     this.setupExpiryThresholdFieldForModal(true);
-
-    // Setup for edit modal
     this.setupExpiryThresholdFieldForModal(false);
   }
 
@@ -470,13 +466,11 @@ export class Modals {
       validationText.textContent = message;
       validationMessage.classList.add('show');
 
-      // Scroll to the top of the modal to ensure the error is visible
       const modalContent = validationMessage.closest('.modal-content');
       if (modalContent) {
         modalContent.scrollTop = 0;
       }
 
-      // Auto-hide after 5 seconds (optional)
       setTimeout(() => {
         this.clearError(isAddModal);
       }, 5000);
@@ -509,7 +503,6 @@ export class Modals {
       const nameField = this.getElement<HTMLInputElement>(`${prefix}-${ELEMENTS.NAME}`);
       const expiryField = this.getElement<HTMLInputElement>(`${prefix}-${ELEMENTS.EXPIRY_DATE}`);
 
-      // Clear errors when user starts interacting with any field
       [quantityField, quantityThresholdField, todoListField, nameField, expiryField].forEach(
         (field) => {
           if (field) {
@@ -525,7 +518,6 @@ export class Modals {
         }
       );
 
-      // Clear errors when auto-add is unchecked
       if (autoAddCheckbox) {
         autoAddCheckbox.addEventListener('change', () => {
           if (!autoAddCheckbox.checked) {

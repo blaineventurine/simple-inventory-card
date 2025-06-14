@@ -23,7 +23,18 @@
     "type-check": "tsc --noEmit",
     "lint:js": "eslint src/**/*.ts",
     "lint:js:fix": "eslint src/**/*.ts --fix",
-    "format:js": "prettier --write src/**/*.ts"
+    "format:js": "prettier --write src/**/*.ts",
+    "prepare": "husky install",
+    "pre-commit": "lint-staged"
+  },
+  "lint-staged": {
+    "src/**/*.{ts,js}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "src/**/*.ts": [
+      "tsc --noEmit"
+    ]
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
@@ -33,6 +44,8 @@
     "@typescript-eslint/parser": "^8.33.1",
     "eslint": "^9.28.0",
     "globals": "^16.2.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.1",
     "prettier": "^3.5.3",
     "terser": "^5.41.0",
     "typescript": "^5.8.3",
