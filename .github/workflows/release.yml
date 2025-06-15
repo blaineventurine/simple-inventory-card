@@ -51,33 +51,25 @@ jobs:
             # Extract version from tag (remove 'v' prefix)
             TAG_VERSION="${{ github.ref_name }}"
             RELEASE_VERSION="${TAG_VERSION#v}"
-            echo "source=tag" >> $GITHUB_OUTPUT
           elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            # Get version from package.json for manual releases
+            # Existing manual release logic
             PACKAGE_VERSION=$(node -p "require('./package.json').version")
             if [[ "${{ github.event.inputs.release_type }}" == "beta" ]]; then
               RELEASE_VERSION="${PACKAGE_VERSION}-${{ github.event.inputs.beta_version }}"
             else
               RELEASE_VERSION="$PACKAGE_VERSION"
             fi
-            echo "source=manual" >> $GITHUB_OUTPUT
           fi
 
           # Determine if it's a prerelease
           if [[ "$RELEASE_VERSION" =~ (beta|alpha|rc|b[0-9]+) ]]; then
             IS_PRERELEASE="true"
-            echo "type=prerelease" >> $GITHUB_OUTPUT
           else
             IS_PRERELEASE="false"
-            echo "type=release" >> $GITHUB_OUTPUT
           fi
 
           echo "version=$RELEASE_VERSION" >> $GITHUB_OUTPUT
           echo "is_prerelease=$IS_PRERELEASE" >> $GITHUB_OUTPUT
-
-          echo "Release version: $RELEASE_VERSION"
-          echo "Is prerelease: $IS_PRERELEASE"
-          echo "Source: ${{ github.event_name }}"
 
       # - name: Generate release notes
       #   id: release_notes
