@@ -1,10 +1,12 @@
-export const responsiveStyles = `
+import { CSSResult, css } from 'lit-element';
+
+export const responsiveStyles: CSSResult = css`
   @media (max-width: 768px) {
     .controls-row {
       flex-direction: column;
       align-items: stretch;
     }
-    
+
     .add-new-btn {
       width: 100%;
       margin-top: 8px;
@@ -30,12 +32,12 @@ export const responsiveStyles = `
       width: 100%;
     }
   }
-  
+
   @media (min-width: 768px) {
     .item-row {
       flex-wrap: nowrap;
     }
-    
+
     .add-btn {
       width: auto;
       margin-top: 0;

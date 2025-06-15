@@ -1,4 +1,6 @@
-export const modalStyles = `
+import { CSSResult, css } from 'lit-element';
+
+export const modalStyles: CSSResult = css`
   .modal {
     display: none;
     position: fixed;
@@ -7,16 +9,16 @@ export const modalStyles = `
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0,0,0,0.6);
+    background-color: rgba(0, 0, 0, 0.6);
     backdrop-filter: blur(4px);
   }
-  
+
   .modal.show {
     display: flex;
     align-items: center;
     justify-content: center;
   }
-  
+
   .modal-content {
     background-color: var(--card-background-color);
     padding: 32px;
@@ -25,10 +27,10 @@ export const modalStyles = `
     max-width: 500px;
     max-height: 85vh;
     overflow-y: auto;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     position: relative;
   }
-  
+
   .modal-header {
     display: flex;
     justify-content: space-between;
@@ -37,27 +39,27 @@ export const modalStyles = `
     padding-bottom: 16px;
     border-bottom: 2px solid var(--divider-color);
   }
-  
+
   .modal-header h3 {
     font-size: 1.5em;
     font-weight: 700;
     color: var(--primary-text-color);
     margin: 0;
   }
-  
+
   .modal-title {
     font-size: 1.5em;
     font-weight: 700;
     color: var(--primary-text-color);
   }
-   
+
   .modal-buttons {
     display: flex;
     gap: 16px;
     margin-top: 32px;
     justify-content: flex-end;
   }
-  
+
   .modal-buttons button {
     padding: 12px 24px;
     min-width: 100px;

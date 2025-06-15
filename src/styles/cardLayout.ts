@@ -1,4 +1,6 @@
-export const cardLayoutStyles = `
+import { CSSResult, css } from 'lit-element';
+
+export const cardLayoutStyles: CSSResult = css`
   ha-card {
     padding: 16px;
   }

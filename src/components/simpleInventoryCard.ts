@@ -7,7 +7,7 @@ import { Utils } from '../utils/utils';
 import { ELEMENTS, ACTIONS, DEFAULTS, MESSAGES, CSS_CLASSES } from '../utils/constants';
 import { HomeAssistant, InventoryItem, InventoryConfig } from '../types/home-assistant';
 import { ConfigEditor } from './configEditor';
-import { LitElement } from 'https://cdn.jsdelivr.net/gh/lit/dist@2/core/lit-core.min.js';
+import { LitElement } from 'lit-element';
 import packageJson from '../../package.json';
 
 declare global {
@@ -36,6 +36,8 @@ class SimpleInventoryCard extends LitElement {
   private _updateTimeout: ReturnType<typeof setTimeout> | null = null;
   private static _globalEventListenersSetup = false;
   private static _currentInstance: SimpleInventoryCard | null = null;
+  private _boundClickHandler: ((e: Event) => Promise<void>) | null = null;
+  private _boundChangeHandler: ((e: Event) => void) | null = null;
 
   constructor() {
     super();
@@ -80,7 +82,7 @@ class SimpleInventoryCard extends LitElement {
   }
 
   render(): void {
-    if (!this._config || !this._hass || !this.shadowRoot) {
+    if (!this._config || !this._hass || !this.renderRoot) {
       return;
     }
 
@@ -104,7 +106,7 @@ class SimpleInventoryCard extends LitElement {
       }
 
       const filters = this.filters.getCurrentFilters(entityId);
-      const sortMethodElement = this.shadowRoot.getElementById(
+      const sortMethodElement = this.renderRoot.querySelector(
         ELEMENTS.SORT_METHOD
       ) as HTMLSelectElement | null;
       const sortMethod = sortMethodElement?.value || DEFAULTS.SORT_METHOD;
@@ -128,19 +130,19 @@ class SimpleInventoryCard extends LitElement {
       return true;
     }
 
-    if (!this._hass || !this._config || !this.shadowRoot) {
+    if (!this._hass || !this._config || !this.renderRoot) {
       return false;
     }
 
     try {
       this.services = new Services(this._hass);
-      this.filters = new Filters(this.shadowRoot);
-      this.renderer = new Renderer(this.shadowRoot);
+      this.filters = new Filters(this.renderRoot as ShadowRoot);
+      this.renderer = new Renderer(this.renderRoot as ShadowRoot);
       this.state = new State();
       this.state.setRenderCallback(() => this.render());
 
       const getInventoryId = (entityId: string) => Utils.getInventoryId(this._hass!, entityId);
-      this.modals = new Modals(this.shadowRoot, this.services, getInventoryId, () =>
+      this.modals = new Modals(this.renderRoot as ShadowRoot, this.services, getInventoryId, () =>
         this._refreshAfterSave()
       );
 
@@ -174,14 +176,14 @@ class SimpleInventoryCard extends LitElement {
   }
 
   private _updateItemsOnly(items: InventoryItem[], sortMethod: string): void {
-    if (!this.shadowRoot) return;
+    if (!this.renderRoot) return;
 
-    const itemsContainer = this.shadowRoot.querySelector('.items-container');
+    const itemsContainer = this.renderRoot.querySelector('.items-container');
     if (!itemsContainer) {
       return;
     }
 
-    import('../templates/itemList.ts')
+    import('../templates/itemList')
       .then(({ createItemsList }) => {
         itemsContainer.innerHTML = createItemsList(items, sortMethod, this._todoLists);
       })
@@ -214,22 +216,22 @@ class SimpleInventoryCard extends LitElement {
   }
 
   private _cleanupEventListeners(): void {
-    if (this.shadowRoot && this._boundClickHandler) {
-      this.shadowRoot.removeEventListener('click', this._boundClickHandler);
-      this.shadowRoot.removeEventListener('change', this._boundChangeHandler);
+    if (this.renderRoot && this._boundClickHandler) {
+      this.renderRoot.removeEventListener('click', this._boundClickHandler);
+      this.renderRoot.removeEventListener('change', this._boundChangeHandler!);
     }
     SimpleInventoryCard._globalEventListenersSetup = false;
   }
 
   private _setupEventListeners(): void {
-    if (SimpleInventoryCard._globalEventListenersSetup || !this.shadowRoot) {
+    if (SimpleInventoryCard._globalEventListenersSetup || !this.renderRoot) {
       return;
     }
 
     this._boundClickHandler = this._handleClick.bind(this);
     this._boundChangeHandler = this._handleChange.bind(this);
-    this.shadowRoot.addEventListener('click', this._boundClickHandler);
-    this.shadowRoot.addEventListener('change', this._boundChangeHandler);
+    this.renderRoot.addEventListener('click', this._boundClickHandler!);
+    this.renderRoot.addEventListener('change', this._boundChangeHandler!);
 
     if (this._config && this.filters) {
       this.filters.setupSearchInput(this._config.entity, () => this._handleSearchChange());
@@ -239,8 +241,8 @@ class SimpleInventoryCard extends LitElement {
   }
 
   private _trackUserInteraction(): void {
-    if (this.state && this.shadowRoot) {
-      this.state.trackUserInteraction(this.shadowRoot);
+    if (this.state && this.renderRoot) {
+      this.state.trackUserInteraction(this.renderRoot as ShadowRoot);
     }
   }
 
@@ -256,7 +258,7 @@ class SimpleInventoryCard extends LitElement {
     }
 
     const filters = this.filters.getCurrentFilters(entityId);
-    const sortMethodElement = this.shadowRoot?.getElementById(
+    const sortMethodElement = this.renderRoot?.querySelector(
       ELEMENTS.SORT_METHOD
     ) as HTMLSelectElement | null;
     const sortMethod = sortMethodElement?.value || DEFAULTS.SORT_METHOD;
@@ -495,12 +497,12 @@ class SimpleInventoryCard extends LitElement {
   }
 
   private _clearFilters(): void {
-    if (!this._config || !this.filters || !this.shadowRoot) return;
+    if (!this._config || !this.filters || !this.renderRoot) return;
 
     try {
       this.filters.clearFilters(this._config.entity);
 
-      const searchInput = this.shadowRoot.getElementById(
+      const searchInput = this.renderRoot.querySelector(
         ELEMENTS.SEARCH_INPUT
       ) as HTMLInputElement | null;
       if (searchInput) {
@@ -515,12 +517,12 @@ class SimpleInventoryCard extends LitElement {
   }
 
   private _renderError(message: string): void {
-    if (!this.shadowRoot) return;
+    if (!this.renderRoot) return;
 
     if (this.renderer) {
       this.renderer.renderError(message);
     } else {
-      this.shadowRoot.innerHTML = `
+      (this.renderRoot as HTMLElement).innerHTML = `
         <ha-card>
           <div class="card-content">
             <div class="error-message" style="color: var(--error-color); padding: 16px; text-align: center;">
@@ -550,9 +552,9 @@ class SimpleInventoryCard extends LitElement {
       this.modals.destroy();
     }
 
-    if (this._eventListenersSetup && this.shadowRoot) {
-      this.shadowRoot.removeEventListener('click', this._handleClick);
-      this.shadowRoot.removeEventListener('change', this._handleChange);
+    if (this._eventListenersSetup && this.renderRoot) {
+      this.renderRoot.removeEventListener('click', this._handleClick);
+      this.renderRoot.removeEventListener('change', this._handleChange);
       this._eventListenersSetup = false;
     }
   }

@@ -24,7 +24,6 @@ on:
         default: 'beta.1'
 
 jobs:
-  # Run CI checks first
   ci:
     uses: ./.github/workflows/ci.yml
 

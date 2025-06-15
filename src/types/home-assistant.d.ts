@@ -28,6 +28,75 @@ export interface HomeAssistant {
   callWS: <T>(msg: MessageBase) => Promise<T>;
 }
 
+export interface HassConfig {
+  latitude: number;
+  longitude: number;
+  elevation: number;
+  unit_system: {
+    length: string;
+    mass: string;
+    temperature: string;
+    volume: string;
+  };
+  location_name: string;
+  time_zone: string;
+  components: string[];
+  config_dir: string;
+  whitelist_external_dirs: string[];
+  allowlist_external_dirs: string[];
+  allowlist_external_urls: string[];
+  version: string;
+  config_source: string;
+  safe_mode: boolean;
+  state: 'NOT_RUNNING' | 'STARTING' | 'RUNNING' | 'STOPPING' | 'FINAL_WRITE';
+  external_url?: string;
+  internal_url?: string;
+}
+
+export interface CurrentUser {
+  id: string;
+  name: string;
+  is_owner: boolean;
+  is_admin: boolean;
+  credentials: Credential[];
+  mfa_modules: MfaModule[];
+}
+
+export interface Credential {
+  id: string;
+  type: string;
+}
+
+export interface MfaModule {
+  id: string;
+  name: string;
+  enabled: boolean;
+}
+
+export interface HassServiceTarget {
+  entity_id?: string | string[];
+  device_id?: string | string[];
+  area_id?: string | string[];
+  label_id?: string | string[];
+}
+
+export interface ServiceCallResponse {
+  context?: Context;
+  response?: any;
+}
+
+export interface MessageBase {
+  id?: number;
+  type: string;
+  [key: string]: any;
+}
+
+export interface Context {
+  id: string;
+  parent_id?: string;
+  user_id?: string;
+}
+
 export interface HassEntity {
   entity_id: string;
   state: string;
@@ -81,6 +150,6 @@ export interface InventoryItem {
 }
 
 export interface InventoryConfig extends LovelaceCardConfig {
-  type?: string;
+  type: string;
   entity: string;
 }

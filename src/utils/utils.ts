@@ -439,16 +439,4 @@ export class Utils {
     newDate.setHours(0, 0, 0, 0);
     return newDate;
   }
-
-  /**
-   * Adds days to a date
-   * @param date - Base date
-   * @param days - Number of days to add
-   * @returns New date with days added
-   */
-  private static addDaysToDate(date: Date, days: number): Date {
-    const newDate = new Date(date);
-    newDate.setDate(date.getDate() + days);
-    return newDate;
-  }
 }

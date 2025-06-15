@@ -1,4 +1,6 @@
-export const buttonStyles = `
+import { CSSResult, css } from 'lit-element';
+
+export const buttonStyles: CSSResult = css`
   button {
     padding: 14px 24px;
     border: none;
@@ -10,13 +12,15 @@ export const buttonStyles = `
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     min-height: 48px;
   }
-  
-  .primary-btn, .save-btn {
+
+  .primary-btn,
+  .save-btn {
     background: var(--primary-color);
     color: var(--text-primary-color, white);
   }
-  
-  .primary-btn:hover, .save-btn:hover {
+
+  .primary-btn:hover,
+  .save-btn:hover {
     opacity: 0.9;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(var(--rgb-primary-color), 0.3);
@@ -42,13 +46,13 @@ export const buttonStyles = `
   .add-new-btn:hover {
     opacity: 0.9;
     transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   }
 
   .add-new-btn:active {
     transform: translateY(0);
   }
-  
+
   .control-btn {
     padding: 8px 12px;
     font-size: 16px;
@@ -58,9 +62,9 @@ export const buttonStyles = `
     background: var(--primary-color);
     color: var(--text-primary-color);
     border: none;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   }
-  
+
   .control-btn:disabled {
     opacity: 0.3;
     cursor: not-allowed;
@@ -68,7 +72,7 @@ export const buttonStyles = `
     transform: none;
     box-shadow: none;
   }
-  
+
   .add-btn {
     width: 100%;
     margin-top: 8px;
@@ -86,7 +90,7 @@ export const buttonStyles = `
     color: var(--primary-text-color);
     border: 1px solid var(--divider-color);
   }
-  
+
   .edit-btn:hover {
     background: var(--primary-color);
     color: var(--text-primary-color);

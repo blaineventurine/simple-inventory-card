@@ -21,19 +21,22 @@
     "build": "vite build --config vite.config.ts",
     "preview": "vite preview",
     "type-check": "tsc --noEmit",
+    "type-check:incremental": "tsc --noEmit --incremental",
     "lint:js": "eslint src/**/*.ts",
     "lint:js:fix": "eslint src/**/*.ts --fix",
+    "lint:staged": "eslint --fix",
     "format:js": "prettier --write src/**/*.ts",
-    "prepare": "husky install",
+    "format:staged": "prettier --write",
+    "prepare": "husky",
     "pre-commit": "lint-staged"
   },
   "lint-staged": {
+    "src": [
+      "tsc --noEmit"
+    ],
     "src/**/*.{ts,js}": [
       "eslint --fix",
       "prettier --write"
-    ],
-    "src/**/*.ts": [
-      "tsc --noEmit"
     ]
   },
   "devDependencies": {

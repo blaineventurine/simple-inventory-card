@@ -6,14 +6,15 @@ import { buttonStyles } from './buttons';
 import { modalStyles } from './modals';
 import { controlStyles } from './controls';
 import { responsiveStyles } from './responsive';
+import { CSSResult, css } from 'lit-element';
 
-export const styles = `
-${cardLayoutStyles}
-${itemRowStyles}
-${formStyles}
-${buttonStyles}
-${modalStyles}
-${controlStyles}
-${responsiveStyles}
-${cardHeaderStyles}
+export const styles: CSSResult = css`
+  ${cardLayoutStyles}
+  ${itemRowStyles}
+  ${formStyles}
+  ${buttonStyles}
+  ${modalStyles}
+  ${controlStyles}
+  ${responsiveStyles}
+  ${cardHeaderStyles}
 `;

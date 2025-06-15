@@ -1,4 +1,6 @@
-export const formStyles = `
+import { CSSResult, css } from 'lit-element';
+
+export const formStyles: CSSResult = css`
   .validation-message {
     background: var(--error-color, #f44336);
     color: white;
@@ -49,9 +51,16 @@ export const formStyles = `
   }
 
   @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-2px); }
-    75% { transform: translateX(2px); }
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    25% {
+      transform: translateX(-2px);
+    }
+    75% {
+      transform: translateX(2px);
+    }
   }
 
   .add-item-form {
@@ -59,18 +68,18 @@ export const formStyles = `
     padding-top: 20px;
     border-top: 2px solid var(--divider-color);
   }
-  
+
   .form-header {
     font-size: 1.2em;
     font-weight: bold;
     margin-bottom: 16px;
     color: var(--primary-text-color);
   }
-  
+
   .form-group {
     margin-bottom: 20px;
   }
-  
+
   .form-label {
     display: block;
     font-weight: 600;
@@ -78,14 +87,14 @@ export const formStyles = `
     color: var(--primary-text-color);
     font-size: 0.9em;
   }
-  
+
   .form-row {
     display: flex;
     gap: 16px;
     margin-bottom: 0;
     flex-wrap: wrap;
   }
-  
+
   .input-group {
     display: flex;
     flex-direction: column;
@@ -93,14 +102,15 @@ export const formStyles = `
     flex: 1;
     min-width: 120px;
   }
-  
+
   .input-group label {
     font-size: 0.85em;
     color: var(--secondary-text-color);
     font-weight: 500;
   }
-  
-  input:not([type="checkbox"]), select {
+
+  input:not([type='checkbox']),
+  select {
     padding: 14px 16px;
     border: 2px solid var(--divider-color);
     border-radius: 8px;
@@ -111,20 +121,21 @@ export const formStyles = `
     width: 100%;
     box-sizing: border-box;
   }
-  
-  input:not([type="checkbox"]):focus, select:focus {
+
+  input:not([type='checkbox']):focus,
+  select:focus {
     outline: none;
     border-color: var(--primary-color);
     box-shadow: 0 0 0 3px rgba(var(--rgb-primary-color), 0.1);
     transform: translateY(-1px);
   }
-  
+
   input::placeholder {
     color: var(--secondary-text-color);
     opacity: 0.7;
   }
 
-  input[type="checkbox"] {
+  input[type='checkbox'] {
     appearance: none !important;
     width: 20px !important;
     height: 20px !important;
@@ -139,13 +150,13 @@ export const formStyles = `
     flex-shrink: 0 !important;
   }
 
-  input[type="checkbox"]:checked {
+  input[type='checkbox']:checked {
     background: var(--primary-color) !important;
     border-color: var(--primary-color) !important;
     transform: scale(1.05) !important;
   }
 
-  input[type="checkbox"]:checked::after {
+  input[type='checkbox']:checked::after {
     content: '✓' !important;
     position: absolute !important;
     top: 50% !important;
@@ -158,12 +169,18 @@ export const formStyles = `
   }
 
   @keyframes checkmark {
-    0% { transform: translate(-50%, -50%) scale(0); }
-    50% { transform: translate(-50%, -50%) scale(1.2); }
-    100% { transform: translate(-50%, -50%) scale(1); }
+    0% {
+      transform: translate(-50%, -50%) scale(0);
+    }
+    50% {
+      transform: translate(-50%, -50%) scale(1.2);
+    }
+    100% {
+      transform: translate(-50%, -50%) scale(1);
+    }
   }
 
-  input[type="checkbox"]:hover {
+  input[type='checkbox']:hover {
     border-color: var(--primary-color) !important;
     box-shadow: 0 0 0 3px rgba(var(--rgb-primary-color, 25, 118, 210), 0.1) !important;
   }
@@ -216,7 +233,7 @@ export const formStyles = `
   }
 
   .auto-add-controls::before {
-    content: "Auto-add Settings";
+    content: 'Auto-add Settings';
     display: block;
     font-size: 0.85em;
     font-weight: 600;
@@ -226,15 +243,15 @@ export const formStyles = `
     letter-spacing: 0.5px;
   }
 
-  input[type="checkbox"]:checked + label + .auto-add-controls,
-  input[type="checkbox"]:checked ~ .auto-add-controls {
+  input[type='checkbox']:checked + label + .auto-add-controls,
+  input[type='checkbox']:checked ~ .auto-add-controls {
     display: block !important;
   }
 
   #item-auto-add:checked ~ .auto-add-controls,
   #modal-auto-add:checked ~ .auto-add-controls,
-  [id$="auto-add"]:checked ~ .auto-add-controls,
-  [id$="AUTO_ADD"]:checked ~ .auto-add-controls {
+  [id$='auto-add']:checked ~ .auto-add-controls,
+  [id$='AUTO_ADD']:checked ~ .auto-add-controls {
     display: block !important;
   }
 
@@ -244,7 +261,7 @@ export const formStyles = `
 
   .auto-add-controls label:has(+ .auto-add-required)::after,
   .auto-add-controls .input-group:has(.auto-add-required) label::after {
-    content: " *";
+    content: ' *';
     color: var(--error-color, #f44336);
     font-weight: bold;
   }

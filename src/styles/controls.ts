@@ -1,4 +1,6 @@
-export const controlStyles = `
+import { CSSResult, css } from 'lit-element';
+
+export const controlStyles: CSSResult = css`
   .controls-row {
     display: flex;
     gap: 12px;
@@ -46,14 +48,14 @@ export const controlStyles = `
     align-items: center;
     gap: 12px;
   }
-  
+
   .sorting-controls label {
     font-weight: bold;
     color: var(--primary-text-color);
     white-space: nowrap;
     margin-bottom: 0;
   }
-  
+
   .sorting-controls select {
     flex: 1;
     max-width: 200px;

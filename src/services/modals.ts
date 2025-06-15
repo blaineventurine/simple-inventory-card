@@ -1,4 +1,4 @@
-import { ELEMENTS, CSS_CLASSES, MESSAGES, TIMING, DEFAULTS } from '../utils/constants';
+import { ELEMENTS, CSS_CLASSES, TIMING, DEFAULTS } from '../utils/constants';
 import { HomeAssistant, InventoryItem, InventoryConfig } from '../types/home-assistant';
 import { Utils } from '../utils/utils';
 import { SanitizedItemData, RawFormData } from '../types/inventoryItem';

@@ -1,5 +1,4 @@
-import { TemplateResult, CSSResult } from 'lit';
-import { LitElement, html, css } from 'https://cdn.jsdelivr.net/gh/lit/dist@2/core/lit-core.min.js';
+import { TemplateResult, CSSResult, LitElement, html, css } from 'lit-element';
 import { HomeAssistant, InventoryConfig } from '../types/home-assistant';
 
 class ConfigEditor extends LitElement {
@@ -8,7 +7,7 @@ class ConfigEditor extends LitElement {
 
   constructor() {
     super();
-    this._config = { config: null, entity: '' };
+    this._config = { config: null, entity: '', type: '' };
   }
 
   static get properties() {
