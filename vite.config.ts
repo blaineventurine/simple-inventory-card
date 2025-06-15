@@ -20,7 +20,6 @@ export default defineConfig({
         entryFileNames: 'simple-inventory-card.js',
       },
     },
-    // Ensure we're producing a clean, optimized build
     minify: 'terser',
     sourcemap: false,
   },

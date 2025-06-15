@@ -5,6 +5,7 @@ import { FilterState } from '../types/filterState';
 
 export class Filters {
   private searchTimeout: ReturnType<typeof setTimeout> | null = null;
+  private searchListenerSetup = false;
 
   constructor(private shadowRoot: ShadowRoot) {}
 
@@ -91,26 +92,31 @@ export class Filters {
         return !item.expiry_date;
 
       case FILTER_VALUES.EXPIRY.EXPIRED:
-        if (!item.expiry_date) {
+        if (!item.expiry_date || (item.quantity ?? 0) <= 0) {
           return false;
         }
+
         return Utils.isExpired(item.expiry_date);
 
       case FILTER_VALUES.EXPIRY.SOON:
-        if (!item.expiry_date) {
+        if (!item.expiry_date || (item.quantity ?? 0) <= 0) {
           return false;
         }
-        return Utils.isExpiringSoon(item.expiry_date);
+
+        const itemThreshold = item.expiry_alert_days || 7;
+        return Utils.isExpiringSoon(item.expiry_date, itemThreshold);
 
       case FILTER_VALUES.EXPIRY.FUTURE:
-        if (!item.expiry_date) {
+        if (!item.expiry_date || (item.quantity ?? 0) <= 0) {
           return false;
         }
-        const futureDate = new Date(item.expiry_date);
-        const weekFromNow = new Date(today);
-        weekFromNow.setDate(today.getDate() + 7);
-        return futureDate > weekFromNow;
 
+        const futureDate = new Date(item.expiry_date);
+        const itemThreshold2 = item.expiry_alert_days || 7;
+        const thresholdDate = new Date(today);
+        thresholdDate.setDate(today.getDate() + itemThreshold2);
+
+        return futureDate > thresholdDate;
       default:
         return true;
     }
@@ -225,6 +231,8 @@ export class Filters {
   }
 
   setupSearchInput(entityId: string, onFilterChange: () => void): void {
+    if (this.searchListenerSetup) return;
+
     const searchInput = this.shadowRoot.getElementById(
       ELEMENTS.SEARCH_INPUT
     ) as HTMLInputElement | null;
@@ -245,6 +253,7 @@ export class Filters {
         }, 300);
       });
     }
+    this.searchListenerSetup = true;
   }
 
   updateFilterIndicators(filters: FilterState): void {

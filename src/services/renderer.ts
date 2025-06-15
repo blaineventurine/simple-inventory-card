@@ -1,17 +1,10 @@
-import { ELEMENTS, MESSAGES } from '../utils/constants';
-import {
-  createSearchAndFilters,
-  createSortOptions,
-  createActiveFiltersDisplay,
-  createItemsList,
-  createAddModal,
-  createSettingsModal,
-} from '../templates';
+import { MESSAGES } from '../utils/constants';
 import { Utils } from '../utils/utils';
 import { styles } from '../styles/styles';
 import { HassEntity, InventoryItem } from '../types/home-assistant';
 import { FilterState } from '../types/filterState';
 import { TodoList } from '../types/todoList';
+import { generateCardHTML } from '../templates/inventoryCard';
 
 export class Renderer {
   constructor(private readonly shadowRoot: ShadowRoot) {}
@@ -25,22 +18,23 @@ export class Renderer {
     todoLists: TodoList[]
   ): void {
     const inventoryName = Utils.getInventoryName(state, entityId);
+    const description = Utils.getInventoryDescription(state);
     const allItems: readonly InventoryItem[] = state?.attributes?.items || [];
-
-    // Extract unique categories and sort them alphabetically
     const categories = [
       ...new Set(
         allItems.map((item) => item.category).filter((category): category is string => !!category)
       ),
     ].sort();
 
-    this.shadowRoot.innerHTML = this.generateCardHTML(
+    this.shadowRoot.innerHTML = generateCardHTML(
       inventoryName,
       items,
       filters,
       sortMethod,
       categories,
-      todoLists
+      todoLists,
+      allItems,
+      description
     );
   }
 
@@ -66,48 +60,6 @@ export class Renderer {
             <p>${MESSAGES.LOADING}</p>
           </div>
         </div>
-      </ha-card>
-    `;
-  }
-
-  private generateCardHTML(
-    inventoryName: string,
-    items: InventoryItem[],
-    filters: FilterState,
-    sortMethod: string,
-    categories: string[],
-    todoLists: TodoList[]
-  ): string {
-    return `
-      <style>${styles}</style>
-      <ha-card>
-        <div class="card-header">
-          <h2 class="inventory-title">${Utils.sanitizeHtml(inventoryName)}</h2>
-        </div>
-        
-        <div class="controls-row">
-          <div class="sorting-controls">
-            ${createSortOptions(sortMethod)}
-          </div>
-          <button id="${ELEMENTS.OPEN_ADD_MODAL}" class="add-new-btn">+ Add Item</button>
-        </div>
-        
-        <div class="search-controls">
-          ${createSearchAndFilters(filters, categories)}
-        </div>
-        
-        ${createActiveFiltersDisplay(filters)}
-        
-        <div class="items-container">
-          ${
-            items.length
-              ? createItemsList(items, sortMethod, todoLists)
-              : `<div class="empty-state">${MESSAGES.NO_ITEMS}</div>`
-          }
-        </div>
-        
-        ${createAddModal(todoLists)}
-        ${createSettingsModal(todoLists)}
       </ha-card>
     `;
   }

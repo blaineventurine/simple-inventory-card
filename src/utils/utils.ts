@@ -1,53 +1,18 @@
 import { DEFAULT_INVENTORY_NAME } from './constants';
 import { HassEntity, HomeAssistant } from '../types/home-assistant';
 import { FilterState } from '../types/filterState';
+import { ItemData, SanitizedItemData, RawFormData } from '../types/inventoryItem';
+import { ValidationError } from '../types/validationError';
 
-/**
- * Interface for input values storage
- */
 interface InputValues {
   [id: string]: string | boolean | number;
 }
 
-/**
- * Interface for item data validation result
- */
 interface ValidationResult {
   isValid: boolean;
-  errors: string[];
+  errors: ValidationError[];
 }
 
-/**
- * Interface for sanitized item data
- */
-interface SanitizedItemData {
-  name: string;
-  quantity: number;
-  unit: string;
-  category: string;
-  expiryDate: string;
-  todoList: string;
-  threshold: number;
-  autoAddEnabled: boolean;
-}
-
-/**
- * Interface for item data to be validated or sanitized
- */
-interface ItemData {
-  name?: string;
-  quantity?: number;
-  unit?: string;
-  category?: string;
-  expiryDate?: string;
-  todoList?: string;
-  threshold?: number;
-  autoAddEnabled?: boolean;
-}
-
-/**
- * Utility class providing helper methods for the inventory card
- */
 export class Utils {
   /**
    * Gets a user-friendly inventory name from entity state
@@ -70,6 +35,13 @@ export class Utils {
     }
 
     return DEFAULT_INVENTORY_NAME;
+  }
+
+  static getInventoryDescription(state: HassEntity | undefined): string | undefined {
+    if (state?.attributes?.description) {
+      return state.attributes.description;
+    }
+    return undefined;
   }
 
   /**
@@ -192,22 +164,19 @@ export class Utils {
    * @param dateString - ISO date string
    * @returns True if the date is expiring soon
    */
-  static isExpiringSoon(dateString: string | undefined): boolean {
-    if (!dateString) {
-      return false;
-    }
+  static isExpiringSoon(expiryDate: string, threshold: number = 7): boolean {
+    if (!expiryDate) return false;
 
     try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) {
-        return false;
-      }
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
 
-      const today = this.getStartOfDay(new Date());
-      const nextWeek = this.addDaysToDate(today, 7);
+      const expiry = new Date(expiryDate);
+      const diffTime = expiry.getTime() - today.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-      return date >= today && date <= nextWeek;
-    } catch (e) {
+      return diffDays >= 0 && diffDays <= threshold;
+    } catch {
       return false;
     }
   }
@@ -241,11 +210,119 @@ export class Utils {
   }
 
   /**
-   * Validates item data for required fields and formats
+   * Validates raw form data before processing
+   * @param formData - Raw form data from inputs
+   * @returns Validation result with field-specific errors
+   */
+  static validateRawFormData(formData: RawFormData): ValidationResult {
+    const errors: ValidationError[] = [];
+
+    if (!formData.name?.trim()) {
+      errors.push({ field: 'name', message: 'Item name is required' });
+    }
+
+    if (formData.quantity?.trim()) {
+      const quantityNum = parseFloat(formData.quantity);
+      if (isNaN(quantityNum)) {
+        errors.push({ field: 'quantity', message: 'Quantity must be a valid number' });
+      } else if (quantityNum < 0) {
+        errors.push({ field: 'quantity', message: 'Quantity cannot be negative' });
+      }
+    }
+
+    if (formData.autoAddEnabled) {
+      if (!formData.autoAddToListQuantity?.trim()) {
+        errors.push({
+          field: 'autoAddToListQuantity',
+          message: 'Quantity threshold is required when auto-add is enabled',
+        });
+      } else {
+        const thresholdNum = parseFloat(formData.autoAddToListQuantity);
+        if (isNaN(thresholdNum)) {
+          errors.push({
+            field: 'autoAddToListQuantity',
+            message: 'Quantity threshold must be a valid number',
+          });
+        } else if (thresholdNum < 0) {
+          errors.push({
+            field: 'autoAddToListQuantity',
+            message: 'Quantity cannot be negative',
+          });
+        }
+      }
+
+      if (!formData.todoList?.trim()) {
+        errors.push({
+          field: 'todoList',
+          message: 'Todo list selection is required when auto-add is enabled',
+        });
+      }
+    }
+
+    if (formData.expiryDate?.trim() && !this.isValidDate(formData.expiryDate)) {
+      errors.push({ field: 'expiryDate', message: 'Invalid expiry date format' });
+    }
+
+    if (formData.expiryAlertDays?.trim()) {
+      const alertDays = parseFloat(formData.expiryAlertDays);
+      if (isNaN(alertDays)) {
+        errors.push({
+          field: 'expiryAlertDays',
+          message: 'Expiry alert days must be a valid number',
+        });
+      } else if (alertDays < 0) {
+        errors.push({
+          field: 'expiryAlertDays',
+          message: 'Expiry alert days cannot be negative',
+        });
+      }
+    }
+
+    const hasExpiryDate = formData.expiryDate?.trim();
+    const hasThreshold = formData.expiryAlertDays?.trim();
+
+    if (hasThreshold && !hasExpiryDate) {
+      errors.push({
+        field: 'expiryAlertDays',
+        message: 'Expiry threshold requires an expiry date to be set',
+      });
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+    };
+  }
+
+  /**
+   * Converts raw form data to ItemData after validation passes
+   * @param formData - Raw form data
+   * @returns Converted ItemData
+   */
+  static convertRawFormDataToItemData(formData: RawFormData): ItemData {
+    return {
+      name: formData.name?.trim() || '',
+      quantity: formData.quantity?.trim() ? Math.max(0, parseFloat(formData.quantity) || 0) : 0,
+      autoAddEnabled: Boolean(formData.autoAddEnabled),
+      autoAddToListQuantity: formData.autoAddToListQuantity?.trim()
+        ? Math.max(0, parseFloat(formData.autoAddToListQuantity) || 0)
+        : 0,
+      todoList: formData.todoList?.trim() || '',
+      expiryDate: formData.expiryDate?.trim() || '',
+      expiryAlertDays: formData.expiryAlertDays?.trim()
+        ? Math.max(1, parseFloat(formData.expiryAlertDays) || 7)
+        : 7,
+      category: formData.category?.trim() || '',
+      unit: formData.unit?.trim() || '',
+    };
+  }
+
+  /**
+   * Validates item data for required fields and formats (legacy method - use validateRawFormData instead)
    * @param itemData - The item data to validate
    * @returns Validation result with errors if any
    */
-  static validateItemData(itemData: ItemData): ValidationResult {
+  static validateItemData(itemData: ItemData): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
 
     if (!itemData.name?.trim()) {
@@ -256,7 +333,10 @@ export class Utils {
       errors.push('Quantity must be a non-negative number');
     }
 
-    if (itemData.threshold !== undefined && (isNaN(itemData.threshold) || itemData.threshold < 0)) {
+    if (
+      itemData.autoAddToListQuantity !== undefined &&
+      (isNaN(itemData.autoAddToListQuantity) || itemData.autoAddToListQuantity < 0)
+    ) {
       errors.push('Threshold must be a non-negative number');
     }
 
@@ -320,14 +400,15 @@ export class Utils {
    */
   static sanitizeItemData(itemData: ItemData): SanitizedItemData {
     return {
+      autoAddEnabled: Boolean(itemData.autoAddEnabled),
+      autoAddToListQuantity: Math.max(0, Number(itemData.autoAddToListQuantity) || 0),
+      category: this.sanitizeString(itemData.category, 50),
+      expiryAlertDays: itemData.expiryAlertDays || 7,
+      expiryDate: itemData.expiryDate || '',
       name: this.sanitizeString(itemData.name, 100),
       quantity: Math.max(0, Math.min(999999, Number(itemData.quantity) || 0)),
-      unit: this.sanitizeString(itemData.unit, 20),
-      category: this.sanitizeString(itemData.category, 50),
-      expiryDate: itemData.expiryDate || '',
       todoList: this.sanitizeString(itemData.todoList, 100),
-      threshold: Math.max(0, Number(itemData.threshold) || 0),
-      autoAddEnabled: Boolean(itemData.autoAddEnabled),
+      unit: this.sanitizeString(itemData.unit, 20),
     };
   }
 
@@ -356,18 +437,6 @@ export class Utils {
   private static getStartOfDay(date: Date): Date {
     const newDate = new Date(date);
     newDate.setHours(0, 0, 0, 0);
-    return newDate;
-  }
-
-  /**
-   * Adds days to a date
-   * @param date - Base date
-   * @param days - Number of days to add
-   * @returns New date with days added
-   */
-  private static addDaysToDate(date: Date, days: number): Date {
-    const newDate = new Date(date);
-    newDate.setDate(date.getDate() + days);
     return newDate;
   }
 }

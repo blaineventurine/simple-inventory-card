@@ -24,16 +24,20 @@ on:
         default: 'beta.1'
 
 jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
   build_and_release:
+    needs: ci
     permissions:
       contents: write
     name: Build and Release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'npm'
@@ -53,13 +57,11 @@ jobs:
         run: |
           PACKAGE_VERSION="${{ steps.package_version.outputs.version }}"
 
-          # Check if this is a manual beta release
           if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.release_type }}" == "beta" ]]; then
             RELEASE_VERSION="${PACKAGE_VERSION}-${{ github.event.inputs.beta_version }}"
             IS_PRERELEASE="true"
             echo "type=beta" >> $GITHUB_OUTPUT
-          # Check if package.json version contains beta/alpha/rc
-          elif [[ "$PACKAGE_VERSION" =~ (beta|alpha|rc) ]]; then
+          elif [[ "$PACKAGE_VERSION" =~ (beta|alpha|rc|b[0-9]+) ]]; then
             RELEASE_VERSION="$PACKAGE_VERSION"
             IS_PRERELEASE="true"
             echo "type=prerelease" >> $GITHUB_OUTPUT
@@ -75,11 +77,34 @@ jobs:
           echo "Release version: $RELEASE_VERSION"
           echo "Is prerelease: $IS_PRERELEASE"
 
-      - name: Debug
-        run: echo "$(ls ./dist)"
+      # - name: Generate release notes
+      #   id: release_notes
+      #   run: |
+      #     NOTES="## Changes in v${{ steps.release_info.outputs.version }}
+      #
+      #     ### What's Changed
+      #     - Built from commit: ${{ github.sha }}
+      #     - Build timestamp: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+      #
+      #     ### Installation
+      #     1. Download the \`simple-inventory-card.js\` file
+      #     2. Copy to \`/config/www/community/simple-inventory-card/\`
+      #     3. Add to Lovelace resources:
+      #        \`\`\`yaml
+      #        resources:
+      #          - url: /local/community/simple-inventory-card/simple-inventory-card.js
+      #            type: module
+      #        \`\`\`
+      #
+      #     ### Verification
+      #     - File size: $(wc -c < ./dist/simple-inventory-card.js) bytes
+      #     - SHA256: $(sha256sum ./dist/simple-inventory-card.js | cut -d' ' -f1)"
+      #
+      #     echo "notes<<EOF" >> $GITHUB_OUTPUT
+      #     echo "$NOTES" >> $GITHUB_OUTPUT
+      #     echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Create Release
-        id: create_release
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -89,3 +114,4 @@ jobs:
           overwrite: true
           prerelease: ${{ steps.release_info.outputs.is_prerelease }}
           release_name: ${{ steps.release_info.outputs.type == 'beta' && format('v{0} (Beta)', steps.release_info.outputs.version) || format('v{0}', steps.release_info.outputs.version) }}
+          body: ${{ steps.release_notes.outputs.notes }}

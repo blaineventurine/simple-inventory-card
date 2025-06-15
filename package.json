@@ -1,6 +1,6 @@
 {
   "name": "simple-inventory",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "description": "Home Assistant Simple Inventory Integration Card",
   "author": "Blaine Venturine",
   "license": "MIT",
@@ -21,9 +21,23 @@
     "build": "vite build --config vite.config.ts",
     "preview": "vite preview",
     "type-check": "tsc --noEmit",
+    "type-check:incremental": "tsc --noEmit --incremental",
     "lint:js": "eslint src/**/*.ts",
     "lint:js:fix": "eslint src/**/*.ts --fix",
-    "format:js": "prettier --write src/**/*.ts"
+    "lint:staged": "eslint --fix",
+    "format:js": "prettier --write src/**/*.ts",
+    "format:staged": "prettier --write",
+    "prepare": "husky",
+    "pre-commit": "lint-staged"
+  },
+  "lint-staged": {
+    "src": [
+      "tsc --noEmit"
+    ],
+    "src/**/*.{ts,js}": [
+      "eslint --fix",
+      "prettier --write"
+    ]
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
@@ -33,6 +47,8 @@
     "@typescript-eslint/parser": "^8.33.1",
     "eslint": "^9.28.0",
     "globals": "^16.2.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.1",
     "prettier": "^3.5.3",
     "terser": "^5.41.0",
     "typescript": "^5.8.3",
