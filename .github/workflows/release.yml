@@ -2,12 +2,8 @@ name: Release
 
 on:
   push:
-    branches:
-      - master
-    paths-ignore:
-      - '**.md'
-      - '.github/**'
-      - '!.github/workflows/release.yml'
+    tags:
+      - 'v*'
   workflow_dispatch:
     inputs:
       release_type:
@@ -48,25 +44,30 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Get version from package.json
-        id: package_version
-        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
-
       - name: Determine release version and type
         id: release_info
         run: |
-          PACKAGE_VERSION="${{ steps.package_version.outputs.version }}"
+          if [[ "${{ github.event_name }}" == "push" && "${{ github.ref_type }}" == "tag" ]]; then
+            # Extract version from tag (remove 'v' prefix)
+            TAG_VERSION="${{ github.ref_name }}"
+            RELEASE_VERSION="${TAG_VERSION#v}"
+            echo "source=tag" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            # Get version from package.json for manual releases
+            PACKAGE_VERSION=$(node -p "require('./package.json').version")
+            if [[ "${{ github.event.inputs.release_type }}" == "beta" ]]; then
+              RELEASE_VERSION="${PACKAGE_VERSION}-${{ github.event.inputs.beta_version }}"
+            else
+              RELEASE_VERSION="$PACKAGE_VERSION"
+            fi
+            echo "source=manual" >> $GITHUB_OUTPUT
+          fi
 
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.release_type }}" == "beta" ]]; then
-            RELEASE_VERSION="${PACKAGE_VERSION}-${{ github.event.inputs.beta_version }}"
-            IS_PRERELEASE="true"
-            echo "type=beta" >> $GITHUB_OUTPUT
-          elif [[ "$PACKAGE_VERSION" =~ (beta|alpha|rc|b[0-9]+) ]]; then
-            RELEASE_VERSION="$PACKAGE_VERSION"
+          # Determine if it's a prerelease
+          if [[ "$RELEASE_VERSION" =~ (beta|alpha|rc|b[0-9]+) ]]; then
             IS_PRERELEASE="true"
             echo "type=prerelease" >> $GITHUB_OUTPUT
           else
-            RELEASE_VERSION="$PACKAGE_VERSION"
             IS_PRERELEASE="false"
             echo "type=release" >> $GITHUB_OUTPUT
           fi
@@ -76,6 +77,7 @@ jobs:
 
           echo "Release version: $RELEASE_VERSION"
           echo "Is prerelease: $IS_PRERELEASE"
+          echo "Source: ${{ github.event_name }}"
 
       # - name: Generate release notes
       #   id: release_notes
@@ -113,5 +115,5 @@ jobs:
           asset_name: simple-inventory-card.js
           overwrite: true
           prerelease: ${{ steps.release_info.outputs.is_prerelease }}
-          release_name: ${{ steps.release_info.outputs.type == 'beta' && format('v{0} (Beta)', steps.release_info.outputs.version) || format('v{0}', steps.release_info.outputs.version) }}
+          release_name: ${{ steps.release_info.outputs.type == 'prerelease' && format('v{0} (Pre-release)', steps.release_info.outputs.version) || format('v{0}', steps.release_info.outputs.version) }}
           body: ${{ steps.release_notes.outputs.notes }}
