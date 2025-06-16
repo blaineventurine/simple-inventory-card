@@ -425,15 +425,4 @@ export class Utils {
   static hasActiveFilters(filters: FilterState): boolean {
     return Boolean(filters.searchText || filters.category || filters.quantity || filters.expiry);
   }
-
-  /**
-   * Gets the start of day for a date
-   * @param date - Date to adjust
-   * @returns Date set to start of day
-   */
-  private static getStartOfDay(date: Date): Date {
-    const newDate = new Date(date);
-    newDate.setHours(0, 0, 0, 0);
-    return newDate;
-  }
 }
