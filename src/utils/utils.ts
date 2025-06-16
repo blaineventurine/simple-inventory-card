@@ -21,17 +21,22 @@ export class Utils {
    * @returns A user-friendly inventory name
    */
   static getInventoryName(state: HassEntity | undefined, entityId: string): string {
-    if (state?.attributes?.friendly_name) {
+    // Check for friendly_name, but make sure it's not just whitespace
+    if (state?.attributes?.friendly_name?.trim()) {
       return state.attributes.friendly_name;
     }
 
     const nameParts = entityId.split('.');
     if (nameParts.length > 1) {
-      return nameParts[1]
+      // Use the last part for multiple dots (e.g., "multiple.dots.here" → "here")
+      const entityName = nameParts[nameParts.length - 1];
+      const words = entityName
         .split('_')
         .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ')
-        .replace(/Inventory$/, ''); // Remove "Inventory" suffix if present
+        .filter((word) => word.toLowerCase() !== 'inventory');
+
+      const result = words.join(' ').trim();
+      return result || DEFAULT_INVENTORY_NAME;
     }
 
     return DEFAULT_INVENTORY_NAME;
@@ -58,16 +63,14 @@ export class Utils {
 
     if (state?.attributes?.unique_id) {
       const uniqueId = state.attributes.unique_id;
-      if (uniqueId?.startsWith('inventory_')) {
+      if (typeof uniqueId === 'string' && uniqueId.startsWith('inventory_')) {
         return uniqueId.substring(10);
       }
     }
 
-    // Fallback: use the entity_id without the domain
     const parts = entityId.split('.');
     return parts.length > 1 ? parts[1] : entityId;
   }
-
   /**
    * Preserves input values from form elements
    * @param shadowRoot - The shadow root containing the elements
@@ -126,10 +129,23 @@ export class Utils {
     }
 
     try {
-      const date = new Date(dateString);
+      let date: Date;
+
+      // Handle numeric timestamps (milliseconds since epoch)
+      if (/^\d+$/.test(dateString.trim())) {
+        date = new Date(parseInt(dateString.trim()));
+      } else if (/^\d{4}-\d{2}-\d{2}$/.test(dateString.trim())) {
+        // For ISO date strings without time (YYYY-MM-DD), treat as local date
+        const [year, month, day] = dateString.trim().split('-').map(Number);
+        date = new Date(year, month - 1, day);
+      } else {
+        date = new Date(dateString);
+      }
+
       if (isNaN(date.getTime())) {
         return dateString;
       }
+
       return date.toLocaleDateString();
     } catch (e) {
       return dateString;
@@ -147,13 +163,18 @@ export class Utils {
     }
 
     try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) {
+      const inputDate = new Date(dateString);
+      if (isNaN(inputDate.getTime())) {
         return false;
       }
 
-      const today = this.getStartOfDay(new Date());
-      return date < today;
+      const now = new Date();
+
+      // Compare date strings in YYYY-MM-DD format to avoid timezone issues
+      const inputDateStr = inputDate.toISOString().split('T')[0];
+      const nowDateStr = now.toISOString().split('T')[0];
+
+      return inputDateStr < nowDateStr;
     } catch (e) {
       return false;
     }
@@ -300,53 +321,29 @@ export class Utils {
    * @returns Converted ItemData
    */
   static convertRawFormDataToItemData(formData: RawFormData): ItemData {
+    const parseNumber = (value: string | undefined, defaultValue: number): number => {
+      if (!value?.trim()) return defaultValue;
+
+      const parsed = Number(value.trim());
+
+      // Number() is stricter than parseFloat() - rejects partial numbers and Infinity
+      if (isNaN(parsed) || !isFinite(parsed)) {
+        return defaultValue;
+      }
+
+      return parsed;
+    };
+
     return {
       name: formData.name?.trim() || '',
-      quantity: formData.quantity?.trim() ? Math.max(0, parseFloat(formData.quantity) || 0) : 0,
+      quantity: Math.max(0, parseNumber(formData.quantity, 0)),
       autoAddEnabled: Boolean(formData.autoAddEnabled),
-      autoAddToListQuantity: formData.autoAddToListQuantity?.trim()
-        ? Math.max(0, parseFloat(formData.autoAddToListQuantity) || 0)
-        : 0,
+      autoAddToListQuantity: Math.max(0, parseNumber(formData.autoAddToListQuantity, 0)),
       todoList: formData.todoList?.trim() || '',
       expiryDate: formData.expiryDate?.trim() || '',
-      expiryAlertDays: formData.expiryAlertDays?.trim()
-        ? Math.max(1, parseFloat(formData.expiryAlertDays) || 7)
-        : 7,
+      expiryAlertDays: Math.max(0, parseNumber(formData.expiryAlertDays, 7)),
       category: formData.category?.trim() || '',
       unit: formData.unit?.trim() || '',
-    };
-  }
-
-  /**
-   * Validates item data for required fields and formats (legacy method - use validateRawFormData instead)
-   * @param itemData - The item data to validate
-   * @returns Validation result with errors if any
-   */
-  static validateItemData(itemData: ItemData): { isValid: boolean; errors: string[] } {
-    const errors: string[] = [];
-
-    if (!itemData.name?.trim()) {
-      errors.push('Item name is required');
-    }
-
-    if (itemData.quantity !== undefined && (isNaN(itemData.quantity) || itemData.quantity < 0)) {
-      errors.push('Quantity must be a non-negative number');
-    }
-
-    if (
-      itemData.autoAddToListQuantity !== undefined &&
-      (isNaN(itemData.autoAddToListQuantity) || itemData.autoAddToListQuantity < 0)
-    ) {
-      errors.push('Threshold must be a non-negative number');
-    }
-
-    if (itemData.expiryDate && !this.isValidDate(itemData.expiryDate)) {
-      errors.push('Invalid expiry date format');
-    }
-
-    return {
-      isValid: errors.length === 0,
-      errors,
     };
   }
 

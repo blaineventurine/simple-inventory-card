@@ -7,7 +7,7 @@ class ConfigEditor extends LitElement {
 
   constructor() {
     super();
-    this._config = { config: null, entity: '', type: '' };
+    this._config = { entity: '', type: '' };
   }
 
   static get properties() {
@@ -30,15 +30,20 @@ class ConfigEditor extends LitElement {
       return html`<div>Loading...</div>`;
     }
 
-    const inventoryEntities = Object.keys(this.hass.states)
-      .filter(
-        (entityId) =>
-          entityId.startsWith('sensor.') &&
-          (entityId.includes('inventory') ||
-            this.hass!.states[entityId].attributes?.items !== undefined)
-      )
-      .sort();
+    const inventoryEntities = Object.keys(this.hass?.states || {})
+      .filter((entityId) => {
+        // Check if it's a sensor entity
+        if (!entityId.startsWith('sensor.')) {
+          return false;
+        }
 
+        // Check if it has inventory in the name or has items attribute
+        const hasInventoryInName = entityId.includes('inventory');
+        const hasItemsAttribute = this.hass?.states[entityId]?.attributes?.items !== undefined;
+
+        return hasInventoryInName || hasItemsAttribute;
+      })
+      .sort();
     return html`
       <div class="card-config">
         <div class="option">
@@ -96,7 +101,7 @@ class ConfigEditor extends LitElement {
       return;
     }
 
-    const value = ev.detail.value;
+    const value = ev.detail?.value;
 
     if (this._entity === value) {
       return;
