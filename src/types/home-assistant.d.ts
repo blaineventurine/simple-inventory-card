@@ -16,12 +16,12 @@ export interface HomeAssistant {
     domain: string,
     service: string,
     serviceData?: Record<string, any>,
-    target?: HassServiceTarget
+    target?: HassServiceTarget,
   ) => Promise<ServiceCallResponse>;
   callApi: <T>(
     method: 'GET' | 'POST' | 'PUT' | 'DELETE',
     path: string,
-    parameters?: Record<string, any>
+    parameters?: Record<string, any>,
   ) => Promise<T>;
   fetchWithAuth: (path: string, init?: RequestInit) => Promise<Response>;
   sendWS: (msg: MessageBase) => void;

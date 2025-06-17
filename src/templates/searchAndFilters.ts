@@ -61,7 +61,7 @@ function createCategoryOptions(categories: string[], selectedCategory: string): 
   return categories
     .map(
       (category) =>
-        `<option value="${category}" ${category === selectedCategory ? 'selected' : ''}>${category}</option>`
+        `<option value="${category}" ${category === selectedCategory ? 'selected' : ''}>${category}</option>`,
     )
     .join('');
 }

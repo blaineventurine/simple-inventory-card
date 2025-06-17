@@ -236,7 +236,7 @@ export class Filters {
     }
 
     const searchInput = this.shadowRoot.getElementById(
-      ELEMENTS.SEARCH_INPUT
+      ELEMENTS.SEARCH_INPUT,
     ) as HTMLInputElement | null;
     if (searchInput) {
       searchInput.addEventListener('input', (e: Event) => {
@@ -260,7 +260,7 @@ export class Filters {
 
   updateFilterIndicators(filters: FilterState): void {
     const advancedToggle = this.shadowRoot.getElementById(
-      ELEMENTS.ADVANCED_SEARCH_TOGGLE
+      ELEMENTS.ADVANCED_SEARCH_TOGGLE,
     ) as HTMLElement | null;
 
     if (advancedToggle) {
@@ -280,10 +280,10 @@ export class Filters {
 
   private updateActiveFiltersDisplay(filters: FilterState): void {
     const activeFiltersDiv = this.shadowRoot.getElementById(
-      ELEMENTS.ACTIVE_FILTERS
+      ELEMENTS.ACTIVE_FILTERS,
     ) as HTMLElement | null;
     const activeFiltersList = this.shadowRoot.getElementById(
-      ELEMENTS.ACTIVE_FILTERS_LIST
+      ELEMENTS.ACTIVE_FILTERS_LIST,
     ) as HTMLElement | null;
 
     if (activeFiltersDiv && activeFiltersList) {

@@ -1,20 +1,10 @@
 const { defineConfig } = require('eslint/config');
 const globals = require('globals');
-const js = require('@eslint/js');
-const { FlatCompat } = require('@eslint/eslintrc');
-
-// Import TypeScript ESLint plugin and parser
 const typescriptEslint = require('@typescript-eslint/eslint-plugin');
 const typescriptParser = require('@typescript-eslint/parser');
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-  recommendedConfig: js.configs.recommended,
-  allConfig: js.configs.all,
-});
+const eslintPluginPrettierRecommended = require('eslint-plugin-prettier/recommended');
 
 module.exports = defineConfig([
-  // TypeScript files configuration
   {
     files: ['**/*.ts', '**/*.tsx'],
     languageOptions: {
@@ -45,44 +35,22 @@ module.exports = defineConfig([
 
       // Disable base ESLint rules that conflict with TypeScript
       'no-unused-vars': 'off',
-      'no-undef': 'off', // TypeScript handles this
+      'no-undef': 'off',
 
-      // Use TypeScript version of no-unused-vars
+      // Keep only LOGIC rules, not style rules
       '@typescript-eslint/no-unused-vars': [
         'error',
         {
           argsIgnorePattern: '^_',
         },
       ],
-
-      // Keep your existing style rules (using base ESLint rules)
       'no-console': 'off',
       'prefer-const': 'error',
       'no-var': 'error',
-      // indent: ['error', 2],
-      quotes: ['error', 'single'],
-      semi: ['error', 'always'],
-      'comma-dangle': ['error', 'always-multiline'],
-      'object-curly-spacing': ['error', 'always'],
-      'array-bracket-spacing': ['error', 'never'],
-      'space-before-function-paren': ['error', 'never'],
-      'keyword-spacing': 'error',
-      'space-infix-ops': 'error',
       eqeqeq: ['error', 'always'],
       curly: ['error', 'all'],
-      'brace-style': ['error', '1tbs'],
-      'no-trailing-spaces': 'error',
-      'eol-last': 'error',
-      'max-len': [
-        'warn',
-        {
-          code: 100,
-          ignoreStrings: true,
-          ignoreTemplateLiterals: true,
-        },
-      ],
 
-      // TypeScript-specific rules (only using rules that definitely exist)
+      // TypeScript-specific logic rules
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
@@ -110,7 +78,6 @@ module.exports = defineConfig([
     },
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
-      'max-len': 'off',
     },
   },
 
@@ -126,4 +93,5 @@ module.exports = defineConfig([
       '.cache/',
     ],
   },
+  eslintPluginPrettierRecommended,
 ]);

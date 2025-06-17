@@ -37,13 +37,13 @@ export class State {
 
     return this.hasItemsChanged(
       this._lastEntityState.attributes?.items,
-      currentState.attributes?.items
+      currentState.attributes?.items,
     );
   }
 
   private hasItemsChanged(
     oldItems: readonly InventoryItem[] | undefined,
-    newItems: readonly InventoryItem[] | undefined
+    newItems: readonly InventoryItem[] | undefined,
   ): boolean {
     const oldItemsArray = oldItems || [];
     const newItemsArray = newItems || [];

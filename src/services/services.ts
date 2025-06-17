@@ -124,7 +124,7 @@ export class Services {
   async updateItem(
     inventoryId: string,
     oldName: string,
-    itemData: ItemData
+    itemData: ItemData,
   ): Promise<ServiceResult> {
     try {
       const params = {

@@ -107,7 +107,7 @@ class SimpleInventoryCard extends LitElement {
 
       const filters = this.filters.getCurrentFilters(entityId);
       const sortMethodElement = this.renderRoot.querySelector(
-        ELEMENTS.SORT_METHOD
+        ELEMENTS.SORT_METHOD,
       ) as HTMLSelectElement | null;
       const sortMethod = sortMethodElement?.value || DEFAULTS.SORT_METHOD;
 
@@ -143,7 +143,7 @@ class SimpleInventoryCard extends LitElement {
 
       const getInventoryId = (entityId: string) => Utils.getInventoryId(this._hass!, entityId);
       this.modals = new Modals(this.renderRoot as ShadowRoot, this.services, getInventoryId, () =>
-        this._refreshAfterSave()
+        this._refreshAfterSave(),
       );
 
       this._isInitialized = true;
@@ -261,7 +261,7 @@ class SimpleInventoryCard extends LitElement {
 
     const filters = this.filters.getCurrentFilters(entityId);
     const sortMethodElement = this.renderRoot?.querySelector(
-      ELEMENTS.SORT_METHOD
+      ELEMENTS.SORT_METHOD,
     ) as HTMLSelectElement | null;
     const sortMethod = sortMethodElement?.value || DEFAULTS.SORT_METHOD;
 
@@ -439,7 +439,7 @@ class SimpleInventoryCard extends LitElement {
   private async _handleItemAction(
     button: HTMLElement,
     action: string,
-    itemName: string
+    itemName: string,
   ): Promise<void> {
     if (!this._config || !this._hass || !this.services) {
       console.warn('Missing required dependencies for item action');
@@ -515,7 +515,7 @@ class SimpleInventoryCard extends LitElement {
       this.filters.clearFilters(this._config.entity);
 
       const searchInput = this.renderRoot.querySelector(
-        ELEMENTS.SEARCH_INPUT
+        ELEMENTS.SEARCH_INPUT,
       ) as HTMLInputElement | null;
       if (searchInput) {
         searchInput.value = '';
@@ -617,5 +617,5 @@ window.setTimeout(() => {
 
 console.info(
   `%c Simple Inventory Card %c ${packageJson.version} `,
-  'color: steelblue; background: black; font-weight: bold;'
+  'color: steelblue; background: black; font-weight: bold;',
 );

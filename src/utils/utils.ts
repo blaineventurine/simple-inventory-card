@@ -213,7 +213,7 @@ export class Utils {
    */
   static debounce<T extends (...args: any[]) => any>(
     func: T,
-    wait: number
+    wait: number,
   ): (...args: Parameters<T>) => void {
     let timeout: ReturnType<typeof setTimeout> | null = null;
 
@@ -383,7 +383,7 @@ export class Utils {
    * @returns Object with items grouped by category
    */
   static groupItemsByCategory<T extends { category?: string }>(
-    items: readonly T[]
+    items: readonly T[],
   ): Record<string, T[]> {
     return items.reduce<Record<string, T[]>>((groups, item) => {
       const category = item.category || 'Uncategorized';

@@ -18,7 +18,7 @@ export function generateCardHTML(
   categories: string[],
   todoLists: TodoList[],
   allItems: readonly InventoryItem[],
-  description: string | undefined
+  description: string | undefined,
 ): string {
   return `
     <style>${styles}</style>

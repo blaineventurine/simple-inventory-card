@@ -15,14 +15,14 @@ export class Renderer {
     items: InventoryItem[],
     filters: FilterState,
     sortMethod: string,
-    todoLists: TodoList[]
+    todoLists: TodoList[],
   ): void {
     const inventoryName = Utils.getInventoryName(state, entityId);
     const description = Utils.getInventoryDescription(state);
     const allItems: readonly InventoryItem[] = state?.attributes?.items || [];
     const categories = [
       ...new Set(
-        allItems.map((item) => item.category).filter((category): category is string => !!category)
+        allItems.map((item) => item.category).filter((category): category is string => !!category),
       ),
     ].sort();
 
@@ -34,7 +34,7 @@ export class Renderer {
       categories,
       todoLists,
       allItems,
-      description
+      description,
     );
   }
 

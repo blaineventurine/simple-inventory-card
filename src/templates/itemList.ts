@@ -7,7 +7,7 @@ import { createItemRowTemplate } from './itemRow';
 export function createItemsList(
   items: InventoryItem[],
   sortMethod: string,
-  todoLists: TodoList[]
+  todoLists: TodoList[],
 ): string {
   if (items.length === 0) {
     return `<div class="no-items">${MESSAGES.NO_ITEMS}</div>`;
@@ -31,7 +31,7 @@ export function createItemsByCategory(items: InventoryItem[], todoLists: TodoLis
           <div class="${CSS_CLASSES.CATEGORY_HEADER}">${category}</div>
           ${grouped[category].map((item) => createItemRowTemplate(item, todoLists)).join('')}
         </div>
-      `
+      `,
     )
     .join('');
 }

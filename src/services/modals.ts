@@ -14,7 +14,7 @@ export interface InventoryServices {
   updateItem(
     inventoryId: string,
     oldName: string,
-    itemData: SanitizedItemData
+    itemData: SanitizedItemData,
   ): Promise<InventoryServiceResult>;
 }
 
@@ -32,7 +32,7 @@ export class Modals {
     private readonly shadowRoot: ShadowRoot,
     private readonly services: InventoryServices,
     private readonly getInventoryId: (entityId: string) => string,
-    private readonly onDataChanged?: () => void
+    private readonly onDataChanged?: () => void,
   ) {
     this.setupEventListeners();
   }
@@ -143,7 +143,7 @@ export class Modals {
 
     const expiryInput = this.getElement<HTMLInputElement>(`${modalType}-${ELEMENTS.EXPIRY_DATE}`);
     const thresholdInput = this.getElement<HTMLInputElement>(
-      `${modalType}-${ELEMENTS.EXPIRY_ALERT_DAYS}`
+      `${modalType}-${ELEMENTS.EXPIRY_ALERT_DAYS}`,
     );
 
     if (!expiryInput || !thresholdInput) {
@@ -278,7 +278,7 @@ export class Modals {
       const result = await this.services.updateItem(
         inventoryId,
         this.currentEditingItem,
-        sanitizedData
+        sanitizedData,
       );
 
       if (result.success) {
@@ -408,7 +408,7 @@ export class Modals {
   private setupExpiryThresholdFieldForModal(isAddModal: boolean): void {
     const expiryElementId = isAddModal ? 'add' : 'edit';
     const expiryInput = this.getElement<HTMLInputElement>(
-      `${expiryElementId}-${ELEMENTS.EXPIRY_DATE}`
+      `${expiryElementId}-${ELEMENTS.EXPIRY_DATE}`,
     );
 
     if (!expiryInput) {
@@ -498,11 +498,11 @@ export class Modals {
 
       const quantityField = this.getElement<HTMLInputElement>(`${prefix}-${ELEMENTS.QUANTITY}`);
       const quantityThresholdField = this.getElement<HTMLInputElement>(
-        `${prefix}-${ELEMENTS.AUTO_ADD_TO_LIST_QUANTITY}`
+        `${prefix}-${ELEMENTS.AUTO_ADD_TO_LIST_QUANTITY}`,
       );
       const todoListField = this.getElement<HTMLSelectElement>(`${prefix}-${ELEMENTS.TODO_LIST}`);
       const autoAddCheckbox = this.getElement<HTMLInputElement>(
-        `${prefix}-${ELEMENTS.AUTO_ADD_ENABLED}`
+        `${prefix}-${ELEMENTS.AUTO_ADD_ENABLED}`,
       );
       const nameField = this.getElement<HTMLInputElement>(`${prefix}-${ELEMENTS.NAME}`);
       const expiryField = this.getElement<HTMLInputElement>(`${prefix}-${ELEMENTS.EXPIRY_DATE}`);
@@ -519,7 +519,7 @@ export class Modals {
               this.clearError(isAddModal);
             });
           }
-        }
+        },
       );
 
       if (autoAddCheckbox) {

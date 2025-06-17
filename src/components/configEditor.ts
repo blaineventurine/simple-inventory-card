@@ -117,7 +117,7 @@ class ConfigEditor extends LitElement {
         detail: { config: newConfig },
         bubbles: true,
         composed: true,
-      })
+      }),
     );
   }
 

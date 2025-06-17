@@ -4,7 +4,7 @@ import { InventoryItem } from '../types/home-assistant';
 export function createInventoryHeader(
   inventoryName: string,
   allItems: InventoryItem[],
-  description?: string
+  description?: string,
 ): string {
   const expiringCount = getExpiringItemsCount(allItems);
   const expiredCount = getExpiredItemsCount(allItems);
