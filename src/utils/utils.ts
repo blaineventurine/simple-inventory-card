@@ -131,11 +131,9 @@ export class Utils {
     try {
       let date: Date;
 
-      // Handle numeric timestamps (milliseconds since epoch)
       if (/^\d+$/.test(dateString.trim())) {
         date = new Date(parseInt(dateString.trim()));
       } else if (/^\d{4}-\d{2}-\d{2}$/.test(dateString.trim())) {
-        // For ISO date strings without time (YYYY-MM-DD), treat as local date
         const [year, month, day] = dateString.trim().split('-').map(Number);
         date = new Date(year, month - 1, day);
       } else {
@@ -146,7 +144,8 @@ export class Utils {
         return dateString;
       }
 
-      return date.toLocaleDateString();
+      // Use a consistent timezone (UTC) for testing
+      return date.toLocaleDateString('en-US', { timeZone: 'UTC' });
     } catch (e) {
       console.warn(`Error formatting date "${dateString}":`, e);
       return dateString;

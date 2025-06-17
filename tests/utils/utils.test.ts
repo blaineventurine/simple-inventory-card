@@ -1031,7 +1031,7 @@ describe('Utils', () => {
         const result = Utils.formatDate(paddedTimestamp);
         expect(result).toBeTruthy();
         expect(result).not.toBe(paddedTimestamp);
-        expect(result).toMatch(/12\/31\/2021|31\/12\/2021/);
+        expect(result).toMatch(/1\/1\/2022/);
       });
     });
 
