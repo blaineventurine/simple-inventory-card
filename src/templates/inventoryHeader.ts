@@ -53,7 +53,9 @@ export function createInventoryHeader(
 
 function getExpiringItemsCount(items: InventoryItem[]): number {
   return items.filter((item) => {
-    if (!item.expiry_date || (item.quantity ?? 0) <= 0) return false;
+    if (!item.expiry_date || (item.quantity ?? 0) <= 0) {
+      return false;
+    }
     const threshold = item.expiry_alert_days || 7;
     return Utils.isExpiringSoon(item.expiry_date, threshold);
   }).length;
@@ -61,7 +63,9 @@ function getExpiringItemsCount(items: InventoryItem[]): number {
 
 function getExpiredItemsCount(items: InventoryItem[]): number {
   return items.filter((item) => {
-    if (!item.expiry_date || (item.quantity ?? 0) <= 0) return false;
+    if (!item.expiry_date || (item.quantity ?? 0) <= 0) {
+      return false;
+    }
     return Utils.isExpired(item.expiry_date);
   }).length;
 }

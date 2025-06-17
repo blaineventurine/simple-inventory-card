@@ -148,6 +148,7 @@ export class Utils {
 
       return date.toLocaleDateString();
     } catch (e) {
+      console.warn(`Error formatting date "${dateString}":`, e);
       return dateString;
     }
   }
@@ -175,7 +176,7 @@ export class Utils {
       const nowDateStr = now.toISOString().split('T')[0];
 
       return inputDateStr < nowDateStr;
-    } catch (e) {
+    } catch {
       return false;
     }
   }
@@ -186,7 +187,9 @@ export class Utils {
    * @returns True if the date is expiring soon
    */
   static isExpiringSoon(expiryDate: string, threshold: number = 7): boolean {
-    if (!expiryDate) return false;
+    if (!expiryDate) {
+      return false;
+    }
 
     try {
       const today = new Date();
@@ -322,7 +325,9 @@ export class Utils {
    */
   static convertRawFormDataToItemData(formData: RawFormData): ItemData {
     const parseNumber = (value: string | undefined, defaultValue: number): number => {
-      if (!value?.trim()) return defaultValue;
+      if (!value?.trim()) {
+        return defaultValue;
+      }
 
       const parsed = Number(value.trim());
 
@@ -356,7 +361,7 @@ export class Utils {
     try {
       const date = new Date(dateString);
       return !isNaN(date.getTime());
-    } catch (e) {
+    } catch {
       return false;
     }
   }

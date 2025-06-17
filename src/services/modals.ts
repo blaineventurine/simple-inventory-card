@@ -329,7 +329,9 @@ export class Modals {
 
       if (elementId) {
         const element = this.getElement<HTMLInputElement>(elementId);
-        if (element) element.classList.add('input-error');
+        if (element) {
+          element.classList.add('input-error');
+        }
       }
     });
   }
@@ -409,7 +411,9 @@ export class Modals {
       `${expiryElementId}-${ELEMENTS.EXPIRY_DATE}`
     );
 
-    if (!expiryInput) return;
+    if (!expiryInput) {
+      return;
+    }
 
     this.updateExpiryThresholdState(isAddModal);
 

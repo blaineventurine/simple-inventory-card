@@ -176,7 +176,9 @@ class SimpleInventoryCard extends LitElement {
   }
 
   private _updateItemsOnly(items: InventoryItem[], sortMethod: string): void {
-    if (!this.renderRoot) return;
+    if (!this.renderRoot) {
+      return;
+    }
 
     const itemsContainer = this.renderRoot.querySelector('.items-container');
     if (!itemsContainer) {
@@ -379,7 +381,9 @@ class SimpleInventoryCard extends LitElement {
   }
 
   private _autoApplyFilter(selectElement: HTMLSelectElement): void {
-    if (!this._config || !this.filters) return;
+    if (!this._config || !this.filters) {
+      return;
+    }
 
     try {
       const filters = this.filters.getCurrentFilters(this._config.entity);
@@ -411,7 +415,9 @@ class SimpleInventoryCard extends LitElement {
   }
 
   private async _handleAddItem(): Promise<void> {
-    if (!this._config || !this.modals) return;
+    if (!this._config || !this.modals) {
+      return;
+    }
 
     const success = await this.modals.addItem(this._config);
     if (success) {
@@ -420,7 +426,9 @@ class SimpleInventoryCard extends LitElement {
   }
 
   private async _handleSaveEdits(): Promise<void> {
-    if (!this._config || !this.modals) return;
+    if (!this._config || !this.modals) {
+      return;
+    }
 
     const success = await this.modals.saveEditModal(this._config);
     if (success) {
@@ -481,7 +489,9 @@ class SimpleInventoryCard extends LitElement {
   }
 
   private _toggleAdvancedFilters(): void {
-    if (!this._config || !this.filters) return;
+    if (!this._config || !this.filters) {
+      return;
+    }
 
     try {
       const entityId = this._config.entity;
@@ -497,7 +507,9 @@ class SimpleInventoryCard extends LitElement {
   }
 
   private _clearFilters(): void {
-    if (!this._config || !this.filters || !this.renderRoot) return;
+    if (!this._config || !this.filters || !this.renderRoot) {
+      return;
+    }
 
     try {
       this.filters.clearFilters(this._config.entity);
@@ -517,7 +529,9 @@ class SimpleInventoryCard extends LitElement {
   }
 
   private _renderError(message: string): void {
-    if (!this.renderRoot) return;
+    if (!this.renderRoot) {
+      return;
+    }
 
     if (this.renderer) {
       this.renderer.renderError(message);
@@ -563,7 +577,7 @@ class SimpleInventoryCard extends LitElement {
     return document.createElement('simple-inventory-config-editor');
   }
 
-  static getStubConfig(): InventoryConfig | {} {
+  static getStubConfig(): InventoryConfig | object {
     return {};
   }
 }
@@ -571,13 +585,11 @@ class SimpleInventoryCard extends LitElement {
 export { SimpleInventoryCard };
 
 if (!customElements.get('simple-inventory-card')) {
-  // @ts-ignore - LitElement does extend HTMLElement at runtime
   customElements.define('simple-inventory-card', SimpleInventoryCard);
 }
 
 if (!customElements.get('simple-inventory-config-editor')) {
   // IMPORTANT: This name must match what's returned by getConfigElement()
-  // @ts-ignore
   customElements.define('simple-inventory-config-editor', ConfigEditor);
 }
 

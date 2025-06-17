@@ -231,7 +231,9 @@ export class Filters {
   }
 
   setupSearchInput(entityId: string, onFilterChange: () => void): void {
-    if (this.searchListenerSetup) return;
+    if (this.searchListenerSetup) {
+      return;
+    }
 
     const searchInput = this.shadowRoot.getElementById(
       ELEMENTS.SEARCH_INPUT
