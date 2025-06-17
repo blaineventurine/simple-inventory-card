@@ -1781,8 +1781,8 @@ describe('Utils', () => {
           expect(result.isValid).toBe(false);
           expect(
             result.errors.some(
-              (e) => e.field === 'quantity' && e.message.includes(expectedError.split(' ')[2])
-            )
+              (e) => e.field === 'quantity' && e.message.includes(expectedError.split(' ')[2]),
+            ),
           ).toBe(true);
         } else {
           expect(result.errors.some((e) => e.field === 'quantity')).toBe(false);
@@ -1875,7 +1875,7 @@ describe('Utils', () => {
 
         if (expectedError) {
           const hasExpectedError = result.errors.some(
-            (e) => e.field === 'autoAddToListQuantity' && e.message.includes(expectedError)
+            (e) => e.field === 'autoAddToListQuantity' && e.message.includes(expectedError),
           );
           expect(hasExpectedError).toBe(true);
         } else {
@@ -1928,7 +1928,7 @@ describe('Utils', () => {
 
         if (shouldError) {
           const hasExpectedError = result.errors.some(
-            (e) => e.field === 'expiryAlertDays' && e.message.includes(errorType!)
+            (e) => e.field === 'expiryAlertDays' && e.message.includes(errorType!),
           );
           expect(hasExpectedError).toBe(true);
         } else {
@@ -1955,7 +1955,7 @@ describe('Utils', () => {
         const result = Utils.validateRawFormData(formData);
 
         const hasRelationshipError = result.errors.some(
-          (e) => e.field === 'expiryAlertDays' && e.message.includes('requires an expiry date')
+          (e) => e.field === 'expiryAlertDays' && e.message.includes('requires an expiry date'),
         );
 
         expect(hasRelationshipError).toBe(shouldError);
@@ -2024,7 +2024,7 @@ describe('Utils', () => {
       expect(todoListError).toBeDefined();
       expect(todoListError!.field).toBe('todoList'); // Exact field name check
       expect(todoListError!.message).toBe(
-        'Todo list selection is required when auto-add is enabled'
+        'Todo list selection is required when auto-add is enabled',
       );
     });
 
@@ -2502,7 +2502,7 @@ describe('Utils', () => {
           if (expectedExpiryDate !== undefined) expect(result.expiryDate).toBe(expectedExpiryDate);
           if (expectedCategory !== undefined) expect(result.category).toBe(expectedCategory);
           if (expectedUnit !== undefined) expect(result.unit).toBe(expectedUnit);
-        }
+        },
       );
     });
 
@@ -2707,7 +2707,7 @@ describe('Utils', () => {
           quantity: '',
           expiry: '',
           showAdvanced: false,
-        })
+        }),
       ).toBe(true);
 
       expect(
@@ -2717,7 +2717,7 @@ describe('Utils', () => {
           quantity: 'low',
           expiry: '',
           showAdvanced: false,
-        })
+        }),
       ).toBe(true);
 
       expect(
@@ -2727,7 +2727,7 @@ describe('Utils', () => {
           quantity: '',
           expiry: 'expired',
           showAdvanced: false,
-        })
+        }),
       ).toBe(true);
     });
   });

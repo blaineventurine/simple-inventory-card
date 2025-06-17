@@ -34,10 +34,11 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
+    include: ['tests/**/*.{test,spec}.{js,ts}'],
     coverage: {
       provider: 'v8',
-      include: ['tests/**/*.{test,spec}.{js,ts}'],
-      reporter: ['text', 'html', 'lcov'],
+      include: ['src/**/*.{js,ts}'],
+      reporter: ['text', 'html', 'json', 'json-summary', 'lcov'],
       reportsDirectory: './coverage',
       exclude: [
         'node_modules/',
@@ -49,6 +50,7 @@ export default defineConfig({
         'src/styles/',
         'src/types/',
       ],
+      all: true,
       thresholds: {
         global: {
           branches: 80,

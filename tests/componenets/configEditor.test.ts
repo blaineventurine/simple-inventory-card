@@ -25,7 +25,7 @@ vi.mock('lit-element', () => ({
       toString: () =>
         strings.reduce(
           (acc, str, i) => acc + str + (i < values.length ? String(values[i]) : ''),
-          ''
+          '',
         ),
     };
   }),
@@ -249,7 +249,7 @@ describe('ConfigEditor', () => {
       configEditor.render();
 
       expect(html).toHaveBeenCalledWith(
-        expect.arrayContaining([expect.stringContaining('Loading')])
+        expect.arrayContaining([expect.stringContaining('Loading')]),
       );
     });
 
@@ -259,7 +259,7 @@ describe('ConfigEditor', () => {
       configEditor.render();
 
       expect(html).toHaveBeenCalledWith(
-        expect.arrayContaining([expect.stringContaining('Loading')])
+        expect.arrayContaining([expect.stringContaining('Loading')]),
       );
     });
 
@@ -284,11 +284,11 @@ describe('ConfigEditor', () => {
 
       // Find the call that contains the combo box items
       const comboBoxCall = (html as any).mock.calls.find((call) =>
-        call[0].some((str) => str.includes('.items='))
+        call[0].some((str: string) => str.includes('.items=')),
       );
 
       expect(comboBoxCall).toBeDefined();
-      const itemsIndex = comboBoxCall[0].findIndex((str) => str.includes('.items='));
+      const itemsIndex = comboBoxCall[0].findIndex((str: string) => str.includes('.items='));
       const items = comboBoxCall[itemsIndex + 1];
 
       // Should include sensor.inventory_1 but not the others
@@ -320,11 +320,11 @@ describe('ConfigEditor', () => {
 
       // Find the call that contains the combo box items
       const comboBoxCall = (html as any).mock.calls.find((call) =>
-        call[0].some((str) => str.includes('.items='))
+        call[0].some((str: string) => str.includes('.items=')),
       );
 
       expect(comboBoxCall).toBeDefined();
-      const itemsIndex = comboBoxCall[0].findIndex((str) => str.includes('.items='));
+      const itemsIndex = comboBoxCall[0].findIndex((str: string) => str.includes('.items='));
       const items = comboBoxCall[itemsIndex + 1];
 
       // Should include entities with "inventory" in name
@@ -356,11 +356,11 @@ describe('ConfigEditor', () => {
 
       // Find the call that contains the combo box items
       const comboBoxCall = (html as any).mock.calls.find((call) =>
-        call[0].some((str) => str.includes('.items='))
+        call[0].some((str: string) => str.includes('.items=')),
       );
 
       expect(comboBoxCall).toBeDefined();
-      const itemsIndex = comboBoxCall[0].findIndex((str) => str.includes('.items='));
+      const itemsIndex = comboBoxCall[0].findIndex((str: string) => str.includes('.items='));
       const items = comboBoxCall[itemsIndex + 1];
 
       // Should include entities with items attribute
@@ -402,11 +402,11 @@ describe('ConfigEditor', () => {
 
       // Find the call that contains the combo box items
       const comboBoxCall = (html as any).mock.calls.find((call) =>
-        call[0].some((str) => str.includes('.items='))
+        call[0].some((str: string) => str.includes('.items=')),
       );
 
       expect(comboBoxCall).toBeDefined();
-      const itemsIndex = comboBoxCall[0].findIndex((str) => str.includes('.items='));
+      const itemsIndex = comboBoxCall[0].findIndex((str: string) => str.includes('.items='));
       const items = comboBoxCall[itemsIndex + 1];
 
       // Verify items are sorted alphabetically
@@ -437,7 +437,7 @@ describe('ConfigEditor', () => {
 
       // Find the entity info section in the template
       const entityInfoCall = (html as any).mock.calls.find((call) =>
-        call[0].some((str) => str.includes('entity-info'))
+        call[0].some((str: string) => str.includes('entity-info')),
       );
 
       expect(entityInfoCall).toBeDefined();
@@ -461,12 +461,14 @@ describe('ConfigEditor', () => {
 
       // Find the no-entity message in the template
       const noEntityCall = (html as any).mock.calls.find((call) =>
-        call[0].some((str) => str.includes('no-entity'))
+        call[0].some((str: string) => str.includes('no-entity')),
       );
 
       expect(noEntityCall).toBeDefined();
       expect(
-        noEntityCall[0].some((str) => str.includes('Please select an inventory entity above'))
+        noEntityCall[0].some((str: string) =>
+          str.includes('Please select an inventory entity above'),
+        ),
       ).toBe(true);
     });
 
@@ -489,7 +491,7 @@ describe('ConfigEditor', () => {
 
       // Find the entity info section in the template
       const entityInfoCall = (html as any).mock.calls.find((call) =>
-        call[0].some((str) => str.includes('entity-info'))
+        call[0].some((str: string) => str.includes('entity-info')),
       );
 
       expect(entityInfoCall).toBeDefined();
@@ -518,7 +520,7 @@ describe('ConfigEditor', () => {
 
       // Find the entity info section in the template
       const entityInfoCall = (html as any).mock.calls.find((call) =>
-        call[0].some((str) => str.includes('entity-info'))
+        call[0].some((str: string) => str.includes('entity-info')),
       );
 
       expect(entityInfoCall).toBeDefined();
@@ -548,11 +550,11 @@ describe('ConfigEditor', () => {
 
       // Find the call that contains the combo box items
       const comboBoxCall = (html as any).mock.calls.find((call) =>
-        call[0].some((str) => str.includes('.items='))
+        call[0].some((str: string) => str.includes('.items=')),
       );
 
       expect(comboBoxCall).toBeDefined();
-      const itemsIndex = comboBoxCall[0].findIndex((str) => str.includes('.items='));
+      const itemsIndex = comboBoxCall[0].findIndex((str: string) => str.includes('.items='));
       const items = comboBoxCall[itemsIndex + 1];
 
       // Should use entity ID as label when no friendly name
@@ -616,7 +618,7 @@ describe('ConfigEditor', () => {
           },
           bubbles: true,
           composed: true,
-        })
+        }),
       );
     });
 
@@ -642,7 +644,7 @@ describe('ConfigEditor', () => {
               someOtherProperty: 'test',
             },
           },
-        })
+        }),
       );
     });
 
@@ -661,7 +663,7 @@ describe('ConfigEditor', () => {
               entity: '',
             },
           },
-        })
+        }),
       );
     });
 
@@ -680,7 +682,7 @@ describe('ConfigEditor', () => {
               entity: null,
             },
           },
-        })
+        }),
       );
     });
 
@@ -699,7 +701,7 @@ describe('ConfigEditor', () => {
               entity: undefined,
             },
           },
-        })
+        }),
       );
     });
 
@@ -772,12 +774,12 @@ describe('ConfigEditor', () => {
 
       // Find the call that contains the combo box items
       const comboBoxCall = (html as any).mock.calls.find((call) =>
-        call[0].some((str) => str.includes('.items='))
+        call[0].some((str: string) => str.includes('.items=')),
       );
 
       // Verify that only sensor.inventory_test is included in the filtered entities
       expect(comboBoxCall).toBeDefined();
-      const itemsIndex = comboBoxCall[0].findIndex((str) => str.includes('.items='));
+      const itemsIndex = comboBoxCall[0].findIndex((str: string) => str.includes('.items='));
       const items = comboBoxCall[itemsIndex + 1];
 
       expect(items).toEqual([{ label: 'sensor.inventory_test', value: 'sensor.inventory_test' }]);
@@ -808,12 +810,12 @@ describe('ConfigEditor', () => {
 
       // Find the call that contains the combo box items
       const comboBoxCall = (html as any).mock.calls.find((call) =>
-        call[0].some((str) => str.includes('.items='))
+        call[0].some((str: string) => str.includes('.items=')),
       );
 
       // Verify that only sensor.with_items is included in the filtered entities
       expect(comboBoxCall).toBeDefined();
-      const itemsIndex = comboBoxCall[0].findIndex((str) => str.includes('.items='));
+      const itemsIndex = comboBoxCall[0].findIndex((str: string) => str.includes('.items='));
       const items = comboBoxCall[itemsIndex + 1];
 
       expect(items).toEqual([{ label: 'sensor.with_items', value: 'sensor.with_items' }]);
@@ -837,12 +839,12 @@ describe('ConfigEditor', () => {
 
       // Find the call that contains the combo box items
       const comboBoxCall = (html as any).mock.calls.find((call) =>
-        call[0].some((str) => str.includes('.items='))
+        call[0].some((str: string) => str.includes('.items=')),
       );
 
       // Verify that entities are sorted alphabetically
       expect(comboBoxCall).toBeDefined();
-      const itemsIndex = comboBoxCall[0].findIndex((str) => str.includes('.items='));
+      const itemsIndex = comboBoxCall[0].findIndex((str: string) => str.includes('.items='));
       const items = comboBoxCall[itemsIndex + 1];
 
       expect(items).toEqual([
@@ -870,11 +872,11 @@ describe('ConfigEditor', () => {
 
       // Find the call that contains the combo box items
       const comboBoxCall = (html as any).mock.calls.find((call) =>
-        call[0].some((str) => str.includes('.items='))
+        call[0].some((str: string) => str.includes('.items=')),
       );
 
       expect(comboBoxCall).toBeDefined();
-      const itemsIndex = comboBoxCall[0].findIndex((str) => str.includes('.items='));
+      const itemsIndex = comboBoxCall[0].findIndex((str: string) => str.includes('.items='));
       const items = comboBoxCall[itemsIndex + 1];
 
       // Only sensor.inventory should be included, not the one with null attributes
@@ -902,11 +904,11 @@ describe('ConfigEditor', () => {
 
       // Find the call that contains the combo box items
       const comboBoxCall = (html as any).mock.calls.find((call) =>
-        call[0].some((str) => str.includes('.items='))
+        call[0].some((str: string) => str.includes('.items=')),
       );
 
       expect(comboBoxCall).toBeDefined();
-      const itemsIndex = comboBoxCall[0].findIndex((str) => str.includes('.items='));
+      const itemsIndex = comboBoxCall[0].findIndex((str: string) => str.includes('.items='));
       const items = comboBoxCall[itemsIndex + 1];
 
       // Should filter entities with either 'inventory' in name OR items attribute
@@ -940,11 +942,11 @@ describe('ConfigEditor', () => {
 
       // Find the call that contains the combo box items
       const comboBoxCall = (html as any).mock.calls.find((call) =>
-        call[0].some((str) => str.includes('.items='))
+        call[0].some((str: string) => str.includes('.items=')),
       );
 
       expect(comboBoxCall).toBeDefined();
-      const itemsIndex = comboBoxCall[0].findIndex((str) => str.includes('.items='));
+      const itemsIndex = comboBoxCall[0].findIndex((str: string) => str.includes('.items='));
       const items = comboBoxCall[itemsIndex + 1];
 
       // Only sensor.inventory should be included, not binary_sensor.inventory
@@ -969,11 +971,11 @@ describe('ConfigEditor', () => {
 
       // Find the call that contains the combo box items
       const comboBoxCall = (html as any).mock.calls.find((call) =>
-        call[0].some((str) => str.includes('.items='))
+        call[0].some((str: string) => str.includes('.items=')),
       );
 
       expect(comboBoxCall).toBeDefined();
-      const itemsIndex = comboBoxCall[0].findIndex((str) => str.includes('.items='));
+      const itemsIndex = comboBoxCall[0].findIndex((str: string) => str.includes('.items='));
       const items = comboBoxCall[itemsIndex + 1];
 
       // Should include entity with 'inventory' in name
@@ -997,11 +999,11 @@ describe('ConfigEditor', () => {
 
       // Find the call that contains the combo box items
       const comboBoxCall = (html as any).mock.calls.find((call) =>
-        call[0].some((str) => str.includes('.items='))
+        call[0].some((str: string) => str.includes('.items=')),
       );
 
       expect(comboBoxCall).toBeDefined();
-      const itemsIndex = comboBoxCall[0].findIndex((str) => str.includes('.items='));
+      const itemsIndex = comboBoxCall[0].findIndex((str: string) => str.includes('.items='));
       const items = comboBoxCall[itemsIndex + 1];
 
       // Should handle undefined items gracefully
@@ -1032,7 +1034,7 @@ describe('ConfigEditor', () => {
 
       // Find the entity info section in the template
       const entityInfoCall = (html as any).mock.calls.find((call) =>
-        call[0].some((str) => str.includes('entity-info'))
+        call[0].some((str: string) => str.includes('entity-info')),
       );
 
       expect(entityInfoCall).toBeDefined();
@@ -1066,7 +1068,7 @@ describe('ConfigEditor', () => {
 
       // Find the entity info section in the template
       const entityInfoCall = (html as any).mock.calls.find((call) =>
-        call[0].some((str) => str.includes('entity-info'))
+        call[0].some((str: string) => str.includes('entity-info')),
       );
 
       expect(entityInfoCall).toBeDefined();
@@ -1092,12 +1094,14 @@ describe('ConfigEditor', () => {
 
       // Find the no-entity message in the template
       const noEntityCall = (html as any).mock.calls.find((call) =>
-        call[0].some((str) => str.includes('no-entity'))
+        call[0].some((str: string) => str.includes('no-entity')),
       );
 
       expect(noEntityCall).toBeDefined();
       expect(
-        noEntityCall[0].some((str) => str.includes('Please select an inventory entity above'))
+        noEntityCall[0].some((str: string) =>
+          str.includes('Please select an inventory entity above'),
+        ),
       ).toBe(true);
     });
   });
@@ -1134,11 +1138,11 @@ describe('ConfigEditor', () => {
 
       // Find the call that contains the combo box items
       const comboBoxCall = (html as any).mock.calls.find((call) =>
-        call[0].some((str) => str.includes('.items='))
+        call[0].some((str: string) => str.includes('.items=')),
       );
 
       expect(comboBoxCall).toBeDefined();
-      const itemsIndex = comboBoxCall[0].findIndex((str) => str.includes('.items='));
+      const itemsIndex = comboBoxCall[0].findIndex((str: string) => str.includes('.items='));
       const items = comboBoxCall[itemsIndex + 1];
 
       // Should handle case with no valid entities
@@ -1172,11 +1176,11 @@ describe('ConfigEditor', () => {
 
       // Find the call that contains the combo box items
       const comboBoxCall = (html as any).mock.calls.find((call) =>
-        call[0].some((str) => str.includes('.items='))
+        call[0].some((str: string) => str.includes('.items=')),
       );
 
       expect(comboBoxCall).toBeDefined();
-      const itemsIndex = comboBoxCall[0].findIndex((str) => str.includes('.items='));
+      const itemsIndex = comboBoxCall[0].findIndex((str: string) => str.includes('.items='));
       const items = comboBoxCall[itemsIndex + 1];
 
       // Test the complex filtering logic: sensor.* AND (inventory in name OR items exists)

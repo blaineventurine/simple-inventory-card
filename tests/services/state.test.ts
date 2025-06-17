@@ -76,7 +76,7 @@ describe('State', () => {
 
       // Simulate focus event
       const focusHandler = mockInputs[0].addEventListener.mock.calls.find(
-        (call: any) => call[0] === 'focus'
+        (call: any) => call[0] === 'focus',
       )![1];
       focusHandler();
 
@@ -89,7 +89,7 @@ describe('State', () => {
 
       // Simulate blur event
       const blurHandler = mockInputs[0].addEventListener.mock.calls.find(
-        (call: any) => call[0] === 'blur'
+        (call: any) => call[0] === 'blur',
       )![1];
       blurHandler();
 
@@ -105,10 +105,10 @@ describe('State', () => {
       state.trackUserInteraction(mockShadowRoot);
 
       const focusHandler = mockInputs[0].addEventListener.mock.calls.find(
-        (call: any) => call[0] === 'focus'
+        (call: any) => call[0] === 'focus',
       )![1];
       const blurHandler = mockInputs[0].addEventListener.mock.calls.find(
-        (call: any) => call[0] === 'blur'
+        (call: any) => call[0] === 'blur',
       )![1];
 
       // Focus first
@@ -148,7 +148,7 @@ describe('State', () => {
         attributes: {
           items: [{ name: 'Test Item', quantity: 5 }] as InventoryItem[],
         },
-        context: { id: 'test', user_id: undefined },
+        context: { id: 'test', user_id: '' },
         last_changed: '2023-01-01T00:00:00Z',
         last_updated: '2023-01-01T00:00:00Z',
       };
@@ -164,7 +164,7 @@ describe('State', () => {
         entity_id: entityId,
         state: 'on',
         attributes: { items },
-        context: { id: 'test', user_id: undefined },
+        context: { id: 'test', user_id: '' },
         last_changed: '2023-01-01T00:00:00Z',
         last_updated: '2023-01-01T00:00:00Z',
       };
@@ -185,7 +185,7 @@ describe('State', () => {
         entity_id: entityId,
         state: 'on',
         attributes: { items: initialItems },
-        context: { id: 'test', user_id: undefined },
+        context: { id: 'test', user_id: '' },
         last_changed: '2023-01-01T00:00:00Z',
         last_updated: '2023-01-01T00:00:00Z',
       };
@@ -212,7 +212,7 @@ describe('State', () => {
         entity_id: entityId,
         state: 'on',
         attributes: {},
-        context: { id: 'test', user_id: undefined },
+        context: { id: 'test', user_id: '' },
         last_changed: '2023-01-01T00:00:00Z',
         last_updated: '2023-01-01T00:00:00Z',
       };
@@ -228,7 +228,7 @@ describe('State', () => {
         entity_id: entityId,
         state: 'on',
         attributes: {},
-        context: { id: 'test', user_id: undefined },
+        context: { id: 'test', user_id: '' },
         last_changed: '2023-01-01T00:00:00Z',
         last_updated: '2023-01-01T00:00:00Z',
       };
@@ -253,7 +253,7 @@ describe('State', () => {
         entity_id: entityId,
         state: 'on',
         attributes: { items: [] as InventoryItem[] },
-        context: { id: 'test', user_id: undefined },
+        context: { id: 'test', user_id: '' },
         last_changed: '2023-01-01T00:00:00Z',
         last_updated: '2023-01-01T00:00:00Z',
       };
@@ -468,7 +468,7 @@ describe('State', () => {
 
       // Simulate user interaction
       const focusHandler = mockInputs[0].addEventListener.mock.calls.find(
-        (call: any) => call[0] === 'focus'
+        (call: any) => call[0] === 'focus',
       )![1];
       focusHandler();
 
@@ -491,7 +491,7 @@ describe('State', () => {
         entity_id: entityId,
         state: 'on',
         attributes: { items: [] as InventoryItem[] },
-        context: { id: 'test', user_id: undefined },
+        context: { id: 'test', user_id: '' },
         last_changed: '2023-01-01T00:00:00Z',
         last_updated: '2023-01-01T00:00:00Z',
       };
@@ -562,7 +562,7 @@ describe('State - Additional mutation killing tests', () => {
       entity_id: entityId,
       state: 'on',
       attributes: null as any, // This will break without optional chaining
-      context: { id: 'test', user_id: undefined },
+      context: { id: 'test', user_id: '' },
       last_changed: '2023-01-01T00:00:00Z',
       last_updated: '2023-01-01T00:00:00Z',
     };
@@ -580,7 +580,7 @@ describe('State - Additional mutation killing tests', () => {
       entity_id: entityId,
       state: 'on',
       attributes: undefined as any, // This will break without optional chaining
-      context: { id: 'test', user_id: undefined },
+      context: { id: 'test', user_id: '' },
       last_changed: '2023-01-01T00:00:00Z',
       last_updated: '2023-01-01T00:00:00Z',
     };
@@ -601,7 +601,7 @@ describe('State - Additional mutation killing tests', () => {
       entity_id: entityId,
       state: 'on',
       attributes: { items: [{ name: 'Item1', quantity: 1 }] as InventoryItem[] },
-      context: { id: 'test', user_id: undefined },
+      context: { id: 'test', user_id: '' },
       last_changed: '2023-01-01T00:00:00Z',
       last_updated: '2023-01-01T00:00:00Z',
     };
@@ -634,7 +634,7 @@ describe('State - Additional mutation killing tests', () => {
       entity_id: entityId,
       state: 'on',
       attributes: { items: initialItems },
-      context: { id: 'test', user_id: undefined },
+      context: { id: 'test', user_id: '' },
       last_changed: '2023-01-01T00:00:00Z',
       last_updated: '2023-01-01T00:00:00Z',
     };
@@ -669,7 +669,7 @@ describe('State - Additional mutation killing tests', () => {
       entity_id: entityId,
       state: 'on',
       attributes: { items: originalItems },
-      context: { id: 'test', user_id: undefined },
+      context: { id: 'test', user_id: '' },
       last_changed: '2023-01-01T00:00:00Z',
       last_updated: '2023-01-01T00:00:00Z',
     };
@@ -726,7 +726,7 @@ describe('State - Additional mutation killing tests', () => {
       entity_id: entityId,
       state: 'on',
       attributes: { items: [{ name: 'Item1', quantity: 1 }] as InventoryItem[] },
-      context: { id: 'test', user_id: undefined },
+      context: { id: 'test', user_id: '' },
       last_changed: '2023-01-01T00:00:00Z',
       last_updated: '2023-01-01T00:00:00Z',
     };
