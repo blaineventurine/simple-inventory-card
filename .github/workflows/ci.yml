@@ -2,7 +2,7 @@ name: CI
 
 permissions:
   contents: read
-  pull-requests: write # Needed for PR comments
+  pull-requests: write
 
 on:
   pull_request:
@@ -13,27 +13,18 @@ on:
     outputs:
       coverage:
         description: 'Coverage percentage'
-        value: ${{ jobs.lint-and-test.outputs.coverage }}
+        value: ${{ jobs.main-ci.outputs.coverage }}
 
 jobs:
-  lint-and-test:
+  main-ci:
     name: Lint, Type Check, Test, and Build
     runs-on: ubuntu-latest
     outputs:
       coverage: ${{ steps.coverage.outputs.coverage }}
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
+      - name: Setup environment
+        uses: ./.github/actions/setup-node-env
 
       - name: Run ESLint
         run: npm run lint
@@ -46,93 +37,11 @@ jobs:
 
       - name: Run tests with coverage
         run: npm run test:coverage
-        continue-on-error: false
-
-      - name: Extract coverage percentage
-        id: coverage
-        run: |
-          if [ -f "coverage/coverage-summary.json" ]; then
-            COVERAGE=$(node -p "
-              const fs = require('fs');
-              const summary = JSON.parse(fs.readFileSync('coverage/coverage-summary.json', 'utf8'));
-              Math.round(summary.total.lines.pct);
-            ")
-            echo "coverage=$COVERAGE" >> $GITHUB_OUTPUT
-            echo "Coverage: $COVERAGE%"
-          else
-            echo "coverage=0" >> $GITHUB_OUTPUT
-            echo "No coverage data found"
-          fi
 
       - name: Generate coverage report
-        if: github.event_name == 'pull_request'
-        run: |
-          if [ -f "coverage/lcov-report/index.html" ]; then
-            echo "## 📊 Code Coverage Report" > coverage-comment.md
-            echo "" >> coverage-comment.md
-            
-            # Extract coverage summary
-            if [ -f "coverage/coverage-summary.json" ]; then
-              node -e "
-                const fs = require('fs');
-                const summary = JSON.parse(fs.readFileSync('coverage/coverage-summary.json', 'utf8'));
-                const total = summary.total;
-                
-                console.log('| Metric | Coverage | Covered | Total |');
-                console.log('|--------|----------|---------|-------|');
-                console.log(\`| **Lines** | \${total.lines.pct.toFixed(1)}% | \${total.lines.covered} | \${total.lines.total} |\`);
-                console.log(\`| **Functions** | \${total.functions.pct.toFixed(1)}% | \${total.functions.covered} | \${total.functions.total} |\`);
-                console.log(\`| **Branches** | \${total.branches.pct.toFixed(1)}% | \${total.branches.covered} | \${total.branches.total} |\`);
-                console.log(\`| **Statements** | \${total.statements.pct.toFixed(1)}% | \${total.statements.covered} | \${total.statements.total} |\`);
-              " >> coverage-comment.md
-              
-              echo "" >> coverage-comment.md
-              echo "### Coverage by File" >> coverage-comment.md
-              echo "" >> coverage-comment.md
-              
-              # Add per-file coverage if there are multiple files
-              node -e "
-                const fs = require('fs');
-                const summary = JSON.parse(fs.readFileSync('coverage/coverage-summary.json', 'utf8'));
-                
-                const files = Object.keys(summary).filter(key => key !== 'total');
-                if (files.length > 1) {
-                  console.log('| File | Lines | Functions | Branches | Statements |');
-                  console.log('|------|-------|-----------|----------|------------|');
-                  
-                  files.forEach(file => {
-                    const data = summary[file];
-                    const fileName = file.replace(process.cwd() + '/', '');
-                    console.log(\`| \${fileName} | \${data.lines.pct.toFixed(1)}% | \${data.functions.pct.toFixed(1)}% | \${data.branches.pct.toFixed(1)}% | \${data.statements.pct.toFixed(1)}% |\`);
-                  });
-                } else {
-                  console.log('Single file project - see summary above.');
-                }
-              " >> coverage-comment.md
-            fi
-            
-            echo "" >> coverage-comment.md
-            echo "---" >> coverage-comment.md
-            echo "*Coverage report generated on $(date)*" >> coverage-comment.md
-          else
-            echo "## ⚠️ No Coverage Report Generated" > coverage-comment.md
-            echo "Tests may have failed or coverage collection is not configured." >> coverage-comment.md
-          fi
-
-      - name: Comment coverage on PR
-        if: github.event_name == 'pull_request'
-        uses: marocchino/sticky-pull-request-comment@v2
+        uses: ./.github/actions/coverage-report
         with:
-          recreate: true
-          path: coverage-comment.md
-
-      - name: Upload coverage reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-reports
-          path: coverage/
-          retention-days: 30
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build project
         run: npm run build
@@ -151,3 +60,16 @@ jobs:
           name: build-artifacts
           path: dist/
           retention-days: 7
+
+  mutation-testing:
+    name: Mutation Testing
+    needs: main-ci
+    if: |
+      github.ref == 'refs/heads/main' ||
+      github.ref == 'refs/heads/master' ||
+      contains(github.event.pull_request.labels.*.name, 'mutation-test') ||
+      contains(github.event.head_commit.message, '[mutation-test]')
+    uses: ./.github/workflows/mutation-testing.yml
+    permissions:
+      contents: read
+      pull-requests: write

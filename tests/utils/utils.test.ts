@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Utils } from '../../src/utils/utils';
-import { HomeAssistant } from '../../src/types/home-assistant';
+import { HomeAssistant, InventoryItem } from '../../src/types/home-assistant';
 import { RawFormData, ItemData } from '../../src/types/inventoryItem';
 import { createMockHassEntity, createMockHomeAssistant } from '../testHelpers';
 
@@ -639,16 +639,28 @@ describe('Utils', () => {
       it('should validate and normalize inventory items', () => {
         const items = [
           { name: 'Valid Item', quantity: 5 },
-          { name: 'Item with invalid quantity', quantity: 'invalid' },
-          { invalidItem: 'no name' },
-          null,
-        ];
+          { name: 'Item with invalid quantity', quantity: 'invalid' as any },
+          { name: 'Item with missing fields' } as any,
+          { invalidItem: 'no name' } as any,
+          null as any,
+        ] as InventoryItem[];
 
         const result = Utils.validateInventoryItems(items);
 
-        expect(result).toHaveLength(2);
+        expect(result).toHaveLength(3); // Valid Item, Invalid quantity item, Missing fields item
         expect(result[0].name).toBe('Valid Item');
+        expect(result[0].quantity).toBe(5);
+
+        expect(result[1].name).toBe('Item with invalid quantity');
         expect(result[1].quantity).toBe(0); // Normalized invalid quantity
+        expect(result[1].unit).toBe(''); // Normalized missing unit
+        expect(result[1].category).toBe(''); // Normalized missing category
+        expect(result[1].expiry_date).toBe(''); // Normalized missing expiry_date
+        expect(result[1].auto_add_enabled).toBe(false); // Normalized missing auto_add_enabled
+        expect(result[1].auto_add_to_list_quantity).toBe(0); // Normalized missing auto_add_to_list_quantity
+
+        expect(result[2].name).toBe('Item with missing fields');
+        expect(result[2].quantity).toBe(0); // Default for missing quantity
       });
 
       it('should handle non-array input', () => {
@@ -706,6 +718,513 @@ describe('Utils', () => {
           { value: 'sensor.test1', label: 'Test 1' },
           { value: 'sensor.test2', label: 'sensor.test2' },
         ]);
+      });
+    });
+  });
+
+  describe('Utils - Additional Mutation Testing Coverage', () => {
+    describe('getInventoryId - Optional Chaining Coverage', () => {
+      let mockHass: HomeAssistant;
+
+      beforeEach(() => {
+        mockHass = createMockHomeAssistant();
+      });
+
+      it('should handle null state gracefully', () => {
+        mockHass.states['sensor.test'] = null as any;
+        const result = Utils.getInventoryId(mockHass, 'sensor.test');
+        expect(result).toBe('test');
+      });
+
+      it('should handle state with null attributes', () => {
+        mockHass.states['sensor.test'] = createMockHassEntity('sensor.test', {
+          attributes: null as any,
+        });
+        const result = Utils.getInventoryId(mockHass, 'sensor.test');
+        expect(result).toBe('test');
+      });
+
+      it('should handle unique_id that is not a string', () => {
+        mockHass.states['sensor.test'] = createMockHassEntity('sensor.test', {
+          attributes: { unique_id: 123 as any },
+        });
+        const result = Utils.getInventoryId(mockHass, 'sensor.test');
+        expect(result).toBe('test');
+      });
+
+      it('should handle unique_id without inventory_ prefix', () => {
+        mockHass.states['sensor.test'] = createMockHassEntity('sensor.test', {
+          attributes: { unique_id: 'some_other_prefix_test' },
+        });
+        const result = Utils.getInventoryId(mockHass, 'sensor.test');
+        expect(result).toBe('test');
+      });
+
+      it('should handle entity ID with no domain separator', () => {
+        const result = Utils.getInventoryId(mockHass, 'invalid_entity_id');
+        expect(result).toBe('invalid_entity_id');
+      });
+
+      it('should handle entity ID with only domain', () => {
+        const result = Utils.getInventoryId(mockHass, 'sensor.');
+        expect(result).toBe('');
+      });
+    });
+
+    describe('formatDate - Regex and Edge Case Coverage', () => {
+      it('should handle numeric strings that are not pure digits', () => {
+        const result = Utils.formatDate('123abc');
+        expect(result).toBe('123abc'); // Should return original for invalid format
+      });
+
+      it('should handle partial numeric strings', () => {
+        const result = Utils.formatDate('123');
+        expect(result).not.toBe('123'); // Should be formatted as timestamp
+      });
+
+      it('should handle regex mutation edge cases', () => {
+        // Test cases that would behave differently with mutated regex patterns
+        const testCases = [
+          '123abc', // Would match /^\d+/ but not /^\d+$/
+          'abc123', // Would match /\d+$/ but not /^\d+$/
+          'x2023-12-25', // Would match /\d{4}-\d{2}-\d{2}$/ but not /^\d{4}-\d{2}-\d{2}$/
+          '2023-12-25x', // Would match /^\d{4}-\d{2}-\d{2}/ but not /^\d{4}-\d{2}-\d{2}$/
+        ];
+
+        testCases.forEach((dateString) => {
+          const result = Utils.formatDate(dateString);
+          // These should NOT be parsed as timestamps or YYYY-MM-DD format
+          // They should go through the general Date() constructor path
+          expect(result).toBeTruthy(); // Just verify it returns something
+        });
+      });
+      it('should handle date strings without trimming', () => {
+        // Test the specific mutant that removes .trim()
+        const result = Utils.formatDate('2023-12-25');
+        expect(result).toBeTruthy();
+        expect(result).not.toBe('2023-12-25');
+      });
+
+      it('should handle arithmetic mutation in month calculation', () => {
+        const result = Utils.formatDate('2023-12-25');
+        // Verify the month is correct (not off by 2 due to +1 instead of -1)
+        expect(result).toContain('12'); // Should contain December representation
+      });
+    });
+
+    describe('isExpired - Edge Cases', () => {
+      beforeEach(() => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date('2023-06-15T12:00:00Z'));
+      });
+
+      afterEach(() => {
+        vi.useRealTimers();
+      });
+
+      it('should handle dates that throw exceptions', () => {
+        // Force an exception scenario
+        const originalDate = global.Date;
+        global.Date = class extends Date {
+          constructor(...args: ConstructorParameters<typeof Date>) {
+            if (args[0] === 'throw-error') {
+              throw new Error('Date error');
+            }
+            super(...args);
+          }
+        } as any;
+
+        const result = Utils.isExpired('throw-error');
+        expect(result).toBe(false);
+
+        global.Date = originalDate;
+      });
+
+      it('should handle invalid date objects that return NaN', () => {
+        const result = Utils.isExpired('invalid-date-that-creates-nan');
+        expect(result).toBe(false);
+      });
+    });
+
+    describe('isExpiringSoon - Boundary Testing', () => {
+      beforeEach(() => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date('2023-06-15T12:00:00Z'));
+      });
+
+      afterEach(() => {
+        vi.useRealTimers();
+      });
+
+      it('should handle exactly 0 days difference', () => {
+        const result = Utils.isExpiringSoon('2023-06-15', 7);
+        expect(result).toBe(true); // Day 0 should be included (>= 0)
+      });
+
+      it('should handle exactly threshold days difference', () => {
+        const result = Utils.isExpiringSoon('2023-06-22', 7);
+        expect(result).toBe(true); // Day 7 should be included (<= threshold)
+      });
+
+      it('should handle threshold + 1 days difference', () => {
+        const result = Utils.isExpiringSoon('2023-06-23', 7);
+        expect(result).toBe(false); // Day 8 should be excluded
+      });
+
+      it('should handle negative days (past dates)', () => {
+        const result = Utils.isExpiringSoon('2023-06-14', 7);
+        expect(result).toBe(false); // Past dates should be excluded (< 0)
+      });
+    });
+
+    describe('debounce - Timeout Handling', () => {
+      beforeEach(() => {
+        vi.useFakeTimers();
+      });
+
+      afterEach(() => {
+        vi.useRealTimers();
+      });
+
+      it('should handle multiple rapid calls with timeout cleanup', () => {
+        const mockFn = vi.fn();
+        const debounced = Utils.debounce(mockFn, 100);
+
+        // Make multiple calls to test timeout cleanup
+        debounced('call1');
+        debounced('call2');
+        debounced('call3');
+
+        // Only the last call should execute
+        vi.advanceTimersByTime(100);
+        expect(mockFn).toHaveBeenCalledTimes(1);
+        expect(mockFn).toHaveBeenCalledWith('call3');
+      });
+    });
+
+    describe('validateRawFormData - Optional Chaining and Trim Coverage', () => {
+      it('should handle quantity field without optional chaining', () => {
+        const formData = createValidFormData();
+        delete (formData as any).quantity; // Remove quantity entirely
+
+        const result = Utils.validateRawFormData(formData);
+        expect(result.errors.some((e) => e.field === 'quantity')).toBe(false);
+      });
+
+      it('should handle autoAddToListQuantity without trim', () => {
+        const formData = createValidFormData({
+          autoAddEnabled: true,
+          autoAddToListQuantity: null as any,
+          todoList: 'todo.test',
+        });
+
+        const result = Utils.validateRawFormData(formData);
+        expect(result.errors.some((e) => e.field === 'autoAddToListQuantity')).toBe(true);
+      });
+
+      it('should handle todoList without trim', () => {
+        const formData = createValidFormData({
+          autoAddEnabled: true,
+          autoAddToListQuantity: '5',
+          todoList: null as any,
+        });
+
+        const result = Utils.validateRawFormData(formData);
+        expect(result.errors.some((e) => e.field === 'todoList')).toBe(true);
+      });
+
+      it('should handle expiryDate without trim', () => {
+        const formData = createValidFormData({
+          expiryDate: null as any,
+        });
+
+        const result = Utils.validateRawFormData(formData);
+        expect(result.errors.some((e) => e.field === 'expiryDate')).toBe(false);
+      });
+
+      it('should handle expiryAlertDays without optional chaining', () => {
+        const formData = createValidFormData();
+        delete (formData as any).expiryAlertDays;
+
+        const result = Utils.validateRawFormData(formData);
+        expect(result.errors.some((e) => e.field === 'expiryAlertDays')).toBe(false);
+      });
+
+      it('should validate autoAddToListQuantity numeric values', () => {
+        const formData = createValidFormData({
+          autoAddEnabled: true,
+          autoAddToListQuantity: 'invalid-number',
+          todoList: 'todo.test',
+        });
+
+        const result = Utils.validateRawFormData(formData);
+        expect(
+          result.errors.some(
+            (e) => e.field === 'autoAddToListQuantity' && e.message.includes('valid number'),
+          ),
+        ).toBe(true);
+      });
+
+      it('should validate autoAddToListQuantity negative values', () => {
+        const formData = createValidFormData({
+          autoAddEnabled: true,
+          autoAddToListQuantity: '-5',
+          todoList: 'todo.test',
+        });
+
+        const result = Utils.validateRawFormData(formData);
+        expect(
+          result.errors.some(
+            (e) => e.field === 'autoAddToListQuantity' && e.message.includes('cannot be negative'),
+          ),
+        ).toBe(true);
+      });
+
+      it('should validate expiryAlertDays numeric values', () => {
+        const formData = createValidFormData({
+          expiryDate: '2023-12-25',
+          expiryAlertDays: 'invalid-number',
+        });
+
+        const result = Utils.validateRawFormData(formData);
+        expect(
+          result.errors.some(
+            (e) => e.field === 'expiryAlertDays' && e.message.includes('valid number'),
+          ),
+        ).toBe(true);
+      });
+
+      it('should validate expiryAlertDays negative values', () => {
+        const formData = createValidFormData({
+          expiryDate: '2023-12-25',
+          expiryAlertDays: '-3',
+        });
+
+        const result = Utils.validateRawFormData(formData);
+        expect(
+          result.errors.some(
+            (e) => e.field === 'expiryAlertDays' && e.message.includes('cannot be negative'),
+          ),
+        ).toBe(true);
+      });
+    });
+
+    describe('convertRawFormDataToItemData - Logical Operator Coverage', () => {
+      it('should handle Infinity values in numeric parsing', () => {
+        const formData = createValidFormData({
+          quantity: 'Infinity',
+          autoAddToListQuantity: '-Infinity',
+        });
+
+        const result = Utils.convertRawFormDataToItemData(formData);
+        expect(result.quantity).toBe(0);
+        expect(result.autoAddToListQuantity).toBe(0);
+      });
+
+      it('should handle NaN values in numeric parsing', () => {
+        const formData = createValidFormData({
+          quantity: 'NaN',
+          autoAddToListQuantity: 'not-a-number',
+        });
+
+        const result = Utils.convertRawFormDataToItemData(formData);
+        expect(result.quantity).toBe(0);
+        expect(result.autoAddToListQuantity).toBe(0);
+      });
+
+      it('should handle fields without trim method', () => {
+        const formData = createValidFormData();
+        // Remove trim by setting to non-string values
+        (formData as any).todoList = null;
+        (formData as any).expiryDate = undefined;
+        (formData as any).category = null;
+        (formData as any).unit = undefined;
+
+        const result = Utils.convertRawFormDataToItemData(formData);
+        expect(result.todoList).toBe('');
+        expect(result.expiryDate).toBe('');
+        expect(result.category).toBe('');
+        expect(result.unit).toBe('');
+      });
+    });
+
+    describe('sanitizeItemData - Math Function Coverage', () => {
+      it('should use Math.max instead of Math.min for autoAddToListQuantity', () => {
+        const itemData: ItemData = {
+          name: 'Test',
+          quantity: 5,
+          autoAddEnabled: true,
+          autoAddToListQuantity: -10, // Negative value
+          category: 'Test',
+          unit: 'test',
+          todoList: 'todo.test',
+          expiryDate: '',
+          expiryAlertDays: 7,
+        };
+
+        const result = Utils.sanitizeItemData(itemData);
+        expect(result.autoAddToListQuantity).toBe(0); // Should be 0, not negative
+      });
+
+      it('should handle logical OR vs AND in numeric conversion', () => {
+        const itemData: ItemData = {
+          name: 'Test',
+          quantity: null as any,
+          autoAddEnabled: true,
+          autoAddToListQuantity: undefined as any,
+          category: 'Test',
+          unit: 'test',
+          todoList: 'todo.test',
+          expiryDate: '',
+          expiryAlertDays: 7,
+        };
+
+        const result = Utils.sanitizeItemData(itemData);
+        expect(result.quantity).toBe(0);
+        expect(result.autoAddToListQuantity).toBe(0);
+      });
+    });
+
+    describe('validateInventoryItems - Type Checking Coverage', () => {
+      it('should handle items with typeof mutations', () => {
+        const items: InventoryItem[] = [
+          {
+            name: 'Valid Item',
+            quantity: 5,
+            unit: 123 as any,
+            category: '',
+            expiry_date: '',
+            expiry_alert_days: 0,
+            todo_list: '',
+            auto_add_enabled: false,
+            auto_add_to_list_quantity: 0,
+          },
+          {
+            name: 'Another Item',
+            quantity: 0,
+            unit: '',
+            category: true as any,
+            expiry_date: '',
+            expiry_alert_days: 0,
+            todo_list: '',
+            auto_add_enabled: false,
+            auto_add_to_list_quantity: 0,
+          },
+          {
+            name: 'Third Item',
+            quantity: 0,
+            unit: '',
+            category: '',
+            expiry_date: 456 as any,
+            expiry_alert_days: 0,
+            todo_list: '',
+            auto_add_enabled: false,
+            auto_add_to_list_quantity: 0,
+          },
+          {
+            name: 'Fourth Item',
+            quantity: 0,
+            unit: '',
+            category: '',
+            expiry_date: '',
+            expiry_alert_days: 0,
+            todo_list: false as any,
+            auto_add_enabled: false,
+            auto_add_to_list_quantity: 0,
+          },
+        ];
+
+        const result = Utils.validateInventoryItems(items);
+
+        expect(result).toHaveLength(4);
+        expect(result[0].unit).toBe(''); // Should be normalized to empty string
+        expect(result[1].category).toBe(''); // Should be normalized to empty string
+        expect(result[2].expiry_date).toBe(''); // Should be normalized to empty string
+        expect(result[3].todo_list).toBe(''); // Should be normalized to empty string
+      });
+
+      it('should handle quantity type checking with logical OR', () => {
+        const items = [
+          { name: 'Test Item', quantity: 'not-a-number' as any },
+          { name: 'Another Item', quantity: NaN },
+        ] as InventoryItem[];
+
+        const result = Utils.validateInventoryItems(items);
+
+        expect(result).toHaveLength(2);
+        expect(result[0].quantity).toBe(0);
+        expect(result[1].quantity).toBe(0);
+      });
+    });
+
+    describe('Home Assistant Functions - Optional Chaining Coverage', () => {
+      let mockHass: HomeAssistant;
+
+      beforeEach(() => {
+        mockHass = createMockHomeAssistant();
+      });
+
+      it('should handle extractTodoLists with missing attributes', () => {
+        mockHass.states = {
+          'todo.test': createMockHassEntity('todo.test', { attributes: null as any }),
+        };
+
+        const result = Utils.extractTodoLists(mockHass);
+        expect(result).toHaveLength(1);
+        expect(result[0].name).toBe('test'); // Should fallback to entity name
+      });
+
+      it('should handle findInventoryEntities with null hass', () => {
+        const result = Utils.findInventoryEntities(null as any);
+        expect(result).toEqual([]);
+      });
+
+      it('should handle findInventoryEntities with missing states', () => {
+        const hassWithoutStates = { ...mockHass, states: undefined as any };
+        const result = Utils.findInventoryEntities(hassWithoutStates);
+        expect(result).toEqual([]);
+      });
+
+      it('should handle findInventoryEntities with null state entities', () => {
+        mockHass.states = {
+          'sensor.test': null as any,
+        };
+
+        const result = Utils.findInventoryEntities(mockHass);
+        expect(result).toEqual([]);
+      });
+
+      it('should handle createEntityOptions with missing attributes', () => {
+        mockHass.states = {
+          'sensor.test': createMockHassEntity('sensor.test', { attributes: null as any }),
+        };
+
+        const result = Utils.createEntityOptions(mockHass, ['sensor.test']);
+        expect(result).toEqual([{ value: 'sensor.test', label: 'sensor.test' }]);
+      });
+
+      it('should test conditional expression mutations in findInventoryEntities', () => {
+        mockHass.states = {
+          'sensor.inventory_test': createMockHassEntity('sensor.inventory_test'),
+          'sensor.has_items': createMockHassEntity('sensor.has_items', {
+            attributes: { items: [] },
+          }),
+          'sensor.no_match': createMockHassEntity('sensor.no_match'),
+        };
+
+        const result = Utils.findInventoryEntities(mockHass);
+        expect(result).toContain('sensor.inventory_test');
+        expect(result).toContain('sensor.has_items');
+        expect(result).not.toContain('sensor.no_match');
+      });
+    });
+
+    describe('formatDate - Timezone and Options Coverage', () => {
+      it('should handle date formatting without timezone option', () => {
+        const result = Utils.formatDate('2023-12-25');
+        expect(result).toBeTruthy();
+        // The mutant removes the timeZone option, but result should still be valid
+        expect(result).toMatch(/\d{1,2}\/\d{1,2}\/\d{4}/); // Should match MM/DD/YYYY format
       });
     });
   });

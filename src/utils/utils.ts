@@ -435,7 +435,7 @@ export class Utils {
    * @param items - Raw items array from entity attributes
    * @returns Array of validated InventoryItem objects
    */
-  static validateInventoryItems(items: any[]): InventoryItem[] {
+  static validateInventoryItems(items: InventoryItem[]): InventoryItem[] {
     if (!Array.isArray(items)) {
       return [];
     }
@@ -450,9 +450,13 @@ export class Utils {
       item.unit = typeof item.unit === 'string' ? item.unit : '';
       item.category = typeof item.category === 'string' ? item.category : '';
       item.expiry_date = typeof item.expiry_date === 'string' ? item.expiry_date : '';
+      item.expiry_alert_days =
+        typeof item.expiry_alert_days === 'number' ? item.expiry_alert_days : 0;
+
       item.todo_list = typeof item.todo_list === 'string' ? item.todo_list : '';
       item.auto_add_enabled = Boolean(item.auto_add_enabled);
-      item.threshold = typeof item.threshold === 'number' ? item.threshold : 0;
+      item.auto_add_to_list_quantity =
+        typeof item.auto_add_to_list_quantity === 'number' ? item.auto_add_to_list_quantity : 0;
 
       return true;
     });

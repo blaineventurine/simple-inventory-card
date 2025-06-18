@@ -1,0 +1,26 @@
+name: Mutation Testing
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  mutation-test:
+    name: Run Mutation Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup environment
+        uses: ./.github/actions/setup-node-env
+
+      - name: Run mutation testing
+        run: npm run test:mutation
+
+      - name: Generate mutation report
+        uses: ./.github/actions/mutation-report
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}

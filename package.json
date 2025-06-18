@@ -29,6 +29,7 @@
     "preview": "vite preview",
     "test": "vitest",
     "test:coverage": "vitest run --coverage",
+    "test:mutation": "stryker run",
     "test:run": "vitest run",
     "test:ui": "vitest --ui",
     "type-check": "tsc --noEmit",
