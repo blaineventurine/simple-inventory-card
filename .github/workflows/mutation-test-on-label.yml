@@ -1,0 +1,17 @@
+name: Mutation Test on Label
+
+permissions:
+  contents: read
+  pull-requests: write
+
+on:
+  pull_request:
+    types: [labeled]
+
+jobs:
+  check-label:
+    if: contains(github.event.pull_request.labels.*.name, 'mutation-test')
+    uses: ./.github/workflows/mutation-testing.yml
+    permissions:
+      contents: read
+      pull-requests: write

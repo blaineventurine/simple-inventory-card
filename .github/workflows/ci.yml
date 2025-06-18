@@ -69,9 +69,7 @@ jobs:
     needs: main-ci
     if: |
       github.ref == 'refs/heads/main' ||
-      github.ref == 'refs/heads/master' ||
-      contains(github.event.pull_request.labels.*.name, 'mutation-test') ||
-      contains(github.event.head_commit.message, '[mutation-test]')
+      github.ref == 'refs/heads/master'
     uses: ./.github/workflows/mutation-testing.yml
     permissions:
       contents: read
