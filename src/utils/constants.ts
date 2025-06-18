@@ -80,30 +80,30 @@ export const ACTIONS = {
 };
 
 export const DEFAULTS = {
-  QUANTITY: 1,
-  THRESHOLD: 0,
-  UNIT: '',
+  AUTO_ADD_ENABLED: false,
   CATEGORY: '',
   EXPIRY_DATE: '',
-  TODO_LIST: '',
-  AUTO_ADD_ENABLED: false,
+  QUANTITY: 1,
   SORT_METHOD: 'name',
+  THRESHOLD: 0,
+  TODO_LIST: '',
+  UNIT: '',
 };
 
 export const SORT_METHODS = {
-  NAME: 'name',
   CATEGORY: 'category',
+  EXPIRY: 'expiry',
+  NAME: 'name',
   QUANTITY: 'quantity',
   QUANTITY_LOW: 'quantity-low',
-  EXPIRY: 'expiry',
   ZERO_LAST: 'zero-last',
 };
 
 export const FILTERS = {
-  SEARCH_TEXT: 'searchText',
   CATEGORY: 'category',
-  QUANTITY: 'quantity',
   EXPIRY: 'expiry',
+  QUANTITY: 'quantity',
+  SEARCH_TEXT: 'searchText',
   SHOW_ADVANCED: 'showAdvanced',
 };
 

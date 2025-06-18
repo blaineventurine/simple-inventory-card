@@ -322,6 +322,7 @@ export class Utils {
    * @param formData - Raw form data
    * @returns Converted ItemData
    */
+  // TODO: this has a lot in common with sanitizeItemData, combine them
   static convertRawFormDataToItemData(formData: RawFormData): ItemData {
     const parseNumber = (value: string | undefined, defaultValue: number): number => {
       if (!value?.trim()) {
@@ -345,7 +346,7 @@ export class Utils {
       autoAddToListQuantity: Math.max(0, parseNumber(formData.autoAddToListQuantity, 0)),
       todoList: formData.todoList?.trim() || '',
       expiryDate: formData.expiryDate?.trim() || '',
-      expiryAlertDays: Math.max(0, parseNumber(formData.expiryAlertDays, 7)),
+      expiryAlertDays: Math.max(0, parseNumber(formData.expiryAlertDays, 0)),
       category: formData.category?.trim() || '',
       unit: formData.unit?.trim() || '',
     };
@@ -404,7 +405,7 @@ export class Utils {
       autoAddEnabled: Boolean(itemData.autoAddEnabled),
       autoAddToListQuantity: Math.max(0, Number(itemData.autoAddToListQuantity) || 0),
       category: this.sanitizeString(itemData.category, 50),
-      expiryAlertDays: itemData.expiryAlertDays || 7,
+      expiryAlertDays: Math.max(0, Number(itemData.expiryAlertDays) || 0),
       expiryDate: itemData.expiryDate || '',
       name: this.sanitizeString(itemData.name, 100),
       quantity: Math.max(0, Math.min(999999, Number(itemData.quantity) || 0)),
@@ -446,18 +447,26 @@ export class Utils {
       }
 
       item.quantity =
-        typeof item.quantity === 'number' && !isNaN(item.quantity) ? item.quantity : 0;
+        typeof item.quantity === 'number' && !isNaN(item.quantity) && item.quantity >= 0
+          ? item.quantity
+          : 0;
       item.unit = typeof item.unit === 'string' ? item.unit : '';
       item.category = typeof item.category === 'string' ? item.category : '';
       item.expiry_date = typeof item.expiry_date === 'string' ? item.expiry_date : '';
       item.expiry_alert_days =
-        typeof item.expiry_alert_days === 'number' ? item.expiry_alert_days : 0;
-
+        typeof item.expiry_alert_days === 'number' &&
+        !isNaN(item.expiry_alert_days) &&
+        item.expiry_alert_days >= 0
+          ? item.expiry_alert_days
+          : 0;
       item.todo_list = typeof item.todo_list === 'string' ? item.todo_list : '';
       item.auto_add_enabled = Boolean(item.auto_add_enabled);
       item.auto_add_to_list_quantity =
-        typeof item.auto_add_to_list_quantity === 'number' ? item.auto_add_to_list_quantity : 0;
-
+        typeof item.auto_add_to_list_quantity === 'number' &&
+        !isNaN(item.auto_add_to_list_quantity) &&
+        item.auto_add_to_list_quantity >= 0
+          ? item.auto_add_to_list_quantity
+          : 0;
       return true;
     });
   }

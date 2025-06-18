@@ -456,7 +456,7 @@ describe('Utils', () => {
       it.each([
         { field: 'quantity', input: 'invalid', defaultValue: 0 },
         { field: 'autoAddToListQuantity', input: '', defaultValue: 0 },
-        { field: 'expiryAlertDays', input: 'invalid', defaultValue: 7 },
+        { field: 'expiryAlertDays', input: 'invalid', defaultValue: 0 },
       ])('should handle invalid numeric values: $field', ({ field, input, defaultValue }) => {
         const formData = createValidFormData({ [field]: input });
         const result = Utils.convertRawFormDataToItemData(formData);
@@ -500,7 +500,7 @@ describe('Utils', () => {
           autoAddToListQuantity: 0,
           todoList: '',
           expiryDate: '',
-          expiryAlertDays: 7,
+          expiryAlertDays: 0,
           category: '',
           unit: '',
         });
@@ -623,7 +623,7 @@ describe('Utils', () => {
         expect(result.autoAddEnabled).toBe(true);
         expect(result.category).toHaveLength(50);
         expect(result.unit).toHaveLength(20);
-        expect(result.expiryAlertDays).toBe(7);
+        expect(result.expiryAlertDays).toBe(0);
       });
     });
   });
@@ -798,6 +798,7 @@ describe('Utils', () => {
           expect(result).toBeTruthy(); // Just verify it returns something
         });
       });
+
       it('should handle date strings without trimming', () => {
         // Test the specific mutant that removes .trim()
         const result = Utils.formatDate('2023-12-25');

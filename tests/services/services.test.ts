@@ -9,7 +9,6 @@ describe('Services', () => {
   let mockHass: HomeAssistant;
 
   beforeEach(() => {
-    // Mock HomeAssistant with callService method
     mockHass = {
       states: {},
       config: {} as any,
@@ -32,7 +31,6 @@ describe('Services', () => {
 
     services = new Services(mockHass);
 
-    // Mock console.error
     vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
@@ -103,7 +101,7 @@ describe('Services', () => {
         [PARAMS.CATEGORY]: DEFAULTS.CATEGORY,
         [PARAMS.EXPIRY_DATE]: DEFAULTS.EXPIRY_DATE,
         [PARAMS.TODO_LIST]: DEFAULTS.TODO_LIST,
-        [PARAMS.EXPIRY_ALERT_DAYS]: 7,
+        [PARAMS.EXPIRY_ALERT_DAYS]: 0,
         [PARAMS.AUTO_ADD_TO_LIST_QUANTITY]: 0,
         [PARAMS.AUTO_ADD_ENABLED]: DEFAULTS.AUTO_ADD_ENABLED,
       });
@@ -366,7 +364,7 @@ describe('Services', () => {
         [PARAMS.AUTO_ADD_ENABLED]: DEFAULTS.AUTO_ADD_ENABLED,
         [PARAMS.AUTO_ADD_TO_LIST_QUANTITY]: 0,
         [PARAMS.CATEGORY]: DEFAULTS.CATEGORY,
-        [PARAMS.EXPIRY_ALERT_DAYS]: 7,
+        [PARAMS.EXPIRY_ALERT_DAYS]: 0,
         [PARAMS.EXPIRY_DATE]: DEFAULTS.EXPIRY_DATE,
         [PARAMS.INVENTORY_ID]: inventoryId,
         [PARAMS.NAME]: minimalItemData.name,
