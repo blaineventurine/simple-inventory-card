@@ -1,5 +1,5 @@
 import { DEFAULT_INVENTORY_NAME } from './constants';
-import { HassEntity, HomeAssistant } from '../types/home-assistant';
+import { HassEntity, HomeAssistant, InventoryItem } from '../types/home-assistant';
 import { FilterState } from '../types/filterState';
 import { ItemData, SanitizedItemData, RawFormData } from '../types/inventoryItem';
 import { ValidationError } from '../types/validationError';
@@ -428,5 +428,82 @@ export class Utils {
 
   static hasActiveFilters(filters: FilterState): boolean {
     return Boolean(filters.searchText || filters.category || filters.quantity || filters.expiry);
+  }
+
+  /**
+   * Validates and normalizes inventory items from Home Assistant state
+   * @param items - Raw items array from entity attributes
+   * @returns Array of validated InventoryItem objects
+   */
+  static validateInventoryItems(items: any[]): InventoryItem[] {
+    if (!Array.isArray(items)) {
+      return [];
+    }
+
+    return items.filter((item): item is InventoryItem => {
+      if (!item || typeof item !== 'object' || !item.name || typeof item.name !== 'string') {
+        return false;
+      }
+
+      item.quantity =
+        typeof item.quantity === 'number' && !isNaN(item.quantity) ? item.quantity : 0;
+      item.unit = typeof item.unit === 'string' ? item.unit : '';
+      item.category = typeof item.category === 'string' ? item.category : '';
+      item.expiry_date = typeof item.expiry_date === 'string' ? item.expiry_date : '';
+      item.todo_list = typeof item.todo_list === 'string' ? item.todo_list : '';
+      item.auto_add_enabled = Boolean(item.auto_add_enabled);
+      item.threshold = typeof item.threshold === 'number' ? item.threshold : 0;
+
+      return true;
+    });
+  }
+
+  /**
+   * Extracts and formats todo lists from Home Assistant states
+   * @param hass - Home Assistant instance
+   * @returns Array of todo list objects with id and name
+   */
+  static extractTodoLists(hass: HomeAssistant): Array<{ id: string; name: string }> {
+    return Object.keys(hass.states)
+      .filter((entityId) => entityId.startsWith('todo.'))
+      .map((entityId) => ({
+        id: entityId,
+        name: hass.states[entityId].attributes?.friendly_name || entityId.split('.')[1],
+      }));
+  }
+
+  /**
+   * Finds inventory entities from Home Assistant states
+   * @param hass - Home Assistant instance
+   * @returns Array of inventory entity IDs, sorted
+   */
+  static findInventoryEntities(hass: HomeAssistant): string[] {
+    return Object.keys(hass?.states || {})
+      .filter((entityId) => {
+        // Check if it's a sensor entity
+        if (!entityId.startsWith('sensor.')) {
+          return false;
+        }
+
+        // Check if it has inventory in the name or has items attribute
+        const hasInventoryInName = entityId.includes('inventory');
+        const hasItemsAttribute = hass?.states[entityId]?.attributes?.items !== undefined;
+
+        return hasInventoryInName || hasItemsAttribute;
+      })
+      .sort();
+  }
+
+  /**
+   * Creates entity options for combo box from entity IDs
+   * @param hass - Home Assistant instance
+   * @param entityIds - Array of entity IDs
+   * @returns Array of option objects with value and label
+   */
+  static createEntityOptions(hass: HomeAssistant, entityIds: string[]) {
+    return entityIds.map((entity) => ({
+      value: entity,
+      label: hass.states[entity]?.attributes?.friendly_name || entity,
+    }));
   }
 }

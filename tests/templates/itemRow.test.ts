@@ -176,12 +176,14 @@ describe('createItemRowTemplate', () => {
     });
 
     it('should handle undefined auto_add_to_list_quantity', () => {
-      const autoAddItem = {
+      const autoAddItem: InventoryItem = {
         ...baseItem,
         auto_add_enabled: true,
-        auto_add_to_list_quantity: undefined,
         todo_list: 'todo.grocery',
       };
+
+      delete autoAddItem.auto_add_to_list_quantity;
+
       const result = createItemRowTemplate(autoAddItem, mockTodoLists);
 
       expect(result).toContain('Auto-add at ≤0 → Grocery List');

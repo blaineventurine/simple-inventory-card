@@ -127,7 +127,7 @@ describe('itemList', () => {
 
     describe('non-category sort methods', () => {
       it('should render items directly when sortMethod is not "category"', () => {
-        const result = createItemsList(mockItems, 'name', mockTodoLists);
+        createItemsList(mockItems, 'name', mockTodoLists);
 
         expect(vi.mocked(createItemRowTemplate)).toHaveBeenCalledTimes(3);
         expect(vi.mocked(createItemRowTemplate)).toHaveBeenCalledWith(mockItems[0], mockTodoLists);

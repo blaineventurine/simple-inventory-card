@@ -37,8 +37,8 @@
   },
   "include": [
     "src/**/*",
-    "package.json"
-    // "tests/**/*"
+    "package.json",
+    "tests/**/*"
   ],
   "exclude": [
     "node_modules",

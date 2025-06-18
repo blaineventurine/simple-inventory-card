@@ -365,7 +365,7 @@ describe('createInventoryHeader', () => {
     });
 
     it('should handle special characters in description', () => {
-      const result = createInventoryHeader(
+      createInventoryHeader(
         'Test',
         mockItems,
         'Description with <script>alert("xss")</script> & "quotes"',

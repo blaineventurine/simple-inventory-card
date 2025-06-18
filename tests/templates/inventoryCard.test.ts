@@ -14,7 +14,7 @@ vi.mock('../../src/templates/inventoryHeader', () => ({
 
 vi.mock('../../src/templates/searchAndFilters', () => ({
   createSearchAndFilters: vi.fn(
-    (filters, categories) => `<mock-search-filters categories="${categories.length}" />`,
+    (_, categories) => `<mock-search-filters categories="${categories.length}" />`,
   ),
 }));
 
