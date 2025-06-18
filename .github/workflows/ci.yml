@@ -23,7 +23,10 @@ jobs:
       coverage: ${{ steps.coverage.outputs.coverage }}
 
     steps:
-      - name: Setup environment
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node environment
         uses: ./.github/actions/setup-node-env
 
       - name: Run ESLint
