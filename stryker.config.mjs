@@ -10,5 +10,11 @@ const config = {
   mutator: {
     excludedMutations: ['StringLiteral'],
   },
+  htmlReporter: {
+    fileName: 'reports/mutation/mutation.html',
+  },
+  jsonReporter: {
+    fileName: 'reports/mutation/mutation.json',
+  },
 };
 export default config;
