@@ -80,7 +80,6 @@ export class EventHandler {
 
   private async handleClick(e: Event): Promise<void> {
     const target = e.target as HTMLElement;
-
     if (target.tagName === 'BUTTON' && target.hasAttribute('data-processing')) {
       e.preventDefault();
       e.stopPropagation();
@@ -165,6 +164,9 @@ export class EventHandler {
     }
 
     if (target.id === ELEMENTS.SORT_METHOD) {
+      const filters = this.filters.getCurrentFilters(this.config.entity);
+      filters.sortMethod = (target as HTMLSelectElement).value;
+      this.filters.saveFilters(this.config.entity, filters);
       this.renderCallback();
       return;
     }
@@ -180,6 +182,22 @@ export class EventHandler {
           controls.style.display = target.checked ? 'block' : 'none';
         }
       }, 0);
+    }
+
+    if (target.id === ELEMENTS.SEARCH_INPUT && target instanceof HTMLInputElement) {
+      const filters = this.filters.getCurrentFilters(this.config.entity);
+      filters.searchText = target.value;
+      this.filters.saveFilters(this.config.entity, filters);
+
+      const state = this.hass.states[this.config.entity];
+      if (state) {
+        const allItems = Utils.validateInventoryItems(state.attributes?.items || []);
+        const filteredItems = this.filters.filterItems(allItems, filters);
+        const sortedItems = this.filters.sortItems(filteredItems, 'name');
+        this.updateItemsCallback(sortedItems, 'name');
+        this.filters.updateFilterIndicators(filters);
+      }
+      return;
     }
   }
 
@@ -292,8 +310,11 @@ export class EventHandler {
   private toggleAdvancedFilters(): void {
     try {
       const filters = this.filters.getCurrentFilters(this.config.entity);
+
       filters.showAdvanced = !filters.showAdvanced;
+
       this.filters.saveFilters(this.config.entity, filters);
+
       this.renderCallback();
     } catch (error) {
       console.error('Error toggling advanced filters:', error);

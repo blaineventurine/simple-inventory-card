@@ -17,20 +17,12 @@ interface InitializedServices {
 }
 
 export class LifecycleManager {
-  private static currentInstance: LifecycleManager | null = null;
-
   private renderRoot: ShadowRoot;
   private isInitialized = false;
   private services: InitializedServices | null = null;
 
   constructor(renderRoot: ShadowRoot) {
     this.renderRoot = renderRoot;
-
-    // Handle singleton pattern - cleanup previous instance
-    if (LifecycleManager.currentInstance && LifecycleManager.currentInstance !== this) {
-      LifecycleManager.currentInstance.cleanup();
-    }
-    LifecycleManager.currentInstance = this;
   }
 
   initialize(
@@ -112,9 +104,5 @@ export class LifecycleManager {
 
     this.services = null;
     this.isInitialized = false;
-
-    if (LifecycleManager.currentInstance === this) {
-      LifecycleManager.currentInstance = null;
-    }
   }
 }

@@ -1,11 +1,13 @@
 import { FILTER_VALUES, STORAGE_KEYS, ELEMENTS, SORT_METHODS } from '../utils/constants';
 import { InventoryItem } from '../types/home-assistant';
 import { Utils } from '../utils/utils';
+import { DEFAULTS } from '../utils/constants';
 import { FilterState } from '../types/filterState';
 
 export class Filters {
   private searchTimeout: ReturnType<typeof setTimeout> | null = null;
   private searchListenerSetup = false;
+  private boundSearchHandler: ((e: Event) => void) | null = null;
 
   constructor(private shadowRoot: ShadowRoot) {}
 
@@ -14,7 +16,11 @@ export class Filters {
 
     if (savedFilters) {
       try {
-        return JSON.parse(savedFilters) as FilterState;
+        const parsed = JSON.parse(savedFilters) as FilterState;
+        if (!parsed.sortMethod) {
+          parsed.sortMethod = DEFAULTS.SORT_METHOD;
+        }
+        return parsed;
       } catch (e) {
         console.error('Error parsing saved filters:', e);
       }
@@ -26,6 +32,7 @@ export class Filters {
       quantity: '',
       expiry: '',
       showAdvanced: false,
+      sortMethod: DEFAULTS.SORT_METHOD,
     };
   }
 
@@ -231,15 +238,20 @@ export class Filters {
   }
 
   setupSearchInput(entityId: string, onFilterChange: () => void): void {
-    if (this.searchListenerSetup) {
-      return;
-    }
+    // Remove the guard clause temporarily to force re-setup
+    // if (this.searchListenerSetup) {
+    //   console.log('Search listener already set up, returning early');
+    //   return;
+    // }
 
     const searchInput = this.shadowRoot.getElementById(
       ELEMENTS.SEARCH_INPUT,
     ) as HTMLInputElement | null;
+
     if (searchInput) {
-      searchInput.addEventListener('input', (e: Event) => {
+      searchInput.removeEventListener('input', this.boundSearchHandler as any);
+
+      this.boundSearchHandler = (e: Event) => {
         const target = e.target as HTMLInputElement;
         const value = target.value;
 
@@ -253,7 +265,9 @@ export class Filters {
           this.saveFilters(entityId, filters);
           onFilterChange();
         }, 300);
-      });
+      };
+
+      searchInput.addEventListener('input', this.boundSearchHandler);
     }
     this.searchListenerSetup = true;
   }

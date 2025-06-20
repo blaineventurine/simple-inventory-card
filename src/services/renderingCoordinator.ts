@@ -1,5 +1,5 @@
 import { HomeAssistant, InventoryConfig, InventoryItem } from '../types/home-assistant';
-import { DEFAULTS, ELEMENTS } from '../utils/constants';
+import { DEFAULTS } from '../utils/constants';
 import { Utils } from '../utils/utils';
 import { LifecycleManager } from './lifecycleManager';
 
@@ -41,11 +41,7 @@ export class RenderingCoordinator {
       const { filters, renderer, eventHandler, state: stateService } = services;
 
       const currentFilters = filters.getCurrentFilters(entityId);
-      const sortMethodElement = this.renderRoot.querySelector(
-        ELEMENTS.SORT_METHOD,
-      ) as HTMLSelectElement | null;
-      const sortMethod = sortMethodElement?.value || DEFAULTS.SORT_METHOD;
-
+      const sortMethod = currentFilters.sortMethod || DEFAULTS.SORT_METHOD;
       const allItems = validateItemsCallback(state.attributes?.items || []);
       const filteredItems = filters.filterItems(allItems, currentFilters);
       const sortedItems = filters.sortItems(filteredItems, sortMethod);

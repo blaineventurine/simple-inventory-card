@@ -74,7 +74,6 @@ class SimpleInventoryCard extends LitElement {
       return;
     }
 
-    // Initialize the lifecycle manager if not already done
     if (!this.lifecycleManager.isReady()) {
       const services = this.lifecycleManager.initialize(
         this._hass,
@@ -110,14 +109,11 @@ class SimpleInventoryCard extends LitElement {
     }
     this._todoLists = Utils.extractTodoLists(this._hass);
   }
+
   getCardSize(): number {
     return 4;
   }
 
-  disconnectedCallback(): void {
-    this.lifecycleManager.cleanup();
-    this.renderingCoordinator.cleanup();
-  }
   static getConfigElement(): HTMLElement {
     return document.createElement('simple-inventory-config-editor');
   }
