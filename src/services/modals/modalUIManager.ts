@@ -1,4 +1,4 @@
-import { ELEMENTS, CSS_CLASSES, TIMING } from '../../utils/constants';
+import { ELEMENTS, CSS_CLASSES, TIMING, ACTIONS } from '../../utils/constants';
 import { HomeAssistant, InventoryItem, InventoryConfig } from '../../types/home-assistant';
 import { ModalFormManager } from './modalFormManager';
 import { ModalValidationManager } from './modalValidationManager';
@@ -45,9 +45,9 @@ export class ModalUIManager {
    */
   openEditModal(
     itemName: string,
-    hass: HomeAssistant,
-    config: InventoryConfig,
+    getFreshData: () => { hass: HomeAssistant; config: InventoryConfig },
   ): { item: InventoryItem | null; found: boolean } {
+    const { hass, config } = getFreshData();
     const entityId = config.entity;
     const state = hass.states[entityId];
 
@@ -117,7 +117,7 @@ export class ModalUIManager {
     }
 
     if (
-      target.dataset.action === 'close_add_modal' ||
+      target.dataset.action === ACTIONS.CLOSE_ADD_MODAL ||
       (target.classList.contains(CSS_CLASSES.CLOSE_BTN) && target.closest(`#${ELEMENTS.ADD_MODAL}`))
     ) {
       e.preventDefault();
@@ -196,10 +196,10 @@ export class ModalUIManager {
 
     if (hasExpiryDate) {
       thresholdInput.disabled = false;
-      thresholdInput.placeholder = 'Days before expiry to alert (default: 7)';
+      thresholdInput.placeholder = 'Days before expiry to alert (default: 0)';
 
       if (!thresholdInput.value.trim()) {
-        thresholdInput.value = '7';
+        thresholdInput.value = '0';
       }
     } else {
       thresholdInput.disabled = true;
@@ -214,7 +214,7 @@ export class ModalUIManager {
   private setupEventListeners(): void {
     if (!this.boundEscHandler) {
       this.boundEscHandler = this.handleEscapeKey.bind(this);
-      document.addEventListener('keydown', this.boundEscHandler);
+      document.addEventListener('keydown', this.boundEscHandler as EventListener);
     }
   }
 

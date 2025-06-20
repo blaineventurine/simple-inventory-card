@@ -1,5 +1,6 @@
 import { Utils } from '../utils/utils';
 import { InventoryItem } from '../types/home-assistant';
+import { DEFAULTS } from '../utils/constants';
 
 export function createInventoryHeader(
   inventoryName: string,
@@ -56,7 +57,7 @@ function getExpiringItemsCount(items: InventoryItem[]): number {
     if (!item.expiry_date || (item.quantity ?? 0) <= 0) {
       return false;
     }
-    const threshold = item.expiry_alert_days || 7;
+    const threshold = item.expiry_alert_days || DEFAULTS.EXPIRY_ALERT_DAYS;
     return Utils.isExpiringSoon(item.expiry_date, threshold);
   }).length;
 }

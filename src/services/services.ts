@@ -146,6 +146,7 @@ export class Services {
     try {
       const sanitizedItemData = Utils.sanitizeItemData(itemData);
       const sanitizedInventoryId = Utils.sanitizeString(inventoryId, 100);
+
       if (!sanitizedInventoryId) {
         return {
           success: false,

@@ -1,7 +1,7 @@
 import packageJson from '../../package.json';
 
 import { ConfigEditor } from './configEditor';
-import { HomeAssistant, InventoryConfig } from '../types/home-assistant';
+import { HomeAssistant, InventoryConfig, InventoryItem } from '../types/home-assistant';
 import { LifecycleManager } from '../services/lifecycleManager';
 import { LitElement } from 'lit-element';
 import { RenderingCoordinator } from '../services/renderingCoordinator';
@@ -70,9 +70,38 @@ class SimpleInventoryCard extends LitElement {
   }
 
   render(): void {
-    this.renderingCoordinator.render(this._config!, this._hass!, this._todoLists, (items) =>
+    if (!this._config || !this._hass || !this.renderRoot) {
+      return;
+    }
+
+    // Initialize the lifecycle manager if not already done
+    if (!this.lifecycleManager.isReady()) {
+      const services = this.lifecycleManager.initialize(
+        this._hass,
+        this._config,
+        () => this.render(),
+        () => this._refreshAfterSave(),
+        (items, sortMethod) => this._updateItemsOnly(items, sortMethod),
+        () => ({ hass: this._hass!, config: this._config! }),
+      );
+
+      if (!services) {
+        this.renderingCoordinator.renderError('Failed to initialize card components');
+        return;
+      }
+    }
+
+    this.renderingCoordinator.render(this._config, this._hass, this._todoLists, (items) =>
       Utils.validateInventoryItems(items),
     );
+  }
+
+  private _refreshAfterSave(): void {
+    this.renderingCoordinator.refreshAfterSave(() => this.render());
+  }
+
+  private _updateItemsOnly(items: InventoryItem[], sortMethod: string): void {
+    this.renderingCoordinator.updateItemsOnly(items, sortMethod, this._todoLists);
   }
 
   private _updateTodoLists(): void {

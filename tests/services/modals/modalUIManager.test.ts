@@ -180,7 +180,10 @@ describe('ModalUIManager', () => {
       mockElements.set(ELEMENTS.EDIT_MODAL, mockModal);
       mockElements.set(ELEMENTS.NAME, mockNameInput);
 
-      const result = modalUIManager.openEditModal('Test Item', mockHass, mockConfig);
+      const result = modalUIManager.openEditModal('Test Item', () => ({
+        hass: mockHass,
+        config: mockConfig,
+      }));
 
       expect(result.found).toBe(true);
       expect(result.item).toEqual(mockInventoryItems[0]);
@@ -199,7 +202,10 @@ describe('ModalUIManager', () => {
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       const configWithMissingEntity = { ...mockConfig, entity: 'sensor.nonexistent' };
 
-      const result = modalUIManager.openEditModal('Test Item', mockHass, configWithMissingEntity);
+      const result = modalUIManager.openEditModal('Test Item', () => ({
+        hass: mockHass,
+        config: configWithMissingEntity,
+      }));
 
       expect(result.found).toBe(false);
       expect(result.item).toBe(null);
@@ -212,7 +218,10 @@ describe('ModalUIManager', () => {
     it('should handle missing item', () => {
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
-      const result = modalUIManager.openEditModal('Nonexistent Item', mockHass, mockConfig);
+      const result = modalUIManager.openEditModal('Nonexistent Item', () => ({
+        hass: mockHass,
+        config: mockConfig,
+      }));
 
       expect(result.found).toBe(false);
       expect(result.item).toBe(null);
@@ -229,7 +238,10 @@ describe('ModalUIManager', () => {
         }),
       });
 
-      const result = modalUIManager.openEditModal('Test Item', emptyHass, mockConfig);
+      const result = modalUIManager.openEditModal('Test Item', () => ({
+        hass: emptyHass,
+        config: mockConfig,
+      }));
 
       expect(result.found).toBe(false);
       expect(result.item).toBe(null);
@@ -242,7 +254,10 @@ describe('ModalUIManager', () => {
         }),
       });
 
-      const result = modalUIManager.openEditModal('Test Item', hassWithoutItems, mockConfig);
+      const result = modalUIManager.openEditModal('Test Item', () => ({
+        hass: hassWithoutItems,
+        config: mockConfig,
+      }));
 
       expect(result.found).toBe(false);
       expect(result.item).toBe(null);
@@ -484,8 +499,8 @@ describe('ModalUIManager', () => {
       modalUIManager['updateExpiryThresholdState'](true);
 
       expect(mockThresholdInput.disabled).toBe(false);
-      expect(mockThresholdInput.placeholder).toBe('Days before expiry to alert (default: 7)');
-      expect(mockThresholdInput.value).toBe('7');
+      expect(mockThresholdInput.placeholder).toBe('Days before expiry to alert (default: 0)');
+      expect(mockThresholdInput.value).toBe('0');
     });
 
     it('should disable threshold when expiry date is empty', () => {
@@ -648,7 +663,10 @@ describe('ModalUIManager', () => {
       mockElements.set(ELEMENTS.NAME, mockNameInput);
 
       // Open modal
-      const result = modalUIManager.openEditModal('Test Item', mockHass, mockConfig);
+      const result = modalUIManager.openEditModal('Test Item', () => ({
+        hass: mockHass,
+        config: mockConfig,
+      }));
       expect(result.found).toBe(true);
       expect(mockModal.classList.add).toHaveBeenCalledWith(CSS_CLASSES.SHOW);
 

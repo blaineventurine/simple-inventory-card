@@ -273,11 +273,11 @@ describe('ModalFormManager', () => {
       modalFormManager.populateEditModal(item);
 
       expect(mockElements.get(`edit-${ELEMENTS.NAME}`)?.value).toBe('Test Item');
-      expect(mockElements.get(`edit-${ELEMENTS.QUANTITY}`)?.value).toBe('0');
+      expect(mockElements.get(`edit-${ELEMENTS.QUANTITY}`)?.value).toBe('1');
       expect(mockElements.get(`edit-${ELEMENTS.UNIT}`)?.value).toBe('');
       expect(mockElements.get(`edit-${ELEMENTS.CATEGORY}`)?.value).toBe('');
       expect(mockElements.get(`edit-${ELEMENTS.EXPIRY_DATE}`)?.value).toBe('');
-      expect(mockElements.get(`edit-${ELEMENTS.EXPIRY_ALERT_DAYS}`)?.value).toBe('7');
+      expect(mockElements.get(`edit-${ELEMENTS.EXPIRY_ALERT_DAYS}`)?.value).toBe('1');
       expect(mockElements.get(`edit-${ELEMENTS.AUTO_ADD_TO_LIST_QUANTITY}`)?.value).toBe('0');
       expect(mockElements.get(`edit-${ELEMENTS.TODO_LIST}`)?.value).toBe('');
       expect(
@@ -341,11 +341,11 @@ describe('ModalFormManager', () => {
       modalFormManager.clearAddModalForm();
 
       expect(mockElements.get(`add-${ELEMENTS.NAME}`)?.value).toBe('');
-      expect(mockElements.get(`add-${ELEMENTS.QUANTITY}`)?.value).toBe('0');
+      expect(mockElements.get(`add-${ELEMENTS.QUANTITY}`)?.value).toBe('1');
       expect(mockElements.get(`add-${ELEMENTS.UNIT}`)?.value).toBe('');
       expect(mockElements.get(`add-${ELEMENTS.CATEGORY}`)?.value).toBe('');
       expect(mockElements.get(`add-${ELEMENTS.EXPIRY_DATE}`)?.value).toBe('');
-      expect(mockElements.get(`add-${ELEMENTS.EXPIRY_ALERT_DAYS}`)?.value).toBe('7');
+      expect(mockElements.get(`add-${ELEMENTS.EXPIRY_ALERT_DAYS}`)?.value).toBe('1');
       expect(mockElements.get(`add-${ELEMENTS.AUTO_ADD_TO_LIST_QUANTITY}`)?.value).toBe('0');
       expect(mockElements.get(`add-${ELEMENTS.TODO_LIST}`)?.value).toBe('');
       expect(

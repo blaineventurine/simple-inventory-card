@@ -26,6 +26,7 @@ describe('LifecycleManager', () => {
   let mockRenderCallback: () => void;
   let mockRefreshCallback: () => void;
   let mockUpdateItemsCallback: (items: any[], sortMethod: string) => void;
+  let mockGetFreshStateCallback: () => { hass: HomeAssistant; config: InventoryConfig };
 
   let mockServices: Services;
   let mockModals: Modals;
@@ -51,6 +52,7 @@ describe('LifecycleManager', () => {
     mockRenderCallback = vi.fn();
     mockRefreshCallback = vi.fn();
     mockUpdateItemsCallback = vi.fn();
+    mockGetFreshStateCallback = vi.fn(() => ({ hass: mockHass, config: mockConfig }));
 
     mockServices = {
       callService: vi.fn(),
@@ -141,6 +143,7 @@ describe('LifecycleManager', () => {
         mockRenderCallback,
         mockRefreshCallback,
         mockUpdateItemsCallback,
+        mockGetFreshStateCallback,
       );
 
       // Initialize again
@@ -150,6 +153,7 @@ describe('LifecycleManager', () => {
         mockRenderCallback,
         mockRefreshCallback,
         mockUpdateItemsCallback,
+        mockGetFreshStateCallback,
       );
 
       expect(initialServices).toBe(secondServices);
@@ -163,6 +167,7 @@ describe('LifecycleManager', () => {
         mockRenderCallback,
         mockRefreshCallback,
         mockUpdateItemsCallback,
+        mockGetFreshStateCallback,
       );
 
       expect(result).toBe(null);
@@ -176,6 +181,7 @@ describe('LifecycleManager', () => {
         mockRenderCallback,
         mockRefreshCallback,
         mockUpdateItemsCallback,
+        mockGetFreshStateCallback,
       );
 
       expect(result).toBe(null);
@@ -191,6 +197,7 @@ describe('LifecycleManager', () => {
         mockRenderCallback,
         mockRefreshCallback,
         mockUpdateItemsCallback,
+        mockGetFreshStateCallback,
       );
 
       expect(result).toBe(null);
@@ -204,6 +211,7 @@ describe('LifecycleManager', () => {
         mockRenderCallback,
         mockRefreshCallback,
         mockUpdateItemsCallback,
+        mockGetFreshStateCallback,
       );
 
       expect(vi.mocked(Services)).toHaveBeenCalledWith(mockHass);
@@ -229,6 +237,7 @@ describe('LifecycleManager', () => {
         mockRenderCallback,
         mockRefreshCallback,
         mockUpdateItemsCallback,
+        mockGetFreshStateCallback,
       );
 
       expect(vi.mocked(Modals)).toHaveBeenCalledWith(
@@ -252,6 +261,7 @@ describe('LifecycleManager', () => {
         mockRenderCallback,
         mockRefreshCallback,
         mockUpdateItemsCallback,
+        mockGetFreshStateCallback,
       );
 
       expect(vi.mocked(EventHandler)).toHaveBeenCalledWith(
@@ -263,6 +273,7 @@ describe('LifecycleManager', () => {
         mockHass,
         mockRenderCallback,
         mockUpdateItemsCallback,
+        mockGetFreshStateCallback,
       );
     });
 
@@ -273,6 +284,7 @@ describe('LifecycleManager', () => {
         mockRenderCallback,
         mockRefreshCallback,
         mockUpdateItemsCallback,
+        mockGetFreshStateCallback,
       );
 
       expect(lifecycleManager['isInitialized']).toBe(true);
@@ -291,6 +303,7 @@ describe('LifecycleManager', () => {
         mockRenderCallback,
         mockRefreshCallback,
         mockUpdateItemsCallback,
+        mockGetFreshStateCallback,
       );
 
       expect(result).toBe(null);
@@ -316,6 +329,7 @@ describe('LifecycleManager', () => {
         mockRenderCallback,
         mockRefreshCallback,
         mockUpdateItemsCallback,
+        mockGetFreshStateCallback,
       );
 
       const newConfig = { ...mockConfig, entity: 'sensor.new_inventory' };
@@ -354,6 +368,7 @@ describe('LifecycleManager', () => {
         mockRenderCallback,
         mockRefreshCallback,
         mockUpdateItemsCallback,
+        mockGetFreshStateCallback,
       );
 
       const result = lifecycleManager.getServices();
@@ -374,6 +389,7 @@ describe('LifecycleManager', () => {
         mockRenderCallback,
         mockRefreshCallback,
         mockUpdateItemsCallback,
+        mockGetFreshStateCallback,
       );
 
       lifecycleManager.cleanup();
@@ -396,6 +412,7 @@ describe('LifecycleManager', () => {
         mockRenderCallback,
         mockRefreshCallback,
         mockUpdateItemsCallback,
+        mockGetFreshStateCallback,
       );
 
       expect(lifecycleManager.isReady()).toBe(true);
@@ -419,6 +436,7 @@ describe('LifecycleManager', () => {
         mockRenderCallback,
         mockRefreshCallback,
         mockUpdateItemsCallback,
+        mockGetFreshStateCallback,
       );
 
       lifecycleManager.cleanup();
@@ -439,6 +457,7 @@ describe('LifecycleManager', () => {
         mockRenderCallback,
         mockRefreshCallback,
         mockUpdateItemsCallback,
+        mockGetFreshStateCallback,
       );
 
       lifecycleManager.cleanup();
@@ -459,6 +478,7 @@ describe('LifecycleManager', () => {
         mockRenderCallback,
         mockRefreshCallback,
         mockUpdateItemsCallback,
+        mockGetFreshStateCallback,
       );
 
       // Remove some methods to test graceful handling
@@ -476,6 +496,7 @@ describe('LifecycleManager', () => {
         mockRenderCallback,
         mockRefreshCallback,
         mockUpdateItemsCallback,
+        mockGetFreshStateCallback,
       );
 
       lifecycleManager.cleanup();
@@ -520,6 +541,7 @@ describe('LifecycleManager', () => {
         mockRenderCallback,
         mockRefreshCallback,
         mockUpdateItemsCallback,
+        mockGetFreshStateCallback,
       );
 
       expect(result).toBe(null);
@@ -532,6 +554,7 @@ describe('LifecycleManager', () => {
       const result = lifecycleManager.initialize(
         mockHass,
         mockConfig,
+        undefined as any,
         undefined as any,
         undefined as any,
         undefined as any,

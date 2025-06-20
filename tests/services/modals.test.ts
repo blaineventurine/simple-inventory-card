@@ -7,6 +7,7 @@ import { Utils } from '../../src/utils/utils';
 import { HomeAssistant, InventoryConfig } from '../../src/types/home-assistant';
 import { RawFormData, SanitizedItemData, ItemData } from '../../src/types/inventoryItem';
 import { ValidationError } from '../../src/types/validationError';
+import { createMockHomeAssistant } from '../testHelpers';
 
 vi.mock('../../src/services/modals/modalFormManager');
 vi.mock('../../src/services/modals/modalValidationManager');
@@ -17,11 +18,15 @@ describe('Modals (Integration)', () => {
   let modals: Modals;
   let mockShadowRoot: ShadowRoot;
   let mockServices: InventoryServices;
+  let mockHass: HomeAssistant;
+  let mockConfig: InventoryConfig;
+
   let mockGetInventoryId: (entityId: string) => string;
   let mockOnDataChanged: () => void;
   let mockFormManager: any;
   let mockValidationManager: any;
   let mockUIManager: any;
+  let mockGetFreshStateCallback: () => { hass: HomeAssistant; config: InventoryConfig };
 
   beforeEach(() => {
     mockShadowRoot = {} as ShadowRoot;
@@ -31,8 +36,15 @@ describe('Modals (Integration)', () => {
       updateItem: vi.fn(),
     } as any;
 
+    mockHass = createMockHomeAssistant();
+    mockConfig = {
+      type: 'inventory-card',
+      entity: 'sensor.test_inventory',
+    };
+
     mockGetInventoryId = vi.fn((entityId: string) => `inventory_${entityId}`);
     mockOnDataChanged = vi.fn();
+    mockGetFreshStateCallback = vi.fn(() => ({ hass: mockHass, config: mockConfig }));
 
     mockFormManager = {
       getRawAddModalData: vi.fn(),
@@ -85,9 +97,6 @@ describe('Modals (Integration)', () => {
 
   describe('Public API Delegation', () => {
     it('should delegate modal operations to UIManager', () => {
-      const mockHass = {} as HomeAssistant;
-      const mockConfig = { entity: 'sensor.test' } as InventoryConfig;
-
       modals.openAddModal();
       expect(vi.mocked(mockUIManager.openAddModal)).toHaveBeenCalled();
 
@@ -95,11 +104,10 @@ describe('Modals (Integration)', () => {
       expect(vi.mocked(mockUIManager.closeAddModal)).toHaveBeenCalled();
 
       vi.mocked(mockUIManager.openEditModal).mockReturnValue({ found: true });
-      modals.openEditModal('Test Item', mockHass, mockConfig);
+      modals.openEditModal('Test Item', mockGetFreshStateCallback);
       expect(vi.mocked(mockUIManager.openEditModal)).toHaveBeenCalledWith(
         'Test Item',
-        mockHass,
-        mockConfig,
+        mockGetFreshStateCallback,
       );
 
       modals.closeEditModal();
@@ -173,7 +181,7 @@ describe('Modals (Integration)', () => {
       expect(Utils.validateRawFormData).toHaveBeenCalledWith(mockRawFormData);
       expect(vi.mocked(mockServices.addItem)).toHaveBeenCalledWith(
         'inventory_sensor.inventory',
-        mockSanitizedData,
+        mockItemData,
       );
       expect(vi.mocked(mockFormManager.clearAddModalForm)).toHaveBeenCalled();
       expect(mockOnDataChanged).toHaveBeenCalled();
@@ -267,7 +275,7 @@ describe('Modals (Integration)', () => {
 
     it('should successfully save edit with valid data', async () => {
       vi.mocked(mockUIManager.openEditModal).mockReturnValue({ found: true });
-      modals.openEditModal('Test Item', {} as HomeAssistant, mockConfig);
+      modals.openEditModal('Test Item', mockGetFreshStateCallback);
 
       const mockValidation = { isValid: true, errors: [] };
       const mockItemData: ItemData = { name: 'Updated Item', quantity: 10 };
@@ -296,7 +304,7 @@ describe('Modals (Integration)', () => {
       expect(vi.mocked(mockServices.updateItem)).toHaveBeenCalledWith(
         'inventory_sensor.inventory',
         'Test Item',
-        mockSanitizedData,
+        mockItemData,
       );
       expect(mockOnDataChanged).toHaveBeenCalled();
       expect(result).toBe(true);
@@ -304,7 +312,7 @@ describe('Modals (Integration)', () => {
 
     it('should handle validation errors in edit mode', async () => {
       vi.mocked(mockUIManager.openEditModal).mockReturnValue({ found: true });
-      modals.openEditModal('Test Item', {} as HomeAssistant, mockConfig);
+      modals.openEditModal('Test Item', mockGetFreshStateCallback);
 
       const mockValidation = {
         isValid: false,
@@ -328,7 +336,7 @@ describe('Modals (Integration)', () => {
 
     it('should handle service errors in edit mode', async () => {
       vi.mocked(mockUIManager.openEditModal).mockReturnValue({ found: true });
-      modals.openEditModal('Test Item', {} as HomeAssistant, mockConfig);
+      modals.openEditModal('Test Item', mockGetFreshStateCallback);
 
       const mockValidation = { isValid: true, errors: [] };
       const mockResult: InventoryServiceResult = { success: false, error: 'Update failed' };
@@ -358,7 +366,7 @@ describe('Modals (Integration)', () => {
 
       // Start editing an item
       vi.mocked(mockUIManager.openEditModal).mockReturnValue({ found: true });
-      modals.openEditModal('Test Item', {} as HomeAssistant, mockConfig);
+      modals.openEditModal('Test Item', mockGetFreshStateCallback);
 
       // Now editing should work (assuming validation passes)
       const mockValidation = { isValid: true, errors: [] };
@@ -378,7 +386,7 @@ describe('Modals (Integration)', () => {
 
     it('should not set editing state when item not found', async () => {
       vi.mocked(mockUIManager.openEditModal).mockReturnValue({ found: false });
-      modals.openEditModal('Missing Item', {} as HomeAssistant, {} as InventoryConfig);
+      modals.openEditModal('Missing Item', mockGetFreshStateCallback);
 
       // Should not be in editing state
       const result = await modals.saveEditModal({} as InventoryConfig);

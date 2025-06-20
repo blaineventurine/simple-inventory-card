@@ -39,6 +39,7 @@ export class LifecycleManager {
     renderCallback: () => void,
     refreshCallback: () => void,
     updateItemsCallback: (items: InventoryItem[], sortMethod: string) => void,
+    getFreshState: () => { hass: HomeAssistant; config: InventoryConfig },
   ): InitializedServices | null {
     if (this.isInitialized && this.services) {
       return this.services;
@@ -68,6 +69,7 @@ export class LifecycleManager {
         hass,
         renderCallback,
         updateItemsCallback,
+        getFreshState,
       );
 
       this.services = {

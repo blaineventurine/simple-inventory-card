@@ -311,7 +311,7 @@ describe('createInventoryHeader', () => {
       expect(Utils.isExpiringSoon).toHaveBeenCalledWith('2024-12-31', 14);
     });
 
-    it('should use default 7 days when expiry_alert_days is undefined', () => {
+    it('should use default 0 days when expiry_alert_days is undefined', () => {
       const defaultAlertItem = [
         {
           name: 'Default Alert',
@@ -321,7 +321,7 @@ describe('createInventoryHeader', () => {
           expiry_date: '2024-12-31',
           // expiry_alert_days is undefined
           auto_add_enabled: false,
-          auto_add_to_list_quantity: 1,
+          auto_add_to_list_quantity: 0,
           todo_list: 'grocery',
         },
       ];
@@ -330,7 +330,7 @@ describe('createInventoryHeader', () => {
 
       createInventoryHeader('Test', defaultAlertItem);
 
-      expect(Utils.isExpiringSoon).toHaveBeenCalledWith('2024-12-31', 7);
+      expect(Utils.isExpiringSoon).toHaveBeenCalledWith('2024-12-31', 1);
     });
   });
 

@@ -101,8 +101,8 @@ describe('Services', () => {
         [PARAMS.CATEGORY]: DEFAULTS.CATEGORY,
         [PARAMS.EXPIRY_DATE]: DEFAULTS.EXPIRY_DATE,
         [PARAMS.TODO_LIST]: DEFAULTS.TODO_LIST,
-        [PARAMS.EXPIRY_ALERT_DAYS]: 0,
-        [PARAMS.AUTO_ADD_TO_LIST_QUANTITY]: 0,
+        [PARAMS.EXPIRY_ALERT_DAYS]: DEFAULTS.EXPIRY_ALERT_DAYS,
+        [PARAMS.AUTO_ADD_TO_LIST_QUANTITY]: DEFAULTS.AUTO_ADD_TO_LIST_QUANTITY,
         [PARAMS.AUTO_ADD_ENABLED]: DEFAULTS.AUTO_ADD_ENABLED,
       });
     });
@@ -159,7 +159,7 @@ describe('Services', () => {
         [PARAMS.EXPIRY_DATE]: DEFAULTS.EXPIRY_DATE, // null should use default
         [PARAMS.TODO_LIST]: '', // empty string should be preserved
         [PARAMS.EXPIRY_ALERT_DAYS]: 0,
-        [PARAMS.AUTO_ADD_TO_LIST_QUANTITY]: 0,
+        [PARAMS.AUTO_ADD_TO_LIST_QUANTITY]: DEFAULTS.AUTO_ADD_TO_LIST_QUANTITY, // 0 should use default
         [PARAMS.AUTO_ADD_ENABLED]: false,
       });
     });
@@ -362,9 +362,9 @@ describe('Services', () => {
       expect(result).toEqual({ success: true });
       expect(mockHass.callService).toHaveBeenCalledWith(DOMAIN, SERVICES.UPDATE_ITEM, {
         [PARAMS.AUTO_ADD_ENABLED]: DEFAULTS.AUTO_ADD_ENABLED,
-        [PARAMS.AUTO_ADD_TO_LIST_QUANTITY]: 0,
+        [PARAMS.AUTO_ADD_TO_LIST_QUANTITY]: DEFAULTS.AUTO_ADD_TO_LIST_QUANTITY,
         [PARAMS.CATEGORY]: DEFAULTS.CATEGORY,
-        [PARAMS.EXPIRY_ALERT_DAYS]: 0,
+        [PARAMS.EXPIRY_ALERT_DAYS]: DEFAULTS.EXPIRY_ALERT_DAYS,
         [PARAMS.EXPIRY_DATE]: DEFAULTS.EXPIRY_DATE,
         [PARAMS.INVENTORY_ID]: inventoryId,
         [PARAMS.NAME]: minimalItemData.name,

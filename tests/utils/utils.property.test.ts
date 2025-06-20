@@ -42,7 +42,9 @@ describe('Utils - Property-Based Tests', () => {
     it('should handle valid ISO dates consistently', () => {
       fc.assert(
         fc.property(
-          fc.date({ min: new Date('1900-01-01'), max: new Date('2100-12-31') }),
+          fc
+            .date({ min: new Date('1900-01-01'), max: new Date('2100-12-31') })
+            .filter((date) => !isNaN(date.getTime())), // Add this filter
           (date) => {
             const isoString = date.toISOString().split('T')[0]; // YYYY-MM-DD
             const result = Utils.formatDate(isoString);

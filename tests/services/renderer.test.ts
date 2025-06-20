@@ -108,7 +108,7 @@ describe('Renderer', () => {
         ['Category A', 'Category B'], // Sorted categories from state.attributes.items
         mockTodoLists,
         mockState.attributes.items,
-        'Test Description'
+        'Test Description',
       );
       expect(mockShadowRoot.innerHTML).toBe('<div>Generated Card HTML</div>');
     });
@@ -134,7 +134,7 @@ describe('Renderer', () => {
         [], // Empty categories when no items
         mockTodoLists,
         [], // Empty allItems when no attributes
-        'Test Description'
+        'Test Description',
       );
     });
 
@@ -159,7 +159,7 @@ describe('Renderer', () => {
         [],
         mockTodoLists,
         [], // Empty allItems when attributes.items is undefined
-        'Test Description'
+        'Test Description',
       );
     });
 
@@ -172,7 +172,7 @@ describe('Renderer', () => {
         mockItems,
         mockFilters,
         'name',
-        mockTodoLists
+        mockTodoLists,
       );
 
       expect(generateCardHTML).toHaveBeenCalledWith(
@@ -183,7 +183,7 @@ describe('Renderer', () => {
         [],
         mockTodoLists,
         [],
-        'Test Description'
+        'Test Description',
       );
     });
 
@@ -255,7 +255,7 @@ describe('Renderer', () => {
         ['Category A', 'Category B'], // Only truthy categories, sorted
         mockTodoLists,
         mockState.attributes.items,
-        'Test Description'
+        'Test Description',
       );
     });
 
@@ -327,7 +327,7 @@ describe('Renderer', () => {
         ['Apple', 'Banana', 'Zebra'], // Unique and sorted
         mockTodoLists,
         mockState.attributes.items,
-        'Test Description'
+        'Test Description',
       );
     });
 
@@ -353,7 +353,7 @@ describe('Renderer', () => {
         [], // Empty categories from empty items
         mockTodoLists,
         [],
-        'Test Description'
+        'Test Description',
       );
     });
 
@@ -392,7 +392,7 @@ describe('Renderer', () => {
         mockItems,
         mockFilters,
         'category',
-        mockTodoLists
+        mockTodoLists,
       );
 
       expect(generateCardHTML).toHaveBeenCalledWith(
@@ -403,7 +403,7 @@ describe('Renderer', () => {
         [],
         mockTodoLists,
         [],
-        'Test Description'
+        'Test Description',
       );
     });
   });
@@ -525,7 +525,7 @@ describe('Renderer', () => {
           showAdvanced: false,
         } as FilterState,
         'name',
-        []
+        [],
       );
 
       expect(generateCardHTML).toHaveBeenCalledWith(
@@ -536,7 +536,7 @@ describe('Renderer', () => {
         [longCategoryName],
         expect.any(Array),
         expect.any(Array),
-        expect.any(String)
+        expect.any(String),
       );
     });
 
@@ -592,7 +592,7 @@ describe('Renderer', () => {
           showAdvanced: false,
         } as FilterState,
         'name',
-        []
+        [],
       );
 
       // Whitespace-only categories should be included since they're truthy
@@ -604,7 +604,7 @@ describe('Renderer', () => {
         ['   ', '\t\n', 'Valid Category'].sort(),
         expect.any(Array),
         expect.any(Array),
-        expect.any(String)
+        expect.any(String),
       );
     });
   });

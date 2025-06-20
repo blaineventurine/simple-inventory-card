@@ -1,7 +1,7 @@
-import { LifecycleManager } from './lifecycleManager';
-import { ELEMENTS, DEFAULTS } from '../utils/constants';
-import { Utils } from '../utils/utils';
 import { HomeAssistant, InventoryConfig, InventoryItem } from '../types/home-assistant';
+import { DEFAULTS, ELEMENTS } from '../utils/constants';
+import { Utils } from '../utils/utils';
+import { LifecycleManager } from './lifecycleManager';
 
 export class RenderingCoordinator {
   private lifecycleManager: LifecycleManager;
@@ -51,7 +51,9 @@ export class RenderingCoordinator {
       const sortedItems = filters.sortItems(filteredItems, sortMethod);
 
       renderer.renderCard(state, entityId, sortedItems, currentFilters, sortMethod, todoLists);
+
       eventHandler.setupEventListeners();
+
       filters.updateFilterIndicators(currentFilters);
       stateService.trackUserInteraction(this.renderRoot);
     } catch (error) {

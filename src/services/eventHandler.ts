@@ -15,8 +15,9 @@ export class EventHandler {
   private renderCallback: () => void;
   private updateItemsCallback: (items: InventoryItem[], sortMethod: string) => void;
 
-  private boundClickHandler: ((e: Event) => Promise<void>) | null = null;
-  private boundChangeHandler: ((e: Event) => void) | null = null;
+  private boundClickHandler: EventListener | null = null;
+  private boundChangeHandler: EventListener | null = null;
+
   private eventListenersSetup = false;
 
   constructor(
@@ -28,6 +29,7 @@ export class EventHandler {
     hass: HomeAssistant,
     renderCallback: () => void,
     updateItemsCallback: (items: InventoryItem[], sortMethod: string) => void,
+    private getFreshState: () => { hass: HomeAssistant; config: InventoryConfig },
   ) {
     this.renderRoot = renderRoot;
     this.services = services;
@@ -44,10 +46,18 @@ export class EventHandler {
       return;
     }
 
-    this.boundClickHandler = this.handleClick.bind(this);
-    this.boundChangeHandler = this.handleChange.bind(this);
-    this.renderRoot.addEventListener('click', this.boundClickHandler);
-    this.renderRoot.addEventListener('change', this.boundChangeHandler);
+    const actualClickHandler = (e: Event) => {
+      this.handleClick(e).catch((error) => {
+        console.error('Error in handleClick:', error);
+      });
+    };
+
+    const actualChangeHandler = (e: Event) => {
+      this.handleChange(e);
+    };
+
+    this.renderRoot.addEventListener('click', actualClickHandler);
+    this.renderRoot.addEventListener('change', actualChangeHandler);
 
     this.filters.setupSearchInput(this.config.entity, () => this.handleSearchChange());
     this.eventListenersSetup = true;
@@ -55,8 +65,10 @@ export class EventHandler {
 
   cleanupEventListeners(): void {
     if (this.boundClickHandler) {
-      this.renderRoot.removeEventListener('click', this.boundClickHandler);
-      this.renderRoot.removeEventListener('change', this.boundChangeHandler!);
+      this.renderRoot.removeEventListener('click', this.boundClickHandler as EventListener);
+    }
+    if (this.boundChangeHandler) {
+      this.renderRoot.removeEventListener('change', this.boundChangeHandler as EventListener);
     }
     this.eventListenersSetup = false;
   }
@@ -209,17 +221,21 @@ export class EventHandler {
       switch (action) {
         case ACTIONS.INCREMENT:
           await this.services.incrementItem(inventoryId, itemName);
+          this.renderCallback();
           break;
         case ACTIONS.DECREMENT:
           await this.services.decrementItem(inventoryId, itemName);
+          this.renderCallback();
           break;
         case ACTIONS.REMOVE:
           if (confirm(MESSAGES.CONFIRM_REMOVE(itemName))) {
             await this.services.removeItem(inventoryId, itemName);
+            this.renderCallback();
           }
           break;
         case ACTIONS.OPEN_EDIT_MODAL:
-          this.modals.openEditModal(itemName, this.hass, this.config);
+          const freshState = this.getFreshState();
+          this.modals.openEditModal(itemName, () => freshState);
           break;
         default:
           console.warn(`Unknown action: ${action}`);

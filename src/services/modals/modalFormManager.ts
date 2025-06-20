@@ -51,16 +51,19 @@ export class ModalFormManager {
   populateEditModal(item: InventoryItem): void {
     const fields: ModalField[] = [
       { id: `edit-${ELEMENTS.NAME}`, value: item.name ?? '' },
-      { id: `edit-${ELEMENTS.QUANTITY}`, value: (item.quantity ?? 0).toString() },
-      { id: `edit-${ELEMENTS.UNIT}`, value: item.unit ?? '' },
-      { id: `edit-${ELEMENTS.CATEGORY}`, value: item.category ?? '' },
-      { id: `edit-${ELEMENTS.EXPIRY_DATE}`, value: item.expiry_date ?? '' },
-      { id: `edit-${ELEMENTS.EXPIRY_ALERT_DAYS}`, value: (item.expiry_alert_days ?? 7).toString() },
+      { id: `edit-${ELEMENTS.QUANTITY}`, value: (item.quantity ?? DEFAULTS.QUANTITY).toString() },
+      { id: `edit-${ELEMENTS.UNIT}`, value: item.unit ?? DEFAULTS.UNIT },
+      { id: `edit-${ELEMENTS.CATEGORY}`, value: item.category ?? DEFAULTS.CATEGORY },
+      { id: `edit-${ELEMENTS.EXPIRY_DATE}`, value: item.expiry_date ?? DEFAULTS.EXPIRY_DATE },
+      {
+        id: `edit-${ELEMENTS.EXPIRY_ALERT_DAYS}`,
+        value: (item.expiry_alert_days ?? DEFAULTS.EXPIRY_ALERT_DAYS).toString(),
+      },
       {
         id: `edit-${ELEMENTS.AUTO_ADD_TO_LIST_QUANTITY}`,
-        value: (item.auto_add_to_list_quantity ?? 0).toString(),
+        value: (item.auto_add_to_list_quantity ?? DEFAULTS.AUTO_ADD_TO_LIST_QUANTITY).toString(),
       },
-      { id: `edit-${ELEMENTS.TODO_LIST}`, value: item.todo_list ?? '' },
+      { id: `edit-${ELEMENTS.TODO_LIST}`, value: item.todo_list ?? DEFAULTS.TODO_LIST },
     ];
 
     this.setFormValues(fields);
@@ -77,16 +80,16 @@ export class ModalFormManager {
   clearAddModalForm(): void {
     const fields: ModalField[] = [
       { id: `add-${ELEMENTS.NAME}`, value: '' },
-      { id: `add-${ELEMENTS.QUANTITY}`, value: '0' },
-      { id: `add-${ELEMENTS.UNIT}`, value: '' },
-      { id: `add-${ELEMENTS.CATEGORY}`, value: '' },
-      { id: `add-${ELEMENTS.EXPIRY_DATE}`, value: '' },
-      { id: `add-${ELEMENTS.EXPIRY_ALERT_DAYS}`, value: '7' },
+      { id: `add-${ELEMENTS.QUANTITY}`, value: DEFAULTS.QUANTITY.toString() },
+      { id: `add-${ELEMENTS.UNIT}`, value: DEFAULTS.UNIT },
+      { id: `add-${ELEMENTS.CATEGORY}`, value: DEFAULTS.CATEGORY },
+      { id: `add-${ELEMENTS.EXPIRY_DATE}`, value: DEFAULTS.EXPIRY_DATE },
+      { id: `add-${ELEMENTS.EXPIRY_ALERT_DAYS}`, value: DEFAULTS.EXPIRY_ALERT_DAYS.toString() },
       {
         id: `add-${ELEMENTS.AUTO_ADD_TO_LIST_QUANTITY}`,
-        value: '0',
+        value: DEFAULTS.AUTO_ADD_TO_LIST_QUANTITY.toString(),
       },
-      { id: `add-${ELEMENTS.TODO_LIST}`, value: '' },
+      { id: `add-${ELEMENTS.TODO_LIST}`, value: DEFAULTS.TODO_LIST },
     ];
 
     this.setFormValues(fields);

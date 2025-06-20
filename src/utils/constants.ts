@@ -81,11 +81,12 @@ export const ACTIONS = {
 
 export const DEFAULTS = {
   AUTO_ADD_ENABLED: false,
+  AUTO_ADD_TO_LIST_QUANTITY: 0,
   CATEGORY: '',
   EXPIRY_DATE: '',
+  EXPIRY_ALERT_DAYS: 1,
   QUANTITY: 1,
   SORT_METHOD: 'name',
-  THRESHOLD: 0,
   TODO_LIST: '',
   UNIT: '',
 };

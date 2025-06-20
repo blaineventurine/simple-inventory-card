@@ -29,6 +29,7 @@ describe('SimpleInventoryCard', () => {
   let card: SimpleInventoryCard;
   let mockLifecycleManager: any;
   let mockRenderingCoordinator: any;
+  let mockShadowRoot: ShadowRoot;
 
   beforeEach(() => {
     mockLifecycleManager = {
@@ -169,9 +170,27 @@ describe('SimpleInventoryCard', () => {
     beforeEach(() => {
       const config = { entity: 'sensor.inventory' } as InventoryConfig;
       const mockHass = { states: {} } as HomeAssistant;
+      const mockServices = {
+        addItem: vi.fn(),
+        updateItem: vi.fn(),
+      } as any;
+      mockLifecycleManager.isReady.mockReturnValue(true);
+      mockLifecycleManager.getServices.mockReturnValue(mockServices);
 
+      mockShadowRoot = {
+        innerHTML: '',
+      } as ShadowRoot;
       card.setConfig(config);
       card.hass = mockHass;
+
+      Object.defineProperty(card, 'shadowRoot', {
+        value: mockShadowRoot,
+        writable: true,
+      });
+      Object.defineProperty(card, 'renderRoot', {
+        value: mockShadowRoot,
+        writable: true,
+      });
     });
 
     it('should delegate rendering to RenderingCoordinator', () => {
@@ -215,14 +234,7 @@ describe('SimpleInventoryCard', () => {
   describe('Error Handling', () => {
     it('should handle missing dependencies gracefully', () => {
       expect(() => card.render()).not.toThrow();
-
-      // RenderingCoordinator should handle the missing dependencies
-      expect(mockRenderingCoordinator.render).toHaveBeenCalledWith(
-        null, // no config
-        null, // no hass
-        [], // empty todo lists
-        expect.any(Function),
-      );
+      expect(mockRenderingCoordinator.render).not.toHaveBeenCalled();
     });
 
     it('should handle hass updates without config', () => {

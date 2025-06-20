@@ -2,7 +2,7 @@ import { HomeAssistant, InventoryConfig } from '../types/home-assistant';
 import { ModalFormManager } from './modals/modalFormManager';
 import { ModalUIManager } from './modals/modalUIManager';
 import { ModalValidationManager } from './modals/modalValidationManager';
-import { SanitizedItemData } from '../types/inventoryItem';
+import { ItemData } from '../types/inventoryItem';
 import { Utils } from '../utils/utils';
 
 export interface InventoryServiceResult {
@@ -11,11 +11,11 @@ export interface InventoryServiceResult {
 }
 
 export interface InventoryServices {
-  addItem(inventoryId: string, itemData: SanitizedItemData): Promise<InventoryServiceResult>;
+  addItem(inventoryId: string, itemData: ItemData): Promise<InventoryServiceResult>;
   updateItem(
     inventoryId: string,
     oldName: string,
-    itemData: SanitizedItemData,
+    itemData: ItemData,
   ): Promise<InventoryServiceResult>;
 }
 
@@ -44,12 +44,16 @@ export class Modals {
     this.uiManager.closeAddModal();
   }
 
-  public openEditModal(itemName: string, hass: HomeAssistant, config: InventoryConfig): void {
-    const result = this.uiManager.openEditModal(itemName, hass, config);
+  public openEditModal(
+    itemName: string,
+    getFreshData: () => { hass: HomeAssistant; config: InventoryConfig },
+  ): void {
+    const result = this.uiManager.openEditModal(itemName, getFreshData);
     if (result.found) {
       this.currentEditingItem = itemName;
     }
   }
+
   public closeEditModal(): void {
     this.uiManager.closeEditModal();
     this.currentEditingItem = null;
@@ -76,12 +80,12 @@ export class Modals {
     try {
       this.validationManager.clearError(true);
 
-      const sanitizedData = this.validateAndPrepareFormData(true);
-      if (!sanitizedData) {
+      const itemData = this.validateAndPrepareFormData(true);
+      if (!itemData) {
         return false;
       }
 
-      const result = await this.services.addItem(this.getInventoryId(config.entity), sanitizedData);
+      const result = await this.services.addItem(this.getInventoryId(config.entity), itemData);
 
       return this.handleAddResult(result);
     } catch (error) {
@@ -97,15 +101,15 @@ export class Modals {
     try {
       this.validationManager.clearError(false);
 
-      const sanitizedData = this.validateAndPrepareFormData(false);
-      if (!sanitizedData) {
+      const itemData = this.validateAndPrepareFormData(false);
+      if (!itemData) {
         return false;
       }
 
       const result = await this.services.updateItem(
         this.getInventoryId(config.entity),
         this.currentEditingItem,
-        sanitizedData,
+        itemData,
       );
 
       return this.handleEditResult(result);
@@ -114,7 +118,7 @@ export class Modals {
     }
   }
 
-  private validateAndPrepareFormData(isAddModal: boolean): SanitizedItemData | null {
+  private validateAndPrepareFormData(isAddModal: boolean): ItemData | null {
     const rawFormData = isAddModal
       ? this.formManager.getRawAddModalData()
       : this.formManager.getRawEditModalData();
@@ -127,8 +131,7 @@ export class Modals {
       return null;
     }
 
-    const itemData = Utils.convertRawFormDataToItemData(rawFormData);
-    return Utils.sanitizeItemData(itemData);
+    return Utils.convertRawFormDataToItemData(rawFormData);
   }
 
   private handleAddResult(result: InventoryServiceResult): boolean {

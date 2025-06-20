@@ -454,9 +454,9 @@ describe('Utils', () => {
       });
 
       it.each([
-        { field: 'quantity', input: 'invalid', defaultValue: 0 },
+        { field: 'quantity', input: 'invalid', defaultValue: 1 },
         { field: 'autoAddToListQuantity', input: '', defaultValue: 0 },
-        { field: 'expiryAlertDays', input: 'invalid', defaultValue: 0 },
+        { field: 'expiryAlertDays', input: 'invalid', defaultValue: 1 },
       ])('should handle invalid numeric values: $field', ({ field, input, defaultValue }) => {
         const formData = createValidFormData({ [field]: input });
         const result = Utils.convertRawFormDataToItemData(formData);
@@ -495,12 +495,12 @@ describe('Utils', () => {
 
         expect(result).toEqual({
           name: '',
-          quantity: 0,
+          quantity: 1,
           autoAddEnabled: false,
           autoAddToListQuantity: 0,
           todoList: '',
           expiryDate: '',
-          expiryAlertDays: 0,
+          expiryAlertDays: 1,
           category: '',
           unit: '',
         });
@@ -652,7 +652,7 @@ describe('Utils', () => {
         expect(result[0].quantity).toBe(5);
 
         expect(result[1].name).toBe('Item with invalid quantity');
-        expect(result[1].quantity).toBe(0); // Normalized invalid quantity
+        expect(result[1].quantity).toBe(1); // Normalized invalid quantity
         expect(result[1].unit).toBe(''); // Normalized missing unit
         expect(result[1].category).toBe(''); // Normalized missing category
         expect(result[1].expiry_date).toBe(''); // Normalized missing expiry_date
@@ -660,7 +660,7 @@ describe('Utils', () => {
         expect(result[1].auto_add_to_list_quantity).toBe(0); // Normalized missing auto_add_to_list_quantity
 
         expect(result[2].name).toBe('Item with missing fields');
-        expect(result[2].quantity).toBe(0); // Default for missing quantity
+        expect(result[2].quantity).toBe(1); // Default for missing quantity
       });
 
       it('should handle non-array input', () => {
@@ -1018,7 +1018,7 @@ describe('Utils', () => {
         });
 
         const result = Utils.convertRawFormDataToItemData(formData);
-        expect(result.quantity).toBe(0);
+        expect(result.quantity).toBe(1);
         expect(result.autoAddToListQuantity).toBe(0);
       });
 
@@ -1029,7 +1029,7 @@ describe('Utils', () => {
         });
 
         const result = Utils.convertRawFormDataToItemData(formData);
-        expect(result.quantity).toBe(0);
+        expect(result.quantity).toBe(1);
         expect(result.autoAddToListQuantity).toBe(0);
       });
 
@@ -1153,8 +1153,8 @@ describe('Utils', () => {
         const result = Utils.validateInventoryItems(items);
 
         expect(result).toHaveLength(2);
-        expect(result[0].quantity).toBe(0);
-        expect(result[1].quantity).toBe(0);
+        expect(result[0].quantity).toBe(1);
+        expect(result[1].quantity).toBe(1);
       });
     });
 

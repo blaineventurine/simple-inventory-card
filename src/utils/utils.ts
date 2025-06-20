@@ -1,4 +1,4 @@
-import { DEFAULT_INVENTORY_NAME } from './constants';
+import { DEFAULT_INVENTORY_NAME, DEFAULTS } from './constants';
 import { HassEntity, HomeAssistant, InventoryItem } from '../types/home-assistant';
 import { FilterState } from '../types/filterState';
 import { ItemData, SanitizedItemData, RawFormData } from '../types/inventoryItem';
@@ -324,33 +324,38 @@ export class Utils {
    */
   // TODO: this has a lot in common with sanitizeItemData, combine them
   static convertRawFormDataToItemData(formData: RawFormData): ItemData {
-    const parseNumber = (value: string | undefined, defaultValue: number): number => {
-      if (!value?.trim()) {
-        return defaultValue;
-      }
-
-      const parsed = Number(value.trim());
-
-      // Number() is stricter than parseFloat() - rejects partial numbers and Infinity
-      if (isNaN(parsed) || !isFinite(parsed)) {
-        return defaultValue;
-      }
-
-      return parsed;
-    };
-
     return {
       name: formData.name?.trim() || '',
-      quantity: Math.max(0, parseNumber(formData.quantity, 0)),
+      quantity: Math.max(0, Utils.parseNumber(formData.quantity, DEFAULTS.QUANTITY)),
       autoAddEnabled: Boolean(formData.autoAddEnabled),
-      autoAddToListQuantity: Math.max(0, parseNumber(formData.autoAddToListQuantity, 0)),
-      todoList: formData.todoList?.trim() || '',
-      expiryDate: formData.expiryDate?.trim() || '',
-      expiryAlertDays: Math.max(0, parseNumber(formData.expiryAlertDays, 0)),
-      category: formData.category?.trim() || '',
-      unit: formData.unit?.trim() || '',
+      autoAddToListQuantity: Math.max(
+        0,
+        Utils.parseNumber(formData.autoAddToListQuantity, DEFAULTS.AUTO_ADD_TO_LIST_QUANTITY),
+      ),
+      todoList: formData.todoList?.trim() || DEFAULTS.TODO_LIST,
+      expiryDate: formData.expiryDate?.trim() || DEFAULTS.EXPIRY_DATE,
+      expiryAlertDays: Math.max(
+        0,
+        Utils.parseNumber(formData.expiryAlertDays, DEFAULTS.EXPIRY_ALERT_DAYS),
+      ),
+      category: formData.category?.trim() || DEFAULTS.CATEGORY,
+      unit: formData.unit?.trim() || DEFAULTS.UNIT,
     };
   }
+
+  static parseNumber = (value: string | number | undefined, defaultValue: number): number => {
+    if ((typeof value === 'string' && !value?.trim()) || value === undefined) {
+      return defaultValue;
+    }
+
+    const parsed = typeof value === 'string' ? Number(value.trim()) : Number(value);
+
+    if (isNaN(parsed) || !isFinite(parsed)) {
+      return defaultValue;
+    }
+
+    return parsed;
+  };
 
   /**
    * Checks if a string is a valid date
@@ -401,17 +406,27 @@ export class Utils {
    * @returns Sanitized item data
    */
   static sanitizeItemData(itemData: ItemData): SanitizedItemData {
-    return {
+    const data = {
       autoAddEnabled: Boolean(itemData.autoAddEnabled),
-      autoAddToListQuantity: Math.max(0, Number(itemData.autoAddToListQuantity) || 0),
+      autoAddToListQuantity: Math.max(
+        0,
+        Utils.parseNumber(itemData.autoAddToListQuantity, DEFAULTS.AUTO_ADD_TO_LIST_QUANTITY),
+      ),
       category: this.sanitizeString(itemData.category, 50),
-      expiryAlertDays: Math.max(0, Number(itemData.expiryAlertDays) || 0),
-      expiryDate: itemData.expiryDate || '',
+      expiryAlertDays: Math.max(
+        0,
+        Utils.parseNumber(itemData.expiryAlertDays, DEFAULTS.EXPIRY_ALERT_DAYS),
+      ),
+      expiryDate: itemData.expiryDate || DEFAULTS.EXPIRY_DATE,
       name: this.sanitizeString(itemData.name, 100),
-      quantity: Math.max(0, Math.min(999999, Number(itemData.quantity) || 0)),
+      quantity: Math.max(
+        0,
+        Math.min(999999, Utils.parseNumber(itemData.quantity, DEFAULTS.QUANTITY)),
+      ),
       todoList: this.sanitizeString(itemData.todoList, 100),
       unit: this.sanitizeString(itemData.unit, 20),
     };
+    return data;
   }
 
   /**
@@ -449,24 +464,25 @@ export class Utils {
       item.quantity =
         typeof item.quantity === 'number' && !isNaN(item.quantity) && item.quantity >= 0
           ? item.quantity
-          : 0;
-      item.unit = typeof item.unit === 'string' ? item.unit : '';
-      item.category = typeof item.category === 'string' ? item.category : '';
-      item.expiry_date = typeof item.expiry_date === 'string' ? item.expiry_date : '';
+          : DEFAULTS.QUANTITY;
+      item.unit = typeof item.unit === 'string' ? item.unit : DEFAULTS.UNIT;
+      item.category = typeof item.category === 'string' ? item.category : DEFAULTS.CATEGORY;
+      item.expiry_date =
+        typeof item.expiry_date === 'string' ? item.expiry_date : DEFAULTS.EXPIRY_DATE;
       item.expiry_alert_days =
         typeof item.expiry_alert_days === 'number' &&
         !isNaN(item.expiry_alert_days) &&
         item.expiry_alert_days >= 0
           ? item.expiry_alert_days
-          : 0;
-      item.todo_list = typeof item.todo_list === 'string' ? item.todo_list : '';
+          : DEFAULTS.EXPIRY_ALERT_DAYS;
+      item.todo_list = typeof item.todo_list === 'string' ? item.todo_list : DEFAULTS.TODO_LIST;
       item.auto_add_enabled = Boolean(item.auto_add_enabled);
       item.auto_add_to_list_quantity =
         typeof item.auto_add_to_list_quantity === 'number' &&
         !isNaN(item.auto_add_to_list_quantity) &&
         item.auto_add_to_list_quantity >= 0
           ? item.auto_add_to_list_quantity
-          : 0;
+          : DEFAULTS.AUTO_ADD_TO_LIST_QUANTITY;
       return true;
     });
   }
