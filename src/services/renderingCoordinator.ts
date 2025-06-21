@@ -33,6 +33,7 @@ export class RenderingCoordinator {
       }
 
       const services = this.lifecycleManager.getServices();
+
       if (!services) {
         this.renderError('Failed to initialize card components');
         return;

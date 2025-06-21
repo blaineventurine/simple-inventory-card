@@ -4,7 +4,7 @@ import { Services } from '../../src/services/services';
 import { Modals } from '../../src/services/modals';
 import { Filters } from '../../src/services/filters';
 import { Utils } from '../../src/utils/utils';
-import { ELEMENTS, ACTIONS, DEFAULTS, CSS_CLASSES } from '../../src/utils/constants';
+import { ELEMENTS, ACTIONS, DEFAULTS, CSS_CLASSES, SORT_METHODS } from '../../src/utils/constants';
 import { HomeAssistant, InventoryConfig, InventoryItem } from '../../src/types/home-assistant';
 import { createMockHomeAssistant, createMockHassEntity } from '../testHelpers';
 
@@ -490,6 +490,17 @@ describe('EventHandler', () => {
     });
 
     it('should handle sort method change', () => {
+      const filterData = {
+        searchText: 'test',
+        category: '',
+        quantity: '',
+        expiry: '',
+        showAdvanced: false,
+        sortMethod: SORT_METHODS.NAME,
+      };
+
+      vi.mocked(mockFilters.getCurrentFilters).mockReturnValue(filterData);
+
       mockTarget = {
         id: ELEMENTS.SORT_METHOD,
       } as unknown as HTMLElement;
@@ -541,7 +552,9 @@ describe('EventHandler', () => {
         quantity: '',
         expiry: '',
         showAdvanced: false,
+        sortMethod: SORT_METHODS.NAME,
       };
+
       vi.mocked(mockFilters.getCurrentFilters).mockReturnValue(filterData);
       vi.mocked(mockFilters.filterItems).mockReturnValue(mockInventoryItems);
       vi.mocked(mockFilters.sortItems).mockReturnValue(mockInventoryItems);

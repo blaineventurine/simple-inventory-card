@@ -428,8 +428,19 @@ describe('RenderingCoordinator', () => {
 
   describe('Error Handling and Edge Cases', () => {
     it('should handle missing entity attributes gracefully', () => {
+      const mockFilters = {
+        searchText: '',
+        category: '',
+        quantity: '',
+        expiry: '',
+        showAdvanced: false,
+      };
+
+      vi.mocked(mockServices.filters.getCurrentFilters).mockReturnValue(mockFilters);
+
       const entityWithoutAttributes = createMockHassEntity('sensor.test_inventory', {});
       delete (entityWithoutAttributes as any).attributes;
+
       mockHass.states[mockConfig.entity] = entityWithoutAttributes;
 
       renderingCoordinator.render(mockConfig, mockHass, mockTodoLists, mockValidateItemsCallback);

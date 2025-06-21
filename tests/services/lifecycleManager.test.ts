@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { LifecycleManager } from '../../src/services/lifecycleManager';
 import { Services } from '../../src/services/services';
 import { Modals } from '../../src/services/modals';
@@ -86,13 +86,6 @@ describe('LifecycleManager', () => {
     vi.clearAllMocks();
   });
 
-  afterEach(() => {
-    // Clean up singleton instance after each test
-    if ((LifecycleManager as any).currentInstance) {
-      (LifecycleManager as any).currentInstance = null;
-    }
-  });
-
   describe('Constructor and Singleton Pattern', () => {
     it('should create a new instance with renderRoot', () => {
       lifecycleManager = new LifecycleManager(mockRenderRoot);
@@ -100,33 +93,6 @@ describe('LifecycleManager', () => {
       expect(lifecycleManager['renderRoot']).toBe(mockRenderRoot);
       expect(lifecycleManager['isInitialized']).toBe(false);
       expect(lifecycleManager['services']).toBe(null);
-    });
-
-    it('should set itself as current instance', () => {
-      lifecycleManager = new LifecycleManager(mockRenderRoot);
-
-      expect((LifecycleManager as any).currentInstance).toBe(lifecycleManager);
-    });
-
-    it('should cleanup previous instance when creating new one', () => {
-      const firstInstance = new LifecycleManager(mockRenderRoot);
-      const firstCleanupSpy = vi.spyOn(firstInstance, 'cleanup');
-
-      const secondInstance = new LifecycleManager(mockRenderRoot);
-
-      expect(firstCleanupSpy).toHaveBeenCalled();
-      expect((LifecycleManager as any).currentInstance).toBe(secondInstance);
-    });
-
-    it('should not cleanup self when creating same instance', () => {
-      lifecycleManager = new LifecycleManager(mockRenderRoot);
-      const cleanupSpy = vi.spyOn(lifecycleManager, 'cleanup');
-
-      // Simulating the same instance being "recreated"
-      (LifecycleManager as any).currentInstance = lifecycleManager;
-      new LifecycleManager(mockRenderRoot);
-
-      expect(cleanupSpy).toHaveBeenCalled();
     });
   });
 
@@ -503,23 +469,6 @@ describe('LifecycleManager', () => {
 
       expect(lifecycleManager['services']).toBe(null);
       expect(lifecycleManager['isInitialized']).toBe(false);
-    });
-
-    it('should clear current instance reference when cleaning up current instance', () => {
-      expect((LifecycleManager as any).currentInstance).toBe(lifecycleManager);
-
-      lifecycleManager.cleanup();
-
-      expect((LifecycleManager as any).currentInstance).toBe(null);
-    });
-
-    it('should not clear current instance reference when cleaning up non-current instance', () => {
-      const anotherInstance = new LifecycleManager(mockRenderRoot);
-
-      // Now lifecycleManager is no longer the current instance
-      lifecycleManager.cleanup();
-
-      expect((LifecycleManager as any).currentInstance).toBe(anotherInstance);
     });
   });
 

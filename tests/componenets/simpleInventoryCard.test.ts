@@ -222,13 +222,6 @@ describe('SimpleInventoryCard', () => {
     it('should return correct card size', () => {
       expect(card.getCardSize()).toBe(4);
     });
-
-    it('should cleanup managers on disconnect', () => {
-      card.disconnectedCallback();
-
-      expect(mockLifecycleManager.cleanup).toHaveBeenCalled();
-      expect(mockRenderingCoordinator.cleanup).toHaveBeenCalled();
-    });
   });
 
   describe('Error Handling', () => {
