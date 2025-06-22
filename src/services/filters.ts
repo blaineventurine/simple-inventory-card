@@ -1,11 +1,12 @@
 import { FILTER_VALUES, STORAGE_KEYS, ELEMENTS, SORT_METHODS } from '../utils/constants';
-import { InventoryItem } from '../types/home-assistant';
-import { Utils } from '../utils/utils';
+import { InventoryItem } from '../types/homeAssistant';
+import { Utilities } from '../utils/utilities';
+import { DEFAULTS } from '../utils/constants';
 import { FilterState } from '../types/filterState';
 
 export class Filters {
-  private searchTimeout: ReturnType<typeof setTimeout> | null = null;
-  private searchListenerSetup = false;
+  private searchTimeout: ReturnType<typeof setTimeout> | undefined = undefined;
+  private boundSearchHandler: ((event: Event) => void) | undefined = undefined;
 
   constructor(private shadowRoot: ShadowRoot) {}
 
@@ -14,9 +15,13 @@ export class Filters {
 
     if (savedFilters) {
       try {
-        return JSON.parse(savedFilters) as FilterState;
-      } catch (e) {
-        console.error('Error parsing saved filters:', e);
+        const parsed = JSON.parse(savedFilters) as FilterState;
+        if (!parsed.sortMethod) {
+          parsed.sortMethod = DEFAULTS.SORT_METHOD;
+        }
+        return parsed;
+      } catch (error) {
+        console.error('Error parsing saved filters:', error);
       }
     }
 
@@ -26,6 +31,7 @@ export class Filters {
       quantity: '',
       expiry: '',
       showAdvanced: false,
+      sortMethod: DEFAULTS.SORT_METHOD,
     };
   }
 
@@ -74,12 +80,15 @@ export class Filters {
 
   private matchesQuantityFilter(item: InventoryItem, quantityFilter: string): boolean {
     switch (quantityFilter) {
-      case FILTER_VALUES.QUANTITY.ZERO:
+      case FILTER_VALUES.QUANTITY.ZERO: {
         return item.quantity === 0;
-      case FILTER_VALUES.QUANTITY.NONZERO:
+      }
+      case FILTER_VALUES.QUANTITY.NONZERO: {
         return item.quantity > 0;
-      default:
+      }
+      default: {
         return true;
+      }
     }
   }
 
@@ -88,25 +97,28 @@ export class Filters {
     today.setHours(0, 0, 0, 0);
 
     switch (expiryFilter) {
-      case FILTER_VALUES.EXPIRY.NONE:
+      case FILTER_VALUES.EXPIRY.NONE: {
         return !item.expiry_date;
+      }
 
-      case FILTER_VALUES.EXPIRY.EXPIRED:
+      case FILTER_VALUES.EXPIRY.EXPIRED: {
         if (!item.expiry_date || (item.quantity ?? 0) <= 0) {
           return false;
         }
 
-        return Utils.isExpired(item.expiry_date);
+        return Utilities.isExpired(item.expiry_date);
+      }
 
-      case FILTER_VALUES.EXPIRY.SOON:
+      case FILTER_VALUES.EXPIRY.SOON: {
         if (!item.expiry_date || (item.quantity ?? 0) <= 0) {
           return false;
         }
 
         const itemThreshold = item.expiry_alert_days || 7;
-        return Utils.isExpiringSoon(item.expiry_date, itemThreshold);
+        return Utilities.isExpiringSoon(item.expiry_date, itemThreshold);
+      }
 
-      case FILTER_VALUES.EXPIRY.FUTURE:
+      case FILTER_VALUES.EXPIRY.FUTURE: {
         if (!item.expiry_date || (item.quantity ?? 0) <= 0) {
           return false;
         }
@@ -117,8 +129,10 @@ export class Filters {
         thresholdDate.setDate(today.getDate() + itemThreshold2);
 
         return futureDate > thresholdDate;
-      default:
+      }
+      default: {
         return true;
+      }
     }
   }
 
@@ -126,26 +140,33 @@ export class Filters {
     const sortedItems = [...items]; // Create a copy to avoid mutating original
 
     switch (method) {
-      case SORT_METHODS.NAME:
+      case SORT_METHODS.NAME: {
         return this.sortByName(sortedItems);
+      }
 
-      case SORT_METHODS.CATEGORY:
+      case SORT_METHODS.CATEGORY: {
         return this.sortByCategory(sortedItems);
+      }
 
-      case SORT_METHODS.QUANTITY:
+      case SORT_METHODS.QUANTITY: {
         return this.sortByQuantity(sortedItems, false);
+      }
 
-      case SORT_METHODS.QUANTITY_LOW:
+      case SORT_METHODS.QUANTITY_LOW: {
         return this.sortByQuantity(sortedItems, true);
+      }
 
-      case SORT_METHODS.EXPIRY:
+      case SORT_METHODS.EXPIRY: {
         return this.sortByExpiry(sortedItems);
+      }
 
-      case SORT_METHODS.ZERO_LAST:
+      case SORT_METHODS.ZERO_LAST: {
         return this.sortZeroLast(sortedItems);
+      }
 
-      default:
+      default: {
         return sortedItems;
+      }
     }
   }
 
@@ -231,14 +252,21 @@ export class Filters {
   }
 
   setupSearchInput(entityId: string, onFilterChange: () => void): void {
-    if (this.searchListenerSetup) return;
+    // Remove the guard clause temporarily to force re-setup
+    // if (this.searchListenerSetup) {
+    //   console.log('Search listener already set up, returning early');
+    //   return;
+    // }
 
     const searchInput = this.shadowRoot.getElementById(
-      ELEMENTS.SEARCH_INPUT
+      ELEMENTS.SEARCH_INPUT,
     ) as HTMLInputElement | null;
+
     if (searchInput) {
-      searchInput.addEventListener('input', (e: Event) => {
-        const target = e.target as HTMLInputElement;
+      searchInput.removeEventListener('input', this.boundSearchHandler as any);
+
+      this.boundSearchHandler = (event: Event) => {
+        const target = event.target as HTMLInputElement;
         const value = target.value;
 
         if (this.searchTimeout) {
@@ -251,18 +279,20 @@ export class Filters {
           this.saveFilters(entityId, filters);
           onFilterChange();
         }, 300);
-      });
+      };
+
+      searchInput.addEventListener('input', this.boundSearchHandler);
     }
-    this.searchListenerSetup = true;
+    // this.searchListenerSetup = true;
   }
 
   updateFilterIndicators(filters: FilterState): void {
     const advancedToggle = this.shadowRoot.getElementById(
-      ELEMENTS.ADVANCED_SEARCH_TOGGLE
+      ELEMENTS.ADVANCED_SEARCH_TOGGLE,
     ) as HTMLElement | null;
 
     if (advancedToggle) {
-      if (Utils.hasActiveFilters(filters)) {
+      if (Utilities.hasActiveFilters(filters)) {
         const text = filters.showAdvanced ? 'Hide Filters ●' : 'Filters ●';
         advancedToggle.textContent = text;
         advancedToggle.style.background = 'var(--warning-color, #ff9800)';
@@ -278,10 +308,10 @@ export class Filters {
 
   private updateActiveFiltersDisplay(filters: FilterState): void {
     const activeFiltersDiv = this.shadowRoot.getElementById(
-      ELEMENTS.ACTIVE_FILTERS
+      ELEMENTS.ACTIVE_FILTERS,
     ) as HTMLElement | null;
     const activeFiltersList = this.shadowRoot.getElementById(
-      ELEMENTS.ACTIVE_FILTERS_LIST
+      ELEMENTS.ACTIVE_FILTERS_LIST,
     ) as HTMLElement | null;
 
     if (activeFiltersDiv && activeFiltersList) {

@@ -1,0 +1,73 @@
+name: 'Coverage Report'
+description: 'Generate and comment coverage reports'
+
+inputs:
+  github-token:
+    description: 'GitHub token for commenting'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Extract coverage percentage
+      id: coverage
+      run: |
+        if [ -f "coverage/coverage-summary.json" ]; then
+          COVERAGE=$(node -p "
+            const fs = require('fs');
+            const summary = JSON.parse(fs.readFileSync('coverage/coverage-summary.json', 'utf8'));
+            Math.round(summary.total.lines.pct);
+          ")
+          echo "coverage=$COVERAGE" >> $GITHUB_OUTPUT
+          echo "Coverage: $COVERAGE%"
+        else
+          echo "coverage=0" >> $GITHUB_OUTPUT
+          echo "No coverage data found"
+        fi
+      shell: bash
+
+    - name: Generate coverage report
+      if: github.event_name == 'pull_request'
+      run: |
+        if [ -f "coverage/lcov-report/index.html" ]; then
+          echo "## 📊 Code Coverage Report" > coverage-comment.md
+          echo "" >> coverage-comment.md
+
+          # Extract coverage summary
+          if [ -f "coverage/coverage-summary.json" ]; then
+            node -e "
+              const fs = require('fs');
+              const summary = JSON.parse(fs.readFileSync('coverage/coverage-summary.json', 'utf8'));
+              const total = summary.total;
+
+              console.log('| Metric | Coverage | Covered | Total |');
+              console.log('|--------|----------|---------|-------|');
+              console.log(\`| **Lines** | \${total.lines.pct.toFixed(1)}% | \${total.lines.covered} | \${total.lines.total} |\`);
+              console.log(\`| **Functions** | \${total.functions.pct.toFixed(1)}% | \${total.functions.covered} | \${total.functions.total} |\`);
+              console.log(\`| **Branches** | \${total.branches.pct.toFixed(1)}% | \${total.branches.covered} | \${total.branches.total} |\`);
+              console.log(\`| **Statements** | \${total.statements.pct.toFixed(1)}% | \${total.statements.covered} | \${total.statements.total} |\`);
+            " >> coverage-comment.md
+          fi
+
+          echo "" >> coverage-comment.md
+          echo "---" >> coverage-comment.md
+          echo "*Coverage report generated on $(date)*" >> coverage-comment.md
+        fi
+      shell: bash
+
+    - name: Comment coverage on PR
+      if: github.event_name == 'pull_request'
+      uses: marocchino/sticky-pull-request-comment@v2
+      with:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        recreate: true
+        path: coverage-comment.md
+        header: coverage
+
+    - name: Upload coverage reports
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-reports
+        path: coverage/
+        retention-days: 30

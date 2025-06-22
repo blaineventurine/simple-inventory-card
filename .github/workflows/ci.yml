@@ -2,6 +2,7 @@ name: CI
 
 permissions:
   contents: read
+  pull-requests: write
 
 on:
   pull_request:
@@ -9,33 +10,41 @@ on:
   push:
     branches: [master, main]
   workflow_call:
+    outputs:
+      coverage:
+        description: 'Coverage percentage'
+        value: ${{ jobs.main-ci.outputs.coverage }}
 
 jobs:
-  lint-and-test:
-    name: Lint, Type Check, and Build
+  main-ci:
+    name: Lint, Type Check, Test, and Build
     runs-on: ubuntu-latest
+    outputs:
+      coverage: ${{ steps.coverage.outputs.coverage }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
+      - name: Setup Node environment
+        uses: ./.github/actions/setup-node-env
 
       - name: Run ESLint
-        run: npm run lint:js
+        run: npm run lint
 
       - name: Run TypeScript type checking
         run: npm run type-check
 
       - name: Check Prettier formatting
         run: npx prettier --check "src/**/*.{ts,js}"
+
+      - name: Run tests with coverage
+        run: npm run test:coverage
+
+      - name: Generate coverage report
+        uses: ./.github/actions/coverage-report
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build project
         run: npm run build
@@ -47,3 +56,21 @@ jobs:
             exit 1
           fi
           echo "Build successful - output size: $(wc -c < dist/simple-inventory-card.js) bytes"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: dist/
+          retention-days: 7
+
+  mutation-testing:
+    name: Mutation Testing
+    needs: main-ci
+    if: |
+      github.ref == 'refs/heads/main' ||
+      github.ref == 'refs/heads/master'
+    uses: ./.github/workflows/mutation-testing.yml
+    permissions:
+      contents: read
+      pull-requests: write

@@ -1,6 +1,6 @@
 import { ELEMENTS } from '../utils/constants';
 import { FilterState } from '../types/filterState';
-import { Utils } from '../utils/utils';
+import { Utilities } from '../utils/utilities';
 
 export function createSearchAndFilters(filters: FilterState, categories: string[]): string {
   return `
@@ -13,7 +13,7 @@ export function createSearchAndFilters(filters: FilterState, categories: string[
         class="search-input ${filters.searchText ? 'has-value' : ''}"
       />
       <button id="${ELEMENTS.ADVANCED_SEARCH_TOGGLE}" 
-        class="toggle-btn ${Utils.hasActiveFilters(filters) ? 'has-active-filters' : ''}">
+        class="toggle-btn ${Utilities.hasActiveFilters(filters) ? 'has-active-filters' : ''}">
         ${filters.showAdvanced ? 'Hide Filters' : 'Filters'}
       </button>
     </div>
@@ -61,7 +61,7 @@ function createCategoryOptions(categories: string[], selectedCategory: string): 
   return categories
     .map(
       (category) =>
-        `<option value="${category}" ${category === selectedCategory ? 'selected' : ''}>${category}</option>`
+        `<option value="${category}" ${category === selectedCategory ? 'selected' : ''}>${category}</option>`,
     )
     .join('');
 }

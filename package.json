@@ -1,6 +1,6 @@
 {
   "name": "simple-inventory",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Home Assistant Simple Inventory Integration Card",
   "author": "Blaine Venturine",
   "license": "MIT",
@@ -17,18 +17,23 @@
     "inventory"
   ],
   "scripts": {
-    "dev": "vite",
     "build": "vite build --config vite.config.ts",
-    "preview": "vite preview",
-    "type-check": "tsc --noEmit",
-    "type-check:incremental": "tsc --noEmit --incremental",
-    "lint:js": "eslint src/**/*.ts",
-    "lint:js:fix": "eslint src/**/*.ts --fix",
+    "dev": "vite",
+    "format": "prettier --write src/**/*.ts",
+    "format:check": "prettier --check 'src/**/*.{js,ts}'",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
     "lint:staged": "eslint --fix",
-    "format:js": "prettier --write src/**/*.ts",
-    "format:staged": "prettier --write",
+    "pre-commit": "lint-staged",
     "prepare": "husky",
-    "pre-commit": "lint-staged"
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:mutation": "stryker run",
+    "test:run": "vitest run",
+    "test:ui": "vitest --ui",
+    "type-check": "tsc --noEmit",
+    "type-check:incremental": "tsc --noEmit --incremental"
   },
   "lint-staged": {
     "src": [
@@ -42,24 +47,29 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
     "@eslint/js": "^9.28.0",
+    "@stryker-mutator/typescript-checker": "^9.0.1",
+    "@stryker-mutator/vitest-runner": "^9.0.1",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^22.15.30",
-    "@typescript-eslint/eslint-plugin": "^8.33.1",
-    "@typescript-eslint/parser": "^8.33.1",
+    "@typescript-eslint/eslint-plugin": "^8.34.1",
+    "@typescript-eslint/parser": "^8.34.1",
+    "@vitest/coverage-v8": "^3.2.3",
+    "@vitest/ui": "^3.2.3",
     "eslint": "^9.28.0",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-prettier": "^5.4.1",
+    "eslint-plugin-unicorn": "^59.0.1",
+    "fast-check": "^4.1.1",
     "globals": "^16.2.0",
     "husky": "^9.1.7",
+    "jsdom": "^26.1.0",
     "lint-staged": "^16.1.1",
     "prettier": "^3.5.3",
     "terser": "^5.41.0",
     "typescript": "^5.8.3",
-    "vite": "^6.3.5"
-  },
-  "prettier": {
-    "semi": true,
-    "singleQuote": true,
-    "tabWidth": 2,
-    "trailingComma": "es5",
-    "printWidth": 100
+    "vite": "^6.3.5",
+    "vitest": "^3.2.3"
   },
   "dependencies": {
     "lit": "^3.3.0",

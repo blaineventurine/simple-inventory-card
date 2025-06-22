@@ -1,3 +1,5 @@
+/// <reference types="vitest/config" />
+
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
 
@@ -11,7 +13,7 @@ export default defineConfig({
     },
     rollupOptions: {
       // External dependencies that shouldn't be bundled
-      external: ['lit'],
+      // external: ['lit'],
       output: {
         // Global variables to use in UMD build for externalized deps
         globals: {
@@ -28,5 +30,36 @@ export default defineConfig({
     alias: {
       '@': resolve(__dirname, 'src'),
     },
+  },
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    include: ['tests/**/*.{test,spec}.{js,ts}'],
+    coverage: {
+      provider: 'v8',
+      include: ['src/**/*.{js,ts}'],
+      reporter: ['text', 'html', 'json', 'json-summary', 'lcov'],
+      reportsDirectory: './coverage',
+      exclude: [
+        'node_modules/',
+        'dist/',
+        '**/*.d.ts',
+        'vite.config.ts',
+        'tests/',
+        '.stryker-tmp/**/*',
+        'src/styles/',
+        'src/types/',
+      ],
+      all: true,
+      thresholds: {
+        global: {
+          branches: 80,
+          functions: 80,
+          lines: 80,
+          statements: 80,
+        },
+      },
+    },
+    setupFiles: ['./tests/setup.ts'],
   },
 });

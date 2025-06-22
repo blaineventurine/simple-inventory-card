@@ -171,3 +171,7 @@ dist/
 coverage/
 
 update.sh
+
+# stryker temp files
+.stryker-tmp
+reports/

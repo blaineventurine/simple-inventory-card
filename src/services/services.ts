@@ -1,6 +1,7 @@
-import { DOMAIN, SERVICES, PARAMS, DEFAULTS } from '../utils/constants';
-import { HomeAssistant } from '../types/home-assistant';
+import { DOMAIN, SERVICES, PARAMS } from '../utils/constants';
+import { HomeAssistant } from '../types/homeAssistant';
 import { ItemData } from '../types/inventoryItem';
+import { Utilities } from '../utils/utilities';
 
 export interface ServiceResult {
   success: boolean;
@@ -22,17 +23,33 @@ export class Services {
    */
   async addItem(inventoryId: string, itemData: ItemData): Promise<ServiceResult> {
     try {
+      const sanitizedItemData = Utilities.sanitizeItemData(itemData);
+      const sanitizedInventoryId = Utilities.sanitizeString(inventoryId, 100);
+      if (!sanitizedInventoryId) {
+        return {
+          success: false,
+          error: 'Invalid inventory ID',
+        };
+      }
+
+      if (!sanitizedItemData.name) {
+        return {
+          success: false,
+          error: 'Item name cannot be empty',
+        };
+      }
+
       await this.hass.callService(DOMAIN, SERVICES.ADD_ITEM, {
-        [PARAMS.INVENTORY_ID]: inventoryId,
-        [PARAMS.NAME]: itemData.name,
-        [PARAMS.QUANTITY]: itemData.quantity ?? DEFAULTS.QUANTITY,
-        [PARAMS.UNIT]: itemData.unit ?? DEFAULTS.UNIT,
-        [PARAMS.CATEGORY]: itemData.category ?? DEFAULTS.CATEGORY,
-        [PARAMS.EXPIRY_DATE]: itemData.expiryDate ?? DEFAULTS.EXPIRY_DATE,
-        [PARAMS.TODO_LIST]: itemData.todoList ?? DEFAULTS.TODO_LIST,
-        [PARAMS.EXPIRY_ALERT_DAYS]: itemData.expiryAlertDays ?? 7,
-        [PARAMS.AUTO_ADD_TO_LIST_QUANTITY]: itemData.autoAddToListQuantity ?? 0,
-        [PARAMS.AUTO_ADD_ENABLED]: itemData.autoAddEnabled ?? DEFAULTS.AUTO_ADD_ENABLED,
+        [PARAMS.INVENTORY_ID]: sanitizedInventoryId,
+        [PARAMS.NAME]: sanitizedItemData.name,
+        [PARAMS.QUANTITY]: sanitizedItemData.quantity,
+        [PARAMS.UNIT]: sanitizedItemData.unit,
+        [PARAMS.CATEGORY]: sanitizedItemData.category,
+        [PARAMS.EXPIRY_DATE]: sanitizedItemData.expiryDate,
+        [PARAMS.TODO_LIST]: sanitizedItemData.todoList,
+        [PARAMS.EXPIRY_ALERT_DAYS]: sanitizedItemData.expiryAlertDays,
+        [PARAMS.AUTO_ADD_TO_LIST_QUANTITY]: sanitizedItemData.autoAddToListQuantity,
+        [PARAMS.AUTO_ADD_ENABLED]: sanitizedItemData.autoAddEnabled,
       });
       return { success: true };
     } catch (error) {
@@ -124,23 +141,33 @@ export class Services {
   async updateItem(
     inventoryId: string,
     oldName: string,
-    itemData: ItemData
+    itemData: ItemData,
   ): Promise<ServiceResult> {
     try {
-      const params = {
-        [PARAMS.AUTO_ADD_ENABLED]: itemData.autoAddEnabled ?? DEFAULTS.AUTO_ADD_ENABLED,
-        [PARAMS.AUTO_ADD_TO_LIST_QUANTITY]: itemData.autoAddToListQuantity ?? 0,
-        [PARAMS.CATEGORY]: itemData.category ?? DEFAULTS.CATEGORY,
-        [PARAMS.EXPIRY_ALERT_DAYS]: itemData.expiryAlertDays ?? 7,
-        [PARAMS.EXPIRY_DATE]: itemData.expiryDate ?? DEFAULTS.EXPIRY_DATE,
-        [PARAMS.INVENTORY_ID]: inventoryId,
-        [PARAMS.NAME]: itemData.name,
+      const sanitizedItemData = Utilities.sanitizeItemData(itemData);
+      const sanitizedInventoryId = Utilities.sanitizeString(inventoryId, 100);
+
+      if (!sanitizedInventoryId) {
+        return {
+          success: false,
+          error: 'Invalid inventory ID',
+        };
+      }
+
+      const parameters = {
+        [PARAMS.AUTO_ADD_ENABLED]: sanitizedItemData.autoAddEnabled,
+        [PARAMS.AUTO_ADD_TO_LIST_QUANTITY]: sanitizedItemData.autoAddToListQuantity,
+        [PARAMS.CATEGORY]: sanitizedItemData.category,
+        [PARAMS.EXPIRY_ALERT_DAYS]: sanitizedItemData.expiryAlertDays,
+        [PARAMS.EXPIRY_DATE]: sanitizedItemData.expiryDate,
+        [PARAMS.INVENTORY_ID]: sanitizedInventoryId,
+        [PARAMS.NAME]: sanitizedItemData.name,
         [PARAMS.OLD_NAME]: oldName,
-        [PARAMS.QUANTITY]: itemData.quantity,
-        [PARAMS.TODO_LIST]: itemData.todoList ?? DEFAULTS.TODO_LIST,
-        [PARAMS.UNIT]: itemData.unit ?? DEFAULTS.UNIT,
+        [PARAMS.QUANTITY]: sanitizedItemData.quantity,
+        [PARAMS.TODO_LIST]: sanitizedItemData.todoList,
+        [PARAMS.UNIT]: sanitizedItemData.unit,
       };
-      await this.hass.callService(DOMAIN, SERVICES.UPDATE_ITEM, params);
+      await this.hass.callService(DOMAIN, SERVICES.UPDATE_ITEM, parameters);
       return { success: true };
     } catch (error) {
       console.error('Error updating item:', error);

@@ -1,4 +1,4 @@
-import { InventoryItem } from '../types/home-assistant';
+import { InventoryItem } from '../types/homeAssistant';
 import { TodoList } from '../types/todoList';
 
 export function createItemRowTemplate(item: InventoryItem, todoLists: TodoList[]): string {

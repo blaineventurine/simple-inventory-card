@@ -1,0 +1,60 @@
+name: 'Mutation Report'
+description: 'Generate and comment mutation testing reports'
+
+inputs:
+  github-token:
+    description: 'GitHub token for commenting'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Generate mutation test report
+      if: always()
+      run: |
+        if [ -f "reports/mutation/mutation.json" ]; then
+          echo "## 🧬 Mutation Testing Report" > mutation-comment.md
+          echo "" >> mutation-comment.md
+
+          node -e "
+            const fs = require('fs');
+            try {
+              const report = JSON.parse(fs.readFileSync('reports/mutation/mutation.json', 'utf8'));
+              const summary = report.summary || report;
+
+              console.log('| Metric | Count | Percentage |');
+              console.log('|--------|-------|------------|');
+              console.log(\`| **Killed** | \${summary.killed || 0} | \${((summary.killed || 0) / (summary.total || 1) * 100).toFixed(1)}% |\`);
+              console.log(\`| **Survived** | \${summary.survived || 0} | \${((summary.survived || 0) / (summary.total || 1) * 100).toFixed(1)}% |\`);
+              console.log(\`| **Total Mutants** | \${summary.total || 0} | 100% |\`);
+
+              const mutationScore = summary.mutationScore || ((summary.killed || 0) / (summary.total || 1) * 100);
+              console.log('');
+              console.log(\`### 🎯 Mutation Score: **\${mutationScore.toFixed(1)}%**\`);
+            } catch (error) {
+              console.log('❌ Could not parse mutation test results');
+            }
+          " >> mutation-comment.md
+
+          echo "" >> mutation-comment.md
+          echo "---" >> mutation-comment.md
+          echo "*Mutation testing report generated on $(date)*" >> mutation-comment.md
+        fi
+      shell: bash
+
+    - name: Comment mutation results on PR
+      if: github.event_name == 'pull_request'
+      uses: marocchino/sticky-pull-request-comment@v2
+      with:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        recreate: true
+        path: mutation-comment.md
+        header: mutation-testing
+
+    - name: Upload mutation test reports
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: mutation-test-reports
+        path: reports/
+        retention-days: 30

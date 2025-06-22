@@ -1,13 +1,13 @@
 import { CSS_CLASSES, MESSAGES } from '../utils/constants';
-import { InventoryItem } from '../types/home-assistant';
+import { InventoryItem } from '../types/homeAssistant';
 import { TodoList } from '../types/todoList';
-import { Utils } from '../utils/utils';
+import { Utilities } from '../utils/utilities';
 import { createItemRowTemplate } from './itemRow';
 
 export function createItemsList(
   items: InventoryItem[],
   sortMethod: string,
-  todoLists: TodoList[]
+  todoLists: TodoList[],
 ): string {
   if (items.length === 0) {
     return `<div class="no-items">${MESSAGES.NO_ITEMS}</div>`;
@@ -21,7 +21,7 @@ export function createItemsList(
 }
 
 export function createItemsByCategory(items: InventoryItem[], todoLists: TodoList[]): string {
-  const grouped = Utils.groupItemsByCategory(items);
+  const grouped = Utilities.groupItemsByCategory(items);
   const sortedCategories = Object.keys(grouped).sort();
 
   return sortedCategories
@@ -31,7 +31,7 @@ export function createItemsByCategory(items: InventoryItem[], todoLists: TodoLis
           <div class="${CSS_CLASSES.CATEGORY_HEADER}">${category}</div>
           ${grouped[category].map((item) => createItemRowTemplate(item, todoLists)).join('')}
         </div>
-      `
+      `,
     )
     .join('');
 }
