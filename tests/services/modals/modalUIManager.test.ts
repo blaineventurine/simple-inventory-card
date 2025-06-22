@@ -431,7 +431,7 @@ describe('ModalUIManager', () => {
           id: 'some-other-element',
           dataset: {},
           classList: { contains: vi.fn().mockReturnValue(false) },
-          closest: vi.fn().mockReturnValue(),
+          closest: vi.fn().mockReturnValue(undefined),
         },
       } as unknown as MouseEvent;
 

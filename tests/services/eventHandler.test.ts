@@ -584,7 +584,7 @@ describe('EventHandler', () => {
     });
 
     it('should use default sort method when sort element not found', () => {
-      vi.mocked(mockRenderRoot.querySelector).mockReturnValue(undefined);
+      vi.mocked(mockRenderRoot.querySelector).mockReturnValue(null);
 
       eventHandler['handleSearchChange']();
 

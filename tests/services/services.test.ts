@@ -445,7 +445,7 @@ describe('Services', () => {
     });
 
     it('should handle undefined error', async () => {
-      mockHass.callService = vi.fn().mockRejectedValue();
+      mockHass.callService = vi.fn().mockRejectedValue(undefined);
 
       const result = await services.removeItem('test', 'test');
 

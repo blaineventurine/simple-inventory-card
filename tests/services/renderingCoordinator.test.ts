@@ -365,7 +365,7 @@ describe('RenderingCoordinator', () => {
     });
 
     it('should render error directly when renderer service not available', () => {
-      vi.mocked(mockLifecycleManager.getServices).mockReturnValue(null);
+      vi.mocked(mockLifecycleManager.getServices).mockReturnValue(undefined);
 
       renderingCoordinator.renderError('Test error message');
 

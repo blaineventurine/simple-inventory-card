@@ -134,7 +134,7 @@ if (!customElements.get('simple-inventory-config-editor')) {
   customElements.define('simple-inventory-config-editor', ConfigEditor);
 }
 
-globalThis.customCards = globalThis.customCards || [];
+window.customCards = window.customCards || [];
 const cardConfig = {
   type: 'simple-inventory-card',
   name: 'Simple Inventory Card',
@@ -143,9 +143,9 @@ const cardConfig = {
   documentationURL: 'https://github.com/blaineventurine/simple-inventory-card',
 };
 
-const existingCard = globalThis.customCards.find((card) => card.type === 'simple-inventory-card');
+const existingCard = window.customCards.find((card) => card.type === 'simple-inventory-card');
 if (!existingCard) {
-  globalThis.customCards.push(cardConfig);
+  window.customCards.push(cardConfig);
 }
 
 globalThis.setTimeout(() => {
