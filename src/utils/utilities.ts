@@ -437,7 +437,7 @@ export const Utilities = {
     if (!string_ || typeof string_ !== 'string') {
       return '';
     }
-    return string_.trim().slice(0, Math.max(0, maxLength));
+    return string_.trim().slice(0, Math.max(0, maxLength)).trim();
   },
 
   hasActiveFilters(filters: FilterState): boolean {

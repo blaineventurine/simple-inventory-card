@@ -612,7 +612,7 @@ describe('Utilities', () => {
           autoAddEnabled: 'true' as any,
           autoAddToListQuantity: 1_000_000,
           category:
-            'Very long category name that should definitely be truncated because it exceeds the limit',
+            'A very long category name that should definitely be truncated because it exceeds the limit',
           unit: 'a very long unit name that should also be truncated',
           todoList: 'todo.test',
           expiryDate: '2023-12-25',
@@ -624,6 +624,8 @@ describe('Utilities', () => {
         expect(result.name).toBe('Test Item');
         expect(result.quantity).toBe(0);
         expect(result.autoAddEnabled).toBe(true);
+        // tricky - the sanitize function trims, slices, then trims again to remove a trailing space
+        // if it happened to have a space at the end after slicing
         expect(result.category).toHaveLength(50);
         expect(result.unit).toHaveLength(20);
         expect(result.expiryAlertDays).toBe(0);
