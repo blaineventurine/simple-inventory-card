@@ -5,7 +5,7 @@ import { createAddModal, createEditModal } from '../templates/modalTemplates';
 import { createItemsList } from '../templates/itemList';
 import { createSortOptions } from '../templates/sortOptions';
 import { createActiveFiltersDisplay } from '../templates/filters';
-import { InventoryItem } from '../types/home-assistant';
+import { InventoryItem } from '../types/homeAssistant';
 import { FilterState } from '../types/filterState';
 import { TodoList } from '../types/todoList';
 import { styles } from '../styles/styles';
@@ -40,7 +40,7 @@ export function generateCardHTML(
       
       <div class="items-container">
         ${
-          items.length
+          items.length > 0
             ? createItemsList(items, sortMethod, todoLists)
             : `<div class="empty-state">${MESSAGES.NO_ITEMS}</div>`
         }

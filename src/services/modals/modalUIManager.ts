@@ -1,10 +1,10 @@
 import { ELEMENTS, CSS_CLASSES, TIMING, ACTIONS } from '../../utils/constants';
-import { HomeAssistant, InventoryItem, InventoryConfig } from '../../types/home-assistant';
+import { HomeAssistant, InventoryItem, InventoryConfig } from '../../types/homeAssistant';
 import { ModalFormManager } from './modalFormManager';
 import { ModalValidationManager } from './modalValidationManager';
 
 export class ModalUIManager {
-  private boundEscHandler: ((e: KeyboardEvent) => void) | null = null;
+  private boundEscHandler: ((e: KeyboardEvent) => void) | undefined = undefined;
 
   constructor(
     private readonly shadowRoot: ShadowRoot,
@@ -46,22 +46,22 @@ export class ModalUIManager {
   openEditModal(
     itemName: string,
     getFreshData: () => { hass: HomeAssistant; config: InventoryConfig },
-  ): { item: InventoryItem | null; found: boolean } {
+  ): { item: InventoryItem | undefined; found: boolean } {
     const { hass, config } = getFreshData();
     const entityId = config.entity;
     const state = hass.states[entityId];
 
     if (!state) {
       console.warn(`Entity not found: ${entityId}`);
-      return { item: null, found: false };
+      return { item: undefined, found: false };
     }
 
     const items: readonly InventoryItem[] = state.attributes?.items || [];
-    const item = items.find((i) => i.name === itemName);
+    const item = items.find((index) => index.name === itemName);
 
     if (!item) {
       console.warn(`Item not found: ${itemName}`);
-      return { item: null, found: false };
+      return { item: undefined, found: false };
     }
 
     this.formManager.populateEditModal(item);
@@ -245,8 +245,8 @@ export class ModalUIManager {
   /**
    * Gets an element from the shadow root by ID
    */
-  private getElement<T extends HTMLElement>(id: string): T | null {
-    return this.shadowRoot.getElementById(id) as T | null;
+  private getElement<T extends HTMLElement>(id: string): T | undefined {
+    return this.shadowRoot.getElementById(id) as T | undefined;
   }
 
   /**
@@ -255,7 +255,7 @@ export class ModalUIManager {
   destroy(): void {
     if (this.boundEscHandler) {
       document.removeEventListener('keydown', this.boundEscHandler);
-      this.boundEscHandler = null;
+      this.boundEscHandler = undefined;
     }
   }
 }

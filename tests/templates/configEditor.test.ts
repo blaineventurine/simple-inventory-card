@@ -5,7 +5,7 @@ import {
   createEntityInfo,
   createNoEntityMessage,
 } from '../../src/templates/configEditor';
-import { HomeAssistant } from '../../src/types/home-assistant';
+import { HomeAssistant } from '../../src/types/homeAssistant';
 import { createMockHomeAssistant, createMockHassEntity } from '../testHelpers';
 
 vi.mock('lit-element', () => ({
@@ -19,7 +19,7 @@ vi.mock('lit-element', () => ({
 
 describe('Config Editor Templates', () => {
   let mockHass: HomeAssistant;
-  let mockOnValueChanged: (ev: CustomEvent) => void;
+  let mockOnValueChanged: (event_: CustomEvent) => void;
 
   beforeEach(() => {
     mockHass = createMockHomeAssistant();
@@ -71,11 +71,11 @@ describe('Config Editor Templates', () => {
     it('should handle null/undefined values gracefully', () => {
       const entityOptions = [{ value: 'sensor.test', label: 'Test' }];
 
-      createEntitySelector(mockHass, entityOptions, null as any, mockOnValueChanged);
+      createEntitySelector(mockHass, entityOptions, undefined as any, mockOnValueChanged);
 
       expect(html).toHaveBeenCalled();
       const htmlCall = vi.mocked(html).mock.calls[0];
-      expect(htmlCall[4]).toBe(null); // .value should be null
+      expect(htmlCall[4]).toBe(undefined); // .value should be null
     });
 
     it('should create proper template structure', () => {
@@ -231,7 +231,7 @@ describe('Config Editor Templates', () => {
 
     it('should handle very large item counts', () => {
       const entityId = 'sensor.test_inventory';
-      const largeItemsArray = new Array(1000).fill({ name: 'Item' });
+      const largeItemsArray = Array.from({ length: 1000 }).fill({ name: 'Item' });
       const mockEntity = createMockHassEntity(entityId, {
         attributes: {
           friendly_name: 'Large Inventory',

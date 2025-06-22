@@ -1,5 +1,5 @@
 import { vi } from 'vitest';
-import { HomeAssistant, HassEntity, HassConfig } from '../src/types/home-assistant';
+import { HomeAssistant, HassEntity, HassConfig } from '../src/types/homeAssistant';
 
 export const createMockHassEntity = (
   entityId: string,

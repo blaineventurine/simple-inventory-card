@@ -1,17 +1,17 @@
-import { HomeAssistant, HassEntity, InventoryItem } from '../types/home-assistant';
-import { Utils } from '../utils/utils';
+import { HomeAssistant, HassEntity, InventoryItem } from '../types/homeAssistant';
+import { Utilities } from '../utils/utilities';
 
 export class State {
   public userInteracting = false;
-  private renderTimeout: ReturnType<typeof setTimeout> | null = null;
-  private _lastEntityState: HassEntity | null = null;
-  private _renderCallback: (() => void) | null = null;
-  private _debouncedRenderFn: (() => void) | null = null;
+  private renderTimeout: ReturnType<typeof setTimeout> | undefined = undefined;
+  private _lastEntityState: HassEntity | undefined = undefined;
+  private _renderCallback: (() => void) | undefined = undefined;
+  private _debouncedRenderFn: (() => void) | undefined = undefined;
 
   public trackUserInteraction(shadowRoot: ShadowRoot): void {
     const inputs = shadowRoot.querySelectorAll<HTMLElement>('input, select, textarea');
 
-    inputs.forEach((input) => {
+    for (const input of inputs) {
       input.addEventListener('focus', () => {
         this.userInteracting = true;
       });
@@ -21,7 +21,7 @@ export class State {
           this.userInteracting = false;
         }, 100);
       });
-    });
+    }
   }
 
   public hasRealEntityChange(hass: HomeAssistant, entityId: string): boolean {
@@ -63,9 +63,9 @@ export class State {
     return changed;
   }
 
-  public debouncedRender(renderFn?: () => void, delay = 100): void {
+  public debouncedRender(renderFunction?: () => void, delay = 100): void {
     // If a function is provided, use it; otherwise use the stored callback
-    const callback = renderFn || this._renderCallback;
+    const callback = renderFunction || this._renderCallback;
 
     if (!callback) {
       console.warn('No render function provided to debouncedRender');
@@ -73,7 +73,7 @@ export class State {
     }
 
     if (!this._debouncedRenderFn) {
-      this._debouncedRenderFn = Utils.debounce(() => {
+      this._debouncedRenderFn = Utilities.debounce(() => {
         if (this._renderCallback) {
           this._renderCallback();
         }
@@ -87,8 +87,8 @@ export class State {
     this._renderCallback = callback;
   }
 
-  public debouncedRenderWithCallback(renderFn: () => void, delay = 100): void {
-    this.debouncedRender(renderFn, delay);
+  public debouncedRenderWithCallback(renderFunction: () => void, delay = 100): void {
+    this.debouncedRender(renderFunction, delay);
   }
 
   public debouncedRenderDefault(delay = 100): void {
@@ -98,9 +98,9 @@ export class State {
   public cleanup(): void {
     if (this.renderTimeout) {
       clearTimeout(this.renderTimeout);
-      this.renderTimeout = null;
+      this.renderTimeout = undefined;
     }
-    this._renderCallback = null;
+    this._renderCallback = undefined;
     this.userInteracting = false;
   }
 }

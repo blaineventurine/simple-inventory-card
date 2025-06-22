@@ -4,8 +4,8 @@ import { Filters } from './filters';
 import { Renderer } from './renderer';
 import { State } from './state';
 import { EventHandler } from './eventHandler';
-import { HomeAssistant, InventoryConfig, InventoryItem } from '../types/home-assistant';
-import { Utils } from '../utils/utils';
+import { HomeAssistant, InventoryConfig, InventoryItem } from '../types/homeAssistant';
+import { Utilities } from '../utils/utilities';
 
 interface InitializedServices {
   services: Services;
@@ -19,7 +19,7 @@ interface InitializedServices {
 export class LifecycleManager {
   private renderRoot: ShadowRoot;
   private isInitialized = false;
-  private services: InitializedServices | null = null;
+  private services: InitializedServices | undefined;
 
   constructor(renderRoot: ShadowRoot) {
     this.renderRoot = renderRoot;
@@ -32,13 +32,13 @@ export class LifecycleManager {
     refreshCallback: () => void,
     updateItemsCallback: (items: InventoryItem[], sortMethod: string) => void,
     getFreshState: () => { hass: HomeAssistant; config: InventoryConfig },
-  ): InitializedServices | null {
+  ): InitializedServices | undefined {
     if (this.isInitialized && this.services) {
       return this.services;
     }
 
     if (!hass || !config || !this.renderRoot) {
-      return null;
+      return undefined;
     }
 
     try {
@@ -49,7 +49,7 @@ export class LifecycleManager {
 
       state.setRenderCallback(renderCallback);
 
-      const getInventoryId = (entityId: string) => Utils.getInventoryId(hass, entityId);
+      const getInventoryId = (entityId: string) => Utilities.getInventoryId(hass, entityId);
       const modals = new Modals(this.renderRoot, services, getInventoryId, refreshCallback);
 
       const eventHandler = new EventHandler(
@@ -77,7 +77,7 @@ export class LifecycleManager {
       return this.services;
     } catch (error) {
       console.error('Failed to initialize modules:', error);
-      return null;
+      return undefined;
     }
   }
 
@@ -87,12 +87,12 @@ export class LifecycleManager {
     }
   }
 
-  getServices(): InitializedServices | null {
-    return this.isInitialized ? this.services : null;
+  getServices(): InitializedServices | undefined {
+    return this.isInitialized ? this.services : undefined;
   }
 
   isReady(): boolean {
-    return this.isInitialized && this.services !== null;
+    return this.isInitialized && this.services !== undefined;
   }
 
   cleanup(): void {
@@ -102,7 +102,7 @@ export class LifecycleManager {
       this.services.modals?.destroy();
     }
 
-    this.services = null;
+    this.services = undefined;
     this.isInitialized = false;
   }
 }

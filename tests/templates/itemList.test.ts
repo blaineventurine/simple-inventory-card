@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createItemsList, createItemsByCategory } from '../../src/templates/itemList';
-import { InventoryItem } from '../../src/types/home-assistant';
+import { InventoryItem } from '../../src/types/homeAssistant';
 import { TodoList } from '../../src/types/todoList';
-import { Utils } from '../../src/utils/utils';
+import { Utilities } from '../../src/utils/utilities';
 import { createItemRowTemplate } from '../../src/templates/itemRow';
 
-vi.mock('../../src/utils/utils', () => ({
-  Utils: {
+vi.mock('../../src/utils/utilities', () => ({
+  Utilities: {
     groupItemsByCategory: vi.fn(),
   },
 }));
@@ -96,32 +96,32 @@ describe('itemList', () => {
         createItemsList([], 'name', mockTodoLists);
 
         expect(vi.mocked(createItemRowTemplate)).not.toHaveBeenCalled();
-        expect(Utils.groupItemsByCategory).not.toHaveBeenCalled();
+        expect(Utilities.groupItemsByCategory).not.toHaveBeenCalled();
       });
     });
 
     describe('category sort method', () => {
       it('should call createItemsByCategory when sortMethod is "category"', () => {
-        vi.mocked(Utils.groupItemsByCategory).mockReturnValue({
+        vi.mocked(Utilities.groupItemsByCategory).mockReturnValue({
           Fruit: [mockItems[0], mockItems[1]],
           Dairy: [mockItems[2]],
         });
 
         const result = createItemsList(mockItems, 'category', mockTodoLists);
 
-        expect(Utils.groupItemsByCategory).toHaveBeenCalledWith(mockItems);
+        expect(Utilities.groupItemsByCategory).toHaveBeenCalledWith(mockItems);
         expect(result).toContain('class="category-group"');
         expect(result).toContain('class="category-header"');
       });
 
       it('should pass correct parameters to createItemsByCategory', () => {
-        vi.mocked(Utils.groupItemsByCategory).mockReturnValue({
+        vi.mocked(Utilities.groupItemsByCategory).mockReturnValue({
           Test: [mockItems[0]],
         });
 
         createItemsList(mockItems, 'category', mockTodoLists);
 
-        expect(Utils.groupItemsByCategory).toHaveBeenCalledWith(mockItems);
+        expect(Utilities.groupItemsByCategory).toHaveBeenCalledWith(mockItems);
       });
     });
 
@@ -133,18 +133,18 @@ describe('itemList', () => {
         expect(vi.mocked(createItemRowTemplate)).toHaveBeenCalledWith(mockItems[0], mockTodoLists);
         expect(vi.mocked(createItemRowTemplate)).toHaveBeenCalledWith(mockItems[1], mockTodoLists);
         expect(vi.mocked(createItemRowTemplate)).toHaveBeenCalledWith(mockItems[2], mockTodoLists);
-        expect(Utils.groupItemsByCategory).not.toHaveBeenCalled();
+        expect(Utilities.groupItemsByCategory).not.toHaveBeenCalled();
       });
 
       it('should handle different sort methods correctly', () => {
-        ['name', 'quantity', 'expiry', 'quantity_desc', 'zero_last'].forEach((sortMethod) => {
+        for (const sortMethod of ['name', 'quantity', 'expiry', 'quantity_desc', 'zero_last']) {
           vi.clearAllMocks();
 
           createItemsList(mockItems, sortMethod, mockTodoLists);
 
           expect(vi.mocked(createItemRowTemplate)).toHaveBeenCalledTimes(3);
-          expect(Utils.groupItemsByCategory).not.toHaveBeenCalled();
-        });
+          expect(Utilities.groupItemsByCategory).not.toHaveBeenCalled();
+        }
       });
 
       it('should join item templates without separators', () => {
@@ -194,7 +194,7 @@ describe('itemList', () => {
       });
 
       it('should handle case-sensitive category comparison', () => {
-        vi.mocked(Utils.groupItemsByCategory).mockReturnValue({
+        vi.mocked(Utilities.groupItemsByCategory).mockReturnValue({
           fruit: [mockItems[0]], // lowercase
         });
 
@@ -207,7 +207,7 @@ describe('itemList', () => {
 
   describe('createItemsByCategory', () => {
     beforeEach(() => {
-      vi.mocked(Utils.groupItemsByCategory).mockReturnValue({
+      vi.mocked(Utilities.groupItemsByCategory).mockReturnValue({
         Fruit: [mockItems[0], mockItems[1]],
         Dairy: [mockItems[2]],
       });
@@ -217,7 +217,7 @@ describe('itemList', () => {
       it('should group items by category and render category sections', () => {
         const result = createItemsByCategory(mockItems, mockTodoLists);
 
-        expect(Utils.groupItemsByCategory).toHaveBeenCalledWith(mockItems);
+        expect(Utilities.groupItemsByCategory).toHaveBeenCalledWith(mockItems);
         expect(result).toContain('class="category-group"');
         expect(result).toContain('class="category-header"');
       });
@@ -241,7 +241,7 @@ describe('itemList', () => {
 
     describe('category sorting', () => {
       it('should sort categories alphabetically', () => {
-        vi.mocked(Utils.groupItemsByCategory).mockReturnValue({
+        vi.mocked(Utilities.groupItemsByCategory).mockReturnValue({
           Zebra: [mockItems[0]],
           Apple: [mockItems[1]],
           Banana: [mockItems[2]],
@@ -257,7 +257,7 @@ describe('itemList', () => {
       });
 
       it('should handle case-sensitive sorting', () => {
-        vi.mocked(Utils.groupItemsByCategory).mockReturnValue({
+        vi.mocked(Utilities.groupItemsByCategory).mockReturnValue({
           apple: [mockItems[0]],
           Apple: [mockItems[1]],
           APPLE: [mockItems[2]],
@@ -297,7 +297,7 @@ describe('itemList', () => {
 
     describe('edge cases', () => {
       it('should handle single category', () => {
-        vi.mocked(Utils.groupItemsByCategory).mockReturnValue({
+        vi.mocked(Utilities.groupItemsByCategory).mockReturnValue({
           OnlyCategory: [mockItems[0], mockItems[1], mockItems[2]],
         });
 
@@ -308,7 +308,7 @@ describe('itemList', () => {
       });
 
       it('should handle empty categories (no items in group)', () => {
-        vi.mocked(Utils.groupItemsByCategory).mockReturnValue({
+        vi.mocked(Utilities.groupItemsByCategory).mockReturnValue({
           EmptyCategory: [],
           NonEmptyCategory: [mockItems[0]],
         });
@@ -320,7 +320,7 @@ describe('itemList', () => {
       });
 
       it('should handle categories with special characters', () => {
-        vi.mocked(Utils.groupItemsByCategory).mockReturnValue({
+        vi.mocked(Utilities.groupItemsByCategory).mockReturnValue({
           'Category & "Special" <chars>': [mockItems[0]],
         });
 
@@ -331,7 +331,7 @@ describe('itemList', () => {
 
       it('should handle very long category names', () => {
         const longCategoryName = 'A'.repeat(100);
-        vi.mocked(Utils.groupItemsByCategory).mockReturnValue({
+        vi.mocked(Utilities.groupItemsByCategory).mockReturnValue({
           [longCategoryName]: [mockItems[0]],
         });
 
@@ -342,26 +342,26 @@ describe('itemList', () => {
 
       it('should handle many categories', () => {
         const manyCategories = Object.fromEntries(
-          Array.from({ length: 50 }, (_, i) => [`Category${i}`, [mockItems[0]]]),
+          Array.from({ length: 50 }, (_, index) => [`Category${index}`, [mockItems[0]]]),
         );
-        vi.mocked(Utils.groupItemsByCategory).mockReturnValue(manyCategories);
+        vi.mocked(Utilities.groupItemsByCategory).mockReturnValue(manyCategories);
 
         const result = createItemsByCategory(mockItems, mockTodoLists);
 
-        for (let i = 0; i < 50; i++) {
-          expect(result).toContain(`>Category${i}<`);
+        for (let index = 0; index < 50; index++) {
+          expect(result).toContain(`>Category${index}<`);
         }
       });
     });
 
-    describe('integration with Utils.groupItemsByCategory', () => {
+    describe('integration with Utilities.groupItemsByCategory', () => {
       it('should pass items correctly to grouping function', () => {
         const customItems = [mockItems[0]];
 
         createItemsByCategory(customItems, mockTodoLists);
 
-        expect(Utils.groupItemsByCategory).toHaveBeenCalledWith(customItems);
-        expect(Utils.groupItemsByCategory).toHaveBeenCalledTimes(1);
+        expect(Utilities.groupItemsByCategory).toHaveBeenCalledWith(customItems);
+        expect(Utilities.groupItemsByCategory).toHaveBeenCalledTimes(1);
       });
 
       it('should handle the result of grouping function correctly', () => {
@@ -369,7 +369,7 @@ describe('itemList', () => {
           Group1: [mockItems[0], mockItems[1]],
           Group2: [mockItems[2]],
         };
-        vi.mocked(Utils.groupItemsByCategory).mockReturnValue(mockGroupedResult);
+        vi.mocked(Utilities.groupItemsByCategory).mockReturnValue(mockGroupedResult);
 
         const result = createItemsByCategory(mockItems, mockTodoLists);
 
@@ -400,7 +400,7 @@ describe('itemList', () => {
 
   describe('integration between functions', () => {
     it('should produce same items when category vs non-category sorting', () => {
-      vi.mocked(Utils.groupItemsByCategory).mockReturnValue({
+      vi.mocked(Utilities.groupItemsByCategory).mockReturnValue({
         Single: mockItems,
       });
 

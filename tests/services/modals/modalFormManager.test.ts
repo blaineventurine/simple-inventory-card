@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ModalFormManager } from '../../../src/services/modals/modalFormManager';
 import { ELEMENTS, DEFAULTS } from '../../../src/utils/constants';
-import { InventoryItem } from '../../../src/types/home-assistant';
+import { InventoryItem } from '../../../src/types/homeAssistant';
 import { RawFormData } from '../../../src/types/inventoryItem';
 
 describe('ModalFormManager', () => {

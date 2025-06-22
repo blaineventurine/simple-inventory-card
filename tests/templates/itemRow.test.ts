@@ -1,7 +1,7 @@
 // tests/templates/itemRow.test.ts
 import { describe, it, expect, beforeEach } from 'vitest';
 import { createItemRowTemplate } from '../../src/templates/itemRow';
-import { InventoryItem } from '../../src/types/home-assistant';
+import { InventoryItem } from '../../src/types/homeAssistant';
 import { TodoList } from '../../src/types/todoList';
 
 describe('createItemRowTemplate', () => {
@@ -388,7 +388,7 @@ describe('createItemRowTemplate', () => {
     });
 
     it('should handle very large quantities', () => {
-      const largeQuantityItem = { ...baseItem, quantity: 999999 };
+      const largeQuantityItem = { ...baseItem, quantity: 999_999 };
       const result = createItemRowTemplate(largeQuantityItem, mockTodoLists);
 
       expect(result).toContain('<span class="quantity">999999 pieces</span>');

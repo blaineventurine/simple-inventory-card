@@ -1,9 +1,9 @@
-import { HomeAssistant, InventoryConfig } from '../types/home-assistant';
+import { HomeAssistant, InventoryConfig } from '../types/homeAssistant';
+import { ItemData } from '../types/inventoryItem';
 import { ModalFormManager } from './modals/modalFormManager';
 import { ModalUIManager } from './modals/modalUIManager';
 import { ModalValidationManager } from './modals/modalValidationManager';
-import { ItemData } from '../types/inventoryItem';
-import { Utils } from '../utils/utils';
+import { Utilities } from '../utils/utilities';
 
 export interface InventoryServiceResult {
   success: boolean;
@@ -23,7 +23,7 @@ export class Modals {
   private formManager: ModalFormManager;
   private validationManager: ModalValidationManager;
   private uiManager: ModalUIManager;
-  private currentEditingItem: string | null = null;
+  private currentEditingItem: string | undefined = undefined;
 
   constructor(
     shadowRoot: ShadowRoot,
@@ -56,7 +56,7 @@ export class Modals {
 
   public closeEditModal(): void {
     this.uiManager.closeEditModal();
-    this.currentEditingItem = null;
+    this.currentEditingItem = undefined;
   }
 
   public closeAllModals(): void {
@@ -68,8 +68,8 @@ export class Modals {
     this.formManager.clearAddModalForm();
   }
 
-  public handleModalClick(e: MouseEvent): boolean {
-    return this.uiManager.handleModalClick(e);
+  public handleModalClick(event: MouseEvent): boolean {
+    return this.uiManager.handleModalClick(event);
   }
 
   public destroy(): void {
@@ -118,20 +118,20 @@ export class Modals {
     }
   }
 
-  private validateAndPrepareFormData(isAddModal: boolean): ItemData | null {
+  private validateAndPrepareFormData(isAddModal: boolean): ItemData | undefined {
     const rawFormData = isAddModal
       ? this.formManager.getRawAddModalData()
       : this.formManager.getRawEditModalData();
 
-    const validation = Utils.validateRawFormData(rawFormData);
+    const validation = Utilities.validateRawFormData(rawFormData);
 
     if (!validation.isValid) {
       this.validationManager.highlightInvalidFields(validation.errors, isAddModal);
       this.validationManager.showError(validation.errors[0].message, isAddModal);
-      return null;
+      return undefined;
     }
 
-    return Utils.convertRawFormDataToItemData(rawFormData);
+    return Utilities.convertRawFormDataToItemData(rawFormData);
   }
 
   private handleAddResult(result: InventoryServiceResult): boolean {

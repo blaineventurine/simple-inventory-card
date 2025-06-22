@@ -1,15 +1,15 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ConfigEditor } from '../../src/components/configEditor';
-import { Utils } from '../../src/utils/utils';
+import { Utilities } from '../../src/utils/utilities';
 import {
   createEntitySelector,
   createEntityInfo,
   createNoEntityMessage,
 } from '../../src/templates/configEditor';
-import { HomeAssistant, InventoryConfig } from '../../src/types/home-assistant';
+import { HomeAssistant, InventoryConfig } from '../../src/types/homeAssistant';
 import { createMockHomeAssistant, createMockHassEntity } from '../testHelpers';
 
-vi.mock('../../src/utils/utils');
+vi.mock('../../src/utils/utilities');
 vi.mock('../../src/templates/configEditor');
 
 vi.mock('lit-element', () => ({
@@ -104,7 +104,7 @@ describe('ConfigEditor (Refactored)', () => {
     });
 
     it('should return empty string when config is null', () => {
-      configEditor['_config'] = null as any;
+      configEditor['_config'] = undefined as any;
       expect(configEditor['_entity']).toBe('');
     });
 
@@ -126,9 +126,9 @@ describe('ConfigEditor (Refactored)', () => {
         entity: '',
       };
 
-      // Mock Utils methods
-      vi.mocked(Utils.findInventoryEntities).mockReturnValue([]);
-      vi.mocked(Utils.createEntityOptions).mockReturnValue([]);
+      // Mock Utilities methods
+      vi.mocked(Utilities.findInventoryEntities).mockReturnValue([]);
+      vi.mocked(Utilities.createEntityOptions).mockReturnValue([]);
     });
 
     it('should return loading template when hass is missing', () => {
@@ -148,28 +148,28 @@ describe('ConfigEditor (Refactored)', () => {
       expect(result).toBeDefined();
     });
 
-    it('should delegate to Utils for entity processing', () => {
+    it('should delegate to Utilities for entity processing', () => {
       const mockEntities = ['sensor.inventory1', 'sensor.inventory2'];
       const mockOptions = [
         { value: 'sensor.inventory1', label: 'Inventory 1' },
         { value: 'sensor.inventory2', label: 'Inventory 2' },
       ];
 
-      vi.mocked(Utils.findInventoryEntities).mockReturnValue(mockEntities);
-      vi.mocked(Utils.createEntityOptions).mockReturnValue(mockOptions);
+      vi.mocked(Utilities.findInventoryEntities).mockReturnValue(mockEntities);
+      vi.mocked(Utilities.createEntityOptions).mockReturnValue(mockOptions);
 
       configEditor.render();
 
-      expect(Utils.findInventoryEntities).toHaveBeenCalledWith(mockHass);
-      expect(Utils.createEntityOptions).toHaveBeenCalledWith(mockHass, mockEntities);
+      expect(Utilities.findInventoryEntities).toHaveBeenCalledWith(mockHass);
+      expect(Utilities.createEntityOptions).toHaveBeenCalledWith(mockHass, mockEntities);
     });
 
     it('should delegate to template functions', () => {
       const mockEntities = ['sensor.inventory1'];
       const mockOptions = [{ value: 'sensor.inventory1', label: 'Inventory 1' }];
 
-      vi.mocked(Utils.findInventoryEntities).mockReturnValue(mockEntities);
-      vi.mocked(Utils.createEntityOptions).mockReturnValue(mockOptions);
+      vi.mocked(Utilities.findInventoryEntities).mockReturnValue(mockEntities);
+      vi.mocked(Utilities.createEntityOptions).mockReturnValue(mockOptions);
 
       configEditor.render();
 
@@ -219,7 +219,7 @@ describe('ConfigEditor (Refactored)', () => {
     });
 
     it('should return early when config is null', () => {
-      configEditor['_config'] = null as any;
+      configEditor['_config'] = undefined as any;
       const mockEvent = {
         detail: { value: 'sensor.new_entity' },
       } as CustomEvent;

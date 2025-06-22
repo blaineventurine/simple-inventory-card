@@ -1,10 +1,11 @@
-const { defineConfig } = require('eslint/config');
-const globals = require('globals');
-const typescriptEslint = require('@typescript-eslint/eslint-plugin');
-const typescriptParser = require('@typescript-eslint/parser');
-const eslintPluginPrettierRecommended = require('eslint-plugin-prettier/recommended');
+import eslintPluginUnicorn from 'eslint-plugin-unicorn';
+import { defineConfig } from 'eslint/config';
+import globals from 'globals';
+import typescriptEslint from '@typescript-eslint/eslint-plugin';
+import typescriptParser from '@typescript-eslint/parser';
+import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 
-module.exports = defineConfig([
+export default defineConfig([
   {
     files: ['**/*.ts', '**/*.tsx'],
     languageOptions: {
@@ -21,8 +22,10 @@ module.exports = defineConfig([
       },
       parser: typescriptParser,
       parserOptions: {
+        projectService: true,
         ecmaVersion: 'latest',
         sourceType: 'module',
+        tsconfigRootDir: import.meta.dirname,
         project: './tsconfig.json',
       },
     },
@@ -30,8 +33,8 @@ module.exports = defineConfig([
       '@typescript-eslint': typescriptEslint,
     },
     rules: {
-      // Extend recommended TypeScript rules
-      ...typescriptEslint.configs.recommended.rules,
+      ...typescriptEslint.configs.strictTypeChecked,
+      ...typescriptEslint.configs.stylisticTypeChecked,
 
       // Disable base ESLint rules that conflict with TypeScript
       'no-unused-vars': 'off',
@@ -52,9 +55,17 @@ module.exports = defineConfig([
 
       // TypeScript-specific logic rules
       '@typescript-eslint/no-explicit-any': 'warn',
-      '@typescript-eslint/explicit-function-return-type': 'off',
-      '@typescript-eslint/explicit-module-boundary-types': 'off',
       '@typescript-eslint/no-non-null-assertion': 'warn',
+
+      // 'unicorn/filename-case': [
+      //   'warn',
+      //   {
+      //     case: 'camelCase',
+      //   },
+      // ],
+      // 'unicorn/prefer-query-selector': 'warn',
+      // 'unicorn/prefer-global-this': 'warn',
+      // 'unicorn/prevent-abbreviations': 'warn',
     },
   },
 
@@ -93,5 +104,6 @@ module.exports = defineConfig([
       '.cache/',
     ],
   },
+  // eslintPluginUnicorn.configs.recommended,
   eslintPluginPrettierRecommended,
 ]);

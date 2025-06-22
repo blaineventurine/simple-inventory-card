@@ -6,8 +6,8 @@ import { Filters } from '../../src/services/filters';
 import { Renderer } from '../../src/services/renderer';
 import { State } from '../../src/services/state';
 import { EventHandler } from '../../src/services/eventHandler';
-import { Utils } from '../../src/utils/utils';
-import { HomeAssistant, InventoryConfig } from '../../src/types/home-assistant';
+import { Utilities } from '../../src/utils/utilities';
+import { HomeAssistant, InventoryConfig } from '../../src/types/homeAssistant';
 import { createMockHomeAssistant } from '../testHelpers';
 
 vi.mock('../../src/services/services');
@@ -16,7 +16,7 @@ vi.mock('../../src/services/filters');
 vi.mock('../../src/services/renderer');
 vi.mock('../../src/services/state');
 vi.mock('../../src/services/eventHandler');
-vi.mock('../../src/utils/utils');
+vi.mock('../../src/utils/utilities');
 
 describe('LifecycleManager', () => {
   let lifecycleManager: LifecycleManager;
@@ -81,7 +81,7 @@ describe('LifecycleManager', () => {
     vi.mocked(Renderer).mockImplementation(() => mockRenderer);
     vi.mocked(State).mockImplementation(() => mockState);
     vi.mocked(EventHandler).mockImplementation(() => mockEventHandler);
-    vi.mocked(Utils.getInventoryId).mockReturnValue('test-inventory-id');
+    vi.mocked(Utilities.getInventoryId).mockReturnValue('test-inventory-id');
 
     vi.clearAllMocks();
   });
@@ -92,7 +92,7 @@ describe('LifecycleManager', () => {
 
       expect(lifecycleManager['renderRoot']).toBe(mockRenderRoot);
       expect(lifecycleManager['isInitialized']).toBe(false);
-      expect(lifecycleManager['services']).toBe(null);
+      expect(lifecycleManager['services']).toBe(undefined);
     });
   });
 
@@ -136,7 +136,7 @@ describe('LifecycleManager', () => {
         mockGetFreshStateCallback,
       );
 
-      expect(result).toBe(null);
+      expect(result).toBe(undefined);
       expect(lifecycleManager['isInitialized']).toBe(false);
     });
 
@@ -150,7 +150,7 @@ describe('LifecycleManager', () => {
         mockGetFreshStateCallback,
       );
 
-      expect(result).toBe(null);
+      expect(result).toBe(undefined);
       expect(lifecycleManager['isInitialized']).toBe(false);
     });
 
@@ -166,7 +166,7 @@ describe('LifecycleManager', () => {
         mockGetFreshStateCallback,
       );
 
-      expect(result).toBe(null);
+      expect(result).toBe(undefined);
       expect(lifecycleManagerWithoutRoot['isInitialized']).toBe(false);
     });
 
@@ -217,7 +217,7 @@ describe('LifecycleManager', () => {
       const getInventoryIdFunction = vi.mocked(Modals).mock.calls[0][2];
       const testEntityId = 'sensor.test';
       getInventoryIdFunction(testEntityId);
-      expect(Utils.getInventoryId).toHaveBeenCalledWith(mockHass, testEntityId);
+      expect(Utilities.getInventoryId).toHaveBeenCalledWith(mockHass, testEntityId);
     });
 
     it('should create event handler with correct parameters', () => {
@@ -272,7 +272,7 @@ describe('LifecycleManager', () => {
         mockGetFreshStateCallback,
       );
 
-      expect(result).toBe(null);
+      expect(result).toBe(undefined);
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         'Failed to initialize modules:',
         expect.any(Error),
@@ -314,7 +314,7 @@ describe('LifecycleManager', () => {
 
     it('should not update dependencies when services is null', () => {
       lifecycleManager['isInitialized'] = true;
-      lifecycleManager['services'] = null;
+      lifecycleManager['services'] = undefined;
 
       lifecycleManager.updateDependencies(mockHass, mockConfig);
 
@@ -345,7 +345,7 @@ describe('LifecycleManager', () => {
     it('should return null when not initialized', () => {
       const result = lifecycleManager.getServices();
 
-      expect(result).toBe(null);
+      expect(result).toBe(undefined);
     });
 
     it('should return null after cleanup', () => {
@@ -362,7 +362,7 @@ describe('LifecycleManager', () => {
 
       const result = lifecycleManager.getServices();
 
-      expect(result).toBe(null);
+      expect(result).toBe(undefined);
     });
   });
 
@@ -390,7 +390,7 @@ describe('LifecycleManager', () => {
 
     it('should return false when services is null', () => {
       lifecycleManager['isInitialized'] = true;
-      lifecycleManager['services'] = null;
+      lifecycleManager['services'] = undefined;
 
       expect(lifecycleManager.isReady()).toBe(false);
     });
@@ -467,7 +467,7 @@ describe('LifecycleManager', () => {
 
       lifecycleManager.cleanup();
 
-      expect(lifecycleManager['services']).toBe(null);
+      expect(lifecycleManager['services']).toBe(undefined);
       expect(lifecycleManager['isInitialized']).toBe(false);
     });
   });
@@ -493,7 +493,7 @@ describe('LifecycleManager', () => {
         mockGetFreshStateCallback,
       );
 
-      expect(result).toBe(null);
+      expect(result).toBe(undefined);
       expect(consoleErrorSpy).toHaveBeenCalled();
 
       consoleErrorSpy.mockRestore();

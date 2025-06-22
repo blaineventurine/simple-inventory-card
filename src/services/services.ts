@@ -1,7 +1,7 @@
 import { DOMAIN, SERVICES, PARAMS } from '../utils/constants';
-import { HomeAssistant } from '../types/home-assistant';
+import { HomeAssistant } from '../types/homeAssistant';
 import { ItemData } from '../types/inventoryItem';
-import { Utils } from '../utils/utils';
+import { Utilities } from '../utils/utilities';
 
 export interface ServiceResult {
   success: boolean;
@@ -23,8 +23,8 @@ export class Services {
    */
   async addItem(inventoryId: string, itemData: ItemData): Promise<ServiceResult> {
     try {
-      const sanitizedItemData = Utils.sanitizeItemData(itemData);
-      const sanitizedInventoryId = Utils.sanitizeString(inventoryId, 100);
+      const sanitizedItemData = Utilities.sanitizeItemData(itemData);
+      const sanitizedInventoryId = Utilities.sanitizeString(inventoryId, 100);
       if (!sanitizedInventoryId) {
         return {
           success: false,
@@ -144,8 +144,8 @@ export class Services {
     itemData: ItemData,
   ): Promise<ServiceResult> {
     try {
-      const sanitizedItemData = Utils.sanitizeItemData(itemData);
-      const sanitizedInventoryId = Utils.sanitizeString(inventoryId, 100);
+      const sanitizedItemData = Utilities.sanitizeItemData(itemData);
+      const sanitizedInventoryId = Utilities.sanitizeString(inventoryId, 100);
 
       if (!sanitizedInventoryId) {
         return {
@@ -154,7 +154,7 @@ export class Services {
         };
       }
 
-      const params = {
+      const parameters = {
         [PARAMS.AUTO_ADD_ENABLED]: sanitizedItemData.autoAddEnabled,
         [PARAMS.AUTO_ADD_TO_LIST_QUANTITY]: sanitizedItemData.autoAddToListQuantity,
         [PARAMS.CATEGORY]: sanitizedItemData.category,
@@ -167,7 +167,7 @@ export class Services {
         [PARAMS.TODO_LIST]: sanitizedItemData.todoList,
         [PARAMS.UNIT]: sanitizedItemData.unit,
       };
-      await this.hass.callService(DOMAIN, SERVICES.UPDATE_ITEM, params);
+      await this.hass.callService(DOMAIN, SERVICES.UPDATE_ITEM, parameters);
       return { success: true };
     } catch (error) {
       console.error('Error updating item:', error);

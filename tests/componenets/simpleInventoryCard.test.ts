@@ -2,16 +2,16 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { SimpleInventoryCard } from '../../src/components/simpleInventoryCard';
 import { LifecycleManager } from '../../src/services/lifecycleManager';
 import { RenderingCoordinator } from '../../src/services/renderingCoordinator';
-import { Utils } from '../../src/utils/utils';
-import { HomeAssistant, InventoryConfig } from '../../src/types/home-assistant';
+import { Utilities } from '../../src/utils/utilities';
+import { HomeAssistant, InventoryConfig } from '../../src/types/homeAssistant';
 import { createMockHomeAssistant, createMockHassEntity } from '../testHelpers';
 
 vi.mock('../../src/services/lifecycleManager');
 vi.mock('../../src/services/renderingCoordinator');
-vi.mock('../../src/utils/utils');
+vi.mock('../../src/utils/utilities');
 vi.mock('lit-element', () => ({
   LitElement: class MockLitElement {
-    shadowRoot: any = null;
+    shadowRoot: any = undefined;
     constructor() {
       this.shadowRoot = document.createElement('div');
     }
@@ -47,10 +47,10 @@ describe('SimpleInventoryCard', () => {
 
     vi.mocked(LifecycleManager).mockImplementation(() => mockLifecycleManager);
     vi.mocked(RenderingCoordinator).mockImplementation(() => mockRenderingCoordinator);
-    vi.mocked(Utils.extractTodoLists).mockReturnValue([
+    vi.mocked(Utilities.extractTodoLists).mockReturnValue([
       { id: 'todo.shopping', name: 'Shopping List' },
     ]);
-    vi.mocked(Utils.validateInventoryItems).mockReturnValue([]);
+    vi.mocked(Utilities.validateInventoryItems).mockReturnValue([]);
 
     card = new SimpleInventoryCard();
   });
@@ -120,7 +120,7 @@ describe('SimpleInventoryCard', () => {
 
       card.hass = mockHass;
 
-      expect(Utils.extractTodoLists).toHaveBeenCalledWith(mockHass);
+      expect(Utilities.extractTodoLists).toHaveBeenCalledWith(mockHass);
       expect(renderSpy).toHaveBeenCalled();
     });
 
@@ -161,7 +161,7 @@ describe('SimpleInventoryCard', () => {
     it('should extract todo lists from hass states', () => {
       card.hass = mockHass;
 
-      expect(Utils.extractTodoLists).toHaveBeenCalledWith(mockHass);
+      expect(Utilities.extractTodoLists).toHaveBeenCalledWith(mockHass);
       expect((card as any)._todoLists).toEqual([{ id: 'todo.shopping', name: 'Shopping List' }]);
     });
   });
@@ -204,17 +204,17 @@ describe('SimpleInventoryCard', () => {
       );
     });
 
-    it('should pass Utils.validateInventoryItems as callback', () => {
+    it('should pass Utilities.validateInventoryItems as callback', () => {
       card.render();
 
       const renderCall = mockRenderingCoordinator.render.mock.calls[0];
       const validateCallback = renderCall[3];
 
-      // Test the callback delegates to Utils
+      // Test the callback delegates to Utilities
       const testItems = [{ name: 'test' }];
       validateCallback(testItems);
 
-      expect(Utils.validateInventoryItems).toHaveBeenCalledWith(testItems);
+      expect(Utilities.validateInventoryItems).toHaveBeenCalledWith(testItems);
     });
   });
 

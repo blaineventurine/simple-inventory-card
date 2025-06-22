@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { State } from '../../src/services/state';
-import { HomeAssistant, HassEntity, InventoryItem } from '../../src/types/home-assistant';
+import { HomeAssistant, HassEntity, InventoryItem } from '../../src/types/homeAssistant';
 
 describe('State', () => {
   let state: State;
@@ -64,10 +64,10 @@ describe('State', () => {
       state.trackUserInteraction(mockShadowRoot);
 
       expect(mockShadowRoot.querySelectorAll).toHaveBeenCalledWith('input, select, textarea');
-      mockInputs.forEach((input) => {
+      for (const input of mockInputs) {
         expect(input.addEventListener).toHaveBeenCalledWith('focus', expect.any(Function));
         expect(input.addEventListener).toHaveBeenCalledWith('blur', expect.any(Function));
-      });
+      }
     });
 
     it('should set userInteracting to true on focus', () => {
@@ -275,16 +275,16 @@ describe('State', () => {
     it('should use stored callback when function is provided', () => {
       // The debouncedRender always uses the stored callback, not the provided function
       const mockStoredCallback = vi.fn();
-      const mockProvidedFn = vi.fn();
+      const mockProvidedFunction = vi.fn();
 
       state.setRenderCallback(mockStoredCallback);
-      state.debouncedRender(mockProvidedFn);
+      state.debouncedRender(mockProvidedFunction);
 
       vi.advanceTimersByTime(100);
 
       // Should call the stored callback, not the provided function
       expect(mockStoredCallback).toHaveBeenCalledTimes(1);
-      expect(mockProvidedFn).not.toHaveBeenCalled();
+      expect(mockProvidedFunction).not.toHaveBeenCalled();
     });
 
     it('should use stored callback when no function provided', () => {
@@ -369,21 +369,21 @@ describe('State', () => {
 
   describe('debouncedRenderWithCallback', () => {
     it('should call debouncedRender with provided function and delay', () => {
-      const mockRenderFn = vi.fn();
+      const mockRenderFunction = vi.fn();
       const spy = vi.spyOn(state, 'debouncedRender');
 
-      state.debouncedRenderWithCallback(mockRenderFn, 150);
+      state.debouncedRenderWithCallback(mockRenderFunction, 150);
 
-      expect(spy).toHaveBeenCalledWith(mockRenderFn, 150);
+      expect(spy).toHaveBeenCalledWith(mockRenderFunction, 150);
     });
 
     it('should use default delay when not provided', () => {
-      const mockRenderFn = vi.fn();
+      const mockRenderFunction = vi.fn();
       const spy = vi.spyOn(state, 'debouncedRender');
 
-      state.debouncedRenderWithCallback(mockRenderFn);
+      state.debouncedRenderWithCallback(mockRenderFunction);
 
-      expect(spy).toHaveBeenCalledWith(mockRenderFn, 100);
+      expect(spy).toHaveBeenCalledWith(mockRenderFunction, 100);
     });
   });
 

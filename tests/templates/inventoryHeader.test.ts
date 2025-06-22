@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createInventoryHeader } from '../../src/templates/inventoryHeader';
-import { InventoryItem } from '../../src/types/home-assistant';
-import { Utils } from '../../src/utils/utils';
+import { InventoryItem } from '../../src/types/homeAssistant';
+import { Utilities } from '../../src/utils/utilities';
 
-vi.mock('../../src/utils/utils', () => ({
-  Utils: {
+vi.mock('../../src/utils/utilities', () => ({
+  Utilities: {
     sanitizeHtml: vi.fn((str: string) => `sanitized(${str})`),
     isExpired: vi.fn(),
     isExpiringSoon: vi.fn(),
@@ -16,9 +16,9 @@ describe('createInventoryHeader', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(Utils.sanitizeHtml).mockImplementation((str: string) => `sanitized(${str})`);
-    vi.mocked(Utils.isExpired).mockReturnValue(false);
-    vi.mocked(Utils.isExpiringSoon).mockReturnValue(false);
+    vi.mocked(Utilities.sanitizeHtml).mockImplementation((str: string) => `sanitized(${str})`);
+    vi.mocked(Utilities.isExpired).mockReturnValue(false);
+    vi.mocked(Utilities.isExpiringSoon).mockReturnValue(false);
 
     mockItems = [
       {
@@ -63,7 +63,7 @@ describe('createInventoryHeader', () => {
       expect(result).toContain('class="card-header"');
       expect(result).toContain('class="inventory-title"');
       expect(result).toContain('sanitized(Kitchen Pantry)');
-      expect(Utils.sanitizeHtml).toHaveBeenCalledWith('Kitchen Pantry');
+      expect(Utilities.sanitizeHtml).toHaveBeenCalledWith('Kitchen Pantry');
     });
 
     it('should include header content wrapper', () => {
@@ -76,7 +76,7 @@ describe('createInventoryHeader', () => {
     it('should sanitize inventory name', () => {
       const result = createInventoryHeader('Test & "Special" <script>', mockItems);
 
-      expect(Utils.sanitizeHtml).toHaveBeenCalledWith('Test & "Special" <script>');
+      expect(Utilities.sanitizeHtml).toHaveBeenCalledWith('Test & "Special" <script>');
       expect(result).toContain('sanitized(Test & "Special" <script>)');
     });
   });
@@ -87,7 +87,7 @@ describe('createInventoryHeader', () => {
 
       expect(result).toContain('class="inventory-description"');
       expect(result).toContain('sanitized(Kitchen inventory items)');
-      expect(Utils.sanitizeHtml).toHaveBeenCalledWith('Kitchen inventory items');
+      expect(Utilities.sanitizeHtml).toHaveBeenCalledWith('Kitchen inventory items');
     });
 
     it('should not include description when not provided', () => {
@@ -119,14 +119,14 @@ describe('createInventoryHeader', () => {
       const result = createInventoryHeader('Test', mockItems, '  Valid description  ');
 
       expect(result).toContain('class="inventory-description"');
-      expect(Utils.sanitizeHtml).toHaveBeenCalledWith('  Valid description  ');
+      expect(Utilities.sanitizeHtml).toHaveBeenCalledWith('  Valid description  ');
     });
   });
 
   describe('expiry indicators', () => {
     it('should not show expiry indicators when no expired or expiring items', () => {
-      vi.mocked(Utils.isExpired).mockReturnValue(false);
-      vi.mocked(Utils.isExpiringSoon).mockReturnValue(false);
+      vi.mocked(Utilities.isExpired).mockReturnValue(false);
+      vi.mocked(Utilities.isExpiringSoon).mockReturnValue(false);
 
       const result = createInventoryHeader('Test', mockItems);
 
@@ -137,10 +137,10 @@ describe('createInventoryHeader', () => {
 
     it('should show expired badge when items are expired', () => {
       // Mock so that expired milk is expired
-      vi.mocked(Utils.isExpired).mockImplementation(
+      vi.mocked(Utilities.isExpired).mockImplementation(
         (date: string | undefined) => date === '2024-01-01',
       );
-      vi.mocked(Utils.isExpiringSoon).mockReturnValue(false);
+      vi.mocked(Utilities.isExpiringSoon).mockReturnValue(false);
 
       const result = createInventoryHeader('Test', mockItems);
 
@@ -152,9 +152,9 @@ describe('createInventoryHeader', () => {
     });
 
     it('should show expiring badge when items are expiring soon', () => {
-      vi.mocked(Utils.isExpired).mockReturnValue(false);
+      vi.mocked(Utilities.isExpired).mockReturnValue(false);
       // Mock so that fresh apple is expiring soon
-      vi.mocked(Utils.isExpiringSoon).mockImplementation((date: string) => date === '2024-12-31');
+      vi.mocked(Utilities.isExpiringSoon).mockImplementation((date: string) => date === '2024-12-31');
 
       const result = createInventoryHeader('Test', mockItems);
 
@@ -167,10 +167,10 @@ describe('createInventoryHeader', () => {
 
     it('should show both badges when both expired and expiring items exist', () => {
       // Expired milk is expired, fresh apple is expiring
-      vi.mocked(Utils.isExpired).mockImplementation(
+      vi.mocked(Utilities.isExpired).mockImplementation(
         (date: string | undefined) => date === '2024-01-01',
       );
-      vi.mocked(Utils.isExpiringSoon).mockImplementation((date: string) => date === '2024-12-31');
+      vi.mocked(Utilities.isExpiringSoon).mockImplementation((date: string) => date === '2024-12-31');
 
       const result = createInventoryHeader('Test', mockItems);
 
@@ -198,7 +198,7 @@ describe('createInventoryHeader', () => {
       ];
 
       // Both expired items
-      vi.mocked(Utils.isExpired).mockImplementation(
+      vi.mocked(Utilities.isExpired).mockImplementation(
         (date: string | undefined) => date === '2024-01-01' || date === '2024-01-02',
       );
 
@@ -234,14 +234,14 @@ describe('createInventoryHeader', () => {
         },
       ];
 
-      vi.mocked(Utils.isExpired).mockReturnValue(true);
-      vi.mocked(Utils.isExpiringSoon).mockReturnValue(true);
+      vi.mocked(Utilities.isExpired).mockReturnValue(true);
+      vi.mocked(Utilities.isExpiringSoon).mockReturnValue(true);
 
       const result = createInventoryHeader('Test', itemsWithoutExpiry);
 
       expect(result).not.toContain('class="expiry-indicators"');
-      expect(Utils.isExpired).not.toHaveBeenCalled();
-      expect(Utils.isExpiringSoon).not.toHaveBeenCalled();
+      expect(Utilities.isExpired).not.toHaveBeenCalled();
+      expect(Utilities.isExpiringSoon).not.toHaveBeenCalled();
     });
 
     it('should exclude items with zero quantity from expiry counts', () => {
@@ -259,8 +259,8 @@ describe('createInventoryHeader', () => {
         },
       ];
 
-      vi.mocked(Utils.isExpired).mockReturnValue(true);
-      vi.mocked(Utils.isExpiringSoon).mockReturnValue(true);
+      vi.mocked(Utilities.isExpired).mockReturnValue(true);
+      vi.mocked(Utilities.isExpiringSoon).mockReturnValue(true);
 
       const result = createInventoryHeader('Test', zeroQuantityItems);
 
@@ -282,7 +282,7 @@ describe('createInventoryHeader', () => {
         },
       ];
 
-      vi.mocked(Utils.isExpired).mockReturnValue(true);
+      vi.mocked(Utilities.isExpired).mockReturnValue(true);
 
       const result = createInventoryHeader('Test', negativeQuantityItems);
 
@@ -304,11 +304,11 @@ describe('createInventoryHeader', () => {
         },
       ];
 
-      vi.mocked(Utils.isExpiringSoon).mockReturnValue(true);
+      vi.mocked(Utilities.isExpiringSoon).mockReturnValue(true);
 
       createInventoryHeader('Test', customAlertItem);
 
-      expect(Utils.isExpiringSoon).toHaveBeenCalledWith('2024-12-31', 14);
+      expect(Utilities.isExpiringSoon).toHaveBeenCalledWith('2024-12-31', 14);
     });
 
     it('should use default 0 days when expiry_alert_days is undefined', () => {
@@ -326,11 +326,11 @@ describe('createInventoryHeader', () => {
         },
       ];
 
-      vi.mocked(Utils.isExpiringSoon).mockReturnValue(true);
+      vi.mocked(Utilities.isExpiringSoon).mockReturnValue(true);
 
       createInventoryHeader('Test', defaultAlertItem);
 
-      expect(Utils.isExpiringSoon).toHaveBeenCalledWith('2024-12-31', 1);
+      expect(Utilities.isExpiringSoon).toHaveBeenCalledWith('2024-12-31', 1);
     });
   });
 
@@ -357,7 +357,7 @@ describe('createInventoryHeader', () => {
         },
       ];
 
-      vi.mocked(Utils.isExpired).mockReturnValue(true);
+      vi.mocked(Utilities.isExpired).mockReturnValue(true);
 
       const result = createInventoryHeader('Test', itemsWithUndefinedQuantity);
 
@@ -371,7 +371,7 @@ describe('createInventoryHeader', () => {
         'Description with <script>alert("xss")</script> & "quotes"',
       );
 
-      expect(Utils.sanitizeHtml).toHaveBeenCalledWith(
+      expect(Utilities.sanitizeHtml).toHaveBeenCalledWith(
         'Description with <script>alert("xss")</script> & "quotes"',
       );
     });
@@ -389,7 +389,7 @@ describe('createInventoryHeader', () => {
         todo_list: 'grocery',
       }));
 
-      vi.mocked(Utils.isExpired).mockReturnValue(true);
+      vi.mocked(Utilities.isExpired).mockReturnValue(true);
 
       const result = createInventoryHeader('Test', manyItems);
 
@@ -409,10 +409,10 @@ describe('createInventoryHeader', () => {
     });
 
     it('should have proper icon structure in badges', () => {
-      vi.mocked(Utils.isExpired).mockImplementation(
+      vi.mocked(Utilities.isExpired).mockImplementation(
         (date: string | undefined) => date === '2024-01-01',
       );
-      vi.mocked(Utils.isExpiringSoon).mockReturnValue(false);
+      vi.mocked(Utilities.isExpiringSoon).mockReturnValue(false);
 
       const result = createInventoryHeader('Test', mockItems);
 
@@ -439,8 +439,8 @@ describe('createInventoryHeader', () => {
     });
 
     it('should not show expiry indicators when both counts are exactly 0', () => {
-      vi.mocked(Utils.isExpired).mockReturnValue(false);
-      vi.mocked(Utils.isExpiringSoon).mockReturnValue(false);
+      vi.mocked(Utilities.isExpired).mockReturnValue(false);
+      vi.mocked(Utilities.isExpiringSoon).mockReturnValue(false);
 
       const result = createInventoryHeader('Test', mockItems);
 
@@ -452,8 +452,8 @@ describe('createInventoryHeader', () => {
     });
 
     it('should not show expired badge when expired count is 0 but expiring count > 0', () => {
-      vi.mocked(Utils.isExpired).mockReturnValue(false);
-      vi.mocked(Utils.isExpiringSoon).mockImplementation((date: string) => date === '2024-12-31');
+      vi.mocked(Utilities.isExpired).mockReturnValue(false);
+      vi.mocked(Utilities.isExpiringSoon).mockImplementation((date: string) => date === '2024-12-31');
 
       const result = createInventoryHeader('Test', mockItems);
 
@@ -466,10 +466,10 @@ describe('createInventoryHeader', () => {
     });
 
     it('should not show expiring badge when expiring count is 0 but expired count > 0', () => {
-      vi.mocked(Utils.isExpired).mockImplementation(
+      vi.mocked(Utilities.isExpired).mockImplementation(
         (date: string | undefined) => date === '2024-01-01',
       );
-      vi.mocked(Utils.isExpiringSoon).mockReturnValue(false);
+      vi.mocked(Utilities.isExpiringSoon).mockReturnValue(false);
 
       const result = createInventoryHeader('Test', mockItems);
 
@@ -497,8 +497,8 @@ describe('createInventoryHeader', () => {
         },
       ];
 
-      vi.mocked(Utils.isExpired).mockReturnValue(true); // Would be expired if quantity > 0
-      vi.mocked(Utils.isExpiringSoon).mockReturnValue(false);
+      vi.mocked(Utilities.isExpired).mockReturnValue(true); // Would be expired if quantity > 0
+      vi.mocked(Utilities.isExpiringSoon).mockReturnValue(false);
 
       const result = createInventoryHeader('Test', zeroQuantityItems);
 
@@ -523,8 +523,8 @@ describe('createInventoryHeader', () => {
         },
       ];
 
-      vi.mocked(Utils.isExpired).mockReturnValue(false);
-      vi.mocked(Utils.isExpiringSoon).mockReturnValue(true); // Would be expiring if quantity > 0
+      vi.mocked(Utilities.isExpired).mockReturnValue(false);
+      vi.mocked(Utilities.isExpiringSoon).mockReturnValue(true); // Would be expiring if quantity > 0
 
       const result = createInventoryHeader('Test', zeroQuantityItems);
 
@@ -571,8 +571,8 @@ describe('createInventoryHeader', () => {
     });
 
     it('should verify the exact structure when no expiry indicators should show', () => {
-      vi.mocked(Utils.isExpired).mockReturnValue(false);
-      vi.mocked(Utils.isExpiringSoon).mockReturnValue(false);
+      vi.mocked(Utilities.isExpired).mockReturnValue(false);
+      vi.mocked(Utilities.isExpiringSoon).mockReturnValue(false);
 
       const result = createInventoryHeader('Test', mockItems);
 

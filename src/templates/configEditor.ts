@@ -1,11 +1,11 @@
 import { html, TemplateResult } from 'lit-element';
-import { HomeAssistant } from '../types/home-assistant';
+import { HomeAssistant } from '../types/homeAssistant';
 
 export function createEntitySelector(
   hass: HomeAssistant,
   entityOptions: Array<{ value: string; label: string }>,
   selectedEntity: string,
-  onValueChanged: (ev: CustomEvent) => void,
+  onValueChanged: (event_: CustomEvent) => void,
 ): TemplateResult {
   return html`
     <div class="option">

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { generateCardHTML } from '../../src/templates/inventoryCard';
-import { InventoryItem } from '../../src/types/home-assistant';
+import { InventoryItem } from '../../src/types/homeAssistant';
 import { FilterState } from '../../src/types/filterState';
 import { TodoList } from '../../src/types/todoList';
 import { ELEMENTS, MESSAGES } from '../../src/utils/constants';

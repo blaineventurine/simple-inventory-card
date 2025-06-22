@@ -1,5 +1,5 @@
-import { Utils } from '../utils/utils';
-import { InventoryItem } from '../types/home-assistant';
+import { Utilities } from '../utils/utilities';
+import { InventoryItem } from '../types/homeAssistant';
 import { DEFAULTS } from '../utils/constants';
 
 export function createInventoryHeader(
@@ -13,10 +13,10 @@ export function createInventoryHeader(
   return `
       <div class="card-header">
         <div class="header-content">
-          <h2 class="inventory-title">${Utils.sanitizeHtml(inventoryName)}</h2>
+          <h2 class="inventory-title">${Utilities.sanitizeHtml(inventoryName)}</h2>
           ${
             description && description.trim()
-              ? `<p class="inventory-description">${Utils.sanitizeHtml(description)}</p>`
+              ? `<p class="inventory-description">${Utilities.sanitizeHtml(description)}</p>`
               : ''
           }
         </div>
@@ -58,7 +58,7 @@ function getExpiringItemsCount(items: InventoryItem[]): number {
       return false;
     }
     const threshold = item.expiry_alert_days || DEFAULTS.EXPIRY_ALERT_DAYS;
-    return Utils.isExpiringSoon(item.expiry_date, threshold);
+    return Utilities.isExpiringSoon(item.expiry_date, threshold);
   }).length;
 }
 
@@ -67,6 +67,6 @@ function getExpiredItemsCount(items: InventoryItem[]): number {
     if (!item.expiry_date || (item.quantity ?? 0) <= 0) {
       return false;
     }
-    return Utils.isExpired(item.expiry_date);
+    return Utilities.isExpired(item.expiry_date);
   }).length;
 }

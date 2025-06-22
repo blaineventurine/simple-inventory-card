@@ -12,28 +12,34 @@ export class ModalValidationManager {
 
     this.clearFieldErrors(isAddModal);
 
-    errors.forEach((error) => {
+    for (const error of errors) {
       let elementId = '';
 
       switch (error.field) {
-        case 'name':
+        case 'name': {
           elementId = `${prefix}-${ELEMENTS.NAME}`;
           break;
-        case 'quantity':
+        }
+        case 'quantity': {
           elementId = `${prefix}-${ELEMENTS.QUANTITY}`;
           break;
-        case 'autoAddToListQuantity':
+        }
+        case 'autoAddToListQuantity': {
           elementId = `${prefix}-${ELEMENTS.AUTO_ADD_TO_LIST_QUANTITY}`;
           break;
-        case 'todoList':
+        }
+        case 'todoList': {
           elementId = `${prefix}-${ELEMENTS.TODO_LIST}`;
           break;
-        case 'expiryDate':
+        }
+        case 'expiryDate': {
           elementId = `${prefix}-${ELEMENTS.EXPIRY_DATE}`;
           break;
-        case 'expiryAlertDays':
+        }
+        case 'expiryAlertDays': {
           elementId = `${prefix}-${ELEMENTS.EXPIRY_ALERT_DAYS}`;
           break;
+        }
       }
 
       if (elementId) {
@@ -42,7 +48,7 @@ export class ModalValidationManager {
           element.classList.add('input-error');
         }
       }
-    });
+    }
   }
 
   /**
@@ -53,9 +59,9 @@ export class ModalValidationManager {
 
     const modal = this.getElement<HTMLElement>(modalId);
     if (modal) {
-      modal.querySelectorAll('.input-error').forEach((field) => {
+      for (const field of modal.querySelectorAll('.input-error')) {
         field.classList.remove('input-error');
-      });
+      }
     }
   }
 
@@ -128,7 +134,7 @@ export class ModalValidationManager {
     const todoListField = this.getElement<HTMLSelectElement>(`${prefix}-${ELEMENTS.TODO_LIST}`);
 
     // Set up input/change listeners for all fields
-    fields.forEach((field) => {
+    for (const field of fields) {
       if (field) {
         const clearErrorHandler = () => {
           field.classList.remove('input-error');
@@ -138,7 +144,7 @@ export class ModalValidationManager {
         field.addEventListener('input', clearErrorHandler);
         field.addEventListener('change', clearErrorHandler);
       }
-    });
+    }
 
     // Special handling for auto-add checkbox
     if (autoAddCheckbox) {

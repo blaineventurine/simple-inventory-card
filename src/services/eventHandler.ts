@@ -1,9 +1,9 @@
 import { ELEMENTS, ACTIONS, DEFAULTS, MESSAGES, CSS_CLASSES } from '../utils/constants';
-import { HomeAssistant, InventoryConfig, InventoryItem } from '../types/home-assistant';
+import { HomeAssistant, InventoryConfig, InventoryItem } from '../types/homeAssistant';
 import { Services } from './services';
 import { Modals } from './modals';
 import { Filters } from './filters';
-import { Utils } from '../utils/utils';
+import { Utilities } from '../utils/utilities';
 
 export class EventHandler {
   private renderRoot: ShadowRoot;
@@ -15,8 +15,8 @@ export class EventHandler {
   private renderCallback: () => void;
   private updateItemsCallback: (items: InventoryItem[], sortMethod: string) => void;
 
-  private boundClickHandler: EventListener | null = null;
-  private boundChangeHandler: EventListener | null = null;
+  private boundClickHandler: EventListener | undefined = undefined;
+  private boundChangeHandler: EventListener | undefined = undefined;
 
   private eventListenersSetup = false;
 
@@ -46,14 +46,14 @@ export class EventHandler {
       return;
     }
 
-    const actualClickHandler = (e: Event) => {
-      this.handleClick(e).catch((error) => {
+    const actualClickHandler = (event: Event) => {
+      this.handleClick(event).catch((error) => {
         console.error('Error in handleClick:', error);
       });
     };
 
-    const actualChangeHandler = (e: Event) => {
-      this.handleChange(e);
+    const actualChangeHandler = (event: Event) => {
+      this.handleChange(event);
     };
 
     this.renderRoot.addEventListener('click', actualClickHandler);
@@ -78,59 +78,64 @@ export class EventHandler {
     this.hass = hass;
   }
 
-  private async handleClick(e: Event): Promise<void> {
-    const target = e.target as HTMLElement;
+  private async handleClick(event: Event): Promise<void> {
+    const target = event.target as HTMLElement;
     if (target.tagName === 'BUTTON' && target.hasAttribute('data-processing')) {
-      e.preventDefault();
-      e.stopPropagation();
+      event.preventDefault();
+      event.stopPropagation();
       return;
     }
 
     if (target.dataset.action && target.dataset.name) {
-      e.preventDefault();
-      e.stopPropagation();
+      event.preventDefault();
+      event.stopPropagation();
       await this.handleItemAction(target, target.dataset.action, target.dataset.name);
       return;
     }
 
     // Handle modal clicks first (let modals handle their own logic)
-    if (this.modals.handleModalClick(e as MouseEvent)) {
+    if (this.modals.handleModalClick(event as MouseEvent)) {
       return; // Don't prevent default - let modals handle it
     }
 
     const buttonId = target.id;
     if (buttonId && target.tagName === 'BUTTON') {
       switch (buttonId) {
-        case ELEMENTS.OPEN_ADD_MODAL:
-          e.preventDefault();
-          e.stopPropagation();
+        case ELEMENTS.OPEN_ADD_MODAL: {
+          event.preventDefault();
+          event.stopPropagation();
           this.modals.openAddModal();
           break;
-        case ELEMENTS.ADD_ITEM_BTN:
-          e.preventDefault();
-          e.stopPropagation();
+        }
+        case ELEMENTS.ADD_ITEM_BTN: {
+          event.preventDefault();
+          event.stopPropagation();
           await this.handleAddItem();
           break;
-        case ELEMENTS.ADVANCED_SEARCH_TOGGLE:
-          e.preventDefault();
-          e.stopPropagation();
+        }
+        case ELEMENTS.ADVANCED_SEARCH_TOGGLE: {
+          event.preventDefault();
+          event.stopPropagation();
           this.toggleAdvancedFilters();
           break;
-        case ELEMENTS.CLEAR_FILTERS:
-          e.preventDefault();
-          e.stopPropagation();
+        }
+        case ELEMENTS.CLEAR_FILTERS: {
+          event.preventDefault();
+          event.stopPropagation();
           this.clearFilters();
           break;
-        default:
+        }
+        default: {
           return;
+        }
       }
       return;
     }
 
     if (target.tagName === 'BUTTON') {
       if (target.classList.contains(CSS_CLASSES.SAVE_BTN)) {
-        e.preventDefault();
-        e.stopPropagation();
+        event.preventDefault();
+        event.stopPropagation();
         if (target.closest(`#${ELEMENTS.EDIT_MODAL}`)) {
           await this.handleSaveEdits();
         }
@@ -138,8 +143,8 @@ export class EventHandler {
       }
 
       if (target.classList.contains(CSS_CLASSES.CANCEL_BTN)) {
-        e.preventDefault();
-        e.stopPropagation();
+        event.preventDefault();
+        event.stopPropagation();
         if (target.closest(`#${ELEMENTS.ADD_MODAL}`)) {
           this.modals.closeAddModal();
         } else if (target.closest(`#${ELEMENTS.EDIT_MODAL}`)) {
@@ -150,8 +155,8 @@ export class EventHandler {
     }
   }
 
-  private handleChange(e: Event): void {
-    const target = e.target as HTMLElement;
+  private handleChange(event: Event): void {
+    const target = event.target as HTMLElement;
 
     if (
       target instanceof HTMLSelectElement &&
@@ -191,7 +196,7 @@ export class EventHandler {
 
       const state = this.hass.states[this.config.entity];
       if (state) {
-        const allItems = Utils.validateInventoryItems(state.attributes?.items || []);
+        const allItems = Utilities.validateInventoryItems(state.attributes?.items || []);
         const filteredItems = this.filters.filterItems(allItems, filters);
         const sortedItems = this.filters.sortItems(filteredItems, 'name');
         this.updateItemsCallback(sortedItems, 'name');
@@ -211,7 +216,7 @@ export class EventHandler {
     ) as HTMLSelectElement | null;
     const sortMethod = sortMethodElement?.value || DEFAULTS.SORT_METHOD;
 
-    const allItems = Utils.validateInventoryItems(state.attributes?.items || []);
+    const allItems = Utilities.validateInventoryItems(state.attributes?.items || []);
     const filteredItems = this.filters.filterItems(allItems, filters);
     const sortedItems = this.filters.sortItems(filteredItems, sortMethod);
 
@@ -234,35 +239,40 @@ export class EventHandler {
     button.style.pointerEvents = 'none';
 
     try {
-      const inventoryId = Utils.getInventoryId(this.hass, this.config.entity);
+      const inventoryId = Utilities.getInventoryId(this.hass, this.config.entity);
 
       switch (action) {
-        case ACTIONS.INCREMENT:
+        case ACTIONS.INCREMENT: {
           await this.services.incrementItem(inventoryId, itemName);
           this.renderCallback();
           break;
-        case ACTIONS.DECREMENT:
+        }
+        case ACTIONS.DECREMENT: {
           await this.services.decrementItem(inventoryId, itemName);
           this.renderCallback();
           break;
-        case ACTIONS.REMOVE:
+        }
+        case ACTIONS.REMOVE: {
           if (confirm(MESSAGES.CONFIRM_REMOVE(itemName))) {
             await this.services.removeItem(inventoryId, itemName);
             this.renderCallback();
           }
           break;
-        case ACTIONS.OPEN_EDIT_MODAL:
+        }
+        case ACTIONS.OPEN_EDIT_MODAL: {
           const freshState = this.getFreshState();
           this.modals.openEditModal(itemName, () => freshState);
           break;
-        default:
+        }
+        default: {
           console.warn(`Unknown action: ${action}`);
+        }
       }
     } catch (error) {
       console.error(`Error performing ${action} on ${itemName}:`, error);
     } finally {
       setTimeout(() => {
-        button.removeAttribute('data-processing');
+        button.setAttribute('data-processing', 'true');
         button.removeAttribute('disabled');
         button.style.opacity = '1';
         button.style.pointerEvents = 'auto';
@@ -289,15 +299,18 @@ export class EventHandler {
       const filters = this.filters.getCurrentFilters(this.config.entity);
 
       switch (selectElement.id) {
-        case ELEMENTS.FILTER_CATEGORY:
+        case ELEMENTS.FILTER_CATEGORY: {
           filters.category = selectElement.value;
           break;
-        case ELEMENTS.FILTER_QUANTITY:
+        }
+        case ELEMENTS.FILTER_QUANTITY: {
           filters.quantity = selectElement.value;
           break;
-        case ELEMENTS.FILTER_EXPIRY:
+        }
+        case ELEMENTS.FILTER_EXPIRY: {
           filters.expiry = selectElement.value;
           break;
+        }
       }
 
       this.filters.saveFilters(this.config.entity, filters);

@@ -1,11 +1,11 @@
 import packageJson from '../../package.json';
 
 import { ConfigEditor } from './configEditor';
-import { HomeAssistant, InventoryConfig, InventoryItem } from '../types/home-assistant';
+import { HomeAssistant, InventoryConfig, InventoryItem } from '../types/homeAssistant';
 import { LifecycleManager } from '../services/lifecycleManager';
 import { LitElement } from 'lit-element';
 import { RenderingCoordinator } from '../services/renderingCoordinator';
-import { Utils } from '../utils/utils';
+import { Utilities } from '../utils/utilities';
 
 declare global {
   interface Window {
@@ -20,8 +20,8 @@ declare global {
 }
 
 class SimpleInventoryCard extends LitElement {
-  private _config: InventoryConfig | null = null;
-  private _hass: HomeAssistant | null = null;
+  private _config: InventoryConfig | undefined = undefined;
+  private _hass: HomeAssistant | undefined = undefined;
   private _todoLists: Array<{ id: string; name: string }> = [];
   private lifecycleManager: LifecycleManager;
   private renderingCoordinator: RenderingCoordinator;
@@ -91,7 +91,7 @@ class SimpleInventoryCard extends LitElement {
     }
 
     this.renderingCoordinator.render(this._config, this._hass, this._todoLists, (items) =>
-      Utils.validateInventoryItems(items),
+      Utilities.validateInventoryItems(items),
     );
   }
 
@@ -107,7 +107,7 @@ class SimpleInventoryCard extends LitElement {
     if (!this._hass) {
       return;
     }
-    this._todoLists = Utils.extractTodoLists(this._hass);
+    this._todoLists = Utilities.extractTodoLists(this._hass);
   }
 
   getCardSize(): number {
@@ -134,7 +134,7 @@ if (!customElements.get('simple-inventory-config-editor')) {
   customElements.define('simple-inventory-config-editor', ConfigEditor);
 }
 
-window.customCards = window.customCards || [];
+globalThis.customCards = globalThis.customCards || [];
 const cardConfig = {
   type: 'simple-inventory-card',
   name: 'Simple Inventory Card',
@@ -143,12 +143,12 @@ const cardConfig = {
   documentationURL: 'https://github.com/blaineventurine/simple-inventory-card',
 };
 
-const existingCard = window.customCards.find((card) => card.type === 'simple-inventory-card');
+const existingCard = globalThis.customCards.find((card) => card.type === 'simple-inventory-card');
 if (!existingCard) {
-  window.customCards.push(cardConfig);
+  globalThis.customCards.push(cardConfig);
 }
 
-window.setTimeout(() => {
+globalThis.setTimeout(() => {
   const event = new Event('custom_card_update', {
     bubbles: true,
     cancelable: false,
@@ -157,6 +157,6 @@ window.setTimeout(() => {
 }, 2000);
 
 console.info(
-  `%c Simple Inventory Card %c ${packageJson.version} `,
+  `%c Simple Inventory Card %c ${packageJson.version}`,
   'color: steelblue; background: black; font-weight: bold;',
 );

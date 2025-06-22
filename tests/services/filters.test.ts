@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { Filters } from '../../src/services/filters';
-import { Utils } from '../../src/utils/utils';
+import { Utilities } from '../../src/utils/utilities';
 import { FILTER_VALUES, STORAGE_KEYS, ELEMENTS, SORT_METHODS } from '../../src/utils/constants';
-import { InventoryItem } from '../../src/types/home-assistant';
+import { InventoryItem } from '../../src/types/homeAssistant';
 import { FilterState } from '../../src/types/filterState';
 
-vi.mock('../../src/utils/utils');
+vi.mock('../../src/utils/utilities');
 vi.mock('../../src/utils/constants');
 
 const localStorageMock = (() => {
@@ -114,9 +114,9 @@ describe('Filters', () => {
     vi.mocked(SORT_METHODS).QUANTITY_LOW = 'quantity_low';
     vi.mocked(SORT_METHODS).EXPIRY = 'expiry';
     vi.mocked(SORT_METHODS).ZERO_LAST = 'zero_last';
-    vi.mocked(Utils.isExpired).mockReturnValue(false);
-    vi.mocked(Utils.isExpiringSoon).mockReturnValue(false);
-    vi.mocked(Utils.hasActiveFilters).mockReturnValue(false);
+    vi.mocked(Utilities.isExpired).mockReturnValue(false);
+    vi.mocked(Utilities.isExpiringSoon).mockReturnValue(false);
+    vi.mocked(Utilities.hasActiveFilters).mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -545,7 +545,7 @@ describe('Filters', () => {
       });
 
       it('should filter by expiry - expired items', () => {
-        vi.mocked(Utils.isExpired).mockImplementation(
+        vi.mocked(Utilities.isExpired).mockImplementation(
           (date: string | undefined) => date === '2023-01-01',
         );
 
@@ -588,7 +588,7 @@ describe('Filters', () => {
       });
 
       it('should match expiring soon items for SOON filter', () => {
-        vi.mocked(Utils.isExpiringSoon).mockImplementation(
+        vi.mocked(Utilities.isExpiringSoon).mockImplementation(
           (expiryDate: string, threshold?: number) =>
             expiryDate === '2024-06-05' && threshold === 7,
         );
@@ -613,7 +613,7 @@ describe('Filters', () => {
       });
 
       it('should handle expiry_alert_days of 0 in soon filter', () => {
-        vi.mocked(Utils.isExpiringSoon).mockImplementation(
+        vi.mocked(Utilities.isExpiringSoon).mockImplementation(
           (expiryDate: string, threshold?: number) =>
             expiryDate === '2024-06-05' && threshold === 7, // 0 becomes 7 due to || operator
         );
@@ -631,7 +631,7 @@ describe('Filters', () => {
         });
 
         expect(result).toHaveLength(1);
-        expect(Utils.isExpiringSoon).toHaveBeenCalledWith('2024-06-05', 7); // 0 || 7 = 7
+        expect(Utilities.isExpiringSoon).toHaveBeenCalledWith('2024-06-05', 7); // 0 || 7 = 7
       });
 
       it('should exclude items at exact threshold boundary (tests > vs >= mutation)', () => {
@@ -1119,7 +1119,7 @@ describe('Filters', () => {
           expiry: '',
           showAdvanced: false,
         };
-        vi.mocked(Utils.hasActiveFilters).mockReturnValue(false);
+        vi.mocked(Utilities.hasActiveFilters).mockReturnValue(false);
 
         filters.updateFilterIndicators(testFilters);
 
@@ -1135,7 +1135,7 @@ describe('Filters', () => {
           expiry: '',
           showAdvanced: false,
         };
-        vi.mocked(Utils.hasActiveFilters).mockReturnValue(true);
+        vi.mocked(Utilities.hasActiveFilters).mockReturnValue(true);
 
         filters.updateFilterIndicators(testFilters);
 
@@ -1151,7 +1151,7 @@ describe('Filters', () => {
           expiry: '',
           showAdvanced: true,
         };
-        vi.mocked(Utils.hasActiveFilters).mockReturnValue(true);
+        vi.mocked(Utilities.hasActiveFilters).mockReturnValue(true);
 
         filters.updateFilterIndicators(testFilters);
 
@@ -1166,7 +1166,7 @@ describe('Filters', () => {
           expiry: '',
           showAdvanced: true,
         };
-        vi.mocked(Utils.hasActiveFilters).mockReturnValue(false);
+        vi.mocked(Utilities.hasActiveFilters).mockReturnValue(false);
 
         filters.updateFilterIndicators(testFilters);
 

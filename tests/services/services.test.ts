@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Services } from '../../src/services/services';
-import { HomeAssistant } from '../../src/types/home-assistant';
+import { HomeAssistant } from '../../src/types/homeAssistant';
 import { ItemData } from '../../src/types/inventoryItem';
 import { DOMAIN, SERVICES, PARAMS, DEFAULTS } from '../../src/utils/constants';
 
@@ -445,7 +445,7 @@ describe('Services', () => {
     });
 
     it('should handle undefined error', async () => {
-      mockHass.callService = vi.fn().mockRejectedValue(undefined);
+      mockHass.callService = vi.fn().mockRejectedValue();
 
       const result = await services.removeItem('test', 'test');
 

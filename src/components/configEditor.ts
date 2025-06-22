@@ -1,6 +1,6 @@
 import { TemplateResult, CSSResult, LitElement, html } from 'lit-element';
-import { HomeAssistant, InventoryConfig } from '../types/home-assistant';
-import { Utils } from '../utils/utils';
+import { HomeAssistant, InventoryConfig } from '../types/homeAssistant';
+import { Utilities } from '../utils/utilities';
 import {
   createEntitySelector,
   createEntityInfo,
@@ -37,8 +37,8 @@ class ConfigEditor extends LitElement {
       return html`<div>Loading...</div>`;
     }
 
-    const inventoryEntities = Utils.findInventoryEntities(this.hass);
-    const entityOptions = Utils.createEntityOptions(this.hass, inventoryEntities);
+    const inventoryEntities = Utilities.findInventoryEntities(this.hass);
+    const entityOptions = Utilities.createEntityOptions(this.hass, inventoryEntities);
 
     return html`
       <div class="card-config">
@@ -53,25 +53,25 @@ class ConfigEditor extends LitElement {
     `;
   }
 
-  private _valueChanged(ev: CustomEvent): void {
+  private _valueChanged(event_: CustomEvent): void {
     if (!this._config) {
       return;
     }
 
-    const value = ev.detail?.value;
+    const value = event_.detail?.value;
 
     if (this._entity === value) {
       return;
     }
 
-    const newConfig: InventoryConfig = {
+    const config: InventoryConfig = {
       ...this._config,
       entity: value,
     };
 
     this.dispatchEvent(
       new CustomEvent('config-changed', {
-        detail: { config: newConfig },
+        detail: { config: config },
         bubbles: true,
         composed: true,
       }),

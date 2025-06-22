@@ -1,13 +1,13 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { RenderingCoordinator } from '../../src/services/renderingCoordinator';
 import { LifecycleManager } from '../../src/services/lifecycleManager';
-import { Utils } from '../../src/utils/utils';
+import { Utilities } from '../../src/utils/utilities';
 import { DEFAULTS } from '../../src/utils/constants';
-import { HomeAssistant, InventoryConfig, InventoryItem } from '../../src/types/home-assistant';
+import { HomeAssistant, InventoryConfig, InventoryItem } from '../../src/types/homeAssistant';
 import { createMockHomeAssistant, createMockHassEntity } from '../testHelpers';
 
 vi.mock('../../src/services/lifecycleManager');
-vi.mock('../../src/utils/utils');
+vi.mock('../../src/utils/utilities');
 
 // Mock dynamic import
 vi.mock('../../src/templates/itemList', () => ({
@@ -85,7 +85,7 @@ describe('RenderingCoordinator', () => {
 
     mockValidateItemsCallback = vi.fn().mockImplementation((items) => items);
 
-    vi.mocked(Utils.sanitizeHtml).mockImplementation((html) => html);
+    vi.mocked(Utilities.sanitizeHtml).mockImplementation((html) => html);
     vi.useFakeTimers();
     vi.clearAllMocks();
 
@@ -100,7 +100,7 @@ describe('RenderingCoordinator', () => {
     it('should initialize with lifecycle manager and render root', () => {
       expect(renderingCoordinator['lifecycleManager']).toBe(mockLifecycleManager);
       expect(renderingCoordinator['renderRoot']).toBe(mockRenderRoot);
-      expect(renderingCoordinator['updateTimeout']).toBe(null);
+      expect(renderingCoordinator['updateTimeout']).toBe(undefined);
     });
   });
 
@@ -124,7 +124,12 @@ describe('RenderingCoordinator', () => {
     });
 
     it('should return early if config is missing', () => {
-      renderingCoordinator.render(null as any, mockHass, mockTodoLists, mockValidateItemsCallback);
+      renderingCoordinator.render(
+        undefined as any,
+        mockHass,
+        mockTodoLists,
+        mockValidateItemsCallback,
+      );
 
       expect(mockLifecycleManager.getServices).not.toHaveBeenCalled();
     });
@@ -132,7 +137,7 @@ describe('RenderingCoordinator', () => {
     it('should return early if hass is missing', () => {
       renderingCoordinator.render(
         mockConfig,
-        null as any,
+        undefined as any,
         mockTodoLists,
         mockValidateItemsCallback,
       );
@@ -141,7 +146,10 @@ describe('RenderingCoordinator', () => {
     });
 
     it('should return early if renderRoot is missing', () => {
-      const coordinatorWithoutRoot = new RenderingCoordinator(mockLifecycleManager, null as any);
+      const coordinatorWithoutRoot = new RenderingCoordinator(
+        mockLifecycleManager,
+        undefined as any,
+      );
 
       coordinatorWithoutRoot.render(mockConfig, mockHass, mockTodoLists, mockValidateItemsCallback);
 
@@ -169,7 +177,7 @@ describe('RenderingCoordinator', () => {
     });
 
     it('should render error if services not available', () => {
-      vi.mocked(mockLifecycleManager.getServices).mockReturnValue(null);
+      vi.mocked(mockLifecycleManager.getServices).mockReturnValue(undefined);
       const renderErrorSpy = vi.spyOn(renderingCoordinator, 'renderError');
 
       renderingCoordinator.render(mockConfig, mockHass, mockTodoLists, mockValidateItemsCallback);
@@ -361,7 +369,7 @@ describe('RenderingCoordinator', () => {
 
       renderingCoordinator.renderError('Test error message');
 
-      expect(Utils.sanitizeHtml).toHaveBeenCalledWith('Test error message');
+      expect(Utilities.sanitizeHtml).toHaveBeenCalledWith('Test error message');
       expect((mockRenderRoot as any).innerHTML).toContain('Test error message');
       expect((mockRenderRoot as any).innerHTML).toContain('ha-card');
       expect((mockRenderRoot as any).innerHTML).toContain('error-message');
@@ -370,23 +378,23 @@ describe('RenderingCoordinator', () => {
     it('should render error directly when renderer not in services', () => {
       const servicesWithoutRenderer = {
         ...mockServices,
-        renderer: null,
+        renderer: undefined,
       };
       vi.mocked(mockLifecycleManager.getServices).mockReturnValue(servicesWithoutRenderer);
 
       renderingCoordinator.renderError('Test error message');
 
-      expect(Utils.sanitizeHtml).toHaveBeenCalledWith('Test error message');
+      expect(Utilities.sanitizeHtml).toHaveBeenCalledWith('Test error message');
       expect((mockRenderRoot as any).innerHTML).toContain('Test error message');
     });
 
     it('should sanitize error message in direct render', () => {
-      vi.mocked(mockLifecycleManager.getServices).mockReturnValue(null);
-      vi.mocked(Utils.sanitizeHtml).mockReturnValue('&lt;script&gt;sanitized&lt;/script&gt;');
+      vi.mocked(mockLifecycleManager.getServices).mockReturnValue(undefined);
+      vi.mocked(Utilities.sanitizeHtml).mockReturnValue('&lt;script&gt;sanitized&lt;/script&gt;');
 
       renderingCoordinator.renderError('<script>malicious</script>');
 
-      expect(Utils.sanitizeHtml).toHaveBeenCalledWith('<script>malicious</script>');
+      expect(Utilities.sanitizeHtml).toHaveBeenCalledWith('<script>malicious</script>');
       expect((mockRenderRoot as any).innerHTML).toContain('&lt;script&gt;sanitized&lt;/script&gt;');
     });
   });
@@ -396,11 +404,11 @@ describe('RenderingCoordinator', () => {
       const mockCallback = vi.fn();
       renderingCoordinator.debouncedRender(mockCallback);
 
-      expect(renderingCoordinator['updateTimeout']).not.toBe(null);
+      expect(renderingCoordinator['updateTimeout']).not.toBe(undefined);
 
       renderingCoordinator.cleanup();
 
-      expect(renderingCoordinator['updateTimeout']).toBe(null);
+      expect(renderingCoordinator['updateTimeout']).toBe(undefined);
 
       vi.advanceTimersByTime(100);
 
@@ -408,11 +416,11 @@ describe('RenderingCoordinator', () => {
     });
 
     it('should handle cleanup when no timeout exists', () => {
-      expect(renderingCoordinator['updateTimeout']).toBe(null);
+      expect(renderingCoordinator['updateTimeout']).toBe(undefined);
 
       expect(() => renderingCoordinator.cleanup()).not.toThrow();
 
-      expect(renderingCoordinator['updateTimeout']).toBe(null);
+      expect(renderingCoordinator['updateTimeout']).toBe(undefined);
     });
 
     it('should clear timeout multiple times safely', () => {
@@ -422,7 +430,7 @@ describe('RenderingCoordinator', () => {
       renderingCoordinator.cleanup();
       renderingCoordinator.cleanup();
 
-      expect(renderingCoordinator['updateTimeout']).toBe(null);
+      expect(renderingCoordinator['updateTimeout']).toBe(undefined);
     });
   });
 
@@ -465,7 +473,7 @@ describe('RenderingCoordinator', () => {
     });
 
     it('should handle malformed todo lists', () => {
-      const malformedTodoLists = null as any;
+      const malformedTodoLists = undefined as any;
 
       expect(() => {
         renderingCoordinator.render(

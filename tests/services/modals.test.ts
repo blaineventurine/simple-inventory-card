@@ -3,8 +3,8 @@ import { Modals, InventoryServices, InventoryServiceResult } from '../../src/ser
 import { ModalFormManager } from '../../src/services/modals/modalFormManager';
 import { ModalValidationManager } from '../../src/services/modals/modalValidationManager';
 import { ModalUIManager } from '../../src/services/modals/modalUIManager';
-import { Utils } from '../../src/utils/utils';
-import { HomeAssistant, InventoryConfig } from '../../src/types/home-assistant';
+import { Utilities } from '../../src/utils/utilities';
+import { HomeAssistant, InventoryConfig } from '../../src/types/homeAssistant';
 import { RawFormData, SanitizedItemData, ItemData } from '../../src/types/inventoryItem';
 import { ValidationError } from '../../src/types/validationError';
 import { createMockHomeAssistant } from '../testHelpers';
@@ -12,7 +12,7 @@ import { createMockHomeAssistant } from '../testHelpers';
 vi.mock('../../src/services/modals/modalFormManager');
 vi.mock('../../src/services/modals/modalValidationManager');
 vi.mock('../../src/services/modals/modalUIManager');
-vi.mock('../../src/utils/utils');
+vi.mock('../../src/utils/utilities');
 
 describe('Modals (Integration)', () => {
   let modals: Modals;
@@ -169,16 +169,16 @@ describe('Modals (Integration)', () => {
       };
       const mockResult: InventoryServiceResult = { success: true };
 
-      vi.mocked(Utils.validateRawFormData).mockReturnValue(mockValidation);
-      vi.mocked(Utils.convertRawFormDataToItemData).mockReturnValue(mockItemData);
-      vi.mocked(Utils.sanitizeItemData).mockReturnValue(mockSanitizedData);
+      vi.mocked(Utilities.validateRawFormData).mockReturnValue(mockValidation);
+      vi.mocked(Utilities.convertRawFormDataToItemData).mockReturnValue(mockItemData);
+      vi.mocked(Utilities.sanitizeItemData).mockReturnValue(mockSanitizedData);
       vi.mocked(mockServices.addItem).mockResolvedValue(mockResult);
 
       const result = await modals.addItem(mockConfig);
 
       expect(vi.mocked(mockValidationManager.clearError)).toHaveBeenCalledWith(true);
       expect(vi.mocked(mockFormManager.getRawAddModalData)).toHaveBeenCalled();
-      expect(Utils.validateRawFormData).toHaveBeenCalledWith(mockRawFormData);
+      expect(Utilities.validateRawFormData).toHaveBeenCalledWith(mockRawFormData);
       expect(vi.mocked(mockServices.addItem)).toHaveBeenCalledWith(
         'inventory_sensor.inventory',
         mockItemData,
@@ -194,7 +194,7 @@ describe('Modals (Integration)', () => {
         errors: [{ field: 'name', message: 'Name is required' } as ValidationError],
       };
 
-      vi.mocked(Utils.validateRawFormData).mockReturnValue(mockValidation);
+      vi.mocked(Utilities.validateRawFormData).mockReturnValue(mockValidation);
 
       const result = await modals.addItem(mockConfig);
 
@@ -214,9 +214,9 @@ describe('Modals (Integration)', () => {
       const mockValidation = { isValid: true, errors: [] };
       const mockResult: InventoryServiceResult = { success: false, error: 'Database error' };
 
-      vi.mocked(Utils.validateRawFormData).mockReturnValue(mockValidation);
-      vi.mocked(Utils.convertRawFormDataToItemData).mockReturnValue({} as ItemData);
-      vi.mocked(Utils.sanitizeItemData).mockReturnValue({} as SanitizedItemData);
+      vi.mocked(Utilities.validateRawFormData).mockReturnValue(mockValidation);
+      vi.mocked(Utilities.convertRawFormDataToItemData).mockReturnValue({} as ItemData);
+      vi.mocked(Utilities.sanitizeItemData).mockReturnValue({} as SanitizedItemData);
       vi.mocked(mockServices.addItem).mockResolvedValue(mockResult);
 
       const result = await modals.addItem(mockConfig);
@@ -292,9 +292,9 @@ describe('Modals (Integration)', () => {
       };
       const mockResult: InventoryServiceResult = { success: true };
 
-      vi.mocked(Utils.validateRawFormData).mockReturnValue(mockValidation);
-      vi.mocked(Utils.convertRawFormDataToItemData).mockReturnValue(mockItemData);
-      vi.mocked(Utils.sanitizeItemData).mockReturnValue(mockSanitizedData);
+      vi.mocked(Utilities.validateRawFormData).mockReturnValue(mockValidation);
+      vi.mocked(Utilities.convertRawFormDataToItemData).mockReturnValue(mockItemData);
+      vi.mocked(Utilities.sanitizeItemData).mockReturnValue(mockSanitizedData);
       vi.mocked(mockServices.updateItem).mockResolvedValue(mockResult);
 
       const result = await modals.saveEditModal(mockConfig);
@@ -319,7 +319,7 @@ describe('Modals (Integration)', () => {
         errors: [{ field: 'quantity', message: 'Invalid quantity' } as ValidationError],
       };
 
-      vi.mocked(Utils.validateRawFormData).mockReturnValue(mockValidation);
+      vi.mocked(Utilities.validateRawFormData).mockReturnValue(mockValidation);
 
       const result = await modals.saveEditModal(mockConfig);
 
@@ -341,9 +341,9 @@ describe('Modals (Integration)', () => {
       const mockValidation = { isValid: true, errors: [] };
       const mockResult: InventoryServiceResult = { success: false, error: 'Update failed' };
 
-      vi.mocked(Utils.validateRawFormData).mockReturnValue(mockValidation);
-      vi.mocked(Utils.convertRawFormDataToItemData).mockReturnValue({} as ItemData);
-      vi.mocked(Utils.sanitizeItemData).mockReturnValue({} as SanitizedItemData);
+      vi.mocked(Utilities.validateRawFormData).mockReturnValue(mockValidation);
+      vi.mocked(Utilities.convertRawFormDataToItemData).mockReturnValue({} as ItemData);
+      vi.mocked(Utilities.sanitizeItemData).mockReturnValue({} as SanitizedItemData);
       vi.mocked(mockServices.updateItem).mockResolvedValue(mockResult);
 
       const result = await modals.saveEditModal(mockConfig);
@@ -370,9 +370,9 @@ describe('Modals (Integration)', () => {
 
       // Now editing should work (assuming validation passes)
       const mockValidation = { isValid: true, errors: [] };
-      vi.mocked(Utils.validateRawFormData).mockReturnValue(mockValidation);
-      vi.mocked(Utils.convertRawFormDataToItemData).mockReturnValue({} as ItemData);
-      vi.mocked(Utils.sanitizeItemData).mockReturnValue({} as SanitizedItemData);
+      vi.mocked(Utilities.validateRawFormData).mockReturnValue(mockValidation);
+      vi.mocked(Utilities.convertRawFormDataToItemData).mockReturnValue({} as ItemData);
+      vi.mocked(Utilities.sanitizeItemData).mockReturnValue({} as SanitizedItemData);
       vi.mocked(mockServices.updateItem).mockResolvedValue({ success: true });
 
       result = await modals.saveEditModal(mockConfig);

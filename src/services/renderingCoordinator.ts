@@ -1,12 +1,12 @@
-import { HomeAssistant, InventoryConfig, InventoryItem } from '../types/home-assistant';
+import { HomeAssistant, InventoryConfig, InventoryItem } from '../types/homeAssistant';
 import { DEFAULTS } from '../utils/constants';
-import { Utils } from '../utils/utils';
+import { Utilities } from '../utils/utilities';
 import { LifecycleManager } from './lifecycleManager';
 
 export class RenderingCoordinator {
   private lifecycleManager: LifecycleManager;
   private renderRoot: ShadowRoot;
-  private updateTimeout: ReturnType<typeof setTimeout> | null = null;
+  private updateTimeout: ReturnType<typeof setTimeout> | undefined = undefined;
 
   constructor(lifecycleManager: LifecycleManager, renderRoot: ShadowRoot) {
     this.lifecycleManager = lifecycleManager;
@@ -106,7 +106,7 @@ export class RenderingCoordinator {
         <ha-card>
           <div class="card-content">
             <div class="error-message" style="color: var(--error-color); padding: 16px; text-align: center;">
-              <p><strong>Error:</strong> ${Utils.sanitizeHtml(message)}</p>
+              <p><strong>Error:</strong> ${Utilities.sanitizeHtml(message)}</p>
             </div>
           </div>
         </ha-card>
@@ -117,7 +117,7 @@ export class RenderingCoordinator {
   cleanup(): void {
     if (this.updateTimeout) {
       clearTimeout(this.updateTimeout);
-      this.updateTimeout = null;
+      this.updateTimeout = undefined;
     }
   }
 }

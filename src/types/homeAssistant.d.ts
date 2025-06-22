@@ -7,7 +7,7 @@ export interface HomeAssistant {
   panelUrl: string;
   language: string;
   selectedLanguage: string;
-  localize: (key: string, ...args: any[]) => string;
+  localize: (key: string, ...arguments_: any[]) => string;
   translationMetadata: any;
   dockedSidebar: 'docked' | 'always_hidden' | 'auto';
   moreInfoEntityId: string | null;
@@ -24,8 +24,8 @@ export interface HomeAssistant {
     parameters?: Record<string, any>,
   ) => Promise<T>;
   fetchWithAuth: (path: string, init?: RequestInit) => Promise<Response>;
-  sendWS: (msg: MessageBase) => void;
-  callWS: <T>(msg: MessageBase) => Promise<T>;
+  sendWS: (message: MessageBase) => void;
+  callWS: <T>(message: MessageBase) => Promise<T>;
 }
 
 export interface HassConfig {

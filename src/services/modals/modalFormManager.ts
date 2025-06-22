@@ -1,5 +1,5 @@
 import { ELEMENTS, DEFAULTS } from '../../utils/constants';
-import { InventoryItem } from '../../types/home-assistant';
+import { InventoryItem } from '../../types/homeAssistant';
 import { RawFormData } from '../../types/inventoryItem';
 
 type ModalField = {
@@ -104,12 +104,12 @@ export class ModalFormManager {
    * Sets values for multiple form fields
    */
   private setFormValues(fields: ModalField[]): void {
-    fields.forEach(({ id, value }) => {
+    for (const { id, value } of fields) {
       const element = this.getElement<HTMLInputElement>(id);
       if (element) {
         element.value = value;
       }
-    });
+    }
   }
 
   /**

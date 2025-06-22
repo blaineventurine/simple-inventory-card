@@ -1,7 +1,7 @@
 import { MESSAGES } from '../utils/constants';
-import { Utils } from '../utils/utils';
+import { Utilities } from '../utils/utilities';
 import { styles } from '../styles/styles';
-import { HassEntity, InventoryItem } from '../types/home-assistant';
+import { HassEntity, InventoryItem } from '../types/homeAssistant';
 import { FilterState } from '../types/filterState';
 import { TodoList } from '../types/todoList';
 import { generateCardHTML } from '../templates/inventoryCard';
@@ -17,8 +17,8 @@ export class Renderer {
     sortMethod: string,
     todoLists: TodoList[],
   ): void {
-    const inventoryName = Utils.getInventoryName(state, entityId);
-    const description = Utils.getInventoryDescription(state);
+    const inventoryName = Utilities.getInventoryName(state, entityId);
+    const description = Utilities.getInventoryDescription(state);
     const allItems: readonly InventoryItem[] = state?.attributes?.items || [];
     const categories = [
       ...new Set(
@@ -44,7 +44,7 @@ export class Renderer {
       <ha-card>
         <div class="card-content">
           <div class="error-message" style="color: var(--error-color); padding: 16px; text-align: center;">
-            <p><strong>Error:</strong> ${Utils.sanitizeHtml(message)}</p>
+            <p><strong>Error:</strong> ${Utilities.sanitizeHtml(message)}</p>
           </div>
         </div>
       </ha-card>

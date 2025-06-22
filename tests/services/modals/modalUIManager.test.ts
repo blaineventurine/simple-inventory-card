@@ -3,7 +3,7 @@ import { ModalUIManager } from '../../../src/services/modals/modalUIManager';
 import { ModalFormManager } from '../../../src/services/modals/modalFormManager';
 import { ModalValidationManager } from '../../../src/services/modals/modalValidationManager';
 import { ELEMENTS, CSS_CLASSES, TIMING } from '../../../src/utils/constants';
-import { HomeAssistant, InventoryItem, InventoryConfig } from '../../../src/types/home-assistant';
+import { HomeAssistant, InventoryItem, InventoryConfig } from '../../../src/types/homeAssistant';
 import { createMockHomeAssistant, createMockHassEntity } from '../../testHelpers';
 
 vi.mock('../../../src/services/modals/modalFormManager');
@@ -35,7 +35,7 @@ describe('ModalUIManager', () => {
 
     // Mock shadow root
     mockShadowRoot = {
-      getElementById: vi.fn((id: string) => mockElements.get(id) || null),
+      getElementById: vi.fn((id: string) => mockElements.get(id) || undefined),
     } as unknown as ShadowRoot;
 
     // Mock form manager
@@ -62,7 +62,7 @@ describe('ModalUIManager', () => {
     };
 
     // Mock global document
-    global.document = {
+    globalThis.document = {
       addEventListener: vi.fn(),
       removeEventListener: vi.fn(),
     } as unknown as Document;
@@ -113,7 +113,7 @@ describe('ModalUIManager', () => {
     });
 
     it('should bind escape handler', () => {
-      expect(modalUIManager['boundEscHandler']).not.toBe(null);
+      expect(modalUIManager['boundEscHandler']).not.toBe(undefined);
     });
   });
 
@@ -208,7 +208,7 @@ describe('ModalUIManager', () => {
       }));
 
       expect(result.found).toBe(false);
-      expect(result.item).toBe(null);
+      expect(result.item).toBe(undefined);
       expect(consoleWarnSpy).toHaveBeenCalledWith('Entity not found: sensor.nonexistent');
       expect(mockFormManager.populateEditModal).not.toHaveBeenCalled();
 
@@ -224,7 +224,7 @@ describe('ModalUIManager', () => {
       }));
 
       expect(result.found).toBe(false);
-      expect(result.item).toBe(null);
+      expect(result.item).toBe(undefined);
       expect(consoleWarnSpy).toHaveBeenCalledWith('Item not found: Nonexistent Item');
       expect(mockFormManager.populateEditModal).not.toHaveBeenCalled();
 
@@ -244,7 +244,7 @@ describe('ModalUIManager', () => {
       }));
 
       expect(result.found).toBe(false);
-      expect(result.item).toBe(null);
+      expect(result.item).toBe(undefined);
     });
 
     it('should handle missing items attribute', () => {
@@ -260,7 +260,7 @@ describe('ModalUIManager', () => {
       }));
 
       expect(result.found).toBe(false);
-      expect(result.item).toBe(null);
+      expect(result.item).toBe(undefined);
     });
   });
 
@@ -384,7 +384,7 @@ describe('ModalUIManager', () => {
           if (selector === `#${ELEMENTS.EDIT_MODAL}`) {
             return mockEditModal;
           }
-          return null;
+          return;
         }),
       } as unknown as HTMLElement;
 
@@ -431,7 +431,7 @@ describe('ModalUIManager', () => {
           id: 'some-other-element',
           dataset: {},
           classList: { contains: vi.fn().mockReturnValue(false) },
-          closest: vi.fn().mockReturnValue(null),
+          closest: vi.fn().mockReturnValue(),
         },
       } as unknown as MouseEvent;
 
@@ -611,10 +611,10 @@ describe('ModalUIManager', () => {
       expect(mockShadowRoot.getElementById).toHaveBeenCalledWith('test-id');
     });
 
-    it('should return null for missing element', () => {
+    it('should return undefined for missing element', () => {
       const result = modalUIManager['getElement']('nonexistent-id');
 
-      expect(result).toBe(null);
+      expect(result).toBe(undefined);
     });
   });
 
@@ -623,18 +623,18 @@ describe('ModalUIManager', () => {
       modalUIManager.destroy();
 
       expect(document.removeEventListener).toHaveBeenCalledWith('keydown', expect.any(Function));
-      expect(modalUIManager['boundEscHandler']).toBe(null);
+      expect(modalUIManager['boundEscHandler']).toBe(undefined);
     });
 
     it('should handle multiple destroy calls', () => {
       modalUIManager.destroy();
       modalUIManager.destroy();
 
-      expect(modalUIManager['boundEscHandler']).toBe(null);
+      expect(modalUIManager['boundEscHandler']).toBe(undefined);
     });
 
     it('should handle destroy when no handler exists', () => {
-      modalUIManager['boundEscHandler'] = null;
+      modalUIManager['boundEscHandler'] = undefined;
 
       expect(() => modalUIManager.destroy()).not.toThrow();
     });

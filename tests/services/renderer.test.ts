@@ -1,15 +1,15 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Renderer } from '../../src/services/renderer';
-import { Utils } from '../../src/utils/utils';
+import { Utilities } from '../../src/utils/utilities';
 import { styles } from '../../src/styles/styles';
 import { MESSAGES } from '../../src/utils/constants';
 import { generateCardHTML } from '../../src/templates/inventoryCard';
-import { HassEntity, InventoryItem } from '../../src/types/home-assistant';
+import { HassEntity, InventoryItem } from '../../src/types/homeAssistant';
 import { FilterState } from '../../src/types/filterState';
 import { TodoList } from '../../src/types/todoList';
 
 // Mock dependencies
-vi.mock('../../src/utils/utils');
+vi.mock('../../src/utils/utilities');
 vi.mock('../../src/utils/constants');
 vi.mock('../../src/templates/inventoryCard');
 
@@ -27,9 +27,9 @@ describe('Renderer', () => {
     vi.clearAllMocks();
 
     // Setup default mock implementations
-    vi.mocked(Utils.getInventoryName).mockReturnValue('Test Inventory');
-    vi.mocked(Utils.getInventoryDescription).mockReturnValue('Test Description');
-    vi.mocked(Utils.sanitizeHtml).mockImplementation((input) => input);
+    vi.mocked(Utilities.getInventoryName).mockReturnValue('Test Inventory');
+    vi.mocked(Utilities.getInventoryDescription).mockReturnValue('Test Description');
+    vi.mocked(Utilities.sanitizeHtml).mockImplementation((input) => input);
     vi.mocked(generateCardHTML).mockReturnValue('<div>Generated Card HTML</div>');
     vi.mocked(MESSAGES).LOADING = 'Loading...';
   });
@@ -98,8 +98,8 @@ describe('Renderer', () => {
 
       renderer.renderCard(mockState, 'test.entity', mockItems, mockFilters, 'name', mockTodoLists);
 
-      expect(Utils.getInventoryName).toHaveBeenCalledWith(mockState, 'test.entity');
-      expect(Utils.getInventoryDescription).toHaveBeenCalledWith(mockState);
+      expect(Utilities.getInventoryName).toHaveBeenCalledWith(mockState, 'test.entity');
+      expect(Utilities.getInventoryDescription).toHaveBeenCalledWith(mockState);
       expect(generateCardHTML).toHaveBeenCalledWith(
         'Test Inventory',
         mockItems,
@@ -411,11 +411,11 @@ describe('Renderer', () => {
   describe('renderError', () => {
     it('should render error message with sanitized HTML', () => {
       const errorMessage = 'Test error message';
-      vi.mocked(Utils.sanitizeHtml).mockReturnValue('Sanitized error message');
+      vi.mocked(Utilities.sanitizeHtml).mockReturnValue('Sanitized error message');
 
       renderer.renderError(errorMessage);
 
-      expect(Utils.sanitizeHtml).toHaveBeenCalledWith(errorMessage);
+      expect(Utilities.sanitizeHtml).toHaveBeenCalledWith(errorMessage);
       expect(mockShadowRoot.innerHTML).toContain('Sanitized error message');
       expect(mockShadowRoot.innerHTML).toContain('<strong>Error:</strong>');
       expect(mockShadowRoot.innerHTML).toContain('error-message');
@@ -424,22 +424,22 @@ describe('Renderer', () => {
     });
 
     it('should handle empty error message', () => {
-      vi.mocked(Utils.sanitizeHtml).mockReturnValue('');
+      vi.mocked(Utilities.sanitizeHtml).mockReturnValue('');
 
       renderer.renderError('');
 
-      expect(Utils.sanitizeHtml).toHaveBeenCalledWith('');
+      expect(Utilities.sanitizeHtml).toHaveBeenCalledWith('');
       expect(mockShadowRoot.innerHTML).toContain('<strong>Error:</strong>');
     });
 
     it('should handle error message with special characters', () => {
       const errorMessage = '<script>alert("xss")</script>';
       const sanitizedMessage = '&lt;script&gt;alert("xss")&lt;/script&gt;';
-      vi.mocked(Utils.sanitizeHtml).mockReturnValue(sanitizedMessage);
+      vi.mocked(Utilities.sanitizeHtml).mockReturnValue(sanitizedMessage);
 
       renderer.renderError(errorMessage);
 
-      expect(Utils.sanitizeHtml).toHaveBeenCalledWith(errorMessage);
+      expect(Utilities.sanitizeHtml).toHaveBeenCalledWith(errorMessage);
       expect(mockShadowRoot.innerHTML).toContain(sanitizedMessage);
       expect(mockShadowRoot.innerHTML).not.toContain('<script>');
     });

@@ -1,7 +1,7 @@
 import { CSS_CLASSES, MESSAGES } from '../utils/constants';
-import { InventoryItem } from '../types/home-assistant';
+import { InventoryItem } from '../types/homeAssistant';
 import { TodoList } from '../types/todoList';
-import { Utils } from '../utils/utils';
+import { Utilities } from '../utils/utilities';
 import { createItemRowTemplate } from './itemRow';
 
 export function createItemsList(
@@ -21,7 +21,7 @@ export function createItemsList(
 }
 
 export function createItemsByCategory(items: InventoryItem[], todoLists: TodoList[]): string {
-  const grouped = Utils.groupItemsByCategory(items);
+  const grouped = Utilities.groupItemsByCategory(items);
   const sortedCategories = Object.keys(grouped).sort();
 
   return sortedCategories
