@@ -1,9 +1,5 @@
 name: CI
 
-permissions:
-  contents: read
-  pull-requests: write
-
 on:
   pull_request:
     branches: [master, main]
@@ -25,6 +21,9 @@ jobs:
   main-ci:
     name: Lint, Type Check, Test, and Build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: ${{ github.event_name == 'pull_request' && 'write' || 'none' }}
     outputs:
       coverage: ${{ steps.coverage.outputs.coverage }}
 
@@ -48,7 +47,7 @@ jobs:
         run: npm run test:coverage
 
       - name: Generate coverage report
-        if: ${{ !inputs.skip-pr-comments }}
+        if: ${{ !inputs.skip-pr-comments && github.event_name == 'pull_request' }}
         uses: ./.github/actions/coverage-report
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
