@@ -8,6 +8,9 @@ on:
 jobs:
   ci:
     uses: ./.github/workflows/ci.yml
+    permissions:
+      contents: read
+      pull-requests: write
     with:
       skip-pr-comments: true
 
