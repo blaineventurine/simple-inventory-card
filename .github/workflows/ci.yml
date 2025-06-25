@@ -10,6 +10,12 @@ on:
   push:
     branches: [master, main]
   workflow_call:
+    inputs:
+      skip-pr-comments:
+        description: 'Skip PR comments (useful for releases)'
+        required: false
+        type: boolean
+        default: false
     outputs:
       coverage:
         description: 'Coverage percentage'
@@ -42,6 +48,7 @@ jobs:
         run: npm run test:coverage
 
       - name: Generate coverage report
+        if: ${{ !inputs.skip-pr-comments }}
         uses: ./.github/actions/coverage-report
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -63,14 +70,3 @@ jobs:
           name: build-artifacts
           path: dist/
           retention-days: 7
-
-  # mutation-testing:
-  #   name: Mutation Testing
-  #   needs: main-ci
-  #   if: |
-  #     github.ref == 'refs/heads/main' ||
-  #     github.ref == 'refs/heads/master'
-  #   uses: ./.github/workflows/mutation-testing.yml
-  #   permissions:
-  #     contents: read
-  #     pull-requests: write

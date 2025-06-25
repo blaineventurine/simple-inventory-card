@@ -8,6 +8,8 @@ on:
 jobs:
   ci:
     uses: ./.github/workflows/ci.yml
+    with:
+      skip-pr-comments: true
 
   release:
     needs: ci
@@ -20,7 +22,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Needed for changelog generation
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -40,7 +42,6 @@ jobs:
           TAG_VERSION="${{ github.ref_name }}"
           RELEASE_VERSION="${TAG_VERSION#v}"
 
-          # Determine if it's a prerelease
           if [[ "$RELEASE_VERSION" =~ (beta|alpha|rc|dev) ]]; then
             IS_PRERELEASE="true"
           else
@@ -49,49 +50,6 @@ jobs:
 
           echo "version=$RELEASE_VERSION" >> $GITHUB_OUTPUT
           echo "is_prerelease=$IS_PRERELEASE" >> $GITHUB_OUTPUT
-
-      # - name: Generate changelog
-      #   id: changelog
-      #   run: |
-      #     # Get the previous tag
-      #     PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
-      #
-      #     if [ -n "$PREV_TAG" ]; then
-      #       echo "## What's Changed" > CHANGELOG.md
-      #       echo "" >> CHANGELOG.md
-      #
-      #       # Get commits since last tag
-      #       git log --pretty=format:"- %s (%an)" $PREV_TAG..HEAD >> CHANGELOG.md
-      #       echo "" >> CHANGELOG.md
-      #       echo "" >> CHANGELOG.md
-      #     else
-      #       echo "## Initial Release" > CHANGELOG.md
-      #       echo "" >> CHANGELOG.md
-      #     fi
-      #
-      #     # Add build info
-      #     echo "## 📦 Installation" >> CHANGELOG.md
-      #     echo "" >> CHANGELOG.md
-      #     echo "1. Download the \`simple-inventory-card.js\` file from the assets below" >> CHANGELOG.md
-      #     echo "2. Copy to \`/config/www/community/simple-inventory-card/\`" >> CHANGELOG.md
-      #     echo "3. Add to Lovelace resources:" >> CHANGELOG.md
-      #     echo '   ```yaml' >> CHANGELOG.md
-      #     echo '   resources:' >> CHANGELOG.md
-      #     echo '     - url: /local/community/simple-inventory-card/simple-inventory-card.js' >> CHANGELOG.md
-      #     echo '       type: module' >> CHANGELOG.md
-      #     echo '   ```' >> CHANGELOG.md
-      #     echo "" >> CHANGELOG.md
-      #
-      #     # Add build verification
-      #     echo "## 🔍 Build Information" >> CHANGELOG.md
-      #     echo "" >> CHANGELOG.md
-      #     echo "- **File size:** $(wc -c < ./dist/simple-inventory-card.js) bytes" >> CHANGELOG.md
-      #     echo "- **SHA256:** \`$(sha256sum ./dist/simple-inventory-card.js | cut -d' ' -f1)\`" >> CHANGELOG.md
-      #     echo "- **Built from commit:** ${{ github.sha }}" >> CHANGELOG.md
-      #     echo "- **Build timestamp:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> CHANGELOG.md
-      #     if [ "${{ needs.ci.outputs.coverage }}" != "" ]; then
-      #       echo "- **Code coverage:** ${{ needs.ci.outputs.coverage }}%" >> CHANGELOG.md
-      #     fi
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
