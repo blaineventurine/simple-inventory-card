@@ -3,13 +3,12 @@ import { CSSResult, css } from 'lit-element';
 export const itemRowStyles: CSSResult = css`
   .item-row {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
     padding: 12px;
     margin-bottom: 8px;
     border: 1px solid var(--divider-color, #e8e8e8);
     border-radius: 8px;
-    gap: 12px;
+    gap: 8px;
   }
 
   .item-row.zero-quantity {
@@ -23,12 +22,57 @@ export const itemRowStyles: CSSResult = css`
 
   .item-info {
     flex: 1;
+    min-width: 0;
+    max-width: calc(100% - 200px); /* Reserve space for buttons */
+  }
+
+  .item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
   }
 
   .item-name {
     font-weight: bold;
     font-size: 1.1em;
+  }
+
+  .category {
+    font-style: italic;
+    font-size: 0.9em;
+    opacity: 0.7;
+  }
+  .item-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+
+  .item-name-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
     margin-bottom: 4px;
+    max-width: 100%;
+  }
+
+  .item-name-line .item-name {
+    flex: 0 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .item-name-line .category {
+    flex-shrink: 0;
+    font-size: 0.9em;
+    opacity: 0.7;
+    font-style: italic;
+    white-space: nowrap;
+    margin-left: auto;
   }
 
   .item-details {
@@ -37,6 +81,7 @@ export const itemRowStyles: CSSResult = css`
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
+    flex: 1;
   }
 
   .item-controls {
@@ -51,12 +96,31 @@ export const itemRowStyles: CSSResult = css`
     color: var(--primary-color);
   }
 
-  .category {
-    font-style: italic;
+  .expiry {
+    font-weight: 500;
+    padding: 2px 6px;
+    border-radius: 4px;
   }
 
-  .expiry {
-    color: var(--error-color);
+  .expiry.expired {
+    color: var(--error-color, #dc3545);
+    background-color: rgba(220, 53, 69, 0.1);
+  }
+
+  .expiry.expires-today {
+    color: var(--warning-color, #ff9800);
+    background-color: rgba(255, 152, 0, 0.1);
+    font-weight: 600;
+  }
+
+  .expiry.expiring-soon {
+    color: var(--warning-color, #ff9800);
+    background-color: rgba(255, 152, 0, 0.05);
+  }
+
+  .expiry.expiry-safe {
+    color: var(--success-color, #4caf50);
+    background-color: rgba(76, 175, 80, 0.05);
   }
 
   .auto-add-info {

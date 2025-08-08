@@ -72,7 +72,7 @@ export function createUnifiedModal(todoLists: TodoList[], config: ModalConfig): 
               <div class="form-row">
                 <div class="input-group">
                   <label for="${prefix}-${ELEMENTS.AUTO_ADD_TO_LIST_QUANTITY}">
-                    Quantity Threshold *
+                    Quantity Threshold
                   </label>
                   <input 
                     type="number" 
@@ -84,7 +84,7 @@ export function createUnifiedModal(todoLists: TodoList[], config: ModalConfig): 
                 </div>
                 
                 <div class="input-group">
-                  <label for="${prefix}-${ELEMENTS.TODO_LIST}">Todo List *</label>
+                  <label for="${prefix}-${ELEMENTS.TODO_LIST}">Todo List</label>
                   <select id="${prefix}-${ELEMENTS.TODO_LIST}" class="auto-add-required">
                     <option value="">Select list...</option>
                     ${todoLists
