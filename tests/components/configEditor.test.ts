@@ -15,6 +15,7 @@ vi.mock('../../src/templates/configEditor');
 vi.mock('lit-element', () => ({
   LitElement: class MockLitElement {
     dispatchEvent = vi.fn();
+    requestUpdate = vi.fn();
     static get properties() {
       return {};
     }
@@ -35,7 +36,7 @@ vi.mock('lit-element', () => ({
   })),
 }));
 
-describe('ConfigEditor (Refactored)', () => {
+describe('ConfigEditor', () => {
   let configEditor: ConfigEditor;
   let mockHass: HomeAssistant;
 
@@ -126,9 +127,48 @@ describe('ConfigEditor (Refactored)', () => {
         entity: '',
       };
 
-      // Mock Utilities methods
       vi.mocked(Utilities.findInventoryEntities).mockReturnValue([]);
       vi.mocked(Utilities.createEntityOptions).mockReturnValue([]);
+    });
+
+    it('should set default entity and dispatch event when no entity selected', () => {
+      const mockEntities = ['sensor.inventory1', 'sensor.inventory2'];
+      vi.mocked(Utilities.findInventoryEntities).mockReturnValue(mockEntities);
+
+      configEditor['_config'] = {
+        type: 'custom:simple-inventory-card',
+        entity: '',
+      };
+
+      configEditor.render();
+
+      expect(configEditor['_config'].entity).toBe('sensor.inventory1');
+      expect(vi.mocked(configEditor.dispatchEvent)).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'config-changed',
+          detail: {
+            config: {
+              type: 'custom:simple-inventory-card',
+              entity: 'sensor.inventory1',
+            },
+          },
+        }),
+      );
+    });
+
+    it('should not set default entity when entity already selected', () => {
+      const mockEntities = ['sensor.inventory1', 'sensor.inventory2'];
+      vi.mocked(Utilities.findInventoryEntities).mockReturnValue(mockEntities);
+
+      configEditor['_config'] = {
+        type: 'custom:simple-inventory-card',
+        entity: 'sensor.existing',
+      };
+
+      configEditor.render();
+
+      expect(configEditor['_config'].entity).toBe('sensor.existing');
+      expect(vi.mocked(configEditor.dispatchEvent)).not.toHaveBeenCalled();
     });
 
     it('should return loading template when hass is missing', () => {
@@ -176,7 +216,7 @@ describe('ConfigEditor (Refactored)', () => {
       expect(createEntitySelector).toHaveBeenCalledWith(
         mockHass,
         mockOptions,
-        '',
+        'sensor.inventory1',
         expect.any(Function),
       );
     });
@@ -216,6 +256,57 @@ describe('ConfigEditor (Refactored)', () => {
         type: 'inventory-card',
         entity: 'sensor.old_entity',
       };
+    });
+
+    it('should update internal config and call requestUpdate when value changes', () => {
+      configEditor['_config'] = {
+        type: 'custom:simple-inventory-card',
+        entity: 'sensor.old_entity',
+      };
+
+      const mockEvent = {
+        detail: { value: 'sensor.new_entity' },
+      } as CustomEvent;
+
+      configEditor['_valueChanged'](mockEvent);
+
+      expect(configEditor['_config'].entity).toBe('sensor.new_entity');
+      expect(vi.mocked(configEditor.requestUpdate)).toHaveBeenCalled();
+      expect(vi.mocked(configEditor.dispatchEvent)).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'config-changed',
+          detail: {
+            config: {
+              type: 'custom:simple-inventory-card',
+              entity: 'sensor.new_entity',
+            },
+          },
+        }),
+      );
+    });
+
+    it('should set default type when type is missing', () => {
+      configEditor['_config'] = {
+        type: '',
+        entity: 'sensor.old_entity',
+      };
+
+      const mockEvent = {
+        detail: { value: 'sensor.new_entity' },
+      } as CustomEvent;
+
+      configEditor['_valueChanged'](mockEvent);
+
+      expect(vi.mocked(configEditor.dispatchEvent)).toHaveBeenCalledWith(
+        expect.objectContaining({
+          detail: {
+            config: expect.objectContaining({
+              type: 'custom:simple-inventory-card',
+              entity: 'sensor.new_entity',
+            }),
+          },
+        }),
+      );
     });
 
     it('should return early when config is null', () => {

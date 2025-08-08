@@ -695,16 +695,21 @@ describe('Utilities', () => {
     describe('findInventoryEntities', () => {
       it('should find inventory sensor entities', () => {
         mockHass.states = {
-          'sensor.kitchen_inventory': createMockHassEntity('sensor.kitchen_inventory'),
-          'sensor.garage_tools': createMockHassEntity('sensor.garage_tools', {
+          'sensor.kitchen_inventory': createMockHassEntity('sensor.kitchen_inventory', {
             attributes: { items: [] },
           }),
+          'sensor.garage_inventory': createMockHassEntity('sensor.garage_inventory', {
+            attributes: { items: [] },
+          }),
+          'sensor.garage_inventory_items_expiring_soon': createMockHassEntity(
+            'sensor.garage_inventory_items_expiring_soon',
+          ),
           'switch.not_inventory': createMockHassEntity('switch.not_inventory'),
         };
 
         const result = Utilities.findInventoryEntities(mockHass);
 
-        expect(result).toEqual(['sensor.garage_tools', 'sensor.kitchen_inventory']);
+        expect(result).toEqual(['sensor.garage_inventory', 'sensor.kitchen_inventory']);
       });
     });
 
@@ -1211,17 +1216,28 @@ describe('Utilities', () => {
 
       it('should test conditional expression mutations in findInventoryEntities', () => {
         mockHass.states = {
-          'sensor.inventory_test': createMockHassEntity('sensor.inventory_test'),
-          'sensor.has_items': createMockHassEntity('sensor.has_items', {
+          'sensor.inventory_test': createMockHassEntity('sensor.inventory_test', {
             attributes: { items: [] },
           }),
+          'sensor.inventory_items': createMockHassEntity('sensor.inventory_items', {
+            attributes: { items: ['test'] },
+          }),
           'sensor.no_match': createMockHassEntity('sensor.no_match'),
+          'sensor.inventory_items_expiring_soon': createMockHassEntity(
+            'sensor.inventory_items_expiring_soon',
+          ),
+          'sensor.has_items_only': createMockHassEntity('sensor.has_items_only', {
+            // Has items but no inventory in name
+            attributes: { items: [] },
+          }),
         };
 
         const result = Utilities.findInventoryEntities(mockHass);
+        expect(result).toContain('sensor.inventory_items');
         expect(result).toContain('sensor.inventory_test');
-        expect(result).toContain('sensor.has_items');
         expect(result).not.toContain('sensor.no_match');
+        expect(result).not.toContain('sensor.inventory_no_items');
+        expect(result).not.toContain('sensor.has_items_only');
       });
     });
 

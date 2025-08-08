@@ -33,16 +33,16 @@ describe('createItemRowTemplate', () => {
       const result = createItemRowTemplate(baseItem, mockTodoLists);
 
       expect(result).toContain('class="item-row');
-      expect(result).toContain('class="item-info"');
+      expect(result).toContain('class="item-header"');
+      expect(result).toContain('class="item-footer"');
       expect(result).toContain('class="item-controls"');
       expect(result).toContain('class="item-name"');
-      expect(result).toContain('class="item-details"');
     });
 
     it('should include item name', () => {
       const result = createItemRowTemplate(baseItem, mockTodoLists);
 
-      expect(result).toContain('<div class="item-name">Apple</div>');
+      expect(result).toContain('<span class="item-name">Apple</span>');
     });
 
     it('should include quantity and unit', () => {
@@ -124,7 +124,21 @@ describe('createItemRowTemplate', () => {
     it('should display expiry date when present', () => {
       const result = createItemRowTemplate(baseItem, mockTodoLists);
 
-      expect(result).toContain('<span class="expiry">Exp: 2024-12-31</span>');
+      expect(result).toContain('class="expiry expired"');
+      expect(result).toContain('Expired');
+      expect(result).toContain('days ago');
+    });
+
+    it('should display future expiry date correctly', () => {
+      const futureDate = new Date();
+      futureDate.setDate(futureDate.getDate() + 30);
+      const futureDateStr = futureDate.toISOString().split('T')[0];
+
+      const futureItem = { ...baseItem, expiry_date: futureDateStr };
+      const result = createItemRowTemplate(futureItem, mockTodoLists);
+
+      expect(result).toContain('<span class="expiry');
+      expect(result).toContain(futureDateStr);
     });
 
     it('should not display expiry date when empty', () => {
@@ -367,7 +381,7 @@ describe('createItemRowTemplate', () => {
       const specialItem = { ...baseItem, name: 'Item & "Special" <chars>' };
       const result = createItemRowTemplate(specialItem, mockTodoLists);
 
-      expect(result).toContain('<div class="item-name">Item & "Special" <chars></div>');
+      expect(result).toContain('<span class="item-name">Item & "Special" <chars></span>');
       expect(result).toContain('data-name="Item & "Special" <chars>"');
     });
 
@@ -375,7 +389,7 @@ describe('createItemRowTemplate', () => {
       const longNameItem = { ...baseItem, name: 'A'.repeat(100) };
       const result = createItemRowTemplate(longNameItem, mockTodoLists);
 
-      expect(result).toContain(`<div class="item-name">${'A'.repeat(100)}</div>`);
+      expect(result).toContain(`<span class="item-name">${'A'.repeat(100)}</span>`);
     });
 
     it('should handle negative quantities', () => {
@@ -407,7 +421,7 @@ describe('createItemRowTemplate', () => {
       };
       const result = createItemRowTemplate(minimalItem, mockTodoLists);
 
-      expect(result).toContain('<div class="item-name">Minimal Item</div>');
+      expect(result).toContain('<span class="item-name">Minimal Item</span>');
       expect(result).toContain('<span class="quantity">1 </span>');
       expect(result).not.toContain('<span class="category">');
       expect(result).not.toContain('<span class="expiry">');
@@ -415,12 +429,16 @@ describe('createItemRowTemplate', () => {
     });
 
     it('should handle items with all optional fields populated', () => {
+      const futureDate = new Date();
+      futureDate.setDate(futureDate.getDate() + 30);
+      const futureDateStr = futureDate.toISOString().split('T')[0];
+
       const maximalItem: InventoryItem = {
         name: 'Maximal Item',
         quantity: 10,
         category: 'Test Category',
         unit: 'units',
-        expiry_date: '2025-01-01',
+        expiry_date: futureDateStr,
         expiry_alert_days: 5,
         auto_add_enabled: true,
         auto_add_to_list_quantity: 3,
@@ -428,10 +446,10 @@ describe('createItemRowTemplate', () => {
       };
       const result = createItemRowTemplate(maximalItem, mockTodoLists);
 
-      expect(result).toContain('<div class="item-name">Maximal Item</div>');
+      expect(result).toContain('<span class="item-name">Maximal Item</span>');
       expect(result).toContain('<span class="quantity">10 units</span>');
       expect(result).toContain('<span class="category">Test Category</span>');
-      expect(result).toContain('<span class="expiry">Exp: 2025-01-01</span>');
+      expect(result).toContain(`<span class="expiry expiry-safe">${futureDateStr}</span>`);
       expect(result).toContain('<span class="auto-add-info">Auto-add at ≤3 → Grocery List</span>');
       expect(result).toContain('auto-add-enabled');
     });
@@ -441,9 +459,9 @@ describe('createItemRowTemplate', () => {
     it('should produce valid nested HTML structure', () => {
       const result = createItemRowTemplate(baseItem, mockTodoLists);
 
-      // Check proper div nesting
       expect(result).toMatch(/<div class="item-row[^"]*">[\s\S]*<\/div>/);
-      expect(result).toMatch(/<div class="item-info">[\s\S]*<\/div>/);
+      expect(result).toMatch(/<div class="item-header">[\s\S]*<\/div>/);
+      expect(result).toMatch(/<div class="item-footer">[\s\S]*<\/div>/);
       expect(result).toMatch(/<div class="item-controls">[\s\S]*<\/div>/);
     });
 

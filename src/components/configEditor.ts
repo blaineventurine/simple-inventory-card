@@ -40,6 +40,21 @@ class ConfigEditor extends LitElement {
     const inventoryEntities = Utilities.findInventoryEntities(this.hass);
     const entityOptions = Utilities.createEntityOptions(this.hass, inventoryEntities);
 
+    if (!this._config.entity && inventoryEntities.length > 0) {
+      if (!this._config.type) {
+        this._config.type = 'custom:simple-inventory-card';
+      }
+
+      this._config.entity = inventoryEntities[0];
+      this.dispatchEvent(
+        new CustomEvent('config-changed', {
+          detail: { config: this._config },
+          bubbles: true,
+          composed: true,
+        }),
+      );
+    }
+
     return html`
       <div class="card-config">
         ${createEntitySelector(
@@ -67,7 +82,12 @@ class ConfigEditor extends LitElement {
     const config: InventoryConfig = {
       ...this._config,
       entity: value,
+      type: this._config.type || 'custom:simple-inventory-card',
     };
+
+    this._config = config;
+
+    this.requestUpdate();
 
     this.dispatchEvent(
       new CustomEvent('config-changed', {

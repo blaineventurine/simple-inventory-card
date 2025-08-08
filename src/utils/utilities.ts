@@ -507,16 +507,14 @@ export const Utilities = {
   findInventoryEntities(hass: HomeAssistant): string[] {
     return Object.keys(hass?.states || {})
       .filter((entityId) => {
-        // Check if it's a sensor entity
         if (!entityId.startsWith('sensor.')) {
           return false;
         }
 
-        // Check if it has inventory in the name or has items attribute
         const hasInventoryInName = entityId.includes('inventory');
         const hasItemsAttribute = hass?.states[entityId]?.attributes?.items !== undefined;
 
-        return hasInventoryInName || hasItemsAttribute;
+        return hasInventoryInName && hasItemsAttribute;
       })
       .sort();
   },

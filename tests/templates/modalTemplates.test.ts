@@ -225,7 +225,7 @@ describe('modalTemplates', () => {
         expect(result).toContain('id="edit-auto-add-controls"');
         expect(result).toContain('id="edit-auto-add-quantity"');
         expect(result).toContain('class="auto-add-required"');
-        expect(result).toContain('Quantity Threshold *');
+        expect(result).toContain('Quantity Threshold');
         expect(result).toContain('placeholder="Minimum quantity"');
       });
 
