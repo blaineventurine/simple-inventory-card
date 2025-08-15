@@ -1,7 +1,9 @@
+import { TranslationData } from '@/types/translatableComponent';
 import { HomeAssistant, InventoryConfig, InventoryItem } from '../types/homeAssistant';
 import { DEFAULTS } from '../utils/constants';
 import { Utilities } from '../utils/utilities';
 import { LifecycleManager } from './lifecycleManager';
+import { TranslationManager } from './translationManager';
 
 export class RenderingCoordinator {
   private lifecycleManager: LifecycleManager;
@@ -17,6 +19,7 @@ export class RenderingCoordinator {
     config: InventoryConfig,
     hass: HomeAssistant,
     todoLists: Array<{ id: string; name: string }>,
+    translations: TranslationData,
     validateItemsCallback: (items: InventoryItem[]) => InventoryItem[],
   ): void {
     if (!config || !hass || !this.renderRoot) {
@@ -28,14 +31,26 @@ export class RenderingCoordinator {
       const state = hass.states[entityId];
 
       if (!state) {
-        this.renderError(`Entity ${entityId} not found. Please check your configuration.`);
+        const errorMessage = TranslationManager.localize(
+          translations,
+          'errors.entity_not_found',
+          { entity: entityId },
+          `Entity ${entityId} not found. Please check your configuration.`,
+        );
+        this.renderError(errorMessage);
         return;
       }
 
       const services = this.lifecycleManager.getServices();
 
       if (!services) {
-        this.renderError('Failed to initialize card components');
+        const errorMessage = TranslationManager.localize(
+          translations,
+          'errors.initialization_failed',
+          undefined,
+          'Failed to initialize card components',
+        );
+        this.renderError(errorMessage);
         return;
       }
 
@@ -47,7 +62,15 @@ export class RenderingCoordinator {
       const filteredItems = filters.filterItems(allItems, currentFilters);
       const sortedItems = filters.sortItems(filteredItems, sortMethod);
 
-      renderer.renderCard(state, entityId, sortedItems, currentFilters, sortMethod, todoLists);
+      renderer.renderCard(
+        state,
+        entityId,
+        sortedItems,
+        currentFilters,
+        sortMethod,
+        todoLists,
+        translations,
+      );
 
       eventHandler.setupEventListeners();
 
@@ -55,7 +78,13 @@ export class RenderingCoordinator {
       stateService.trackUserInteraction(this.renderRoot);
     } catch (error) {
       console.error('Error rendering card:', error);
-      this.renderError('An error occurred while rendering the card');
+      const errorMessage = TranslationManager.localize(
+        translations,
+        'errors.render_error',
+        undefined,
+        'An error occurred while rendering the card',
+      );
+      this.renderError(errorMessage);
     }
   }
 
@@ -63,6 +92,7 @@ export class RenderingCoordinator {
     items: InventoryItem[],
     sortMethod: string,
     todoLists: Array<{ id: string; name: string }>,
+    translations: TranslationData,
   ): void {
     if (!this.renderRoot) {
       return;
@@ -75,7 +105,12 @@ export class RenderingCoordinator {
 
     import('../templates/itemList')
       .then(({ createItemsList }) => {
-        itemsContainer.innerHTML = createItemsList(items, sortMethod, todoLists);
+        itemsContainer.innerHTML = createItemsList(
+          items,
+          sortMethod,
+          todoLists,
+          translations || {},
+        );
       })
       .catch((error) => {
         console.error('Error loading templates:', error);

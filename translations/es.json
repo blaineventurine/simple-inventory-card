@@ -1,0 +1,97 @@
+{
+  "common": {
+    "loading": "Cargando...",
+    "name": "Mi Tarjeta Personalizada",
+    "off": "Apagado",
+    "on": "Encendido",
+    "unknown": "Desconocido"
+  },
+  "editor": {
+    "entity": "Entidad",
+    "name": "Nombre (Opcional)",
+    "show_icon": "Mostrar Icono",
+    "show_state": "Mostrar Estado"
+  },
+  "state": {
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "unavailable": "No disponible"
+  },
+  "expiry": {
+    "expired_day_ago": "Expiró hace {days} día",
+    "expired_days_ago": "Expiró hace {days} días",
+    "expires_in_day": "Expira en {days} día",
+    "expires_in_days": "Expira en {days} días", 
+    "expires_today": "Expira hoy"
+  },
+  "items": {
+    "auto_add_info": "Auto-agregar en ≤ {quantity} → {list}",
+    "no_items": "No hay artículos en el inventario"
+  },
+  "header": {
+    "items_expired": "{count} artículo{count, plural, one {} other {s}} expirado{count, plural, one {} other {s}}",
+    "items_expiring_soon": "{count} artículo{count, plural, one {} other {s}} expirando pronto"
+  },
+  "modal": {
+    "add_item": "Agregar Artículo",
+    "auto_add_when_low": "Auto-agregar a lista de tareas cuando esté bajo",
+    "cancel": "Cancelar",
+    "category": "Categoría",
+    "category_placeholder": "Comida, Limpieza, etc.",
+    "days_before_expiry": "(días antes del vencimiento)",
+    "edit_item": "Editar Artículo",
+    "expiry_alert_threshold": "Umbral de Alerta de Vencimiento",
+    "expiry_date": "Fecha de Vencimiento",
+    "expiry_help_text": "Cuántos días antes del vencimiento mostrar alertas",
+    "minimum_quantity": "Cantidad mínima",
+    "name_required": "Nombre *",
+    "quantity": "Cantidad",
+    "quantity_threshold": "Umbral de Cantidad",
+    "save_changes": "Guardar Cambios",
+    "select_list": "Seleccionar lista...",
+    "set_expiry_first": "Establece la fecha de vencimiento primero",
+    "todo_list": "Lista de Tareas",
+    "unit": "Unidad",
+    "unit_placeholder": "kg, pzs, etc."
+  },
+  "filters": {
+    "all_categories": "Todas las Categorías",
+    "all_items": "Todos los Artículos",
+    "all_quantities": "Todas las Cantidades",
+    "category": "Categoría",
+    "clear_all_filters": "Limpiar Todos los Filtros",
+    "expired": "Expirado",
+    "expiring_soon": "Expirando Pronto",
+    "expiry": "Vencimiento",
+    "filters": "Filtros",
+    "future": "Futuro",
+    "hide_filters": "Ocultar Filtros",
+    "no_expiry": "Sin Vencimiento",
+    "non_zero": "No-cero",
+    "quantity": "Cantidad",
+    "search_placeholder": "Buscar artículos...",
+    "zero": "Cero"
+  },
+  "sort": {
+    "category": "Categoría",
+    "expiry_date": "Fecha de Vencimiento",
+    "name": "Nombre",
+    "quantity_high": "Cantidad (Alto)",
+    "quantity_low": "Cantidad (Bajo)",
+    "sort_by": "Ordenar por:",
+    "zero_last": "Cero al Final"
+  },
+  "active_filters": {
+    "category": "Categoría",
+    "expiry": "Vencimiento",
+    "label": "Filtros activos:",
+    "quantity": "Cantidad",
+    "search": "Búsqueda"
+  },
+  "config": {
+    "inventory_entity_required": "Entidad de Inventario (Requerida)",
+    "items_count": "Artículos",
+    "select_entity_message": "Por favor selecciona una entidad de inventario arriba",
+    "selected_inventory": "Inventario Seleccionado:"
+  }
+}

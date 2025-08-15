@@ -5,6 +5,7 @@ import { HassEntity, InventoryItem } from '../types/homeAssistant';
 import { FilterState } from '../types/filterState';
 import { TodoList } from '../types/todoList';
 import { generateCardHTML } from '../templates/inventoryCard';
+import { TranslationData } from '@/types/translatableComponent';
 
 export class Renderer {
   constructor(private readonly shadowRoot: ShadowRoot) {}
@@ -16,6 +17,7 @@ export class Renderer {
     filters: FilterState,
     sortMethod: string,
     todoLists: TodoList[],
+    translations: TranslationData,
   ): void {
     const inventoryName = Utilities.getInventoryName(state, entityId);
     const description = Utilities.getInventoryDescription(state);
@@ -35,6 +37,7 @@ export class Renderer {
       todoLists,
       allItems,
       description,
+      translations,
     );
   }
 

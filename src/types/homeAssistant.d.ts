@@ -1,3 +1,9 @@
+export interface CardContext {
+  hass: HomeAssistant;
+  config: InventoryConfig;
+  translations: TranslationData;
+}
+
 export interface HomeAssistant {
   states: { [entityId: string]: HassEntity };
   config: HassConfig;

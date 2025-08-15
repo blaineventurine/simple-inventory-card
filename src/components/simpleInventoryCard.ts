@@ -6,6 +6,8 @@ import { LifecycleManager } from '../services/lifecycleManager';
 import { LitElement } from 'lit-element';
 import { RenderingCoordinator } from '../services/renderingCoordinator';
 import { Utilities } from '../utils/utilities';
+import { TranslationData } from '@/types/translatableComponent';
+import { TranslationManager } from '@/services/translationManager';
 
 declare global {
   interface Window {
@@ -23,6 +25,7 @@ class SimpleInventoryCard extends LitElement {
   private _config: InventoryConfig | undefined = undefined;
   private _hass: HomeAssistant | undefined = undefined;
   private _todoLists: Array<{ id: string; name: string }> = [];
+  private _translations: TranslationData = {};
   private lifecycleManager: LifecycleManager;
   private renderingCoordinator: RenderingCoordinator;
 
@@ -47,6 +50,28 @@ class SimpleInventoryCard extends LitElement {
   set hass(hass: HomeAssistant) {
     const oldHass = this._hass;
     this._hass = hass;
+
+    if (!oldHass) {
+      console.log('🚀 First hass load, loading translations');
+      this._loadTranslations().then(() => {
+        console.log('✅ Initial translations loaded, updating UI');
+        this._updateTodoLists();
+        this.render();
+      });
+      return;
+    }
+
+    if (
+      oldHass &&
+      (oldHass.language !== hass.language || oldHass.selectedLanguage !== hass.selectedLanguage)
+    ) {
+      this._loadTranslations().then(() => {
+        this._updateTodoLists();
+        this.render();
+      });
+      return;
+    }
+
     this._updateTodoLists();
 
     if (!oldHass) {
@@ -81,7 +106,7 @@ class SimpleInventoryCard extends LitElement {
         () => this.render(),
         () => this._refreshAfterSave(),
         (items, sortMethod) => this._updateItemsOnly(items, sortMethod),
-        () => ({ hass: this._hass!, config: this._config! }),
+        () => ({ hass: this._hass!, config: this._config!, translations: this._translations }),
       );
 
       if (!services) {
@@ -90,9 +115,33 @@ class SimpleInventoryCard extends LitElement {
       }
     }
 
-    this.renderingCoordinator.render(this._config, this._hass, this._todoLists, (items) =>
-      Utilities.validateInventoryItems(items),
+    this.renderingCoordinator.render(
+      this._config,
+      this._hass,
+      this._todoLists,
+      this._translations,
+      (items) => Utilities.validateInventoryItems(items),
     );
+  }
+
+  private async _loadTranslations(): Promise<void> {
+    console.log('🚀 _loadTranslations called');
+    const language = this._hass?.language || this._hass?.selectedLanguage || 'en';
+    console.log('🔍 Detected language:', language);
+    console.log('🔍 Hass language:', this._hass?.language);
+    console.log('🔍 Hass selectedLanguage:', this._hass?.selectedLanguage);
+
+    try {
+      this._translations = await TranslationManager.loadTranslations(language);
+      console.log('📋 Loaded translations:', Object.keys(this._translations));
+    } catch (error) {
+      console.warn('Failed to load translations:', error);
+      this._translations = {};
+    }
+  }
+
+  public localize(key: string, params?: Record<string, any>, fallback?: string): string {
+    return TranslationManager.localize(this._translations, key, params, fallback);
   }
 
   private _refreshAfterSave(): void {
@@ -100,7 +149,12 @@ class SimpleInventoryCard extends LitElement {
   }
 
   private _updateItemsOnly(items: InventoryItem[], sortMethod: string): void {
-    this.renderingCoordinator.updateItemsOnly(items, sortMethod, this._todoLists);
+    this.renderingCoordinator.updateItemsOnly(
+      items,
+      sortMethod,
+      this._todoLists,
+      this._translations,
+    );
   }
 
   private _updateTodoLists(): void {
