@@ -2,6 +2,8 @@ import { ELEMENTS, CSS_CLASSES, TIMING, ACTIONS } from '../../utils/constants';
 import { HomeAssistant, InventoryItem, InventoryConfig } from '../../types/homeAssistant';
 import { ModalFormManager } from './modalFormManager';
 import { ModalValidationManager } from './modalValidationManager';
+import { TranslationData } from '@/types/translatableComponent';
+import { TranslationManager } from '../translationManager';
 
 export class ModalUIManager {
   private boundEscHandler: ((e: KeyboardEvent) => void) | undefined = undefined;
@@ -17,13 +19,13 @@ export class ModalUIManager {
   /**
    * Opens the add item modal
    */
-  openAddModal(): void {
+  openAddModal(translations: TranslationData): void {
     const modal = this.getElement<HTMLElement>(ELEMENTS.ADD_MODAL);
     if (modal) {
       this.validationManager.clearError(true);
       modal.classList.add(CSS_CLASSES.SHOW);
       this.focusElementWithDelay(ELEMENTS.NAME);
-      this.setupExpiryThresholdInteraction();
+      this.setupExpiryThresholdInteraction(translations);
       this.validationManager.setupValidationListeners();
     } else {
       console.warn('Add modal not found in DOM');
@@ -46,6 +48,7 @@ export class ModalUIManager {
   openEditModal(
     itemName: string,
     getFreshData: () => { hass: HomeAssistant; config: InventoryConfig },
+    translations: TranslationData,
   ): { item: InventoryItem | undefined; found: boolean } {
     const { hass, config } = getFreshData();
     const entityId = config.entity;
@@ -71,7 +74,7 @@ export class ModalUIManager {
       this.validationManager.clearError(false);
       modal.classList.add(CSS_CLASSES.SHOW);
       this.focusElementWithDelay(ELEMENTS.NAME, true);
-      this.setupExpiryThresholdInteraction();
+      this.setupExpiryThresholdInteraction(translations);
       this.validationManager.setupValidationListeners();
     }
 
@@ -148,15 +151,18 @@ export class ModalUIManager {
   /**
    * Sets up expiry threshold interactions for both modals
    */
-  setupExpiryThresholdInteraction(): void {
-    this.setupExpiryThresholdFieldForModal(true); // Add modal
-    this.setupExpiryThresholdFieldForModal(false); // Edit modal
+  setupExpiryThresholdInteraction(translations: TranslationData): void {
+    this.setupExpiryThresholdFieldForModal(true, translations); // Add modal
+    this.setupExpiryThresholdFieldForModal(false, translations); // Edit modal
   }
 
   /**
    * Sets up expiry threshold field interactions for a specific modal
    */
-  private setupExpiryThresholdFieldForModal(isAddModal: boolean): void {
+  private setupExpiryThresholdFieldForModal(
+    isAddModal: boolean,
+    translations: TranslationData,
+  ): void {
     const expiryElementId = isAddModal ? 'add' : 'edit';
     const expiryInput = this.getElement<HTMLInputElement>(
       `${expiryElementId}-${ELEMENTS.EXPIRY_DATE}`,
@@ -166,21 +172,21 @@ export class ModalUIManager {
       return;
     }
 
-    this.updateExpiryThresholdState(isAddModal);
+    this.updateExpiryThresholdState(isAddModal, translations);
 
     expiryInput.addEventListener('input', () => {
-      this.updateExpiryThresholdState(isAddModal);
+      this.updateExpiryThresholdState(isAddModal, translations);
     });
 
     expiryInput.addEventListener('change', () => {
-      this.updateExpiryThresholdState(isAddModal);
+      this.updateExpiryThresholdState(isAddModal, translations);
     });
   }
 
   /**
    * Updates the expiry threshold field state based on expiry date input
    */
-  private updateExpiryThresholdState(isAddModal: boolean): void {
+  private updateExpiryThresholdState(isAddModal: boolean, translations: TranslationData): void {
     const modalType = isAddModal ? 'add' : 'edit';
 
     const expiryInput = this.getElement<HTMLInputElement>(`${modalType}-${ELEMENTS.EXPIRY_DATE}`);
@@ -196,7 +202,12 @@ export class ModalUIManager {
 
     if (hasExpiryDate) {
       thresholdInput.disabled = false;
-      thresholdInput.placeholder = 'Days before expiry to alert (default: 0)';
+      thresholdInput.placeholder = TranslationManager.localize(
+        translations,
+        'modal.expiry_threshold_placeholder',
+        undefined,
+        'Days before expiry to alert (default: 0)',
+      );
 
       if (!thresholdInput.value.trim()) {
         thresholdInput.value = '0';
@@ -204,7 +215,14 @@ export class ModalUIManager {
     } else {
       thresholdInput.disabled = true;
       thresholdInput.value = '';
-      thresholdInput.placeholder = 'Set expiry date first';
+      const placeholder = TranslationManager.localize(
+        translations,
+        'modal.set_expiry_first',
+        undefined,
+        'Set expiry date first',
+      );
+
+      thresholdInput.placeholder = placeholder;
     }
   }
 

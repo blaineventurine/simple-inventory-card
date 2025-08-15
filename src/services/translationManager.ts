@@ -29,35 +29,29 @@ export class TranslationManager {
   }
 
   private static async _loadTranslationsInternal(language: string): Promise<TranslationData> {
-    console.log('🌍 Attempting to load translations for language:', language);
-
     const urls = [
       `/local/community/${this._cardName}/translations/${language}.json`,
       `/hacsfiles/${this._cardName}/translations/${language}.json`,
     ];
 
     for (const url of urls) {
-      console.log('📁 Trying to load from:', url);
       try {
         const response = await fetch(url);
         if (response.ok) {
           const translations = await response.json();
-          console.log('✅ Successfully loaded translations:', translations);
           return translations;
         } else {
-          console.log('❌ Failed to load from', url, 'Status:', response.status);
+          console.error('❌ Failed to load from', url, 'Status:', response.status);
         }
       } catch (error) {
         console.debug(`Failed to load translations from ${url}:`, error);
       }
     }
 
-    console.log('🔄 Falling back to English');
     if (language !== 'en') {
       return this.loadTranslations('en');
     }
 
-    console.log('⚠️ No translations found, returning empty object');
     return {};
   }
 

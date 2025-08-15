@@ -4,6 +4,7 @@ import { ModalFormManager } from './modals/modalFormManager';
 import { ModalUIManager } from './modals/modalUIManager';
 import { ModalValidationManager } from './modals/modalValidationManager';
 import { Utilities } from '../utils/utilities';
+import { TranslationData } from '@/types/translatableComponent';
 
 export interface InventoryServiceResult {
   success: boolean;
@@ -36,8 +37,8 @@ export class Modals {
     this.uiManager = new ModalUIManager(shadowRoot, this.formManager, this.validationManager);
   }
 
-  public openAddModal(): void {
-    this.uiManager.openAddModal();
+  public openAddModal(translations: TranslationData): void {
+    this.uiManager.openAddModal(translations);
   }
 
   public closeAddModal(): void {
@@ -47,8 +48,9 @@ export class Modals {
   public openEditModal(
     itemName: string,
     getFreshData: () => { hass: HomeAssistant; config: InventoryConfig },
+    translations: TranslationData,
   ): void {
-    const result = this.uiManager.openEditModal(itemName, getFreshData);
+    const result = this.uiManager.openEditModal(itemName, getFreshData, translations);
     if (result.found) {
       this.currentEditingItem = itemName;
     }

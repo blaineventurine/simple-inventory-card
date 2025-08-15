@@ -1,4 +1,3 @@
-import { MESSAGES } from '../utils/constants';
 import { Utilities } from '../utils/utilities';
 import { styles } from '../styles/styles';
 import { HassEntity, InventoryItem } from '../types/homeAssistant';
@@ -6,6 +5,7 @@ import { FilterState } from '../types/filterState';
 import { TodoList } from '../types/todoList';
 import { generateCardHTML } from '../templates/inventoryCard';
 import { TranslationData } from '@/types/translatableComponent';
+import { TranslationManager } from './translationManager';
 
 export class Renderer {
   constructor(private readonly shadowRoot: ShadowRoot) {}
@@ -41,26 +41,34 @@ export class Renderer {
     );
   }
 
-  renderError(message: string): void {
+  renderError(message: string, translations?: TranslationData): void {
+    const errorLabel = translations
+      ? TranslationManager.localize(translations, 'common.error', undefined, 'Error')
+      : 'Error';
+
     this.shadowRoot.innerHTML = `
       <style>${styles}</style>
       <ha-card>
         <div class="card-content">
           <div class="error-message" style="color: var(--error-color); padding: 16px; text-align: center;">
-            <p><strong>Error:</strong> ${Utilities.sanitizeHtml(message)}</p>
+            <p><strong>${errorLabel}:</strong> ${Utilities.sanitizeHtml(message)}</p>
           </div>
         </div>
       </ha-card>
     `;
   }
 
-  renderLoading(): void {
+  renderLoading(translations?: TranslationData): void {
+    const loadingMessage = translations
+      ? TranslationManager.localize(translations, 'common.loading', undefined, 'Loading...')
+      : 'Loading...';
+
     this.shadowRoot.innerHTML = `
       <style>${styles}</style>
       <ha-card>
         <div class="card-content">
           <div class="loading-container" style="padding: 16px; text-align: center;">
-            <p>${MESSAGES.LOADING}</p>
+            <p>${loadingMessage}</p>
           </div>
         </div>
       </ha-card>

@@ -52,9 +52,7 @@ class SimpleInventoryCard extends LitElement {
     this._hass = hass;
 
     if (!oldHass) {
-      console.log('🚀 First hass load, loading translations');
       this._loadTranslations().then(() => {
-        console.log('✅ Initial translations loaded, updating UI');
         this._updateTodoLists();
         this.render();
       });
@@ -99,6 +97,10 @@ class SimpleInventoryCard extends LitElement {
       return;
     }
 
+    if (!this._translations || Object.keys(this._translations).length === 0) {
+      return;
+    }
+
     if (!this.lifecycleManager.isReady()) {
       const services = this.lifecycleManager.initialize(
         this._hass,
@@ -107,6 +109,7 @@ class SimpleInventoryCard extends LitElement {
         () => this._refreshAfterSave(),
         (items, sortMethod) => this._updateItemsOnly(items, sortMethod),
         () => ({ hass: this._hass!, config: this._config!, translations: this._translations }),
+        this._translations,
       );
 
       if (!services) {
@@ -125,15 +128,10 @@ class SimpleInventoryCard extends LitElement {
   }
 
   private async _loadTranslations(): Promise<void> {
-    console.log('🚀 _loadTranslations called');
     const language = this._hass?.language || this._hass?.selectedLanguage || 'en';
-    console.log('🔍 Detected language:', language);
-    console.log('🔍 Hass language:', this._hass?.language);
-    console.log('🔍 Hass selectedLanguage:', this._hass?.selectedLanguage);
 
     try {
       this._translations = await TranslationManager.loadTranslations(language);
-      console.log('📋 Loaded translations:', Object.keys(this._translations));
     } catch (error) {
       console.warn('Failed to load translations:', error);
       this._translations = {};

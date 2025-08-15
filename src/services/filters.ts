@@ -3,6 +3,8 @@ import { InventoryItem } from '../types/homeAssistant';
 import { Utilities } from '../utils/utilities';
 import { DEFAULTS } from '../utils/constants';
 import { FilterState } from '../types/filterState';
+import { TranslationData } from '@/types/translatableComponent';
+import { TranslationManager } from './translationManager';
 
 export class Filters {
   private searchTimeout: ReturnType<typeof setTimeout> | undefined = undefined;
@@ -136,7 +138,11 @@ export class Filters {
     }
   }
 
-  sortItems(items: readonly InventoryItem[], method: string): InventoryItem[] {
+  sortItems(
+    items: readonly InventoryItem[],
+    method: string,
+    translations: TranslationData,
+  ): InventoryItem[] {
     const sortedItems = [...items]; // Create a copy to avoid mutating original
 
     switch (method) {
@@ -145,7 +151,7 @@ export class Filters {
       }
 
       case SORT_METHODS.CATEGORY: {
-        return this.sortByCategory(sortedItems);
+        return this.sortByCategory(sortedItems, translations);
       }
 
       case SORT_METHODS.QUANTITY: {
@@ -181,10 +187,16 @@ export class Filters {
     });
   }
 
-  private sortByCategory(items: InventoryItem[]): InventoryItem[] {
+  private sortByCategory(items: InventoryItem[], translations: TranslationData): InventoryItem[] {
     return items.sort((a, b) => {
-      const categoryA = (a.category ?? 'Uncategorized').toLowerCase().trim();
-      const categoryB = (b.category ?? 'Uncategorized').toLowerCase().trim();
+      const uncategorized = TranslationManager.localize(
+        translations,
+        'common.uncategorized',
+        undefined,
+        'Uncategorized',
+      );
+      const categoryA = (a.category ?? uncategorized).toLowerCase().trim();
+      const categoryB = (b.category ?? uncategorized).toLowerCase().trim();
 
       // First sort by category
       const categoryCompare = categoryA.localeCompare(categoryB);
@@ -252,12 +264,6 @@ export class Filters {
   }
 
   setupSearchInput(entityId: string, onFilterChange: () => void): void {
-    // Remove the guard clause temporarily to force re-setup
-    // if (this.searchListenerSetup) {
-    //   console.log('Search listener already set up, returning early');
-    //   return;
-    // }
-
     const searchInput = this.shadowRoot.getElementById(
       ELEMENTS.SEARCH_INPUT,
     ) as HTMLInputElement | null;
@@ -286,27 +292,51 @@ export class Filters {
     // this.searchListenerSetup = true;
   }
 
-  updateFilterIndicators(filters: FilterState): void {
+  updateFilterIndicators(filters: FilterState, translations: TranslationData): void {
     const advancedToggle = this.shadowRoot.getElementById(
       ELEMENTS.ADVANCED_SEARCH_TOGGLE,
     ) as HTMLElement | null;
 
     if (advancedToggle) {
       if (Utilities.hasActiveFilters(filters)) {
-        const text = filters.showAdvanced ? 'Hide Filters ●' : 'Filters ●';
+        const hideText = TranslationManager.localize(
+          translations,
+          'filters.hide_filters',
+          undefined,
+          'Hide Filters',
+        );
+        const filtersText = TranslationManager.localize(
+          translations,
+          'filters.filters',
+          undefined,
+          'Filters',
+        );
+        const text = filters.showAdvanced ? `${hideText} ●` : `${filtersText} ●`;
         advancedToggle.textContent = text;
         advancedToggle.style.background = 'var(--warning-color, #ff9800)';
       } else {
-        const text = filters.showAdvanced ? 'Hide Filters' : 'Filters';
+        const hideText = TranslationManager.localize(
+          translations,
+          'filters.hide_filters',
+          undefined,
+          'Hide Filters',
+        );
+        const filtersText = TranslationManager.localize(
+          translations,
+          'filters.filters',
+          undefined,
+          'Filters',
+        );
+        const text = filters.showAdvanced ? hideText : filtersText;
         advancedToggle.textContent = text;
         advancedToggle.style.background = 'var(--primary-color)';
       }
     }
 
-    this.updateActiveFiltersDisplay(filters);
+    this.updateActiveFiltersDisplay(filters, translations);
   }
 
-  private updateActiveFiltersDisplay(filters: FilterState): void {
+  private updateActiveFiltersDisplay(filters: FilterState, translations: TranslationData): void {
     const activeFiltersDiv = this.shadowRoot.getElementById(
       ELEMENTS.ACTIVE_FILTERS,
     ) as HTMLElement | null;
@@ -318,16 +348,36 @@ export class Filters {
       const activeFilters: string[] = [];
 
       if (filters.searchText) {
-        activeFilters.push(`Search: "${filters.searchText}"`);
+        activeFilters.push(
+          `${TranslationManager.localize(translations, 'active_filters.search', undefined, 'Search')}: "${filters.searchText}"`,
+        );
       }
       if (filters.category) {
-        activeFilters.push(`Category: ${filters.category}`);
+        activeFilters.push(
+          `${TranslationManager.localize(translations, 'active_filters.category', undefined, 'Category')}: ${filters.category}`,
+        );
       }
       if (filters.quantity) {
-        activeFilters.push(`Quantity: ${filters.quantity}`);
+        const quantityLabel = TranslationManager.localize(
+          translations,
+          `filters.${filters.quantity}`,
+          undefined,
+          filters.quantity,
+        );
+        activeFilters.push(
+          `${TranslationManager.localize(translations, 'active_filters.quantity', undefined, 'Quantity')}: ${quantityLabel}`,
+        );
       }
       if (filters.expiry) {
-        activeFilters.push(`Expiry: ${filters.expiry}`);
+        const expiryLabel = TranslationManager.localize(
+          translations,
+          `filters.${filters.expiry}`,
+          undefined,
+          filters.expiry,
+        );
+        activeFilters.push(
+          `${TranslationManager.localize(translations, 'active_filters.expiry', undefined, 'Expiry')}: ${expiryLabel}`,
+        );
       }
 
       if (activeFilters.length > 0) {

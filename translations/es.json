@@ -4,6 +4,7 @@
     "name": "Mi Tarjeta Personalizada",
     "off": "Apagado",
     "on": "Encendido",
+    "uncategorized": "Sin categoría",
     "unknown": "Desconocido"
   },
   "editor": {
@@ -21,7 +22,7 @@
     "expired_day_ago": "Expiró hace {days} día",
     "expired_days_ago": "Expiró hace {days} días",
     "expires_in_day": "Expira en {days} día",
-    "expires_in_days": "Expira en {days} días", 
+    "expires_in_days": "Expira en {days} días",
     "expires_today": "Expira hoy"
   },
   "items": {
@@ -35,6 +36,7 @@
   "modal": {
     "add_item": "Agregar Artículo",
     "auto_add_when_low": "Auto-agregar a lista de tareas cuando esté bajo",
+    "auto_add_settings": "Configuración de Auto-agregar",
     "cancel": "Cancelar",
     "category": "Categoría",
     "category_placeholder": "Comida, Limpieza, etc.",
@@ -43,6 +45,7 @@
     "expiry_alert_threshold": "Umbral de Alerta de Vencimiento",
     "expiry_date": "Fecha de Vencimiento",
     "expiry_help_text": "Cuántos días antes del vencimiento mostrar alertas",
+    "expiry_threshold_placeholder": "Días antes del vencimiento para alertar (por defecto: 0)",
     "minimum_quantity": "Cantidad mínima",
     "name_required": "Nombre *",
     "quantity": "Cantidad",
@@ -93,5 +96,11 @@
     "items_count": "Artículos",
     "select_entity_message": "Por favor selecciona una entidad de inventario arriba",
     "selected_inventory": "Inventario Seleccionado:"
+  },
+  "actions": {
+    "confirm_remove": "¿Eliminar {name} del inventario?"
+  },
+  "errors": {
+    "clear_filters_error": "Error al limpiar filtros. Por favor inténtalo de nuevo."
   }
 }

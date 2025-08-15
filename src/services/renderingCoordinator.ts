@@ -60,7 +60,7 @@ export class RenderingCoordinator {
       const sortMethod = currentFilters.sortMethod || DEFAULTS.SORT_METHOD;
       const allItems = validateItemsCallback(state.attributes?.items || []);
       const filteredItems = filters.filterItems(allItems, currentFilters);
-      const sortedItems = filters.sortItems(filteredItems, sortMethod);
+      const sortedItems = filters.sortItems(filteredItems, sortMethod, translations);
 
       renderer.renderCard(
         state,
@@ -74,7 +74,7 @@ export class RenderingCoordinator {
 
       eventHandler.setupEventListeners();
 
-      filters.updateFilterIndicators(currentFilters);
+      filters.updateFilterIndicators(currentFilters, translations);
       stateService.trackUserInteraction(this.renderRoot);
     } catch (error) {
       console.error('Error rendering card:', error);
@@ -128,7 +128,7 @@ export class RenderingCoordinator {
     setTimeout(() => renderCallback(), 50);
   }
 
-  renderError(message: string): void {
+  renderError(message: string, translations?: TranslationData): void {
     if (!this.renderRoot) {
       return;
     }
@@ -137,11 +137,14 @@ export class RenderingCoordinator {
     if (services?.renderer) {
       services.renderer.renderError(message);
     } else {
+      const errorLabel = translations
+        ? TranslationManager.localize(translations, 'common.error', undefined, 'Error')
+        : 'Error';
       (this.renderRoot as unknown as HTMLElement).innerHTML = `
         <ha-card>
           <div class="card-content">
             <div class="error-message" style="color: var(--error-color); padding: 16px; text-align: center;">
-              <p><strong>Error:</strong> ${Utilities.sanitizeHtml(message)}</p>
+              <p><strong>${errorLabel}:</strong> ${Utilities.sanitizeHtml(message)}</p>
             </div>
           </div>
         </ha-card>

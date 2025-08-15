@@ -1,4 +1,4 @@
-import { ELEMENTS, MESSAGES } from '../utils/constants';
+import { ELEMENTS } from '../utils/constants';
 import { createInventoryHeader } from '../templates/inventoryHeader';
 import { createSearchAndFilters } from '../templates/searchAndFilters';
 import { createAddModal, createEditModal } from '../templates/modalTemplates';
@@ -47,7 +47,7 @@ export function generateCardHTML(
         ${
           items.length > 0
             ? createItemsList(items, sortMethod, todoLists, translations)
-            : `<div class="empty-state">${MESSAGES.NO_ITEMS}</div>`
+            : `<div class="empty-state">${TranslationManager.localize(translations, 'items.no_items', undefined, 'No items in inventory')}</div>`
         }
       </div>
 
