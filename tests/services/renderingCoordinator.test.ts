@@ -4,12 +4,12 @@ import { LifecycleManager } from '../../src/services/lifecycleManager';
 import { Utilities } from '../../src/utils/utilities';
 import { DEFAULTS } from '../../src/utils/constants';
 import { HomeAssistant, InventoryConfig, InventoryItem } from '../../src/types/homeAssistant';
+import { TranslationData } from '@/types/translatableComponent';
 import { createMockHomeAssistant, createMockHassEntity } from '../testHelpers';
 
 vi.mock('../../src/services/lifecycleManager');
 vi.mock('../../src/utils/utilities');
 
-// Mock dynamic import
 vi.mock('../../src/templates/itemList', () => ({
   createItemsList: vi.fn().mockReturnValue('<div>mocked items list</div>'),
 }));
@@ -22,6 +22,7 @@ describe('RenderingCoordinator', () => {
   let mockConfig: InventoryConfig;
   let mockTodoLists: Array<{ id: string; name: string }>;
   let mockValidateItemsCallback: (items: InventoryItem[]) => InventoryItem[];
+  let mockTranslations: TranslationData;
 
   const mockInventoryItems: InventoryItem[] = [
     {
@@ -43,6 +44,12 @@ describe('RenderingCoordinator', () => {
       querySelectorAll: vi.fn(),
       innerHTML: '',
     } as unknown as ShadowRoot;
+
+    mockTranslations = {
+      items: {
+        no_items: 'No items in inventory',
+      },
+    };
 
     mockServices = {
       filters: {
@@ -128,6 +135,7 @@ describe('RenderingCoordinator', () => {
         undefined as any,
         mockHass,
         mockTodoLists,
+        mockTranslations,
         mockValidateItemsCallback,
       );
 
@@ -139,6 +147,7 @@ describe('RenderingCoordinator', () => {
         mockConfig,
         undefined as any,
         mockTodoLists,
+        mockTranslations,
         mockValidateItemsCallback,
       );
 
@@ -151,7 +160,13 @@ describe('RenderingCoordinator', () => {
         undefined as any,
       );
 
-      coordinatorWithoutRoot.render(mockConfig, mockHass, mockTodoLists, mockValidateItemsCallback);
+      coordinatorWithoutRoot.render(
+        mockConfig,
+        mockHass,
+        mockTodoLists,
+        mockTranslations,
+        mockValidateItemsCallback,
+      );
 
       expect(mockLifecycleManager.getServices).not.toHaveBeenCalled();
     });
@@ -168,6 +183,7 @@ describe('RenderingCoordinator', () => {
         configWithMissingEntity,
         mockHass,
         mockTodoLists,
+        mockTranslations,
         mockValidateItemsCallback,
       );
 
@@ -180,13 +196,25 @@ describe('RenderingCoordinator', () => {
       vi.mocked(mockLifecycleManager.getServices).mockReturnValue(undefined);
       const renderErrorSpy = vi.spyOn(renderingCoordinator, 'renderError');
 
-      renderingCoordinator.render(mockConfig, mockHass, mockTodoLists, mockValidateItemsCallback);
+      renderingCoordinator.render(
+        mockConfig,
+        mockHass,
+        mockTodoLists,
+        mockTranslations,
+        mockValidateItemsCallback,
+      );
 
       expect(renderErrorSpy).toHaveBeenCalledWith('Failed to initialize card components');
     });
 
     it('should successfully render card with all components', () => {
-      renderingCoordinator.render(mockConfig, mockHass, mockTodoLists, mockValidateItemsCallback);
+      renderingCoordinator.render(
+        mockConfig,
+        mockHass,
+        mockTodoLists,
+        mockTranslations,
+        mockValidateItemsCallback,
+      );
 
       const entityState = mockHass.states[mockConfig.entity];
 
@@ -201,6 +229,7 @@ describe('RenderingCoordinator', () => {
         expect.any(Object),
         'name',
         mockTodoLists,
+        mockTranslations,
       );
       expect(mockServices.eventHandler.setupEventListeners).toHaveBeenCalled();
       expect(mockServices.filters.updateFilterIndicators).toHaveBeenCalled();
@@ -210,7 +239,13 @@ describe('RenderingCoordinator', () => {
     it('should use default sort method when element not found', () => {
       vi.mocked(mockRenderRoot.querySelector).mockReturnValue(null);
 
-      renderingCoordinator.render(mockConfig, mockHass, mockTodoLists, mockValidateItemsCallback);
+      renderingCoordinator.render(
+        mockConfig,
+        mockHass,
+        mockTodoLists,
+        mockTranslations,
+        mockValidateItemsCallback,
+      );
 
       expect(mockServices.renderer.renderCard).toHaveBeenCalledWith(
         expect.any(Object),
@@ -219,6 +254,7 @@ describe('RenderingCoordinator', () => {
         expect.any(Object),
         DEFAULTS.SORT_METHOD,
         mockTodoLists,
+        mockTranslations,
       );
     });
 
@@ -228,7 +264,13 @@ describe('RenderingCoordinator', () => {
       });
       mockHass.states[mockConfig.entity] = entityWithoutItems;
 
-      renderingCoordinator.render(mockConfig, mockHass, mockTodoLists, mockValidateItemsCallback);
+      renderingCoordinator.render(
+        mockConfig,
+        mockHass,
+        mockTodoLists,
+        mockTranslations,
+        mockValidateItemsCallback,
+      );
 
       expect(mockValidateItemsCallback).toHaveBeenCalledWith([]);
     });
@@ -241,7 +283,13 @@ describe('RenderingCoordinator', () => {
         throw new Error('Filter error');
       });
 
-      renderingCoordinator.render(mockConfig, mockHass, mockTodoLists, mockValidateItemsCallback);
+      renderingCoordinator.render(
+        mockConfig,
+        mockHass,
+        mockTodoLists,
+        mockTranslations,
+        mockValidateItemsCallback,
+      );
 
       expect(consoleErrorSpy).toHaveBeenCalledWith('Error rendering card:', expect.any(Error));
       expect(renderErrorSpy).toHaveBeenCalledWith('An error occurred while rendering the card');
@@ -254,7 +302,12 @@ describe('RenderingCoordinator', () => {
     it('should return early if renderRoot is missing', () => {
       const coordinatorWithoutRoot = new RenderingCoordinator(mockLifecycleManager, null as any);
 
-      coordinatorWithoutRoot.updateItemsOnly(mockInventoryItems, 'name', mockTodoLists);
+      coordinatorWithoutRoot.updateItemsOnly(
+        mockInventoryItems,
+        'name',
+        mockTodoLists,
+        mockTranslations,
+      );
 
       expect(mockRenderRoot.querySelector).not.toHaveBeenCalled();
     });
@@ -262,7 +315,12 @@ describe('RenderingCoordinator', () => {
     it('should return early if items container not found', () => {
       vi.mocked(mockRenderRoot.querySelector).mockReturnValue(null);
 
-      renderingCoordinator.updateItemsOnly(mockInventoryItems, 'name', mockTodoLists);
+      renderingCoordinator.updateItemsOnly(
+        mockInventoryItems,
+        'name',
+        mockTodoLists,
+        mockTranslations,
+      );
 
       expect(mockRenderRoot.querySelector).toHaveBeenCalledWith('.items-container');
     });
@@ -273,11 +331,21 @@ describe('RenderingCoordinator', () => {
 
       const { createItemsList } = await import('../../src/templates/itemList');
 
-      renderingCoordinator.updateItemsOnly(mockInventoryItems, 'name', mockTodoLists);
+      renderingCoordinator.updateItemsOnly(
+        mockInventoryItems,
+        'name',
+        mockTodoLists,
+        mockTranslations,
+      );
 
       // Wait for the dynamic import to resolve
       await vi.waitFor(() => {
-        expect(createItemsList).toHaveBeenCalledWith(mockInventoryItems, 'name', mockTodoLists);
+        expect(createItemsList).toHaveBeenCalledWith(
+          mockInventoryItems,
+          'name',
+          mockTodoLists,
+          mockTranslations,
+        );
       });
 
       expect(mockContainer.innerHTML).toBe('<div>mocked items list</div>');
@@ -293,7 +361,12 @@ describe('RenderingCoordinator', () => {
         throw new Error('Import failed');
       });
 
-      renderingCoordinator.updateItemsOnly(mockInventoryItems, 'name', mockTodoLists);
+      renderingCoordinator.updateItemsOnly(
+        mockInventoryItems,
+        'name',
+        mockTodoLists,
+        mockTranslations,
+      );
 
       await vi.waitFor(() => {
         expect(consoleErrorSpy).toHaveBeenCalledWith('Error loading templates:', expect.any(Error));
@@ -451,7 +524,13 @@ describe('RenderingCoordinator', () => {
 
       mockHass.states[mockConfig.entity] = entityWithoutAttributes;
 
-      renderingCoordinator.render(mockConfig, mockHass, mockTodoLists, mockValidateItemsCallback);
+      renderingCoordinator.render(
+        mockConfig,
+        mockHass,
+        mockTodoLists,
+        mockTranslations,
+        mockValidateItemsCallback,
+      );
 
       expect(mockValidateItemsCallback).toHaveBeenCalledWith([]);
     });
@@ -464,7 +543,13 @@ describe('RenderingCoordinator', () => {
         throw new Error('Render failed');
       });
 
-      renderingCoordinator.render(mockConfig, mockHass, mockTodoLists, mockValidateItemsCallback);
+      renderingCoordinator.render(
+        mockConfig,
+        mockHass,
+        mockTodoLists,
+        mockTranslations,
+        mockValidateItemsCallback,
+      );
 
       expect(consoleErrorSpy).toHaveBeenCalledWith('Error rendering card:', expect.any(Error));
       expect(renderErrorSpy).toHaveBeenCalledWith('An error occurred while rendering the card');
@@ -480,6 +565,7 @@ describe('RenderingCoordinator', () => {
           mockConfig,
           mockHass,
           malformedTodoLists,
+          mockTranslations,
           mockValidateItemsCallback,
         );
       }).not.toThrow();

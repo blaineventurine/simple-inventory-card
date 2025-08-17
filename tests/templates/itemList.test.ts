@@ -5,7 +5,6 @@ import { TodoList } from '../../src/types/todoList';
 import { TranslationData } from '@/types/translatableComponent';
 import { Utilities } from '../../src/utils/utilities';
 import { createItemRowTemplate } from '../../src/templates/itemRow';
-
 vi.mock('../../src/services/translationManager', () => ({
   TranslationManager: {
     localize: vi.fn((_translations: any, _key: string, _params: any, fallback: string) => {

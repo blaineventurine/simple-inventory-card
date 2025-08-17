@@ -2,13 +2,12 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Renderer } from '../../src/services/renderer';
 import { Utilities } from '../../src/utils/utilities';
 import { styles } from '../../src/styles/styles';
-import { MESSAGES } from '../../src/utils/constants';
 import { generateCardHTML } from '../../src/templates/inventoryCard';
 import { HassEntity, InventoryItem } from '../../src/types/homeAssistant';
 import { FilterState } from '../../src/types/filterState';
 import { TodoList } from '../../src/types/todoList';
+import { TranslationData } from '@/types/translatableComponent';
 
-// Mock dependencies
 vi.mock('../../src/utils/utilities');
 vi.mock('../../src/utils/constants');
 vi.mock('../../src/templates/inventoryCard');
@@ -16,6 +15,7 @@ vi.mock('../../src/templates/inventoryCard');
 describe('Renderer', () => {
   let renderer: Renderer;
   let mockShadowRoot: ShadowRoot;
+  let mockTranslations: TranslationData;
 
   beforeEach(() => {
     mockShadowRoot = {
@@ -23,15 +23,18 @@ describe('Renderer', () => {
     } as ShadowRoot;
     renderer = new Renderer(mockShadowRoot);
 
-    // Reset mocks
+    mockTranslations = {
+      items: {
+        no_items: 'No items in inventory',
+      },
+    };
+
     vi.clearAllMocks();
 
-    // Setup default mock implementations
     vi.mocked(Utilities.getInventoryName).mockReturnValue('Test Inventory');
     vi.mocked(Utilities.getInventoryDescription).mockReturnValue('Test Description');
     vi.mocked(Utilities.sanitizeHtml).mockImplementation((input) => input);
     vi.mocked(generateCardHTML).mockReturnValue('<div>Generated Card HTML</div>');
-    vi.mocked(MESSAGES).LOADING = 'Loading...';
   });
 
   describe('constructor', () => {
@@ -96,7 +99,15 @@ describe('Renderer', () => {
         },
       ];
 
-      renderer.renderCard(mockState, 'test.entity', mockItems, mockFilters, 'name', mockTodoLists);
+      renderer.renderCard(
+        mockState,
+        'test.entity',
+        mockItems,
+        mockFilters,
+        'name',
+        mockTodoLists,
+        mockTranslations,
+      );
 
       expect(Utilities.getInventoryName).toHaveBeenCalledWith(mockState, 'test.entity');
       expect(Utilities.getInventoryDescription).toHaveBeenCalledWith(mockState);
@@ -109,6 +120,7 @@ describe('Renderer', () => {
         mockTodoLists,
         mockState.attributes.items,
         'Test Description',
+        mockTranslations,
       );
       expect(mockShadowRoot.innerHTML).toBe('<div>Generated Card HTML</div>');
     });
@@ -124,7 +136,15 @@ describe('Renderer', () => {
       } as HassEntity;
       const mockItems: InventoryItem[] = [];
 
-      renderer.renderCard(mockState, 'test.entity', mockItems, mockFilters, 'name', mockTodoLists);
+      renderer.renderCard(
+        mockState,
+        'test.entity',
+        mockItems,
+        mockFilters,
+        'name',
+        mockTodoLists,
+        mockTranslations,
+      );
 
       expect(generateCardHTML).toHaveBeenCalledWith(
         'Test Inventory',
@@ -135,6 +155,7 @@ describe('Renderer', () => {
         mockTodoLists,
         [], // Empty allItems when no attributes
         'Test Description',
+        mockTranslations,
       );
     });
 
@@ -149,7 +170,15 @@ describe('Renderer', () => {
       };
       const mockItems: InventoryItem[] = [];
 
-      renderer.renderCard(mockState, 'test.entity', mockItems, mockFilters, 'name', mockTodoLists);
+      renderer.renderCard(
+        mockState,
+        'test.entity',
+        mockItems,
+        mockFilters,
+        'name',
+        mockTodoLists,
+        mockTranslations,
+      );
 
       expect(generateCardHTML).toHaveBeenCalledWith(
         'Test Inventory',
@@ -160,6 +189,7 @@ describe('Renderer', () => {
         mockTodoLists,
         [], // Empty allItems when attributes.items is undefined
         'Test Description',
+        mockTranslations,
       );
     });
 
@@ -173,6 +203,7 @@ describe('Renderer', () => {
         mockFilters,
         'name',
         mockTodoLists,
+        mockTranslations,
       );
 
       expect(generateCardHTML).toHaveBeenCalledWith(
@@ -184,6 +215,7 @@ describe('Renderer', () => {
         mockTodoLists,
         [],
         'Test Description',
+        mockTranslations,
       );
     });
 
@@ -245,7 +277,15 @@ describe('Renderer', () => {
         last_updated: '2023-01-01T00:00:00Z',
       };
 
-      renderer.renderCard(mockState, 'test.entity', [], mockFilters, 'name', mockTodoLists);
+      renderer.renderCard(
+        mockState,
+        'test.entity',
+        [],
+        mockFilters,
+        'name',
+        mockTodoLists,
+        mockTranslations,
+      );
 
       expect(generateCardHTML).toHaveBeenCalledWith(
         'Test Inventory',
@@ -256,6 +296,7 @@ describe('Renderer', () => {
         mockTodoLists,
         mockState.attributes.items,
         'Test Description',
+        mockTranslations,
       );
     });
 
@@ -317,7 +358,15 @@ describe('Renderer', () => {
         last_updated: '2023-01-01T00:00:00Z',
       };
 
-      renderer.renderCard(mockState, 'test.entity', [], mockFilters, 'name', mockTodoLists);
+      renderer.renderCard(
+        mockState,
+        'test.entity',
+        [],
+        mockFilters,
+        'name',
+        mockTodoLists,
+        mockTranslations,
+      );
 
       expect(generateCardHTML).toHaveBeenCalledWith(
         'Test Inventory',
@@ -328,6 +377,7 @@ describe('Renderer', () => {
         mockTodoLists,
         mockState.attributes.items,
         'Test Description',
+        mockTranslations,
       );
     });
 
@@ -343,7 +393,15 @@ describe('Renderer', () => {
         last_updated: '2023-01-01T00:00:00Z',
       };
 
-      renderer.renderCard(mockState, 'test.entity', [], mockFilters, 'name', mockTodoLists);
+      renderer.renderCard(
+        mockState,
+        'test.entity',
+        [],
+        mockFilters,
+        'name',
+        mockTodoLists,
+        mockTranslations,
+      );
 
       expect(generateCardHTML).toHaveBeenCalledWith(
         'Test Inventory',
@@ -354,6 +412,7 @@ describe('Renderer', () => {
         mockTodoLists,
         [],
         'Test Description',
+        mockTranslations,
       );
     });
 
@@ -393,6 +452,7 @@ describe('Renderer', () => {
         mockFilters,
         'category',
         mockTodoLists,
+        mockTranslations,
       );
 
       expect(generateCardHTML).toHaveBeenCalledWith(
@@ -404,6 +464,7 @@ describe('Renderer', () => {
         mockTodoLists,
         [],
         'Test Description',
+        mockTranslations,
       );
     });
   });
@@ -458,7 +519,7 @@ describe('Renderer', () => {
     it('should render loading message', () => {
       renderer.renderLoading();
 
-      expect(mockShadowRoot.innerHTML).toContain(MESSAGES.LOADING);
+      expect(mockShadowRoot.innerHTML).toContain('Loading');
       expect(mockShadowRoot.innerHTML).toContain('loading-container');
       expect(mockShadowRoot.innerHTML).toContain('<ha-card>');
       expect(mockShadowRoot.innerHTML).toContain(styles);
@@ -470,22 +531,6 @@ describe('Renderer', () => {
       expect(mockShadowRoot.innerHTML).toContain(`<style>${styles}</style>`);
       expect(mockShadowRoot.innerHTML).toContain('padding: 16px');
       expect(mockShadowRoot.innerHTML).toContain('text-align: center');
-    });
-
-    it('should handle case when MESSAGES.LOADING is empty', () => {
-      vi.mocked(MESSAGES).LOADING = '';
-
-      renderer.renderLoading();
-
-      expect(mockShadowRoot.innerHTML).toContain('<p></p>');
-    });
-
-    it('should handle case when MESSAGES.LOADING contains HTML', () => {
-      vi.mocked(MESSAGES).LOADING = '<span>Loading...</span>';
-
-      renderer.renderLoading();
-
-      expect(mockShadowRoot.innerHTML).toContain('<span>Loading...</span>');
     });
   });
 
@@ -526,6 +571,7 @@ describe('Renderer', () => {
         } as FilterState,
         'name',
         [],
+        mockTranslations,
       );
 
       expect(generateCardHTML).toHaveBeenCalledWith(
@@ -537,6 +583,7 @@ describe('Renderer', () => {
         expect.any(Array),
         expect.any(Array),
         expect.any(String),
+        expect.any(Object),
       );
     });
 
@@ -593,18 +640,20 @@ describe('Renderer', () => {
         } as FilterState,
         'name',
         [],
+        mockTranslations,
       );
 
       // Whitespace-only categories should be included since they're truthy
       expect(generateCardHTML).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.any(Array),
-        expect.any(Object),
-        expect.any(String),
-        ['   ', '\t\n', 'Valid Category'].sort(),
-        expect.any(Array),
-        expect.any(Array),
-        expect.any(String),
+        expect.any(String), // inventory name
+        expect.any(Array), // items
+        expect.any(Object), // filters
+        expect.any(String), // sort method
+        ['   ', '\t\n', 'Valid Category'].sort(), // categories
+        expect.any(Array), // todo lists
+        expect.any(Array), // all items
+        expect.any(String), // description
+        expect.any(Object), // translations
       );
     });
   });
