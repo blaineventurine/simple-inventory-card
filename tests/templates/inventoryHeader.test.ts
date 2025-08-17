@@ -4,10 +4,9 @@ import { InventoryItem } from '../../src/types/homeAssistant';
 import { TranslationData } from '@/types/translatableComponent';
 import { Utilities } from '../../src/utils/utilities';
 
-// Add TranslationManager mock
 vi.mock('../../src/services/translationManager', () => ({
   TranslationManager: {
-    localize: vi.fn((_translations: any, key: string, params: any, fallback: string) => {
+    localize: vi.fn((_translations: any, _key: string, params: any, fallback: string) => {
       // For parameterized translations, replace the placeholder
       if (params && params.count !== undefined) {
         return fallback.replace('{count}', params.count.toString());
