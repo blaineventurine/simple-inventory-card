@@ -179,22 +179,19 @@ class SimpleInventoryCard extends LitElement {
 
 async function loadCardDescription(): Promise<void> {
   try {
-    // Try to detect language from document or navigator
     const language = document.documentElement.lang || navigator.language.substring(0, 2) || 'en';
     const translations = await TranslationManager.loadTranslations(language);
 
-    // Use TranslationManager.localize to get the translated description
     const translatedDescription = TranslationManager.localize(
       translations,
       'card.description',
       undefined,
-      cardDescription, // fallback
+      cardDescription,
     );
 
     if (translatedDescription !== cardDescription) {
       cardDescription = translatedDescription;
 
-      // Update existing card config if already registered
       const existingCard = window.customCards?.find(
         (card) => card.type === 'simple-inventory-card',
       );
