@@ -9,6 +9,8 @@ import { Utilities } from '../utils/utilities';
 import { TranslationData } from '@/types/translatableComponent';
 import { TranslationManager } from '@/services/translationManager';
 
+let cardDescription = 'A card to manage your inventories';
+
 declare global {
   interface Window {
     customCards: Array<{
@@ -175,6 +177,38 @@ class SimpleInventoryCard extends LitElement {
   }
 }
 
+async function loadCardDescription(): Promise<void> {
+  try {
+    // Try to detect language from document or navigator
+    const language = document.documentElement.lang || navigator.language.substring(0, 2) || 'en';
+    const translations = await TranslationManager.loadTranslations(language);
+
+    // Use TranslationManager.localize to get the translated description
+    const translatedDescription = TranslationManager.localize(
+      translations,
+      'card.description',
+      undefined,
+      cardDescription, // fallback
+    );
+
+    if (translatedDescription !== cardDescription) {
+      cardDescription = translatedDescription;
+
+      // Update existing card config if already registered
+      const existingCard = window.customCards?.find(
+        (card) => card.type === 'simple-inventory-card',
+      );
+      if (existingCard) {
+        existingCard.description = cardDescription;
+      }
+    }
+  } catch (error) {
+    console.warn('Failed to load card description translation:', error);
+  }
+}
+
+loadCardDescription();
+
 export { SimpleInventoryCard };
 
 if (!customElements.get('simple-inventory-card')) {
@@ -190,7 +224,7 @@ window.customCards = window.customCards || [];
 const cardConfig = {
   type: 'simple-inventory-card',
   name: 'Simple Inventory Card',
-  description: 'A card to manage your inventories',
+  description: cardDescription,
   preview: true,
   documentationURL: 'https://github.com/blaineventurine/simple-inventory-card',
 };

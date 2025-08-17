@@ -1,4 +1,7 @@
 {
+  "card": {
+    "description": "A card to manage your inventories"
+  },
   "common": {
     "loading": "Loading...",
     "name": "My Custom Card",

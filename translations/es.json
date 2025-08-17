@@ -1,4 +1,7 @@
 {
+  "card": {
+    "description": "Una tarjeta para gestionar tus inventarios"
+  },
   "common": {
     "loading": "Cargando...",
     "name": "Mi Tarjeta Personalizada",
