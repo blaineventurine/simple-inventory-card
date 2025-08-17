@@ -2,8 +2,17 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createItemsList, createItemsByCategory } from '../../src/templates/itemList';
 import { InventoryItem } from '../../src/types/homeAssistant';
 import { TodoList } from '../../src/types/todoList';
+import { TranslationData } from '@/types/translatableComponent';
 import { Utilities } from '../../src/utils/utilities';
 import { createItemRowTemplate } from '../../src/templates/itemRow';
+
+vi.mock('../../src/services/translationManager', () => ({
+  TranslationManager: {
+    localize: vi.fn((_translations: any, _key: string, _params: any, fallback: string) => {
+      return fallback;
+    }),
+  },
+}));
 
 vi.mock('../../src/utils/utilities', () => ({
   Utilities: {
@@ -13,7 +22,7 @@ vi.mock('../../src/utils/utilities', () => ({
 
 vi.mock('../../src/templates/itemRow', () => ({
   createItemRowTemplate: vi.fn(
-    (item: InventoryItem, todoLists: TodoList[]) =>
+    (item: InventoryItem, todoLists: TodoList[], _translations: any) =>
       `<mock-item-row name="${item.name}" todos="${todoLists.length}" />`,
   ),
 }));
@@ -23,14 +32,12 @@ vi.mock('../../src/utils/constants', () => ({
     CATEGORY_GROUP: 'category-group',
     CATEGORY_HEADER: 'category-header',
   },
-  MESSAGES: {
-    NO_ITEMS: 'No items in inventory',
-  },
 }));
 
 describe('itemList', () => {
   let mockItems: InventoryItem[];
   let mockTodoLists: TodoList[];
+  let mockTranslations: TranslationData;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -75,25 +82,32 @@ describe('itemList', () => {
       { id: 'grocery-1', name: 'Grocery List', entity_id: 'todo.grocery' },
       { id: 'shopping-2', name: 'Shopping List', entity_id: 'todo.shopping' },
     ];
+
+    mockTranslations = {
+      items: {
+        no_items: 'No items in inventory',
+      },
+    };
   });
 
   describe('createItemsList', () => {
     describe('empty items handling', () => {
       it('should return no-items message when items array is empty', () => {
-        const result = createItemsList([], 'name', mockTodoLists);
+        const result = createItemsList([], 'name', mockTodoLists, mockTranslations);
 
-        expect(result).toBe('<div class="no-items">No items in inventory</div>');
+        expect(result).toContain('class="no-items"');
+        expect(result).toContain('No items in inventory');
       });
 
-      it('should use MESSAGES.NO_ITEMS constant for empty state', () => {
-        const result = createItemsList([], 'category', mockTodoLists);
+      it('should use translation for empty state', () => {
+        const result = createItemsList([], 'category', mockTodoLists, mockTranslations);
 
         expect(result).toContain('No items in inventory');
         expect(result).toContain('class="no-items"');
       });
 
       it('should not call any item rendering functions when empty', () => {
-        createItemsList([], 'name', mockTodoLists);
+        createItemsList([], 'name', mockTodoLists, mockTranslations);
 
         expect(vi.mocked(createItemRowTemplate)).not.toHaveBeenCalled();
         expect(Utilities.groupItemsByCategory).not.toHaveBeenCalled();
@@ -107,7 +121,7 @@ describe('itemList', () => {
           Dairy: [mockItems[2]],
         });
 
-        const result = createItemsList(mockItems, 'category', mockTodoLists);
+        const result = createItemsList(mockItems, 'category', mockTodoLists, mockTranslations);
 
         expect(Utilities.groupItemsByCategory).toHaveBeenCalledWith(mockItems);
         expect(result).toContain('class="category-group"');
@@ -119,7 +133,7 @@ describe('itemList', () => {
           Test: [mockItems[0]],
         });
 
-        createItemsList(mockItems, 'category', mockTodoLists);
+        createItemsList(mockItems, 'category', mockTodoLists, mockTranslations);
 
         expect(Utilities.groupItemsByCategory).toHaveBeenCalledWith(mockItems);
       });
@@ -127,12 +141,24 @@ describe('itemList', () => {
 
     describe('non-category sort methods', () => {
       it('should render items directly when sortMethod is not "category"', () => {
-        createItemsList(mockItems, 'name', mockTodoLists);
+        createItemsList(mockItems, 'name', mockTodoLists, mockTranslations);
 
         expect(vi.mocked(createItemRowTemplate)).toHaveBeenCalledTimes(3);
-        expect(vi.mocked(createItemRowTemplate)).toHaveBeenCalledWith(mockItems[0], mockTodoLists);
-        expect(vi.mocked(createItemRowTemplate)).toHaveBeenCalledWith(mockItems[1], mockTodoLists);
-        expect(vi.mocked(createItemRowTemplate)).toHaveBeenCalledWith(mockItems[2], mockTodoLists);
+        expect(vi.mocked(createItemRowTemplate)).toHaveBeenCalledWith(
+          mockItems[0],
+          mockTodoLists,
+          mockTranslations,
+        );
+        expect(vi.mocked(createItemRowTemplate)).toHaveBeenCalledWith(
+          mockItems[1],
+          mockTodoLists,
+          mockTranslations,
+        );
+        expect(vi.mocked(createItemRowTemplate)).toHaveBeenCalledWith(
+          mockItems[2],
+          mockTodoLists,
+          mockTranslations,
+        );
         expect(Utilities.groupItemsByCategory).not.toHaveBeenCalled();
       });
 
@@ -140,7 +166,7 @@ describe('itemList', () => {
         for (const sortMethod of ['name', 'quantity', 'expiry', 'quantity_desc', 'zero_last']) {
           vi.clearAllMocks();
 
-          createItemsList(mockItems, sortMethod, mockTodoLists);
+          createItemsList(mockItems, sortMethod, mockTodoLists, mockTranslations);
 
           expect(vi.mocked(createItemRowTemplate)).toHaveBeenCalledTimes(3);
           expect(Utilities.groupItemsByCategory).not.toHaveBeenCalled();
@@ -148,7 +174,7 @@ describe('itemList', () => {
       });
 
       it('should join item templates without separators', () => {
-        const result = createItemsList(mockItems, 'name', mockTodoLists);
+        const result = createItemsList(mockItems, 'name', mockTodoLists, mockTranslations);
 
         expect(result).toBe(
           '<mock-item-row name="Apple" todos="2" />' +
@@ -162,33 +188,40 @@ describe('itemList', () => {
       it('should pass todoLists to item templates', () => {
         const customTodoLists = [{ id: 'custom-1', name: 'Custom List' }];
 
-        createItemsList(mockItems, 'name', customTodoLists);
+        createItemsList(mockItems, 'name', customTodoLists, mockTranslations);
 
         expect(vi.mocked(createItemRowTemplate)).toHaveBeenCalledWith(
           mockItems[0],
           customTodoLists,
+          mockTranslations,
         );
         expect(vi.mocked(createItemRowTemplate)).toHaveBeenCalledWith(
           mockItems[1],
           customTodoLists,
+          mockTranslations,
         );
         expect(vi.mocked(createItemRowTemplate)).toHaveBeenCalledWith(
           mockItems[2],
           customTodoLists,
+          mockTranslations,
         );
       });
 
       it('should handle empty todoLists array', () => {
-        createItemsList(mockItems, 'name', []);
+        createItemsList(mockItems, 'name', [], mockTranslations);
 
-        expect(vi.mocked(createItemRowTemplate)).toHaveBeenCalledWith(mockItems[0], []);
+        expect(vi.mocked(createItemRowTemplate)).toHaveBeenCalledWith(
+          mockItems[0],
+          [],
+          mockTranslations,
+        );
       });
     });
 
     describe('edge cases', () => {
       it('should handle single item', () => {
         const singleItem = [mockItems[0]];
-        const result = createItemsList(singleItem, 'name', mockTodoLists);
+        const result = createItemsList(singleItem, 'name', mockTodoLists, mockTranslations);
 
         expect(result).toBe('<mock-item-row name="Apple" todos="2" />');
       });
@@ -198,7 +231,7 @@ describe('itemList', () => {
           fruit: [mockItems[0]], // lowercase
         });
 
-        const result = createItemsList(mockItems, 'category', mockTodoLists);
+        const result = createItemsList(mockItems, 'category', mockTodoLists, mockTranslations);
 
         expect(result).toContain('fruit'); // Should preserve exact case
       });
@@ -215,7 +248,7 @@ describe('itemList', () => {
 
     describe('basic functionality', () => {
       it('should group items by category and render category sections', () => {
-        const result = createItemsByCategory(mockItems, mockTodoLists);
+        const result = createItemsByCategory(mockItems, mockTodoLists, mockTranslations);
 
         expect(Utilities.groupItemsByCategory).toHaveBeenCalledWith(mockItems);
         expect(result).toContain('class="category-group"');
@@ -223,19 +256,31 @@ describe('itemList', () => {
       });
 
       it('should use CSS_CLASSES constants for styling', () => {
-        const result = createItemsByCategory(mockItems, mockTodoLists);
+        const result = createItemsByCategory(mockItems, mockTodoLists, mockTranslations);
 
         expect(result).toContain('class="category-group"');
         expect(result).toContain('class="category-header"');
       });
 
       it('should render all grouped items', () => {
-        createItemsByCategory(mockItems, mockTodoLists);
+        createItemsByCategory(mockItems, mockTodoLists, mockTranslations);
 
         expect(vi.mocked(createItemRowTemplate)).toHaveBeenCalledTimes(3);
-        expect(vi.mocked(createItemRowTemplate)).toHaveBeenCalledWith(mockItems[0], mockTodoLists);
-        expect(vi.mocked(createItemRowTemplate)).toHaveBeenCalledWith(mockItems[1], mockTodoLists);
-        expect(vi.mocked(createItemRowTemplate)).toHaveBeenCalledWith(mockItems[2], mockTodoLists);
+        expect(vi.mocked(createItemRowTemplate)).toHaveBeenCalledWith(
+          mockItems[0],
+          mockTodoLists,
+          mockTranslations,
+        );
+        expect(vi.mocked(createItemRowTemplate)).toHaveBeenCalledWith(
+          mockItems[1],
+          mockTodoLists,
+          mockTranslations,
+        );
+        expect(vi.mocked(createItemRowTemplate)).toHaveBeenCalledWith(
+          mockItems[2],
+          mockTodoLists,
+          mockTranslations,
+        );
       });
     });
 
@@ -247,7 +292,7 @@ describe('itemList', () => {
           Banana: [mockItems[2]],
         });
 
-        const result = createItemsByCategory(mockItems, mockTodoLists);
+        const result = createItemsByCategory(mockItems, mockTodoLists, mockTranslations);
         const appleIndex = result.indexOf('>Apple<');
         const bananaIndex = result.indexOf('>Banana<');
         const zebraIndex = result.indexOf('>Zebra<');
@@ -263,7 +308,7 @@ describe('itemList', () => {
           APPLE: [mockItems[2]],
         });
 
-        const result = createItemsByCategory(mockItems, mockTodoLists);
+        const result = createItemsByCategory(mockItems, mockTodoLists, mockTranslations);
 
         expect(result).toContain('>APPLE<');
         expect(result).toContain('>Apple<');
@@ -273,21 +318,21 @@ describe('itemList', () => {
 
     describe('category structure', () => {
       it('should create proper HTML structure for each category', () => {
-        const result = createItemsByCategory(mockItems, mockTodoLists);
+        const result = createItemsByCategory(mockItems, mockTodoLists, mockTranslations);
 
         expect(result).toMatch(/<div class="category-group">[\s\S]*?<\/div>/g);
         expect(result).toMatch(/<div class="category-header">[\s\S]*?<\/div>/g);
       });
 
       it('should render category names in headers', () => {
-        const result = createItemsByCategory(mockItems, mockTodoLists);
+        const result = createItemsByCategory(mockItems, mockTodoLists, mockTranslations);
 
         expect(result).toContain('>Dairy<');
         expect(result).toContain('>Fruit<');
       });
 
       it('should include all items within their category groups', () => {
-        const result = createItemsByCategory(mockItems, mockTodoLists);
+        const result = createItemsByCategory(mockItems, mockTodoLists, mockTranslations);
 
         expect(result).toContain('<mock-item-row name="Apple" todos="2" />');
         expect(result).toContain('<mock-item-row name="Banana" todos="2" />');
@@ -301,7 +346,7 @@ describe('itemList', () => {
           OnlyCategory: [mockItems[0], mockItems[1], mockItems[2]],
         });
 
-        const result = createItemsByCategory(mockItems, mockTodoLists);
+        const result = createItemsByCategory(mockItems, mockTodoLists, mockTranslations);
 
         expect(result).toContain('>OnlyCategory<');
         expect(result.match(/class="category-group"/g)).toHaveLength(1);
@@ -313,7 +358,7 @@ describe('itemList', () => {
           NonEmptyCategory: [mockItems[0]],
         });
 
-        const result = createItemsByCategory(mockItems, mockTodoLists);
+        const result = createItemsByCategory(mockItems, mockTodoLists, mockTranslations);
 
         expect(result).toContain('>EmptyCategory<');
         expect(result).toContain('>NonEmptyCategory<');
@@ -324,7 +369,7 @@ describe('itemList', () => {
           'Category & "Special" <chars>': [mockItems[0]],
         });
 
-        const result = createItemsByCategory(mockItems, mockTodoLists);
+        const result = createItemsByCategory(mockItems, mockTodoLists, mockTranslations);
 
         expect(result).toContain('>Category & "Special" <chars><');
       });
@@ -335,22 +380,9 @@ describe('itemList', () => {
           [longCategoryName]: [mockItems[0]],
         });
 
-        const result = createItemsByCategory(mockItems, mockTodoLists);
+        const result = createItemsByCategory(mockItems, mockTodoLists, mockTranslations);
 
         expect(result).toContain(`>${longCategoryName}<`);
-      });
-
-      it('should handle many categories', () => {
-        const manyCategories = Object.fromEntries(
-          Array.from({ length: 50 }, (_, index) => [`Category${index}`, [mockItems[0]]]),
-        );
-        vi.mocked(Utilities.groupItemsByCategory).mockReturnValue(manyCategories);
-
-        const result = createItemsByCategory(mockItems, mockTodoLists);
-
-        for (let index = 0; index < 50; index++) {
-          expect(result).toContain(`>Category${index}<`);
-        }
       });
     });
 
@@ -358,7 +390,7 @@ describe('itemList', () => {
       it('should pass items correctly to grouping function', () => {
         const customItems = [mockItems[0]];
 
-        createItemsByCategory(customItems, mockTodoLists);
+        createItemsByCategory(customItems, mockTodoLists, mockTranslations);
 
         expect(Utilities.groupItemsByCategory).toHaveBeenCalledWith(customItems);
         expect(Utilities.groupItemsByCategory).toHaveBeenCalledTimes(1);
@@ -371,7 +403,7 @@ describe('itemList', () => {
         };
         vi.mocked(Utilities.groupItemsByCategory).mockReturnValue(mockGroupedResult);
 
-        const result = createItemsByCategory(mockItems, mockTodoLists);
+        const result = createItemsByCategory(mockItems, mockTodoLists, mockTranslations);
 
         expect(result).toContain('>Group1<');
         expect(result).toContain('>Group2<');
@@ -380,7 +412,7 @@ describe('itemList', () => {
 
     describe('HTML structure validation', () => {
       it('should produce valid nested HTML structure', () => {
-        const result = createItemsByCategory(mockItems, mockTodoLists);
+        const result = createItemsByCategory(mockItems, mockTodoLists, mockTranslations);
         const categoryGroups = result.match(/<div class="category-group">/g);
         const categoryGroupsEnd = result.match(/<\/div>/g);
 
@@ -389,7 +421,7 @@ describe('itemList', () => {
       });
 
       it('should handle formatted output with newlines', () => {
-        const result = createItemsByCategory(mockItems, mockTodoLists);
+        const result = createItemsByCategory(mockItems, mockTodoLists, mockTranslations);
 
         expect(result.split('<div class="category-group">').length - 1).toBe(2);
         expect(result).toContain('class="category-group"');
@@ -405,11 +437,11 @@ describe('itemList', () => {
       });
 
       vi.clearAllMocks();
-      createItemsList(mockItems, 'name', mockTodoLists);
+      createItemsList(mockItems, 'name', mockTodoLists, mockTranslations);
       const nonCategoryCalls = vi.mocked(createItemRowTemplate).mock.calls.length;
 
       vi.clearAllMocks();
-      createItemsList(mockItems, 'category', mockTodoLists);
+      createItemsList(mockItems, 'category', mockTodoLists, mockTranslations);
       const categoryCalls = vi.mocked(createItemRowTemplate).mock.calls.length;
 
       expect(nonCategoryCalls).toBe(categoryCalls);

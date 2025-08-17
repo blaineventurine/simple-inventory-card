@@ -5,6 +5,7 @@ import { ModalValidationManager } from '../../../src/services/modals/modalValida
 import { ELEMENTS, CSS_CLASSES, TIMING } from '../../../src/utils/constants';
 import { HomeAssistant, InventoryItem, InventoryConfig } from '../../../src/types/homeAssistant';
 import { createMockHomeAssistant, createMockHassEntity } from '../../testHelpers';
+import { TranslationData } from '@/types/translatableComponent';
 
 vi.mock('../../../src/services/modals/modalFormManager');
 vi.mock('../../../src/services/modals/modalValidationManager');
@@ -17,6 +18,31 @@ describe('ModalUIManager', () => {
   let mockHass: HomeAssistant;
   let mockConfig: InventoryConfig;
   let mockElements: Map<string, HTMLElement>;
+  const mockTranslations: TranslationData = {
+    modal: {
+      name_required: 'Name *',
+      quantity: 'Quantity',
+      unit: 'Unit',
+      unit_placeholder: 'kg, pcs, etc.',
+      category: 'Category',
+      category_placeholder: 'Food, Cleaning, etc.',
+      expiry_date: 'Expiry Date',
+      expiry_alert_threshold: 'Expiry Alert Threshold',
+      days_before_expiry: '(days before expiry)',
+      set_expiry_first: 'Set expiry date first',
+      expiry_help_text: 'How many days before expiry to show alerts',
+      auto_add_when_low: 'Auto-add to todo list when low',
+      quantity_threshold: 'Quantity Threshold',
+      minimum_quantity: 'Minimum quantity',
+      todo_list: 'Todo List',
+      select_list: 'Select list...',
+      cancel: 'Cancel',
+      add_item: 'Add Item',
+      edit_item: 'Edit Item',
+      save_changes: 'Save Changes',
+      auto_add_settings: 'Auto-add Settings',
+    },
+  };
 
   const mockInventoryItems: InventoryItem[] = [
     {
@@ -124,7 +150,7 @@ describe('ModalUIManager', () => {
       mockElements.set(ELEMENTS.ADD_MODAL, mockModal);
       mockElements.set(ELEMENTS.NAME, mockNameInput);
 
-      modalUIManager.openAddModal();
+      modalUIManager.openAddModal(mockTranslations);
 
       expect(mockValidationManager.clearError).toHaveBeenCalledWith(true);
       expect(mockModal.classList.add).toHaveBeenCalledWith(CSS_CLASSES.SHOW);
@@ -138,7 +164,7 @@ describe('ModalUIManager', () => {
     it('should handle missing add modal element', () => {
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
-      modalUIManager.openAddModal();
+      modalUIManager.openAddModal(mockTranslations);
 
       expect(consoleWarnSpy).toHaveBeenCalledWith('Add modal not found in DOM');
       expect(mockValidationManager.clearError).not.toHaveBeenCalled();
@@ -152,7 +178,7 @@ describe('ModalUIManager', () => {
 
       const setupSpy = vi.spyOn(modalUIManager, 'setupExpiryThresholdInteraction');
 
-      modalUIManager.openAddModal();
+      modalUIManager.openAddModal(mockTranslations);
 
       expect(setupSpy).toHaveBeenCalled();
     });
@@ -180,10 +206,14 @@ describe('ModalUIManager', () => {
       mockElements.set(ELEMENTS.EDIT_MODAL, mockModal);
       mockElements.set(ELEMENTS.NAME, mockNameInput);
 
-      const result = modalUIManager.openEditModal('Test Item', () => ({
-        hass: mockHass,
-        config: mockConfig,
-      }));
+      const result = modalUIManager.openEditModal(
+        'Test Item',
+        () => ({
+          hass: mockHass,
+          config: mockConfig,
+        }),
+        mockTranslations,
+      );
 
       expect(result.found).toBe(true);
       expect(result.item).toEqual(mockInventoryItems[0]);
@@ -202,10 +232,14 @@ describe('ModalUIManager', () => {
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       const configWithMissingEntity = { ...mockConfig, entity: 'sensor.nonexistent' };
 
-      const result = modalUIManager.openEditModal('Test Item', () => ({
-        hass: mockHass,
-        config: configWithMissingEntity,
-      }));
+      const result = modalUIManager.openEditModal(
+        'Test Item',
+        () => ({
+          hass: mockHass,
+          config: configWithMissingEntity,
+        }),
+        mockTranslations,
+      );
 
       expect(result.found).toBe(false);
       expect(result.item).toBe(undefined);
@@ -218,10 +252,14 @@ describe('ModalUIManager', () => {
     it('should handle missing item', () => {
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
-      const result = modalUIManager.openEditModal('Nonexistent Item', () => ({
-        hass: mockHass,
-        config: mockConfig,
-      }));
+      const result = modalUIManager.openEditModal(
+        'Nonexistent Item',
+        () => ({
+          hass: mockHass,
+          config: mockConfig,
+        }),
+        mockTranslations,
+      );
 
       expect(result.found).toBe(false);
       expect(result.item).toBe(undefined);
@@ -238,10 +276,14 @@ describe('ModalUIManager', () => {
         }),
       });
 
-      const result = modalUIManager.openEditModal('Test Item', () => ({
-        hass: emptyHass,
-        config: mockConfig,
-      }));
+      const result = modalUIManager.openEditModal(
+        'Test Item',
+        () => ({
+          hass: emptyHass,
+          config: mockConfig,
+        }),
+        mockTranslations,
+      );
 
       expect(result.found).toBe(false);
       expect(result.item).toBe(undefined);
@@ -254,10 +296,14 @@ describe('ModalUIManager', () => {
         }),
       });
 
-      const result = modalUIManager.openEditModal('Test Item', () => ({
-        hass: hassWithoutItems,
-        config: mockConfig,
-      }));
+      const result = modalUIManager.openEditModal(
+        'Test Item',
+        () => ({
+          hass: hassWithoutItems,
+          config: mockConfig,
+        }),
+        mockTranslations,
+      );
 
       expect(result.found).toBe(false);
       expect(result.item).toBe(undefined);
@@ -445,10 +491,10 @@ describe('ModalUIManager', () => {
     it('should setup interactions for both modals', () => {
       const setupSpy = vi.spyOn(modalUIManager as any, 'setupExpiryThresholdFieldForModal');
 
-      modalUIManager.setupExpiryThresholdInteraction();
+      modalUIManager.setupExpiryThresholdInteraction(mockTranslations);
 
-      expect(setupSpy).toHaveBeenCalledWith(true); // Add modal
-      expect(setupSpy).toHaveBeenCalledWith(false); // Edit modal
+      expect(setupSpy).toHaveBeenCalledWith(true, mockTranslations); // Add modal
+      expect(setupSpy).toHaveBeenCalledWith(false, mockTranslations); // Edit modal
     });
   });
 
@@ -459,9 +505,9 @@ describe('ModalUIManager', () => {
 
       const updateStateSpy = vi.spyOn(modalUIManager as any, 'updateExpiryThresholdState');
 
-      modalUIManager['setupExpiryThresholdFieldForModal'](true);
+      modalUIManager['setupExpiryThresholdFieldForModal'](true, mockTranslations);
 
-      expect(updateStateSpy).toHaveBeenCalledWith(true);
+      expect(updateStateSpy).toHaveBeenCalledWith(true, mockTranslations);
       expect(mockExpiryInput.addEventListener).toHaveBeenCalledWith('input', expect.any(Function));
       expect(mockExpiryInput.addEventListener).toHaveBeenCalledWith('change', expect.any(Function));
     });
@@ -472,15 +518,17 @@ describe('ModalUIManager', () => {
 
       const updateStateSpy = vi.spyOn(modalUIManager as any, 'updateExpiryThresholdState');
 
-      modalUIManager['setupExpiryThresholdFieldForModal'](false);
+      modalUIManager['setupExpiryThresholdFieldForModal'](false, mockTranslations);
 
-      expect(updateStateSpy).toHaveBeenCalledWith(false);
+      expect(updateStateSpy).toHaveBeenCalledWith(false, mockTranslations);
       expect(mockExpiryInput.addEventListener).toHaveBeenCalledWith('input', expect.any(Function));
       expect(mockExpiryInput.addEventListener).toHaveBeenCalledWith('change', expect.any(Function));
     });
 
     it('should handle missing expiry input', () => {
-      expect(() => modalUIManager['setupExpiryThresholdFieldForModal'](true)).not.toThrow();
+      expect(() =>
+        modalUIManager['setupExpiryThresholdFieldForModal'](true, mockTranslations),
+      ).not.toThrow();
     });
   });
 
@@ -496,7 +544,7 @@ describe('ModalUIManager', () => {
         configurable: true,
       });
 
-      modalUIManager['updateExpiryThresholdState'](true);
+      modalUIManager['updateExpiryThresholdState'](true, mockTranslations);
 
       expect(mockThresholdInput.disabled).toBe(false);
       expect(mockThresholdInput.placeholder).toBe('Days before expiry to alert (default: 0)');
@@ -514,7 +562,7 @@ describe('ModalUIManager', () => {
         configurable: true,
       });
 
-      modalUIManager['updateExpiryThresholdState'](false);
+      modalUIManager['updateExpiryThresholdState'](false, mockTranslations);
 
       expect(mockThresholdInput.disabled).toBe(true);
       expect(mockThresholdInput.value).toBe('');
@@ -536,14 +584,16 @@ describe('ModalUIManager', () => {
         configurable: true,
       });
 
-      modalUIManager['updateExpiryThresholdState'](true);
+      modalUIManager['updateExpiryThresholdState'](true, mockTranslations);
 
       expect(mockThresholdInput.disabled).toBe(false);
       // Should not change existing value of '10'
     });
 
     it('should handle missing elements', () => {
-      expect(() => modalUIManager['updateExpiryThresholdState'](true)).not.toThrow();
+      expect(() =>
+        modalUIManager['updateExpiryThresholdState'](true, mockTranslations),
+      ).not.toThrow();
     });
   });
 
@@ -648,7 +698,7 @@ describe('ModalUIManager', () => {
       mockElements.set(ELEMENTS.NAME, mockNameInput);
 
       // Open modal
-      modalUIManager.openAddModal();
+      modalUIManager.openAddModal(mockTranslations);
       expect(mockModal.classList.add).toHaveBeenCalledWith(CSS_CLASSES.SHOW);
 
       // Close modal
@@ -663,10 +713,14 @@ describe('ModalUIManager', () => {
       mockElements.set(ELEMENTS.NAME, mockNameInput);
 
       // Open modal
-      const result = modalUIManager.openEditModal('Test Item', () => ({
-        hass: mockHass,
-        config: mockConfig,
-      }));
+      const result = modalUIManager.openEditModal(
+        'Test Item',
+        () => ({
+          hass: mockHass,
+          config: mockConfig,
+        }),
+        mockTranslations,
+      );
       expect(result.found).toBe(true);
       expect(mockModal.classList.add).toHaveBeenCalledWith(CSS_CLASSES.SHOW);
 

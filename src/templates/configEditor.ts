@@ -56,10 +56,10 @@ export function createEntityInfo(
         <br />
         <small>${entityId}</small>
         <br />
-        <small
-          >${TranslationManager.localize(translations, 'config.items_count', undefined, 'Items:')}:
-          ${itemCount}</small
-        >
+        <small>
+          ${TranslationManager.localize(translations, 'config.items_count', undefined, 'Items')}:
+          ${itemCount}
+        </small>
       </div>
     </div>
   `;
