@@ -7,6 +7,7 @@ import { Utilities } from '../../src/utils/utilities';
 import { ELEMENTS, ACTIONS, DEFAULTS, CSS_CLASSES, SORT_METHODS } from '../../src/utils/constants';
 import { HomeAssistant, InventoryConfig, InventoryItem } from '../../src/types/homeAssistant';
 import { createMockHomeAssistant, createMockHassEntity } from '../testHelpers';
+import { TranslationData } from '@/types/translatableComponent';
 
 vi.mock('../../src/services/services');
 vi.mock('../../src/services/modals');
@@ -23,6 +24,7 @@ describe('EventHandler', () => {
   let mockConfig: InventoryConfig;
   let mockRenderCallback: () => void;
   let mockUpdateItemsCallback: (items: InventoryItem[], sortMethod: string) => void;
+  let mockTranslations: TranslationData;
 
   const mockInventoryItems: InventoryItem[] = [
     {
@@ -43,6 +45,12 @@ describe('EventHandler', () => {
       querySelector: vi.fn(),
       querySelectorAll: vi.fn(),
     } as unknown as ShadowRoot;
+
+    mockTranslations = {
+      items: {
+        no_items: 'No items in inventory',
+      },
+    };
 
     mockServices = {
       incrementItem: vi.fn(),
@@ -103,6 +111,7 @@ describe('EventHandler', () => {
       mockRenderCallback,
       mockUpdateItemsCallback,
       () => ({ hass: mockHass, config: mockConfig }),
+      mockTranslations,
     );
   });
 
@@ -588,7 +597,11 @@ describe('EventHandler', () => {
 
       eventHandler['handleSearchChange']();
 
-      expect(mockFilters.sortItems).toHaveBeenCalledWith(mockInventoryItems, DEFAULTS.SORT_METHOD);
+      expect(mockFilters.sortItems).toHaveBeenCalledWith(
+        mockInventoryItems,
+        DEFAULTS.SORT_METHOD,
+        mockTranslations,
+      );
     });
   });
 

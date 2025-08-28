@@ -1,0 +1,109 @@
+{
+  "card": {
+    "description": "A card to manage your inventories"
+  },
+  "common": {
+    "loading": "Loading...",
+    "name": "My Custom Card",
+    "off": "Off",
+    "on": "On",
+    "uncategorized": "Uncategorized",
+    "unknown": "Unknown"
+  },
+  "editor": {
+    "entity": "Entity",
+    "name": "Name (Optional)",
+    "show_icon": "Show Icon",
+    "show_state": "Show State"
+  },
+  "state": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "unavailable": "Unavailable"
+  },
+  "expiry": {
+    "expired_day_ago": "Expired {days} day ago",
+    "expired_days_ago": "Expired {days} days ago",
+    "expires_in_day": "Expires in {days} day",
+    "expires_in_days": "Expires in {days} days",
+    "expires_today": "Expires today"
+  },
+  "items": {
+    "auto_add_info": "Auto-add at ≤ {quantity} → {list}",
+    "no_items": "No items in inventory"
+  },
+  "header": {
+    "items_expired": "{count} item{count, plural, one {} other {s}} expired",
+    "items_expiring_soon": "{count} item{count, plural, one {} other {s}} expiring soon"
+  },
+  "modal": {
+    "add_item": "Add Item",
+    "auto_add_when_low": "Auto-add to todo list when low",
+    "auto_add_settings": "Auto-add Settings",
+    "cancel": "Cancel",
+    "category": "Category",
+    "category_placeholder": "Food, Cleaning, etc.",
+    "days_before_expiry": "(days before expiry)",
+    "edit_item": "Edit Item",
+    "expiry_alert_threshold": "Expiry Alert Threshold",
+    "expiry_date": "Expiry Date",
+    "expiry_help_text": "How many days before expiry to show alerts",
+    "expiry_threshold_placeholder": "Days before expiry to alert (default: 0)",
+    "minimum_quantity": "Minimum quantity",
+    "name_required": "Name *",
+    "quantity": "Quantity",
+    "quantity_threshold": "Quantity Threshold",
+    "save_changes": "Save Changes",
+    "select_list": "Select list...",
+    "set_expiry_first": "Set expiry date first",
+    "todo_list": "Todo List",
+    "unit": "Unit",
+    "unit_placeholder": "kg, pcs, etc."
+  },
+  "filters": {
+    "all_categories": "All Categories",
+    "all_items": "All Items",
+    "all_quantities": "All Quantities",
+    "category": "Category",
+    "clear_all_filters": "Clear All Filters",
+    "expired": "Expired",
+    "expiring_soon": "Expiring Soon",
+    "expiry": "Expiry",
+    "filters": "Filters",
+    "future": "Future",
+    "hide_filters": "Hide Filters",
+    "no_expiry": "No Expiry",
+    "non_zero": "Non-zero",
+    "quantity": "Quantity",
+    "search_placeholder": "Search items...",
+    "zero": "Zero"
+  },
+  "sort": {
+    "category": "Category",
+    "expiry_date": "Expiry Date",
+    "name": "Name",
+    "quantity_high": "Quantity (High)",
+    "quantity_low": "Quantity (Low)",
+    "sort_by": "Sort by:",
+    "zero_last": "Zero Last"
+  },
+  "active_filters": {
+    "category": "Category",
+    "expiry": "Expiry",
+    "label": "Active filters:",
+    "quantity": "Quantity",
+    "search": "Search"
+  },
+  "config": {
+    "inventory_entity_required": "Inventory Entity (Required)",
+    "items_count": "Items",
+    "select_entity_message": "Please select an inventory entity above",
+    "selected_inventory": "Selected Inventory:"
+  },
+  "actions": {
+    "confirm_remove": "Remove {name} from inventory?"
+  },
+  "errors": {
+    "clear_filters_error": "Error clearing filters. Please try again."
+  }
+}

@@ -1,9 +1,11 @@
-import { ELEMENTS, ACTIONS, DEFAULTS, MESSAGES, CSS_CLASSES } from '../utils/constants';
+import { ELEMENTS, ACTIONS, DEFAULTS, CSS_CLASSES } from '../utils/constants';
 import { HomeAssistant, InventoryConfig, InventoryItem } from '../types/homeAssistant';
 import { Services } from './services';
 import { Modals } from './modals';
 import { Filters } from './filters';
 import { Utilities } from '../utils/utilities';
+import { TranslationData } from '@/types/translatableComponent';
+import { TranslationManager } from './translationManager';
 
 export class EventHandler {
   private renderRoot: ShadowRoot;
@@ -14,6 +16,7 @@ export class EventHandler {
   private hass: HomeAssistant;
   private renderCallback: () => void;
   private updateItemsCallback: (items: InventoryItem[], sortMethod: string) => void;
+  private translations: TranslationData;
 
   private boundClickHandler: EventListener | undefined = undefined;
   private boundChangeHandler: EventListener | undefined = undefined;
@@ -30,6 +33,7 @@ export class EventHandler {
     renderCallback: () => void,
     updateItemsCallback: (items: InventoryItem[], sortMethod: string) => void,
     private getFreshState: () => { hass: HomeAssistant; config: InventoryConfig },
+    translations: TranslationData,
   ) {
     this.renderRoot = renderRoot;
     this.services = services;
@@ -39,6 +43,7 @@ export class EventHandler {
     this.hass = hass;
     this.renderCallback = renderCallback;
     this.updateItemsCallback = updateItemsCallback;
+    this.translations = translations;
   }
 
   setupEventListeners(): void {
@@ -104,7 +109,7 @@ export class EventHandler {
         case ELEMENTS.OPEN_ADD_MODAL: {
           event.preventDefault();
           event.stopPropagation();
-          this.modals.openAddModal();
+          this.modals.openAddModal(this.translations);
           break;
         }
         case ELEMENTS.ADD_ITEM_BTN: {
@@ -198,9 +203,9 @@ export class EventHandler {
       if (state) {
         const allItems = Utilities.validateInventoryItems(state.attributes?.items || []);
         const filteredItems = this.filters.filterItems(allItems, filters);
-        const sortedItems = this.filters.sortItems(filteredItems, 'name');
+        const sortedItems = this.filters.sortItems(filteredItems, 'name', this.translations);
         this.updateItemsCallback(sortedItems, 'name');
-        this.filters.updateFilterIndicators(filters);
+        this.filters.updateFilterIndicators(filters, this.translations);
       }
       return;
     }
@@ -218,10 +223,10 @@ export class EventHandler {
 
     const allItems = Utilities.validateInventoryItems(state.attributes?.items || []);
     const filteredItems = this.filters.filterItems(allItems, filters);
-    const sortedItems = this.filters.sortItems(filteredItems, sortMethod);
+    const sortedItems = this.filters.sortItems(filteredItems, sortMethod, this.translations);
 
     this.updateItemsCallback(sortedItems, sortMethod);
-    this.filters.updateFilterIndicators(filters);
+    this.filters.updateFilterIndicators(filters, this.translations);
   }
 
   private async handleItemAction(
@@ -253,7 +258,13 @@ export class EventHandler {
           break;
         }
         case ACTIONS.REMOVE: {
-          if (confirm(MESSAGES.CONFIRM_REMOVE(itemName))) {
+          const confirmMessage = TranslationManager.localize(
+            this.translations,
+            'actions.confirm_remove',
+            { name: itemName },
+            `Remove ${itemName} from inventory?`,
+          );
+          if (confirm(confirmMessage)) {
             await this.services.removeItem(inventoryId, itemName);
             this.renderCallback();
           }
@@ -261,7 +272,7 @@ export class EventHandler {
         }
         case ACTIONS.OPEN_EDIT_MODAL: {
           const freshState = this.getFreshState();
-          this.modals.openEditModal(itemName, () => freshState);
+          this.modals.openEditModal(itemName, () => freshState, this.translations);
           break;
         }
         default: {
@@ -348,7 +359,13 @@ export class EventHandler {
       this.renderCallback();
     } catch (error) {
       console.error('Error clearing filters:', error);
-      alert('Error clearing filters. Please try again.');
+      const errorMessage = TranslationManager.localize(
+        this.translations,
+        'errors.clear_filters_error',
+        undefined,
+        'Error clearing filters. Please try again.',
+      );
+      alert(errorMessage);
     }
   }
 }

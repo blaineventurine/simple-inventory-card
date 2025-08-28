@@ -7,10 +7,13 @@ import {
   createNoEntityMessage,
 } from '../templates/configEditor';
 import { configEditorStyles } from '../styles/configEditor';
+import { TranslationData } from '@/types/translatableComponent';
+import { TranslationManager } from '@/services/translationManager';
 
 class ConfigEditor extends LitElement {
   public hass?: HomeAssistant;
   private _config?: InventoryConfig;
+  private _translations: TranslationData = {};
 
   constructor() {
     super();
@@ -24,6 +27,34 @@ class ConfigEditor extends LitElement {
     };
   }
 
+  async firstUpdated() {
+    await this._loadTranslations();
+  }
+
+  async updated(changedProps: Map<string | number | symbol, unknown>) {
+    if (changedProps.has('hass') && this.hass) {
+      const oldHass = changedProps.get('hass') as HomeAssistant | undefined;
+      if (
+        !oldHass ||
+        oldHass.language !== this.hass.language ||
+        oldHass.selectedLanguage !== this.hass.selectedLanguage
+      ) {
+        await this._loadTranslations();
+      }
+    }
+  }
+
+  private async _loadTranslations(): Promise<void> {
+    const language = this.hass?.language || this.hass?.selectedLanguage || 'en';
+    try {
+      this._translations = await TranslationManager.loadTranslations(language);
+      this.requestUpdate();
+    } catch (error) {
+      console.warn('Failed to load translations:', error);
+      this._translations = {};
+    }
+  }
+
   setConfig(config: InventoryConfig): void {
     this._config = { ...config };
   }
@@ -34,9 +65,15 @@ class ConfigEditor extends LitElement {
 
   render(): TemplateResult {
     if (!this.hass || !this._config) {
-      return html`<div>Loading...</div>`;
+      return html`<div>
+        ${TranslationManager.localize(
+          this._translations,
+          'common.loading',
+          undefined,
+          'Loading...',
+        )}
+      </div>`;
     }
-
     const inventoryEntities = Utilities.findInventoryEntities(this.hass);
     const entityOptions = Utilities.createEntityOptions(this.hass, inventoryEntities);
 
@@ -62,8 +99,11 @@ class ConfigEditor extends LitElement {
           entityOptions,
           this._entity,
           this._valueChanged.bind(this),
+          this._translations,
         )}
-        ${this._entity ? createEntityInfo(this.hass, this._entity) : createNoEntityMessage()}
+        ${this._entity
+          ? createEntityInfo(this.hass, this._entity, this._translations)
+          : createNoEntityMessage(this._translations)}
       </div>
     `;
   }

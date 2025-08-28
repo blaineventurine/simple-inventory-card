@@ -232,8 +232,7 @@ export const formStyles: CSSResult = css`
     border: 1px solid var(--divider-color, #e9ecef);
   }
 
-  .auto-add-controls::before {
-    content: 'Auto-add Settings';
+  .auto-add-header {
     display: block;
     font-size: 0.85em;
     font-weight: 600;

@@ -6,6 +6,7 @@ import { State } from './state';
 import { EventHandler } from './eventHandler';
 import { HomeAssistant, InventoryConfig, InventoryItem } from '../types/homeAssistant';
 import { Utilities } from '../utils/utilities';
+import { TranslationData } from '@/types/translatableComponent';
 
 interface InitializedServices {
   services: Services;
@@ -32,6 +33,7 @@ export class LifecycleManager {
     refreshCallback: () => void,
     updateItemsCallback: (items: InventoryItem[], sortMethod: string) => void,
     getFreshState: () => { hass: HomeAssistant; config: InventoryConfig },
+    translations: TranslationData,
   ): InitializedServices | undefined {
     if (this.isInitialized && this.services) {
       return this.services;
@@ -62,6 +64,7 @@ export class LifecycleManager {
         renderCallback,
         updateItemsCallback,
         getFreshState,
+        translations,
       );
 
       this.services = {

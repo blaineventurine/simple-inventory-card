@@ -33,7 +33,6 @@ describe('State', () => {
       callWS: vi.fn(),
     };
 
-    // Mock DOM elements with properly typed addEventListener
     mockInputs = [
       {
         addEventListener: vi.fn(),
@@ -49,7 +48,6 @@ describe('State', () => {
       querySelectorAll: vi.fn().mockReturnValue(mockInputs),
     } as any;
 
-    // Mock console.warn
     vi.spyOn(console, 'warn').mockImplementation(() => {});
   });
 

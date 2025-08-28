@@ -1,7 +1,20 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createInventoryHeader } from '../../src/templates/inventoryHeader';
 import { InventoryItem } from '../../src/types/homeAssistant';
+import { TranslationData } from '@/types/translatableComponent';
 import { Utilities } from '../../src/utils/utilities';
+
+vi.mock('../../src/services/translationManager', () => ({
+  TranslationManager: {
+    localize: vi.fn((_translations: any, _key: string, params: any, fallback: string) => {
+      // For parameterized translations, replace the placeholder
+      if (params && params.count !== undefined) {
+        return fallback.replace('{count}', params.count.toString());
+      }
+      return fallback;
+    }),
+  },
+}));
 
 vi.mock('../../src/utils/utilities', () => ({
   Utilities: {
@@ -13,6 +26,7 @@ vi.mock('../../src/utils/utilities', () => ({
 
 describe('createInventoryHeader', () => {
   let mockItems: InventoryItem[];
+  let mockTranslations: TranslationData;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -54,11 +68,20 @@ describe('createInventoryHeader', () => {
         todo_list: 'grocery',
       },
     ];
+
+    mockTranslations = {
+      header: {
+        items_expired: '{count} items expired',
+        item_expired: '{count} items expired',
+        items_expiring_soon: '{count} items expiring soon',
+        item_expiring_soon: '{count} item expiring soon',
+      },
+    };
   });
 
   describe('basic functionality', () => {
     it('should create header with inventory name', () => {
-      const result = createInventoryHeader('Kitchen Pantry', mockItems);
+      const result = createInventoryHeader('Kitchen Pantry', mockItems, mockTranslations);
 
       expect(result).toContain('class="card-header"');
       expect(result).toContain('class="inventory-title"');
@@ -67,14 +90,18 @@ describe('createInventoryHeader', () => {
     });
 
     it('should include header content wrapper', () => {
-      const result = createInventoryHeader('Test', mockItems);
+      const result = createInventoryHeader('Test', mockItems, mockTranslations);
 
       expect(result).toContain('class="header-content"');
       expect(result).toContain('<h2 class="inventory-title">');
     });
 
     it('should sanitize inventory name', () => {
-      const result = createInventoryHeader('Test & "Special" <script>', mockItems);
+      const result = createInventoryHeader(
+        'Test & "Special" <script>',
+        mockItems,
+        mockTranslations,
+      );
 
       expect(Utilities.sanitizeHtml).toHaveBeenCalledWith('Test & "Special" <script>');
       expect(result).toContain('sanitized(Test & "Special" <script>)');
@@ -83,7 +110,12 @@ describe('createInventoryHeader', () => {
 
   describe('description handling', () => {
     it('should include description when provided', () => {
-      const result = createInventoryHeader('Test', mockItems, 'Kitchen inventory items');
+      const result = createInventoryHeader(
+        'Test',
+        mockItems,
+        mockTranslations,
+        'Kitchen inventory items',
+      );
 
       expect(result).toContain('class="inventory-description"');
       expect(result).toContain('sanitized(Kitchen inventory items)');
@@ -91,32 +123,37 @@ describe('createInventoryHeader', () => {
     });
 
     it('should not include description when not provided', () => {
-      const result = createInventoryHeader('Test', mockItems);
+      const result = createInventoryHeader('Test', mockItems, mockTranslations);
 
       expect(result).not.toContain('class="inventory-description"');
       expect(result).not.toContain('<p class="inventory-description">');
     });
 
     it('should not include description when undefined', () => {
-      const result = createInventoryHeader('Test', mockItems, undefined);
+      const result = createInventoryHeader('Test', mockItems, mockTranslations, undefined);
 
       expect(result).not.toContain('class="inventory-description"');
     });
 
     it('should not include description when empty string', () => {
-      const result = createInventoryHeader('Test', mockItems, '');
+      const result = createInventoryHeader('Test', mockItems, mockTranslations, '');
 
       expect(result).not.toContain('class="inventory-description"');
     });
 
     it('should not include description when only whitespace', () => {
-      const result = createInventoryHeader('Test', mockItems, '   \n\t  ');
+      const result = createInventoryHeader('Test', mockItems, mockTranslations, '   \n\t  ');
 
       expect(result).not.toContain('class="inventory-description"');
     });
 
     it('should include description when has content after trim', () => {
-      const result = createInventoryHeader('Test', mockItems, '  Valid description  ');
+      const result = createInventoryHeader(
+        'Test',
+        mockItems,
+        mockTranslations,
+        '  Valid description  ',
+      );
 
       expect(result).toContain('class="inventory-description"');
       expect(Utilities.sanitizeHtml).toHaveBeenCalledWith('  Valid description  ');
@@ -128,7 +165,7 @@ describe('createInventoryHeader', () => {
       vi.mocked(Utilities.isExpired).mockReturnValue(false);
       vi.mocked(Utilities.isExpiringSoon).mockReturnValue(false);
 
-      const result = createInventoryHeader('Test', mockItems);
+      const result = createInventoryHeader('Test', mockItems, mockTranslations);
 
       expect(result).not.toContain('class="expiry-indicators"');
       expect(result).not.toContain('class="expired-badge"');
@@ -142,7 +179,7 @@ describe('createInventoryHeader', () => {
       );
       vi.mocked(Utilities.isExpiringSoon).mockReturnValue(false);
 
-      const result = createInventoryHeader('Test', mockItems);
+      const result = createInventoryHeader('Test', mockItems, mockTranslations);
 
       expect(result).toContain('class="expiry-indicators"');
       expect(result).toContain('class="expired-badge"');
@@ -154,9 +191,11 @@ describe('createInventoryHeader', () => {
     it('should show expiring badge when items are expiring soon', () => {
       vi.mocked(Utilities.isExpired).mockReturnValue(false);
       // Mock so that fresh apple is expiring soon
-      vi.mocked(Utilities.isExpiringSoon).mockImplementation((date: string) => date === '2024-12-31');
+      vi.mocked(Utilities.isExpiringSoon).mockImplementation(
+        (date: string) => date === '2024-12-31',
+      );
 
-      const result = createInventoryHeader('Test', mockItems);
+      const result = createInventoryHeader('Test', mockItems, mockTranslations);
 
       expect(result).toContain('class="expiry-indicators"');
       expect(result).toContain('class="expiring-badge"');
@@ -170,9 +209,11 @@ describe('createInventoryHeader', () => {
       vi.mocked(Utilities.isExpired).mockImplementation(
         (date: string | undefined) => date === '2024-01-01',
       );
-      vi.mocked(Utilities.isExpiringSoon).mockImplementation((date: string) => date === '2024-12-31');
+      vi.mocked(Utilities.isExpiringSoon).mockImplementation(
+        (date: string) => date === '2024-12-31',
+      );
 
-      const result = createInventoryHeader('Test', mockItems);
+      const result = createInventoryHeader('Test', mockItems, mockTranslations);
 
       expect(result).toContain('class="expiry-indicators"');
       expect(result).toContain('class="expired-badge"');
@@ -202,7 +243,7 @@ describe('createInventoryHeader', () => {
         (date: string | undefined) => date === '2024-01-01' || date === '2024-01-02',
       );
 
-      const result = createInventoryHeader('Test', multipleExpiredItems);
+      const result = createInventoryHeader('Test', multipleExpiredItems, mockTranslations);
 
       expect(result).toContain('2 items expired');
       expect(result).toMatch(/<span class="expired-badge"[^>]*>[\s\S]*?2[\s\S]*?<\/span>/);
@@ -237,7 +278,7 @@ describe('createInventoryHeader', () => {
       vi.mocked(Utilities.isExpired).mockReturnValue(true);
       vi.mocked(Utilities.isExpiringSoon).mockReturnValue(true);
 
-      const result = createInventoryHeader('Test', itemsWithoutExpiry);
+      const result = createInventoryHeader('Test', itemsWithoutExpiry, mockTranslations);
 
       expect(result).not.toContain('class="expiry-indicators"');
       expect(Utilities.isExpired).not.toHaveBeenCalled();
@@ -262,7 +303,7 @@ describe('createInventoryHeader', () => {
       vi.mocked(Utilities.isExpired).mockReturnValue(true);
       vi.mocked(Utilities.isExpiringSoon).mockReturnValue(true);
 
-      const result = createInventoryHeader('Test', zeroQuantityItems);
+      const result = createInventoryHeader('Test', zeroQuantityItems, mockTranslations);
 
       expect(result).not.toContain('class="expiry-indicators"');
     });
@@ -284,7 +325,7 @@ describe('createInventoryHeader', () => {
 
       vi.mocked(Utilities.isExpired).mockReturnValue(true);
 
-      const result = createInventoryHeader('Test', negativeQuantityItems);
+      const result = createInventoryHeader('Test', negativeQuantityItems, mockTranslations);
 
       expect(result).not.toContain('class="expiry-indicators"');
     });
@@ -306,7 +347,7 @@ describe('createInventoryHeader', () => {
 
       vi.mocked(Utilities.isExpiringSoon).mockReturnValue(true);
 
-      createInventoryHeader('Test', customAlertItem);
+      createInventoryHeader('Test', customAlertItem, mockTranslations);
 
       expect(Utilities.isExpiringSoon).toHaveBeenCalledWith('2024-12-31', 14);
     });
@@ -328,7 +369,7 @@ describe('createInventoryHeader', () => {
 
       vi.mocked(Utilities.isExpiringSoon).mockReturnValue(true);
 
-      createInventoryHeader('Test', defaultAlertItem);
+      createInventoryHeader('Test', defaultAlertItem, mockTranslations);
 
       expect(Utilities.isExpiringSoon).toHaveBeenCalledWith('2024-12-31', 1);
     });
@@ -336,7 +377,7 @@ describe('createInventoryHeader', () => {
 
   describe('edge cases', () => {
     it('should handle empty items array', () => {
-      const result = createInventoryHeader('Empty Inventory', []);
+      const result = createInventoryHeader('Empty Inventory', [], mockTranslations);
 
       expect(result).toContain('sanitized(Empty Inventory)');
       expect(result).not.toContain('class="expiry-indicators"');
@@ -359,7 +400,7 @@ describe('createInventoryHeader', () => {
 
       vi.mocked(Utilities.isExpired).mockReturnValue(true);
 
-      const result = createInventoryHeader('Test', itemsWithUndefinedQuantity);
+      const result = createInventoryHeader('Test', itemsWithUndefinedQuantity, mockTranslations);
 
       expect(result).not.toContain('class="expiry-indicators"');
     });
@@ -368,6 +409,7 @@ describe('createInventoryHeader', () => {
       createInventoryHeader(
         'Test',
         mockItems,
+        mockTranslations,
         'Description with <script>alert("xss")</script> & "quotes"',
       );
 
@@ -391,7 +433,7 @@ describe('createInventoryHeader', () => {
 
       vi.mocked(Utilities.isExpired).mockReturnValue(true);
 
-      const result = createInventoryHeader('Test', manyItems);
+      const result = createInventoryHeader('Test', manyItems, mockTranslations);
 
       expect(result).toContain('999 items expired');
       expect(result).toMatch(/<span class="expired-badge"[^>]*>[\s\S]*?999[\s\S]*?<\/span>/);
@@ -400,7 +442,7 @@ describe('createInventoryHeader', () => {
 
   describe('HTML structure', () => {
     it('should have proper HTML structure', () => {
-      const result = createInventoryHeader('Test', mockItems, 'Test description');
+      const result = createInventoryHeader('Test', mockItems, mockTranslations, 'Test description');
 
       expect(result).toMatch(/<div class="card-header">[\s\S]*<\/div>/);
       expect(result).toContain('<div class="header-content">');
@@ -414,7 +456,7 @@ describe('createInventoryHeader', () => {
       );
       vi.mocked(Utilities.isExpiringSoon).mockReturnValue(false);
 
-      const result = createInventoryHeader('Test', mockItems);
+      const result = createInventoryHeader('Test', mockItems, mockTranslations);
 
       expect(result).toContain('<ha-icon icon="mdi:calendar-remove"></ha-icon>');
       expect(result).toContain('title="1 items expired"');
@@ -423,7 +465,7 @@ describe('createInventoryHeader', () => {
 
   describe('mutant killing tests', () => {
     it('should not include description content when description is empty', () => {
-      const result = createInventoryHeader('Test', mockItems, '');
+      const result = createInventoryHeader('Test', mockItems, mockTranslations, '');
 
       // Kill mutant: verify empty string is actually empty, not replaced with other content
       expect(result).not.toContain('<p class="inventory-description">');
@@ -431,7 +473,7 @@ describe('createInventoryHeader', () => {
     });
 
     it('should not include description content when description is whitespace only', () => {
-      const result = createInventoryHeader('Test', mockItems, '   \t\n   ');
+      const result = createInventoryHeader('Test', mockItems, mockTranslations, '   \t\n   ');
 
       // Kill mutant: verify the conditional actually works
       expect(result).not.toContain('<p class="inventory-description">');
@@ -442,7 +484,7 @@ describe('createInventoryHeader', () => {
       vi.mocked(Utilities.isExpired).mockReturnValue(false);
       vi.mocked(Utilities.isExpiringSoon).mockReturnValue(false);
 
-      const result = createInventoryHeader('Test', mockItems);
+      const result = createInventoryHeader('Test', mockItems, mockTranslations);
 
       // Kill mutants: verify > 0 conditions work correctly for 0 values
       expect(result).not.toContain('class="expiry-indicators"');
@@ -453,16 +495,18 @@ describe('createInventoryHeader', () => {
 
     it('should not show expired badge when expired count is 0 but expiring count > 0', () => {
       vi.mocked(Utilities.isExpired).mockReturnValue(false);
-      vi.mocked(Utilities.isExpiringSoon).mockImplementation((date: string) => date === '2024-12-31');
+      vi.mocked(Utilities.isExpiringSoon).mockImplementation(
+        (date: string) => date === '2024-12-31',
+      );
 
-      const result = createInventoryHeader('Test', mockItems);
+      const result = createInventoryHeader('Test', mockItems, mockTranslations);
 
       // Kill mutants: verify expired badge is not shown when count is 0
       expect(result).toContain('class="expiry-indicators"'); // Should show indicators
       expect(result).toContain('class="expiring-badge"'); // Should show expiring badge
       expect(result).not.toContain('class="expired-badge"'); // Should NOT show expired badge
       expect(result).not.toContain('mdi:calendar-remove'); // Should not show expired icon
-      expect(result).not.toContain('items expired'); // Should not show expired text
+      expect(result).not.toContain('expired'); // Should not show expired text except in class names
     });
 
     it('should not show expiring badge when expiring count is 0 but expired count > 0', () => {
@@ -471,121 +515,121 @@ describe('createInventoryHeader', () => {
       );
       vi.mocked(Utilities.isExpiringSoon).mockReturnValue(false);
 
-      const result = createInventoryHeader('Test', mockItems);
+      const result = createInventoryHeader('Test', mockItems, mockTranslations);
 
       // Kill mutants: verify expiring badge is not shown when count is 0
       expect(result).toContain('class="expiry-indicators"'); // Should show indicators
       expect(result).toContain('class="expired-badge"'); // Should show expired badge
       expect(result).not.toContain('class="expiring-badge"'); // Should NOT show expiring badge
       expect(result).not.toContain('mdi:calendar-alert'); // Should not show expiring icon
-      expect(result).not.toContain('items expiring soon'); // Should not show expiring text
+      expect(result).not.toContain('expiring soon'); // Should not show expiring text
     });
+  });
 
-    it('should verify conditional boundaries: expired count > 0 vs >= 0', () => {
-      // Test with items that have 0 quantity (should not count as expired even if date is expired)
-      const zeroQuantityItems = [
-        {
-          name: 'Zero Quantity Expired',
-          quantity: 0,
-          category: 'Test',
-          unit: 'pieces',
-          expiry_date: '2024-01-01',
-          expiry_alert_days: 7,
-          auto_add_enabled: false,
-          auto_add_to_list_quantity: 1,
-          todo_list: 'grocery',
-        },
-      ];
+  it('should verify conditional boundaries: expired count > 0 vs >= 0', () => {
+    // Test with items that have 0 quantity (should not count as expired even if date is expired)
+    const zeroQuantityItems = [
+      {
+        name: 'Zero Quantity Expired',
+        quantity: 0,
+        category: 'Test',
+        unit: 'pieces',
+        expiry_date: '2024-01-01',
+        expiry_alert_days: 7,
+        auto_add_enabled: false,
+        auto_add_to_list_quantity: 1,
+        todo_list: 'grocery',
+      },
+    ];
 
-      vi.mocked(Utilities.isExpired).mockReturnValue(true); // Would be expired if quantity > 0
-      vi.mocked(Utilities.isExpiringSoon).mockReturnValue(false);
+    vi.mocked(Utilities.isExpired).mockReturnValue(true); // Would be expired if quantity > 0
+    vi.mocked(Utilities.isExpiringSoon).mockReturnValue(false);
 
-      const result = createInventoryHeader('Test', zeroQuantityItems);
+    const result = createInventoryHeader('Test', zeroQuantityItems, mockTranslations);
 
-      // Kill mutants: verify that 0 count doesn't trigger > 0 condition
-      expect(result).not.toContain('class="expiry-indicators"');
-      expect(result).not.toContain('class="expired-badge"');
-    });
+    // Kill mutants: verify that 0 count doesn't trigger > 0 condition
+    expect(result).not.toContain('class="expiry-indicators"');
+    expect(result).not.toContain('class="expired-badge"');
+  });
 
-    it('should verify conditional boundaries: expiring count > 0 vs >= 0', () => {
-      // Test with items that have 0 quantity (should not count as expiring even if date is expiring)
-      const zeroQuantityItems = [
-        {
-          name: 'Zero Quantity Expiring',
-          quantity: 0,
-          category: 'Test',
-          unit: 'pieces',
-          expiry_date: '2024-12-31',
-          expiry_alert_days: 7,
-          auto_add_enabled: false,
-          auto_add_to_list_quantity: 1,
-          todo_list: 'grocery',
-        },
-      ];
+  it('should verify conditional boundaries: expiring count > 0 vs >= 0', () => {
+    // Test with items that have 0 quantity (should not count as expiring even if date is expiring)
+    const zeroQuantityItems = [
+      {
+        name: 'Zero Quantity Expiring',
+        quantity: 0,
+        category: 'Test',
+        unit: 'pieces',
+        expiry_date: '2024-12-31',
+        expiry_alert_days: 7,
+        auto_add_enabled: false,
+        auto_add_to_list_quantity: 1,
+        todo_list: 'grocery',
+      },
+    ];
 
-      vi.mocked(Utilities.isExpired).mockReturnValue(false);
-      vi.mocked(Utilities.isExpiringSoon).mockReturnValue(true); // Would be expiring if quantity > 0
+    vi.mocked(Utilities.isExpired).mockReturnValue(false);
+    vi.mocked(Utilities.isExpiringSoon).mockReturnValue(true); // Would be expiring if quantity > 0
 
-      const result = createInventoryHeader('Test', zeroQuantityItems);
+    const result = createInventoryHeader('Test', zeroQuantityItems, mockTranslations);
 
-      // Kill mutants: verify that 0 count doesn't trigger > 0 condition
-      expect(result).not.toContain('class="expiry-indicators"');
-      expect(result).not.toContain('class="expiring-badge"');
-    });
+    // Kill mutants: verify that 0 count doesn't trigger > 0 condition
+    expect(result).not.toContain('class="expiry-indicators"');
+    expect(result).not.toContain('class="expiring-badge"');
+  });
 
-    it('should not include any expiry indicator content when no items qualify', () => {
-      const noExpiryItems = [
-        {
-          name: 'No Expiry',
-          quantity: 5,
-          category: 'Test',
-          unit: 'pieces',
-          expiry_date: '', // No expiry date
-          auto_add_enabled: false,
-          auto_add_to_list_quantity: 1,
-          todo_list: 'grocery',
-        },
-      ];
+  it('should not include any expiry indicator content when no items qualify', () => {
+    const noExpiryItems = [
+      {
+        name: 'No Expiry',
+        quantity: 5,
+        category: 'Test',
+        unit: 'pieces',
+        expiry_date: '', // No expiry date
+        auto_add_enabled: false,
+        auto_add_to_list_quantity: 1,
+        todo_list: 'grocery',
+      },
+    ];
 
-      const result = createInventoryHeader('Test', noExpiryItems);
+    const result = createInventoryHeader('Test', noExpiryItems, mockTranslations);
 
-      // Kill mutants: verify empty strings are actually empty
-      expect(result).not.toContain('class="expiry-indicators"');
-      expect(result).not.toContain('expired-badge');
-      expect(result).not.toContain('expiring-badge');
-      expect(result).not.toContain('mdi:calendar-remove');
-      expect(result).not.toContain('mdi:calendar-alert');
-      expect(result).not.toContain('items expired');
-      expect(result).not.toContain('items expiring soon');
-      expect(result).not.toContain('Stryker was here!');
-    });
+    // Kill mutants: verify empty strings are actually empty
+    expect(result).not.toContain('class="expiry-indicators"');
+    expect(result).not.toContain('expired-badge');
+    expect(result).not.toContain('expiring-badge');
+    expect(result).not.toContain('mdi:calendar-remove');
+    expect(result).not.toContain('mdi:calendar-alert');
+    expect(result).not.toContain('items expired');
+    expect(result).not.toContain('items expiring soon');
+    expect(result).not.toContain('Stryker was here!');
+  });
 
-    it('should handle empty items array without any expiry content', () => {
-      const result = createInventoryHeader('Empty Inventory', []);
+  it('should handle empty items array without any expiry content', () => {
+    const result = createInventoryHeader('Empty Inventory', [], mockTranslations);
 
-      // Kill mutants: verify no expiry content appears with empty array
-      expect(result).not.toContain('class="expiry-indicators"');
-      expect(result).not.toContain('expired');
-      expect(result).not.toContain('expiring');
-      expect(result).not.toContain('Stryker was here!');
-    });
+    // Kill mutants: verify no expiry content appears with empty array
+    expect(result).not.toContain('class="expiry-indicators"');
+    expect(result).not.toContain('expired');
+    expect(result).not.toContain('expiring');
+    expect(result).not.toContain('Stryker was here!');
+  });
 
-    it('should verify the exact structure when no expiry indicators should show', () => {
-      vi.mocked(Utilities.isExpired).mockReturnValue(false);
-      vi.mocked(Utilities.isExpiringSoon).mockReturnValue(false);
+  it('should verify the exact structure when no expiry indicators should show', () => {
+    vi.mocked(Utilities.isExpired).mockReturnValue(false);
+    vi.mocked(Utilities.isExpiringSoon).mockReturnValue(false);
 
-      const result = createInventoryHeader('Test', mockItems);
+    const result = createInventoryHeader('Test', mockItems, mockTranslations);
 
-      // Kill mutants: verify the overall conditional structure
-      expect(result).toContain('class="card-header"');
-      expect(result).toContain('class="header-content"');
-      expect(result).toContain('class="inventory-title"');
+    // Kill mutants: verify the overall conditional structure
+    expect(result).toContain('class="card-header"');
+    expect(result).toContain('class="header-content"');
+    expect(result).toContain('class="inventory-title"');
 
-      // Verify the expiry indicators section is completely absent
-      const headerEndIndex = result.lastIndexOf('</div>');
-      const beforeHeaderEnd = result.substring(0, headerEndIndex);
-      expect(beforeHeaderEnd).not.toContain('expiry-indicators');
-      expect(beforeHeaderEnd).not.toContain('Stryker was here!');
-    });
+    // Verify the expiry indicators section is completely absent
+    const headerEndIndex = result.lastIndexOf('</div>');
+    const beforeHeaderEnd = result.substring(0, headerEndIndex);
+    expect(beforeHeaderEnd).not.toContain('expiry-indicators');
+    expect(beforeHeaderEnd).not.toContain('Stryker was here!');
   });
 });

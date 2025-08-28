@@ -9,6 +9,7 @@ import { EventHandler } from '../../src/services/eventHandler';
 import { Utilities } from '../../src/utils/utilities';
 import { HomeAssistant, InventoryConfig } from '../../src/types/homeAssistant';
 import { createMockHomeAssistant } from '../testHelpers';
+import { TranslationData } from '@/types/translatableComponent';
 
 vi.mock('../../src/services/services');
 vi.mock('../../src/services/modals');
@@ -27,6 +28,7 @@ describe('LifecycleManager', () => {
   let mockRefreshCallback: () => void;
   let mockUpdateItemsCallback: (items: any[], sortMethod: string) => void;
   let mockGetFreshStateCallback: () => { hass: HomeAssistant; config: InventoryConfig };
+  let mockTranslations: TranslationData;
 
   let mockServices: Services;
   let mockModals: Modals;
@@ -47,6 +49,12 @@ describe('LifecycleManager', () => {
     mockConfig = {
       type: 'inventory-card',
       entity: 'sensor.test_inventory',
+    };
+
+    mockTranslations = {
+      items: {
+        no_items: 'No items in inventory',
+      },
     };
 
     mockRenderCallback = vi.fn();
@@ -110,6 +118,7 @@ describe('LifecycleManager', () => {
         mockRefreshCallback,
         mockUpdateItemsCallback,
         mockGetFreshStateCallback,
+        mockTranslations,
       );
 
       // Initialize again
@@ -120,6 +129,7 @@ describe('LifecycleManager', () => {
         mockRefreshCallback,
         mockUpdateItemsCallback,
         mockGetFreshStateCallback,
+        mockTranslations,
       );
 
       expect(initialServices).toBe(secondServices);
@@ -134,6 +144,7 @@ describe('LifecycleManager', () => {
         mockRefreshCallback,
         mockUpdateItemsCallback,
         mockGetFreshStateCallback,
+        mockTranslations,
       );
 
       expect(result).toBe(undefined);
@@ -148,6 +159,7 @@ describe('LifecycleManager', () => {
         mockRefreshCallback,
         mockUpdateItemsCallback,
         mockGetFreshStateCallback,
+        mockTranslations,
       );
 
       expect(result).toBe(undefined);
@@ -164,6 +176,7 @@ describe('LifecycleManager', () => {
         mockRefreshCallback,
         mockUpdateItemsCallback,
         mockGetFreshStateCallback,
+        mockTranslations,
       );
 
       expect(result).toBe(undefined);
@@ -178,6 +191,7 @@ describe('LifecycleManager', () => {
         mockRefreshCallback,
         mockUpdateItemsCallback,
         mockGetFreshStateCallback,
+        mockTranslations,
       );
 
       expect(vi.mocked(Services)).toHaveBeenCalledWith(mockHass);
@@ -204,6 +218,7 @@ describe('LifecycleManager', () => {
         mockRefreshCallback,
         mockUpdateItemsCallback,
         mockGetFreshStateCallback,
+        mockTranslations,
       );
 
       expect(vi.mocked(Modals)).toHaveBeenCalledWith(
@@ -228,6 +243,7 @@ describe('LifecycleManager', () => {
         mockRefreshCallback,
         mockUpdateItemsCallback,
         mockGetFreshStateCallback,
+        mockTranslations,
       );
 
       expect(vi.mocked(EventHandler)).toHaveBeenCalledWith(
@@ -240,6 +256,7 @@ describe('LifecycleManager', () => {
         mockRenderCallback,
         mockUpdateItemsCallback,
         mockGetFreshStateCallback,
+        mockTranslations,
       );
     });
 
@@ -251,6 +268,7 @@ describe('LifecycleManager', () => {
         mockRefreshCallback,
         mockUpdateItemsCallback,
         mockGetFreshStateCallback,
+        mockTranslations,
       );
 
       expect(lifecycleManager['isInitialized']).toBe(true);
@@ -270,6 +288,7 @@ describe('LifecycleManager', () => {
         mockRefreshCallback,
         mockUpdateItemsCallback,
         mockGetFreshStateCallback,
+        mockTranslations,
       );
 
       expect(result).toBe(undefined);
@@ -296,6 +315,7 @@ describe('LifecycleManager', () => {
         mockRefreshCallback,
         mockUpdateItemsCallback,
         mockGetFreshStateCallback,
+        mockTranslations,
       );
 
       const newConfig = { ...mockConfig, entity: 'sensor.new_inventory' };
@@ -335,6 +355,7 @@ describe('LifecycleManager', () => {
         mockRefreshCallback,
         mockUpdateItemsCallback,
         mockGetFreshStateCallback,
+        mockTranslations,
       );
 
       const result = lifecycleManager.getServices();
@@ -356,6 +377,7 @@ describe('LifecycleManager', () => {
         mockRefreshCallback,
         mockUpdateItemsCallback,
         mockGetFreshStateCallback,
+        mockTranslations,
       );
 
       lifecycleManager.cleanup();
@@ -379,6 +401,7 @@ describe('LifecycleManager', () => {
         mockRefreshCallback,
         mockUpdateItemsCallback,
         mockGetFreshStateCallback,
+        mockTranslations,
       );
 
       expect(lifecycleManager.isReady()).toBe(true);
@@ -403,6 +426,7 @@ describe('LifecycleManager', () => {
         mockRefreshCallback,
         mockUpdateItemsCallback,
         mockGetFreshStateCallback,
+        mockTranslations,
       );
 
       lifecycleManager.cleanup();
@@ -424,6 +448,7 @@ describe('LifecycleManager', () => {
         mockRefreshCallback,
         mockUpdateItemsCallback,
         mockGetFreshStateCallback,
+        mockTranslations,
       );
 
       lifecycleManager.cleanup();
@@ -445,6 +470,7 @@ describe('LifecycleManager', () => {
         mockRefreshCallback,
         mockUpdateItemsCallback,
         mockGetFreshStateCallback,
+        mockTranslations,
       );
 
       // Remove some methods to test graceful handling
@@ -463,6 +489,7 @@ describe('LifecycleManager', () => {
         mockRefreshCallback,
         mockUpdateItemsCallback,
         mockGetFreshStateCallback,
+        mockTranslations,
       );
 
       lifecycleManager.cleanup();
@@ -491,6 +518,7 @@ describe('LifecycleManager', () => {
         mockRefreshCallback,
         mockUpdateItemsCallback,
         mockGetFreshStateCallback,
+        mockTranslations,
       );
 
       expect(result).toBe(undefined);
@@ -507,6 +535,7 @@ describe('LifecycleManager', () => {
         undefined as any,
         undefined as any,
         undefined as any,
+        mockTranslations,
       );
 
       expect(result).toBeDefined();

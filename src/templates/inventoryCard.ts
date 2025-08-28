@@ -1,4 +1,4 @@
-import { ELEMENTS, MESSAGES } from '../utils/constants';
+import { ELEMENTS } from '../utils/constants';
 import { createInventoryHeader } from '../templates/inventoryHeader';
 import { createSearchAndFilters } from '../templates/searchAndFilters';
 import { createAddModal, createEditModal } from '../templates/modalTemplates';
@@ -9,6 +9,8 @@ import { InventoryItem } from '../types/homeAssistant';
 import { FilterState } from '../types/filterState';
 import { TodoList } from '../types/todoList';
 import { styles } from '../styles/styles';
+import { TranslationData } from '@/types/translatableComponent';
+import { TranslationManager } from '@/services/translationManager';
 
 export function generateCardHTML(
   inventoryName: string,
@@ -19,35 +21,38 @@ export function generateCardHTML(
   todoLists: TodoList[],
   allItems: readonly InventoryItem[],
   description: string | undefined,
+  translations: TranslationData,
 ): string {
   return `
     <style>${styles}</style>
     <ha-card>
-      ${createInventoryHeader(inventoryName, allItems as InventoryItem[], description)}
-      
+      ${createInventoryHeader(inventoryName, allItems as InventoryItem[], translations, description)}
+
       <div class="controls-row">
         <div class="sorting-controls">
-          ${createSortOptions(sortMethod)}
+          ${createSortOptions(sortMethod, translations)}
         </div>
-        <button id="${ELEMENTS.OPEN_ADD_MODAL}" class="add-new-btn">+ Add Item</button>
+        <button id="${ELEMENTS.OPEN_ADD_MODAL}" class="add-new-btn">
+          + ${TranslationManager.localize(translations, 'modal.add_item', undefined, 'Add Item')}
+        </button>
       </div>
-      
+
       <div class="search-controls">
-        ${createSearchAndFilters(filters, categories)}
+        ${createSearchAndFilters(filters, categories, translations)}
       </div>
-      
-      ${createActiveFiltersDisplay(filters)}
-      
+
+      ${createActiveFiltersDisplay(filters, translations)}
+
       <div class="items-container">
         ${
           items.length > 0
-            ? createItemsList(items, sortMethod, todoLists)
-            : `<div class="empty-state">${MESSAGES.NO_ITEMS}</div>`
+            ? createItemsList(items, sortMethod, todoLists, translations)
+            : `<div class="empty-state">${TranslationManager.localize(translations, 'items.no_items', undefined, 'No items in inventory')}</div>`
         }
       </div>
-      
-      ${createAddModal(todoLists)}
-      ${createEditModal(todoLists)}
+
+      ${createAddModal(todoLists, translations)}
+      ${createEditModal(todoLists, translations)}
     </ha-card>
   `;
 }

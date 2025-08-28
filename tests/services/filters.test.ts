@@ -4,6 +4,7 @@ import { Utilities } from '../../src/utils/utilities';
 import { FILTER_VALUES, STORAGE_KEYS, ELEMENTS, SORT_METHODS } from '../../src/utils/constants';
 import { InventoryItem } from '../../src/types/homeAssistant';
 import { FilterState } from '../../src/types/filterState';
+import { TranslationData } from '@/types/translatableComponent';
 
 vi.mock('../../src/utils/utilities');
 vi.mock('../../src/utils/constants');
@@ -37,6 +38,7 @@ describe('Filters', () => {
   let mockAdvancedToggle: HTMLElement;
   let mockActiveFiltersDiv: HTMLElement;
   let mockActiveFiltersList: HTMLElement;
+  let mockTranslations: TranslationData;
 
   const createMockItem = (overrides: Partial<InventoryItem> = {}): InventoryItem => ({
     auto_add_enabled: false,
@@ -68,6 +70,12 @@ describe('Filters', () => {
     mockActiveFiltersList = {
       textContent: '',
     } as unknown as HTMLElement;
+
+    mockTranslations = {
+      items: {
+        no_items: 'No items in inventory',
+      },
+    };
 
     mockShadowRoot = {
       getElementById: vi.fn((id: string) => {
@@ -735,7 +743,7 @@ describe('Filters', () => {
         .spyOn(filters as any, 'sortByName')
         .mockReturnValue([createMockItem({ name: 'apple' }), createMockItem({ name: 'zebra' })]);
 
-      const result = filters.sortItems(items, 'name');
+      const result = filters.sortItems(items, 'name', mockTranslations);
 
       expect(sortByNameSpy).toHaveBeenCalledWith(expect.any(Array));
       expect(result.map((item) => item.name)).toEqual(['apple', 'zebra']);
@@ -748,7 +756,7 @@ describe('Filters', () => {
     it('should return copy of original array for unknown sort method', () => {
       const items: InventoryItem[] = [createMockItem({ name: 'B' }), createMockItem({ name: 'A' })];
 
-      const result = filters.sortItems(items, 'unknown');
+      const result = filters.sortItems(items, 'unknown', mockTranslations);
 
       expect(result).toEqual(items);
       expect(result).not.toBe(items); // Should be a copy
@@ -762,7 +770,7 @@ describe('Filters', () => {
           createMockItem({ name: 'Banana' }),
         ];
 
-        const result = filters.sortItems(items, 'name');
+        const result = filters.sortItems(items, 'name', mockTranslations);
 
         expect(result.map((item) => item.name)).toEqual(['Apple', 'Banana', 'Zebra']);
       });
@@ -774,7 +782,7 @@ describe('Filters', () => {
           createMockItem({ name: 'Item 1' }),
         ];
 
-        const result = filters.sortItems(items, 'name');
+        const result = filters.sortItems(items, 'name', mockTranslations);
 
         expect(result.map((item) => item.name)).toEqual(['Item 1', 'Item 2', 'Item 10']);
       });
@@ -785,8 +793,8 @@ describe('Filters', () => {
           createMockItem({ name: 'apple' }),
         ];
 
-        const nameSort = filters.sortItems(items, 'name');
-        const unknownSort = filters.sortItems(items, 'unknown_method');
+        const nameSort = filters.sortItems(items, 'name', mockTranslations);
+        const unknownSort = filters.sortItems(items, 'unknown_method', mockTranslations);
 
         expect(nameSort.map((i) => i.name)).toEqual(['apple', 'zebra']);
         expect(unknownSort.map((i) => i.name)).toEqual(['zebra', 'apple']); // original order
@@ -801,7 +809,7 @@ describe('Filters', () => {
           createMockItem({ name: 'banana' }),
         ];
 
-        const result = filters.sortItems(items, 'name');
+        const result = filters.sortItems(items, 'name', mockTranslations);
 
         expect(result.map((item) => item.name)).toEqual([' apple ', 'banana', '  zebra  ']);
       });
@@ -812,7 +820,7 @@ describe('Filters', () => {
           createMockItem({ name: 'a ' }), // space after
         ];
 
-        const result = filters.sortItems(items, 'name');
+        const result = filters.sortItems(items, 'name', mockTranslations);
 
         expect(result.map((item) => item.name)).toEqual(['a ', ' b']);
       });
@@ -823,7 +831,7 @@ describe('Filters', () => {
           createMockItem({ name: 'item2' }),
         ];
 
-        const result = filters.sortItems(items, 'name');
+        const result = filters.sortItems(items, 'name', mockTranslations);
 
         expect(result.map((item) => item.name)).toEqual(['item2', 'item10']);
         // With numeric: false, would be ['item10', 'item2']
@@ -836,7 +844,7 @@ describe('Filters', () => {
           createMockItem({ name: null as any }),
         ];
 
-        const result = filters.sortItems(items, 'name');
+        const result = filters.sortItems(items, 'name', mockTranslations);
 
         expect(result).toHaveLength(3);
         expect(result.some((item) => item.name === 'Real Name')).toBe(true);
@@ -851,7 +859,7 @@ describe('Filters', () => {
           createMockItem({ name: 'Bear', category: 'Animals' }),
         ];
 
-        const result = filters.sortItems(items, 'category');
+        const result = filters.sortItems(items, 'category', mockTranslations);
 
         expect(result.map((item) => `${item.category}-${item.name}`)).toEqual([
           'Animals-Bear',
@@ -867,7 +875,7 @@ describe('Filters', () => {
           createMockItem({ name: 'Item3', category: null as any }),
         ];
 
-        const result = filters.sortItems(items, 'category');
+        const result = filters.sortItems(items, 'category', mockTranslations);
 
         expect(result[0].category).toBe('Real Category');
         expect([undefined, null]).toContain(result[1].category);
@@ -881,7 +889,7 @@ describe('Filters', () => {
           createMockItem({ name: 'Item3', category: '  Food  ' }),
         ];
 
-        const result = filters.sortItems(items, 'category');
+        const result = filters.sortItems(items, 'category', mockTranslations);
 
         expect(result[0].category).toContain('Drinks');
         expect(result[1].category).toContain('Food');
@@ -897,7 +905,7 @@ describe('Filters', () => {
           createMockItem({ name: 'C', quantity: 3 }),
         ];
 
-        const result = filters.sortItems(items, 'quantity');
+        const result = filters.sortItems(items, 'quantity', mockTranslations);
 
         expect(result.map((item) => item.quantity)).toEqual([5, 3, 1]);
       });
@@ -909,7 +917,7 @@ describe('Filters', () => {
           createMockItem({ name: 'C', quantity: 3 }),
         ];
 
-        const result = filters.sortItems(items, 'quantity_low');
+        const result = filters.sortItems(items, 'quantity_low', mockTranslations);
 
         expect(result.map((item) => item.quantity)).toEqual([1, 3, 5]);
       });
@@ -921,7 +929,7 @@ describe('Filters', () => {
           createMockItem({ name: 'Banana', quantity: 3 }),
         ];
 
-        const result = filters.sortItems(items, 'quantity');
+        const result = filters.sortItems(items, 'quantity', mockTranslations);
 
         expect(result.map((item) => item.name)).toEqual(['Apple', 'Zebra', 'Banana']);
       });
@@ -932,10 +940,10 @@ describe('Filters', () => {
           createMockItem({ name: 'High', quantity: 10 }),
         ];
 
-        const resultDefault = filters.sortItems(items, 'quantity');
+        const resultDefault = filters.sortItems(items, 'quantity', mockTranslations);
         expect(resultDefault.map((item) => item.quantity)).toEqual([10, 1]);
 
-        const resultLowHigh = filters.sortItems(items, 'quantity_low');
+        const resultLowHigh = filters.sortItems(items, 'quantity_low', mockTranslations);
         expect(resultLowHigh.map((item) => item.quantity)).toEqual([1, 10]);
 
         expect(resultDefault).not.toEqual(resultLowHigh);
@@ -948,7 +956,7 @@ describe('Filters', () => {
           createMockItem({ name: 'C', quantity: null as any }),
         ];
 
-        const result = filters.sortItems(items, 'quantity');
+        const result = filters.sortItems(items, 'quantity', mockTranslations);
 
         expect(result[0].quantity).toBe(5);
         expect([undefined, null]).toContain(result[1].quantity);
@@ -964,7 +972,7 @@ describe('Filters', () => {
           createMockItem({ name: 'C', expiry_date: '2024-06-15' }),
         ];
 
-        const result = filters.sortItems(items, 'expiry');
+        const result = filters.sortItems(items, 'expiry', mockTranslations);
 
         expect(result.map((item) => item.expiry_date)).toEqual([
           '2024-01-01',
@@ -981,7 +989,7 @@ describe('Filters', () => {
           createMockItem({ name: 'D', expiry_date: undefined as any }),
         ];
 
-        const result = filters.sortItems(items, 'expiry');
+        const result = filters.sortItems(items, 'expiry', mockTranslations);
 
         expect(result.map((item) => item.name)).toEqual(['C', 'A', 'B', 'D']);
       });
@@ -993,7 +1001,7 @@ describe('Filters', () => {
           createMockItem({ name: 'Banana', expiry_date: '2024-06-01' }),
         ];
 
-        const result = filters.sortItems(items, 'expiry');
+        const result = filters.sortItems(items, 'expiry', mockTranslations);
 
         expect(result.map((item) => item.name)).toEqual(['Banana', 'Apple', 'Zebra']);
       });
@@ -1008,7 +1016,7 @@ describe('Filters', () => {
           createMockItem({ name: 'Low Item', quantity: 1 }),
         ];
 
-        const result = filters.sortItems(items, 'zero_last');
+        const result = filters.sortItems(items, 'zero_last', mockTranslations);
 
         expect(result.map((item) => item.name)).toEqual([
           'High Item',
@@ -1121,7 +1129,7 @@ describe('Filters', () => {
         };
         vi.mocked(Utilities.hasActiveFilters).mockReturnValue(false);
 
-        filters.updateFilterIndicators(testFilters);
+        filters.updateFilterIndicators(testFilters, mockTranslations);
 
         expect(mockAdvancedToggle.textContent).toBe('Filters');
         expect(mockAdvancedToggle.style.background).toBe('var(--primary-color)');
@@ -1137,7 +1145,7 @@ describe('Filters', () => {
         };
         vi.mocked(Utilities.hasActiveFilters).mockReturnValue(true);
 
-        filters.updateFilterIndicators(testFilters);
+        filters.updateFilterIndicators(testFilters, mockTranslations);
 
         expect(mockAdvancedToggle.textContent).toBe('Filters ●');
         expect(mockAdvancedToggle.style.background).toBe('var(--warning-color, #ff9800)');
@@ -1153,7 +1161,7 @@ describe('Filters', () => {
         };
         vi.mocked(Utilities.hasActiveFilters).mockReturnValue(true);
 
-        filters.updateFilterIndicators(testFilters);
+        filters.updateFilterIndicators(testFilters, mockTranslations);
 
         expect(mockAdvancedToggle.textContent).toBe('Hide Filters ●');
       });
@@ -1168,7 +1176,7 @@ describe('Filters', () => {
         };
         vi.mocked(Utilities.hasActiveFilters).mockReturnValue(false);
 
-        filters.updateFilterIndicators(testFilters);
+        filters.updateFilterIndicators(testFilters, mockTranslations);
 
         expect(mockAdvancedToggle.textContent).toBe('Hide Filters');
       });
@@ -1182,7 +1190,7 @@ describe('Filters', () => {
           showAdvanced: true,
         };
 
-        filters.updateFilterIndicators(testFilters);
+        filters.updateFilterIndicators(testFilters, mockTranslations);
 
         expect(mockActiveFiltersList.textContent).toBe(
           'Search: "test search", Category: Food, Quantity: nonzero, Expiry: soon',
@@ -1199,7 +1207,7 @@ describe('Filters', () => {
           showAdvanced: false,
         };
 
-        filters.updateFilterIndicators(testFilters);
+        filters.updateFilterIndicators(testFilters, mockTranslations);
 
         expect(mockActiveFiltersDiv.style.display).toBe('none');
       });
@@ -1216,7 +1224,7 @@ describe('Filters', () => {
         };
 
         expect(() => {
-          filters.updateFilterIndicators(testFilters);
+          filters.updateFilterIndicators(testFilters, mockTranslations);
         }).not.toThrow();
       });
     });

@@ -1,9 +1,41 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createActiveFiltersDisplay } from '../../src/templates/filters';
 import { FilterState } from '../../src/types/filterState';
 import { ELEMENTS } from '../../src/utils/constants';
+import { TranslationData } from '@/types/translatableComponent';
+
+vi.mock('../../src/services/translationManager', () => ({
+  TranslationManager: {
+    localize: vi.fn((_translations: any, _key: string, _params: any, fallback: string) => {
+      return fallback;
+    }),
+  },
+}));
 
 describe('createActiveFiltersDisplay', () => {
+  let mockTranslations: TranslationData;
+
+  beforeEach(() => {
+    mockTranslations = {
+      active_filters: {
+        label: 'Active filters:',
+        search: 'Search',
+        category: 'Category',
+        quantity: 'Quantity',
+        expiry: 'Expiry',
+      },
+      filters: {
+        zero: 'Zero',
+        nonzero: 'Non-zero',
+        none: 'No Expiry',
+        expired: 'Expired',
+        soon: 'Expiring Soon',
+        future: 'Future',
+      },
+    };
+    vi.clearAllMocks();
+  });
+
   describe('basic functionality', () => {
     it('should hide display when no filters are active', () => {
       const filters: FilterState = {
@@ -14,7 +46,7 @@ describe('createActiveFiltersDisplay', () => {
         showAdvanced: false,
       };
 
-      const result = createActiveFiltersDisplay(filters);
+      const result = createActiveFiltersDisplay(filters, mockTranslations);
 
       expect(result).toContain('style="display: none;"');
       expect(result).toContain(`id="${ELEMENTS.ACTIVE_FILTERS}"`);
@@ -30,7 +62,7 @@ describe('createActiveFiltersDisplay', () => {
         showAdvanced: false,
       };
 
-      const result = createActiveFiltersDisplay(filters);
+      const result = createActiveFiltersDisplay(filters, mockTranslations);
 
       expect(result).toContain('style="display: block;"');
       expect(result).toContain('Active filters:');
@@ -45,7 +77,7 @@ describe('createActiveFiltersDisplay', () => {
         showAdvanced: false,
       };
 
-      const result = createActiveFiltersDisplay(filters);
+      const result = createActiveFiltersDisplay(filters, mockTranslations);
 
       expect(result).toContain(`id="${ELEMENTS.ACTIVE_FILTERS_LIST}"`);
     });
@@ -61,7 +93,7 @@ describe('createActiveFiltersDisplay', () => {
         showAdvanced: false,
       };
 
-      const result = createActiveFiltersDisplay(filters);
+      const result = createActiveFiltersDisplay(filters, mockTranslations);
 
       expect(result).toContain('Search: "banana"');
       expect(result).toContain('style="display: block;"');
@@ -76,7 +108,7 @@ describe('createActiveFiltersDisplay', () => {
         showAdvanced: false,
       };
 
-      const result = createActiveFiltersDisplay(filters);
+      const result = createActiveFiltersDisplay(filters, mockTranslations);
 
       expect(result).toContain('Category: Fruit');
       expect(result).toContain('style="display: block;"');
@@ -86,14 +118,14 @@ describe('createActiveFiltersDisplay', () => {
       const filters: FilterState = {
         searchText: '',
         category: '',
-        quantity: 'low',
+        quantity: 'zero',
         expiry: '',
         showAdvanced: false,
       };
 
-      const result = createActiveFiltersDisplay(filters);
+      const result = createActiveFiltersDisplay(filters, mockTranslations);
 
-      expect(result).toContain('Quantity: low');
+      expect(result).toContain('Quantity: zero');
       expect(result).toContain('style="display: block;"');
     });
 
@@ -106,7 +138,7 @@ describe('createActiveFiltersDisplay', () => {
         showAdvanced: false,
       };
 
-      const result = createActiveFiltersDisplay(filters);
+      const result = createActiveFiltersDisplay(filters, mockTranslations);
 
       expect(result).toContain('Expiry: expired');
       expect(result).toContain('style="display: block;"');
@@ -123,7 +155,7 @@ describe('createActiveFiltersDisplay', () => {
         showAdvanced: false,
       };
 
-      const result = createActiveFiltersDisplay(filters);
+      const result = createActiveFiltersDisplay(filters, mockTranslations);
 
       expect(result).toContain('Search: "apple", Category: Fruit');
       expect(result).toContain('style="display: block;"');
@@ -133,16 +165,16 @@ describe('createActiveFiltersDisplay', () => {
       const filters: FilterState = {
         searchText: 'test',
         category: 'Food',
-        quantity: 'high',
+        quantity: 'zero',
         expiry: 'soon',
         showAdvanced: true,
       };
 
-      const result = createActiveFiltersDisplay(filters);
+      const result = createActiveFiltersDisplay(filters, mockTranslations);
 
       expect(result).toContain('Search: "test"');
       expect(result).toContain('Category: Food');
-      expect(result).toContain('Quantity: high');
+      expect(result).toContain('Quantity: zero');
       expect(result).toContain('Expiry: soon');
       expect(result).toContain('style="display: block;"');
 
@@ -160,7 +192,7 @@ describe('createActiveFiltersDisplay', () => {
         showAdvanced: false,
       };
 
-      const result = createActiveFiltersDisplay(filters);
+      const result = createActiveFiltersDisplay(filters, mockTranslations);
 
       const expectedText = 'Search: "milk", Category: Dairy, Quantity: zero';
       expect(result).toContain(expectedText);
@@ -177,7 +209,7 @@ describe('createActiveFiltersDisplay', () => {
         showAdvanced: false,
       };
 
-      const result = createActiveFiltersDisplay(filters);
+      const result = createActiveFiltersDisplay(filters, mockTranslations);
 
       expect(result).toContain('Search: "coffee & cream "special""');
     });
@@ -191,7 +223,7 @@ describe('createActiveFiltersDisplay', () => {
         showAdvanced: false,
       };
 
-      const result = createActiveFiltersDisplay(filters);
+      const result = createActiveFiltersDisplay(filters, mockTranslations);
 
       expect(result).not.toContain('Search:');
       expect(result).not.toContain('Category:');
@@ -209,7 +241,7 @@ describe('createActiveFiltersDisplay', () => {
         showAdvanced: false,
       };
 
-      const result = createActiveFiltersDisplay(filters);
+      const result = createActiveFiltersDisplay(filters, mockTranslations);
 
       expect(result).toContain('Search: "   "');
       expect(result).toContain('style="display: block;"');
@@ -223,7 +255,7 @@ describe('createActiveFiltersDisplay', () => {
         expiry: '',
       } as FilterState;
 
-      const result = createActiveFiltersDisplay(filters);
+      const result = createActiveFiltersDisplay(filters, mockTranslations);
 
       expect(result).toContain('Search: "test"');
       expect(result).toContain('style="display: block;"');
@@ -240,7 +272,7 @@ describe('createActiveFiltersDisplay', () => {
         showAdvanced: false,
       };
 
-      const result = createActiveFiltersDisplay(filters);
+      const result = createActiveFiltersDisplay(filters, mockTranslations);
 
       // Check outer div structure
       expect(result).toMatch(
@@ -248,7 +280,7 @@ describe('createActiveFiltersDisplay', () => {
       );
 
       // Check inner spans
-      expect(result).toContain('<span>Active filters: </span>');
+      expect(result).toContain('<span>Active filters:</span>');
       expect(result).toMatch(/<span id="[^"]*">.*<\/span>/);
     });
 
@@ -261,7 +293,7 @@ describe('createActiveFiltersDisplay', () => {
         showAdvanced: false,
       };
 
-      const result = createActiveFiltersDisplay(filters);
+      const result = createActiveFiltersDisplay(filters, mockTranslations);
 
       expect(result).toContain(`id="${ELEMENTS.ACTIVE_FILTERS}"`);
       expect(result).toContain(`id="${ELEMENTS.ACTIVE_FILTERS_LIST}"`);
@@ -276,7 +308,7 @@ describe('createActiveFiltersDisplay', () => {
         showAdvanced: false,
       };
 
-      const result = createActiveFiltersDisplay(filters);
+      const result = createActiveFiltersDisplay(filters, mockTranslations);
 
       expect(result).toContain('\n');
       expect(result.trim()).toBeTruthy(); // Should not be just whitespace
@@ -299,7 +331,7 @@ describe('createActiveFiltersDisplay', () => {
         showAdvanced: false,
       };
 
-      const result = createActiveFiltersDisplay(filters);
+      const result = createActiveFiltersDisplay(filters, mockTranslations);
 
       const filterText = result.match(/<span id="[^"]*">(.*?)<\/span>/)?.[1] || '';
       const parts = filterText.split(', ');
@@ -319,7 +351,7 @@ describe('createActiveFiltersDisplay', () => {
         showAdvanced: false,
       };
 
-      const result = createActiveFiltersDisplay(filters);
+      const result = createActiveFiltersDisplay(filters, mockTranslations);
 
       const filterText = result.match(/<span id="[^"]*">(.*?)<\/span>/)?.[1] || '';
       const parts = filterText.split(', ');

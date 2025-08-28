@@ -1,9 +1,43 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createSearchAndFilters } from '../../src/templates/searchAndFilters';
 import { FilterState } from '../../src/types/filterState';
 import { ELEMENTS } from '../../src/utils/constants';
+import { TranslationData } from '@/types/translatableComponent';
 
+vi.mock('../../src/services/translationManager', () => ({
+  TranslationManager: {
+    localize: vi.fn((_translations: any, _key: string, _params: any, fallback: string) => {
+      return fallback;
+    }),
+  },
+}));
 describe('createSearchAndFilters', () => {
+  let mockTranslations: TranslationData;
+
+  beforeEach(() => {
+    mockTranslations = {
+      filters: {
+        search_placeholder: 'Search items...',
+        hide_filters: 'Hide Filters',
+        filters: 'Filters',
+        category: 'Category',
+        all_categories: 'All Categories',
+        quantity: 'Quantity',
+        all_quantities: 'All Quantities',
+        zero: 'Zero',
+        non_zero: 'Non-zero',
+        expiry: 'Expiry',
+        all_items: 'All Items',
+        no_expiry: 'No Expiry',
+        expired: 'Expired',
+        expiring_soon: 'Expiring Soon',
+        future: 'Future',
+        clear_all_filters: 'Clear All Filters',
+      },
+    };
+    vi.clearAllMocks();
+  });
+
   describe('basic functionality', () => {
     it('should create search input with empty filters', () => {
       const filters: FilterState = {
@@ -15,7 +49,7 @@ describe('createSearchAndFilters', () => {
       };
       const categories = ['Food', 'Drinks'];
 
-      const result = createSearchAndFilters(filters, categories);
+      const result = createSearchAndFilters(filters, categories, mockTranslations);
 
       expect(result).toContain(`id="${ELEMENTS.SEARCH_INPUT}"`);
       expect(result).toContain('placeholder="Search items..."');
@@ -33,7 +67,7 @@ describe('createSearchAndFilters', () => {
       };
       const categories = ['Food', 'Drinks'];
 
-      const result = createSearchAndFilters(filters, categories);
+      const result = createSearchAndFilters(filters, categories, mockTranslations);
 
       expect(result).toContain('value="apple"');
       expect(result).toContain('class="search-input has-value"');
@@ -49,7 +83,7 @@ describe('createSearchAndFilters', () => {
       };
       const categories = ['Food'];
 
-      const result = createSearchAndFilters(filters, categories);
+      const result = createSearchAndFilters(filters, categories, mockTranslations);
 
       expect(result).toContain(`id="${ELEMENTS.SEARCH_INPUT}"`);
       expect(result).toContain(`id="${ELEMENTS.ADVANCED_SEARCH_TOGGLE}"`);
@@ -71,7 +105,7 @@ describe('createSearchAndFilters', () => {
       };
       const categories = ['Food'];
 
-      const result = createSearchAndFilters(filters, categories);
+      const result = createSearchAndFilters(filters, categories, mockTranslations);
 
       expect(result).toContain('Filters');
       expect(result).not.toContain('Hide Filters');
@@ -87,7 +121,7 @@ describe('createSearchAndFilters', () => {
       };
       const categories = ['Food'];
 
-      const result = createSearchAndFilters(filters, categories);
+      const result = createSearchAndFilters(filters, categories, mockTranslations);
 
       expect(result).toContain('Hide Filters');
       expect(result).not.toContain('>Filters<');
@@ -103,7 +137,7 @@ describe('createSearchAndFilters', () => {
       };
       const categories = ['Food'];
 
-      const result = createSearchAndFilters(filters, categories);
+      const result = createSearchAndFilters(filters, categories, mockTranslations);
 
       expect(result).toContain(`id="${ELEMENTS.ADVANCED_SEARCH_TOGGLE}"`);
       expect(result).toContain('class="toggle-btn');
@@ -121,7 +155,7 @@ describe('createSearchAndFilters', () => {
       };
       const categories = ['Food'];
 
-      const result = createSearchAndFilters(filters, categories);
+      const result = createSearchAndFilters(filters, categories, mockTranslations);
 
       expect(result).toContain('style="display: none"');
       expect(result).toContain('id="advanced-filters"');
@@ -137,7 +171,7 @@ describe('createSearchAndFilters', () => {
       };
       const categories = ['Food'];
 
-      const result = createSearchAndFilters(filters, categories);
+      const result = createSearchAndFilters(filters, categories, mockTranslations);
 
       expect(result).toContain('style="display: block"');
       expect(result).toContain('class="advanced-filters"');
@@ -155,9 +189,10 @@ describe('createSearchAndFilters', () => {
       };
       const categories = ['Food', 'Drinks'];
 
-      const result = createSearchAndFilters(filters, categories);
+      const result = createSearchAndFilters(filters, categories, mockTranslations);
 
-      expect(result).toContain('<option value="">All Categories</option>');
+      expect(result).toContain('<option value="">');
+      expect(result).toContain('All Categories');
       expect(result).toContain(`id="${ELEMENTS.FILTER_CATEGORY}"`);
     });
 
@@ -171,11 +206,14 @@ describe('createSearchAndFilters', () => {
       };
       const categories = ['Food', 'Drinks', 'Household'];
 
-      const result = createSearchAndFilters(filters, categories);
+      const result = createSearchAndFilters(filters, categories, mockTranslations);
 
-      expect(result).toContain('<option value="Food" >Food</option>');
-      expect(result).toContain('<option value="Drinks" >Drinks</option>');
-      expect(result).toContain('<option value="Household" >Household</option>');
+      expect(result).toContain('<option value="Food" >');
+      expect(result).toContain('Food');
+      expect(result).toContain('<option value="Drinks" >');
+      expect(result).toContain('Drinks');
+      expect(result).toContain('<option value="Household" >');
+      expect(result).toContain('Household');
     });
 
     it('should mark selected category as selected', () => {
@@ -188,10 +226,12 @@ describe('createSearchAndFilters', () => {
       };
       const categories = ['Food', 'Drinks'];
 
-      const result = createSearchAndFilters(filters, categories);
+      const result = createSearchAndFilters(filters, categories, mockTranslations);
 
-      expect(result).toContain('<option value="Food" selected>Food</option>');
-      expect(result).toContain('<option value="Drinks" >Drinks</option>');
+      expect(result).toContain('<option value="Food" selected>');
+      expect(result).toContain('Food');
+      expect(result).toContain('<option value="Drinks" >');
+      expect(result).toContain('Drinks');
     });
 
     it('should handle empty categories array', () => {
@@ -204,9 +244,10 @@ describe('createSearchAndFilters', () => {
       };
       const categories: string[] = [];
 
-      const result = createSearchAndFilters(filters, categories);
+      const result = createSearchAndFilters(filters, categories, mockTranslations);
 
-      expect(result).toContain('<option value="">All Categories</option>');
+      expect(result).toContain('<option value="">');
+      expect(result).toContain('All Categories');
       // Should only contain the "All Categories" option
       const categorySelect = result.match(
         /<select id="[^"]*filter-category[^"]*">[\s\S]*?<\/select>/,
@@ -227,11 +268,14 @@ describe('createSearchAndFilters', () => {
       };
       const categories = ['Food'];
 
-      const result = createSearchAndFilters(filters, categories);
+      const result = createSearchAndFilters(filters, categories, mockTranslations);
 
-      expect(result).toContain('<option value="">All Quantities</option>');
-      expect(result).toContain('<option value="zero" >Zero</option>');
-      expect(result).toContain('<option value="nonzero" >Non-zero</option>');
+      expect(result).toContain('<option value="">');
+      expect(result).toContain('All Quantities');
+      expect(result).toContain('<option value="zero" >');
+      expect(result).toContain('Zero');
+      expect(result).toContain('<option value="nonzero" >');
+      expect(result).toContain('Non-zero');
       expect(result).toContain(`id="${ELEMENTS.FILTER_QUANTITY}"`);
     });
 
@@ -245,10 +289,12 @@ describe('createSearchAndFilters', () => {
       };
       const categories = ['Food'];
 
-      const result = createSearchAndFilters(filters, categories);
+      const result = createSearchAndFilters(filters, categories, mockTranslations);
 
-      expect(result).toContain('<option value="zero" selected>Zero</option>');
-      expect(result).toContain('<option value="nonzero" >Non-zero</option>');
+      expect(result).toContain('<option value="zero" selected>');
+      expect(result).toContain('Zero');
+      expect(result).toContain('<option value="nonzero" >');
+      expect(result).toContain('Non-zero');
     });
 
     it('should select nonzero quantity when specified', () => {
@@ -261,10 +307,12 @@ describe('createSearchAndFilters', () => {
       };
       const categories = ['Food'];
 
-      const result = createSearchAndFilters(filters, categories);
+      const result = createSearchAndFilters(filters, categories, mockTranslations);
 
-      expect(result).toContain('<option value="zero" >Zero</option>');
-      expect(result).toContain('<option value="nonzero" selected>Non-zero</option>');
+      expect(result).toContain('<option value="zero" >');
+      expect(result).toContain('Zero');
+      expect(result).toContain('<option value="nonzero" selected>');
+      expect(result).toContain('Non-zero');
     });
   });
 
@@ -279,13 +327,18 @@ describe('createSearchAndFilters', () => {
       };
       const categories = ['Food'];
 
-      const result = createSearchAndFilters(filters, categories);
+      const result = createSearchAndFilters(filters, categories, mockTranslations);
 
-      expect(result).toContain('<option value="">All Items</option>');
-      expect(result).toContain('<option value="none" >No Expiry</option>');
-      expect(result).toContain('<option value="expired" >Expired</option>');
-      expect(result).toContain('<option value="soon" >Expiring Soon</option>');
-      expect(result).toContain('<option value="future" >Future</option>');
+      expect(result).toContain('<option value="">');
+      expect(result).toContain('All Items');
+      expect(result).toContain('<option value="none" >');
+      expect(result).toContain('No Expiry');
+      expect(result).toContain('<option value="expired" >');
+      expect(result).toContain('Expired');
+      expect(result).toContain('<option value="soon" >');
+      expect(result).toContain('Expiring Soon');
+      expect(result).toContain('<option value="future" >');
+      expect(result).toContain('Future');
       expect(result).toContain(`id="${ELEMENTS.FILTER_EXPIRY}"`);
     });
 
@@ -299,9 +352,10 @@ describe('createSearchAndFilters', () => {
       };
       const categories = ['Food'];
 
-      const result = createSearchAndFilters(filters, categories);
+      const result = createSearchAndFilters(filters, categories, mockTranslations);
 
-      expect(result).toContain('<option value="none" selected>No Expiry</option>');
+      expect(result).toContain('<option value="none" selected>');
+      expect(result).toContain('No Expiry');
     });
 
     it('should select expired when specified', () => {
@@ -314,9 +368,10 @@ describe('createSearchAndFilters', () => {
       };
       const categories = ['Food'];
 
-      const result = createSearchAndFilters(filters, categories);
+      const result = createSearchAndFilters(filters, categories, mockTranslations);
 
-      expect(result).toContain('<option value="expired" selected>Expired</option>');
+      expect(result).toContain('<option value="expired" selected>');
+      expect(result).toContain('Expired');
     });
 
     it('should select soon when specified', () => {
@@ -329,9 +384,10 @@ describe('createSearchAndFilters', () => {
       };
       const categories = ['Food'];
 
-      const result = createSearchAndFilters(filters, categories);
+      const result = createSearchAndFilters(filters, categories, mockTranslations);
 
-      expect(result).toContain('<option value="soon" selected>Expiring Soon</option>');
+      expect(result).toContain('<option value="soon" selected');
+      expect(result).toContain('Expiring Soon');
     });
 
     it('should select future when specified', () => {
@@ -344,9 +400,10 @@ describe('createSearchAndFilters', () => {
       };
       const categories = ['Food'];
 
-      const result = createSearchAndFilters(filters, categories);
+      const result = createSearchAndFilters(filters, categories, mockTranslations);
 
-      expect(result).toContain('<option value="future" selected>Future</option>');
+      expect(result).toContain('<option value="future" selected');
+      expect(result).toContain('Future');
     });
   });
 
@@ -361,7 +418,7 @@ describe('createSearchAndFilters', () => {
       };
       const categories = ['Food'];
 
-      const result = createSearchAndFilters(filters, categories);
+      const result = createSearchAndFilters(filters, categories, mockTranslations);
 
       expect(result).toContain(`id="${ELEMENTS.CLEAR_FILTERS}"`);
       expect(result).toContain('class="clear-only-btn"');
@@ -380,7 +437,7 @@ describe('createSearchAndFilters', () => {
       };
       const categories = ['Food', 'Drinks'];
 
-      const result = createSearchAndFilters(filters, categories);
+      const result = createSearchAndFilters(filters, categories, mockTranslations);
 
       // Check main structure
       expect(result).toContain('<div class="search-row">');
@@ -405,7 +462,7 @@ describe('createSearchAndFilters', () => {
       };
       const categories = ['Food'];
 
-      const result = createSearchAndFilters(filters, categories);
+      const result = createSearchAndFilters(filters, categories, mockTranslations);
 
       // Check that filter groups are inside filter row
       expect(result).toMatch(
@@ -430,7 +487,7 @@ describe('createSearchAndFilters', () => {
       };
       const categories = ['Food'];
 
-      const result = createSearchAndFilters(filters, categories);
+      const result = createSearchAndFilters(filters, categories, mockTranslations);
 
       expect(result).toContain('value=""');
       expect(result).toContain('class="search-input "');
@@ -446,7 +503,7 @@ describe('createSearchAndFilters', () => {
       };
       const categories = ['Food'];
 
-      const result = createSearchAndFilters(filters, categories);
+      const result = createSearchAndFilters(filters, categories, mockTranslations);
 
       expect(result).toContain('value=""');
       expect(result).toContain('class="search-input "');
@@ -462,7 +519,7 @@ describe('createSearchAndFilters', () => {
       };
       const categories = ['Food & Drinks', 'Health & Beauty'];
 
-      const result = createSearchAndFilters(filters, categories);
+      const result = createSearchAndFilters(filters, categories, mockTranslations);
 
       expect(result).toContain('<option value="Food & Drinks" selected>Food & Drinks</option>');
       expect(result).toContain('<option value="Health & Beauty" >Health & Beauty</option>');
@@ -478,7 +535,7 @@ describe('createSearchAndFilters', () => {
       };
       const categories = ['Food'];
 
-      const result = createSearchAndFilters(filters, categories);
+      const result = createSearchAndFilters(filters, categories, mockTranslations);
 
       expect(result).toContain('value="search "with quotes""');
       expect(result).toContain('class="search-input has-value"');
@@ -494,7 +551,7 @@ describe('createSearchAndFilters', () => {
       };
       const categories = ['Food'];
 
-      const result = createSearchAndFilters(filters, categories);
+      const result = createSearchAndFilters(filters, categories, mockTranslations);
 
       expect(result).toContain('value="   "');
       expect(result).toContain('class="search-input has-value"');
@@ -512,13 +569,15 @@ describe('createSearchAndFilters', () => {
       };
       const categories = ['Food', 'Drinks'];
 
-      const result = createSearchAndFilters(filters, categories);
+      const result = createSearchAndFilters(filters, categories, mockTranslations);
 
       expect(result).toContain('value="apple"');
       expect(result).toContain('class="search-input has-value"');
       expect(result).toContain('<option value="Food" selected>Food</option>');
-      expect(result).toContain('<option value="zero" selected>Zero</option>');
-      expect(result).toContain('<option value="expired" selected>Expired</option>');
+      expect(result).toContain('<option value="zero" selected>');
+      expect(result).toContain('Zero');
+      expect(result).toContain('<option value="expired" selected>');
+      expect(result).toContain('Expired');
       expect(result).toContain('style="display: block"');
     });
 
@@ -532,16 +591,20 @@ describe('createSearchAndFilters', () => {
       };
       const categories = ['Food', 'Drinks'];
 
-      const result = createSearchAndFilters(filters, categories);
+      const result = createSearchAndFilters(filters, categories, mockTranslations);
 
       // Selected filters should be marked as selected
       expect(result).toContain('<option value="Food" selected>Food</option>');
-      expect(result).toContain('<option value="soon" selected>Expiring Soon</option>');
+      expect(result).toContain('value="soon" selected');
+      expect(result).toContain('Expiring Soon');
 
       // Non-selected filters should not be marked as selected
-      expect(result).toContain('<option value="zero" >Zero</option>');
-      expect(result).toContain('<option value="nonzero" >Non-zero</option>');
-      expect(result).toContain('<option value="Drinks" >Drinks</option>');
+      expect(result).toContain('<option value="zero" >');
+      expect(result).toContain('Zero');
+      expect(result).toContain('<option value="nonzero" >');
+      expect(result).toContain('Non-zero');
+      expect(result).toContain('<option value="Drinks" >');
+      expect(result).toContain('Drinks');
     });
   });
 });

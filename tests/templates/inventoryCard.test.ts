@@ -3,40 +3,55 @@ import { generateCardHTML } from '../../src/templates/inventoryCard';
 import { InventoryItem } from '../../src/types/homeAssistant';
 import { FilterState } from '../../src/types/filterState';
 import { TodoList } from '../../src/types/todoList';
-import { ELEMENTS, MESSAGES } from '../../src/utils/constants';
+import { TranslationData } from '@/types/translatableComponent';
+import { ELEMENTS } from '../../src/utils/constants';
+
+vi.mock('../../src/services/translationManager', () => ({
+  TranslationManager: {
+    localize: vi.fn((_translations: any, _key: string, _params: any, fallback: string) => {
+      return fallback;
+    }),
+  },
+}));
 
 vi.mock('../../src/templates/inventoryHeader', () => ({
   createInventoryHeader: vi.fn(
-    (name, items, description) =>
+    (name, items, _translations, description) =>
       `<mock-header name="${name}" items="${items.length}" description="${description || ''}" />`,
   ),
 }));
 
 vi.mock('../../src/templates/searchAndFilters', () => ({
   createSearchAndFilters: vi.fn(
-    (_, categories) => `<mock-search-filters categories="${categories.length}" />`,
+    (_, categories, _translations) => `<mock-search-filters categories="${categories.length}" />`,
   ),
 }));
 
 vi.mock('../../src/templates/modalTemplates', () => ({
-  createAddModal: vi.fn((todoLists) => `<mock-add-modal todos="${todoLists.length}" />`),
-  createEditModal: vi.fn((todoLists) => `<mock-edit-modal todos="${todoLists.length}" />`),
+  createAddModal: vi.fn(
+    (todoLists, _translations) => `<mock-add-modal todos="${todoLists.length}" />`,
+  ),
+  createEditModal: vi.fn(
+    (todoLists, _translations) => `<mock-edit-modal todos="${todoLists.length}" />`,
+  ),
 }));
 
 vi.mock('../../src/templates/itemList', () => ({
   createItemsList: vi.fn(
-    (items, sortMethod, todoLists) =>
+    (items, sortMethod, todoLists, _translations) =>
       `<mock-items-list items="${items.length}" sort="${sortMethod}" todos="${todoLists.length}" />`,
   ),
 }));
 
 vi.mock('../../src/templates/sortOptions', () => ({
-  createSortOptions: vi.fn((sortMethod) => `<mock-sort-options method="${sortMethod}" />`),
+  createSortOptions: vi.fn(
+    (sortMethod, _translations) => `<mock-sort-options method="${sortMethod}" />`,
+  ),
 }));
 
 vi.mock('../../src/templates/filters', () => ({
   createActiveFiltersDisplay: vi.fn(
-    (filters) => `<mock-active-filters searchText="${filters.searchText}" />`,
+    (filters, _translations) => `<mock-active-filters searchText="${filters.searchText}" />`,
   ),
 }));
 
@@ -49,6 +64,7 @@ describe('generateCardHTML', () => {
   let mockFilters: FilterState;
   let mockTodoLists: TodoList[];
   let mockCategories: string[];
+  let mockTranslations: TranslationData;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -100,6 +116,15 @@ describe('generateCardHTML', () => {
     ];
 
     mockCategories = ['Fruit', 'Vegetable', 'Dairy'];
+
+    mockTranslations = {
+      items: {
+        no_items: 'No items in inventory',
+      },
+      general: {
+        add_item: '+ Add Item',
+      },
+    };
   });
 
   describe('basic functionality', () => {
@@ -113,6 +138,7 @@ describe('generateCardHTML', () => {
         mockTodoLists,
         mockItems,
         'Kitchen items description',
+        mockTranslations,
       );
 
       expect(result).toContain('<style>mock-styles-content</style>');
@@ -133,6 +159,7 @@ describe('generateCardHTML', () => {
         mockTodoLists,
         mockItems,
         undefined,
+        mockTranslations,
       );
 
       // Check for main sections
@@ -155,6 +182,7 @@ describe('generateCardHTML', () => {
         mockTodoLists,
         mockItems,
         undefined,
+        mockTranslations,
       );
 
       expect(result).toContain(`id="${ELEMENTS.OPEN_ADD_MODAL}"`);
@@ -174,18 +202,29 @@ describe('generateCardHTML', () => {
         mockTodoLists,
         [],
         undefined,
+        mockTranslations,
       );
 
       expect(result).toContain('class="empty-state"');
-      expect(result).toContain(MESSAGES.NO_ITEMS);
+      expect(result).toContain('No items in inventory');
       expect(result).not.toContain('<mock-items-list');
     });
 
     it('should not include items list when empty', () => {
-      const result = generateCardHTML('Test', [], mockFilters, 'name', [], [], [], undefined);
+      const result = generateCardHTML(
+        'Test',
+        [],
+        mockFilters,
+        'name',
+        [],
+        [],
+        [],
+        undefined,
+        mockTranslations,
+      );
 
       expect(result).toContain('<div class="empty-state">');
-      expect(result).toContain(MESSAGES.NO_ITEMS);
+      expect(result).toContain('No items in inventory');
       expect(result).not.toContain('mock-items-list');
     });
 
@@ -199,6 +238,7 @@ describe('generateCardHTML', () => {
         [],
         [],
         'Description for empty inventory',
+        mockTranslations,
       );
 
       // Should still have header, controls, modals, etc.
@@ -221,6 +261,7 @@ describe('generateCardHTML', () => {
         mockTodoLists,
         mockItems,
         undefined,
+        mockTranslations,
       );
 
       expect(result).toContain('name="Pantry & Storage"');
@@ -236,6 +277,7 @@ describe('generateCardHTML', () => {
         mockTodoLists,
         mockItems,
         undefined,
+        mockTranslations,
       );
 
       expect(result).toContain('method="quantity_desc"');
@@ -252,6 +294,7 @@ describe('generateCardHTML', () => {
         mockTodoLists,
         mockItems,
         'Test description',
+        mockTranslations,
       );
 
       expect(withDescription).toContain('description="Test description"');
@@ -265,6 +308,7 @@ describe('generateCardHTML', () => {
         mockTodoLists,
         mockItems,
         undefined,
+        mockTranslations,
       );
 
       expect(withoutDescription).toContain('description=""');
@@ -287,6 +331,7 @@ describe('generateCardHTML', () => {
         largeTodoLists,
         mockItems,
         undefined,
+        mockTranslations,
       );
 
       expect(result).toContain('categories="5"');
@@ -305,6 +350,7 @@ describe('generateCardHTML', () => {
         mockTodoLists,
         mockItems,
         undefined,
+        mockTranslations,
       );
 
       // Check that ha-card wraps everything
@@ -329,6 +375,7 @@ describe('generateCardHTML', () => {
         mockTodoLists,
         mockItems,
         undefined,
+        mockTranslations,
       );
 
       expect(result.trim()).toMatch(/^\s*<style>mock-styles-content<\/style>/);
@@ -344,6 +391,7 @@ describe('generateCardHTML', () => {
         mockTodoLists,
         mockItems,
         undefined,
+        mockTranslations,
       );
 
       expect(result).toContain('class="controls-row"');
@@ -365,6 +413,7 @@ describe('generateCardHTML', () => {
         mockTodoLists,
         mockItems,
         undefined,
+        mockTranslations,
       );
 
       expect(result).toContain('<mock-items-list items="2"');
@@ -381,6 +430,7 @@ describe('generateCardHTML', () => {
         mockTodoLists,
         [],
         undefined,
+        mockTranslations,
       );
 
       expect(result).not.toContain('<mock-items-list');
@@ -398,6 +448,7 @@ describe('generateCardHTML', () => {
         mockTodoLists,
         singleItem,
         undefined,
+        mockTranslations,
       );
 
       expect(result).toContain('<mock-items-list items="1"');
@@ -416,6 +467,7 @@ describe('generateCardHTML', () => {
         mockTodoLists,
         mockItems,
         undefined,
+        mockTranslations,
       );
 
       expect(result).toContain('name=""');
@@ -431,13 +483,24 @@ describe('generateCardHTML', () => {
         mockTodoLists,
         mockItems,
         undefined,
+        mockTranslations,
       );
 
       expect(result).toContain('name="Kitchen & Pantry "Main""');
     });
 
     it('should handle empty arrays for all array parameters', () => {
-      const result = generateCardHTML('Test', [], mockFilters, 'name', [], [], [], undefined);
+      const result = generateCardHTML(
+        'Test',
+        [],
+        mockFilters,
+        'name',
+        [],
+        [],
+        [],
+        undefined,
+        mockTranslations,
+      );
 
       expect(result).toContain('categories="0"');
       expect(result).toContain('todos="0"');
@@ -462,6 +525,7 @@ describe('generateCardHTML', () => {
         mockTodoLists,
         mockItems,
         undefined,
+        mockTranslations,
       );
 
       expect(result).toContain('searchText="apple"');
@@ -486,26 +550,42 @@ describe('generateCardHTML', () => {
         mockTodoLists,
         mockItems,
         'Test description',
+        mockTranslations,
       );
 
       expect(inventoryHeaderModule.createInventoryHeader).toHaveBeenCalledWith(
         'Test Inventory',
         mockItems,
+        mockTranslations,
         'Test description',
       );
       expect(searchAndFiltersModule.createSearchAndFilters).toHaveBeenCalledWith(
         mockFilters,
         mockCategories,
+        mockTranslations,
       );
-      expect(sortOptionsModule.createSortOptions).toHaveBeenCalledWith('category');
-      expect(filtersModule.createActiveFiltersDisplay).toHaveBeenCalledWith(mockFilters);
+      expect(sortOptionsModule.createSortOptions).toHaveBeenCalledWith(
+        'category',
+        mockTranslations,
+      );
+      expect(filtersModule.createActiveFiltersDisplay).toHaveBeenCalledWith(
+        mockFilters,
+        mockTranslations,
+      );
       expect(itemListModule.createItemsList).toHaveBeenCalledWith(
         mockItems,
         'category',
         mockTodoLists,
+        mockTranslations,
       );
-      expect(modalTemplatesModule.createAddModal).toHaveBeenCalledWith(mockTodoLists);
-      expect(modalTemplatesModule.createEditModal).toHaveBeenCalledWith(mockTodoLists);
+      expect(modalTemplatesModule.createAddModal).toHaveBeenCalledWith(
+        mockTodoLists,
+        mockTranslations,
+      );
+      expect(modalTemplatesModule.createEditModal).toHaveBeenCalledWith(
+        mockTodoLists,
+        mockTranslations,
+      );
     });
   });
 });

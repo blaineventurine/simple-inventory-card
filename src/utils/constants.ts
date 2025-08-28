@@ -125,13 +125,6 @@ export const STORAGE_KEYS = {
   FILTERS: (entity: string) => `simple_inventory_filters_${entity}`,
 };
 
-export const MESSAGES = {
-  CONFIRM_REMOVE: (name: string) => `Remove ${name} from inventory?`,
-  ERROR_NO_NAME: 'Please enter an item name',
-  LOADING: 'Loading...',
-  NO_ITEMS: 'No items in inventory',
-};
-
 export const TIMING = {
   SEARCH_DEBOUNCE: 300,
   MODAL_FOCUS_DELAY: 100,

@@ -218,6 +218,7 @@ describe('ConfigEditor', () => {
         mockOptions,
         'sensor.inventory1',
         expect.any(Function),
+        expect.any(Object),
       );
     });
 
@@ -235,7 +236,11 @@ describe('ConfigEditor', () => {
 
       configEditor.render();
 
-      expect(createEntityInfo).toHaveBeenCalledWith(mockHass, 'sensor.test_inventory');
+      expect(createEntityInfo).toHaveBeenCalledWith(
+        mockHass,
+        'sensor.test_inventory',
+        expect.any(Object),
+      );
     });
 
     it('should render no-entity message when no entity selected', () => {

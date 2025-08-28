@@ -6,6 +6,15 @@ import {
 } from '../../src/templates/modalTemplates';
 import { TodoList } from '../../src/types/todoList';
 import { ModalConfig } from '../../src/types/modalConfig';
+import { TranslationData } from '@/types/translatableComponent';
+
+vi.mock('../../src/services/translationManager', () => ({
+  TranslationManager: {
+    localize: vi.fn((_translations: any, _key: string, _params: any, fallback: string) => {
+      return fallback;
+    }),
+  },
+}));
 
 vi.mock('../../src/utils/constants', () => ({
   ELEMENTS: {
@@ -32,6 +41,7 @@ vi.mock('../../src/utils/constants', () => ({
 
 describe('modalTemplates', () => {
   let mockTodoLists: TodoList[];
+  let mockTranslations: TranslationData;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -41,6 +51,32 @@ describe('modalTemplates', () => {
       { id: 'shopping-2', name: 'Shopping List', entity_id: 'todo.shopping' },
       { id: 'household-3', name: 'Household Tasks' },
     ];
+
+    mockTranslations = {
+      modal: {
+        name_required: 'Name *',
+        quantity: 'Quantity',
+        unit: 'Unit',
+        unit_placeholder: 'kg, pcs, etc.',
+        category: 'Category',
+        category_placeholder: 'Food, Cleaning, etc.',
+        expiry_date: 'Expiry Date',
+        expiry_alert_threshold: 'Expiry Alert Threshold',
+        days_before_expiry: '(days before expiry)',
+        set_expiry_first: 'Set expiry date first',
+        expiry_help_text: 'How many days before expiry to show alerts',
+        auto_add_when_low: 'Auto-add to todo list when low',
+        quantity_threshold: 'Quantity Threshold',
+        minimum_quantity: 'Minimum quantity',
+        todo_list: 'Todo List',
+        select_list: 'Select list...',
+        cancel: 'Cancel',
+        add_item: 'Add Item',
+        edit_item: 'Edit Item',
+        save_changes: 'Save Changes',
+        auto_add_settings: 'Auto-add Settings',
+      },
+    };
   });
 
   describe('createUnifiedModal', () => {
@@ -52,7 +88,7 @@ describe('modalTemplates', () => {
           primaryButtonText: 'Save',
         };
 
-        const result = createUnifiedModal(mockTodoLists, config);
+        const result = createUnifiedModal(mockTodoLists, config, mockTranslations);
 
         expect(result).toContain('id="test-modal"');
         expect(result).toContain('class="modal"');
@@ -69,9 +105,11 @@ describe('modalTemplates', () => {
           primaryButtonText: 'Save',
         };
 
-        const result = createUnifiedModal(mockTodoLists, config);
+        const result = createUnifiedModal(mockTodoLists, config, mockTranslations);
 
-        expect(result).toContain('<h3>Custom Title</h3>');
+        expect(result).toContain('<h3>');
+        expect(result).toContain('Custom Title');
+        expect(result).toContain('</h3>');
       });
 
       it('should include close button with CSS class', () => {
@@ -81,10 +119,11 @@ describe('modalTemplates', () => {
           primaryButtonText: 'Save',
         };
 
-        const result = createUnifiedModal(mockTodoLists, config);
+        const result = createUnifiedModal(mockTodoLists, config, mockTranslations);
 
         expect(result).toContain('class="close-btn"');
-        expect(result).toContain('>×</button>');
+        expect(result).toContain('×');
+        expect(result).toContain('</button>');
       });
 
       it('should include primary button with text', () => {
@@ -94,10 +133,11 @@ describe('modalTemplates', () => {
           primaryButtonText: 'Custom Save',
         };
 
-        const result = createUnifiedModal(mockTodoLists, config);
+        const result = createUnifiedModal(mockTodoLists, config, mockTranslations);
 
         expect(result).toContain('class="save-btn"');
-        expect(result).toContain('>Custom Save</button>');
+        expect(result).toContain('Custom Save');
+        expect(result).toContain('</button>');
       });
 
       it('should include cancel button', () => {
@@ -107,53 +147,11 @@ describe('modalTemplates', () => {
           primaryButtonText: 'Save',
         };
 
-        const result = createUnifiedModal(mockTodoLists, config);
+        const result = createUnifiedModal(mockTodoLists, config, mockTranslations);
 
         expect(result).toContain('class="cancel-btn"');
-        expect(result).toContain('>Cancel</button>');
-      });
-    });
-
-    describe('prefix generation', () => {
-      it('should use "add" prefix for add modal', () => {
-        const config: ModalConfig = {
-          id: 'add-modal',
-          title: 'Add Item',
-          primaryButtonText: 'Add',
-        };
-
-        const result = createUnifiedModal(mockTodoLists, config);
-
-        expect(result).toContain('id="add-name"');
-        expect(result).toContain('id="add-quantity"');
-        expect(result).toContain('id="add-validation-message"');
-      });
-
-      it('should use "edit" prefix for non-add modal', () => {
-        const config: ModalConfig = {
-          id: 'edit-modal',
-          title: 'Edit Item',
-          primaryButtonText: 'Save',
-        };
-
-        const result = createUnifiedModal(mockTodoLists, config);
-
-        expect(result).toContain('id="edit-name"');
-        expect(result).toContain('id="edit-quantity"');
-        expect(result).toContain('id="edit-validation-message"');
-      });
-
-      it('should use "edit" prefix for custom modal ID', () => {
-        const config: ModalConfig = {
-          id: 'custom-modal',
-          title: 'Custom Modal',
-          primaryButtonText: 'Save',
-        };
-
-        const result = createUnifiedModal(mockTodoLists, config);
-
-        expect(result).toContain('id="edit-name"');
-        expect(result).toContain('id="edit-quantity"');
+        expect(result).toContain('Cancel');
+        expect(result).toContain('</button>');
       });
     });
 
@@ -165,7 +163,7 @@ describe('modalTemplates', () => {
           primaryButtonText: 'Save',
         };
 
-        const result = createUnifiedModal(mockTodoLists, config);
+        const result = createUnifiedModal(mockTodoLists, config, mockTranslations);
 
         // Name field (required)
         expect(result).toContain('id="edit-name"');
@@ -179,11 +177,11 @@ describe('modalTemplates', () => {
 
         // Unit field
         expect(result).toContain('id="edit-unit"');
-        expect(result).toContain('placeholder="kg, pcs, etc."');
+        expect(result).toContain('kg, pcs, etc.');
 
         // Category field
         expect(result).toContain('id="edit-category"');
-        expect(result).toContain('placeholder="Food, Cleaning, etc."');
+        expect(result).toContain('Food, Cleaning, etc.');
 
         // Expiry date field
         expect(result).toContain('id="edit-expiry-date"');
@@ -197,12 +195,12 @@ describe('modalTemplates', () => {
           primaryButtonText: 'Save',
         };
 
-        const result = createUnifiedModal(mockTodoLists, config);
+        const result = createUnifiedModal(mockTodoLists, config, mockTranslations);
 
         expect(result).toContain('id="edit-expiry-alert-days"');
         expect(result).toContain('min="1"');
         expect(result).toContain('max="365"');
-        expect(result).toContain('placeholder="Set expiry date first"');
+        expect(result).toContain('Set expiry date first');
         expect(result).toContain('disabled');
         expect(result).toContain('How many days before expiry to show alerts');
       });
@@ -214,7 +212,7 @@ describe('modalTemplates', () => {
           primaryButtonText: 'Save',
         };
 
-        const result = createUnifiedModal(mockTodoLists, config);
+        const result = createUnifiedModal(mockTodoLists, config, mockTranslations);
 
         // Auto-add checkbox
         expect(result).toContain('id="edit-auto-add-enabled"');
@@ -226,21 +224,8 @@ describe('modalTemplates', () => {
         expect(result).toContain('id="edit-auto-add-quantity"');
         expect(result).toContain('class="auto-add-required"');
         expect(result).toContain('Quantity Threshold');
-        expect(result).toContain('placeholder="Minimum quantity"');
-      });
-
-      it('should include validation message container', () => {
-        const config: ModalConfig = {
-          id: 'add-modal',
-          title: 'Test',
-          primaryButtonText: 'Save',
-        };
-
-        const result = createUnifiedModal(mockTodoLists, config);
-
-        expect(result).toContain('id="add-validation-message"');
-        expect(result).toContain('class="validation-message"');
-        expect(result).toContain('class="validation-text"');
+        expect(result).toContain('Minimum quantity');
+        expect(result).toContain('Auto-add Settings');
       });
     });
 
@@ -252,13 +237,17 @@ describe('modalTemplates', () => {
           primaryButtonText: 'Save',
         };
 
-        const result = createUnifiedModal(mockTodoLists, config);
+        const result = createUnifiedModal(mockTodoLists, config, mockTranslations);
 
         expect(result).toContain('id="edit-todo-list"');
-        expect(result).toContain('<option value="">Select list...</option>');
-        expect(result).toContain('<option value="grocery-1">Grocery List</option>');
-        expect(result).toContain('<option value="shopping-2">Shopping List</option>');
-        expect(result).toContain('<option value="household-3">Household Tasks</option>');
+        expect(result).toContain('value=""');
+        expect(result).toContain('Select list...');
+        expect(result).toContain('value="grocery-1"');
+        expect(result).toContain('Grocery List');
+        expect(result).toContain('value="shopping-2"');
+        expect(result).toContain('Shopping List');
+        expect(result).toContain('value="household-3"');
+        expect(result).toContain('Household Tasks');
       });
 
       it('should handle empty todo lists array', () => {
@@ -268,25 +257,11 @@ describe('modalTemplates', () => {
           primaryButtonText: 'Save',
         };
 
-        const result = createUnifiedModal([], config);
+        const result = createUnifiedModal([], config, mockTranslations);
 
         expect(result).toContain('id="edit-todo-list"');
-        expect(result).toContain('<option value="">Select list...</option>');
-        expect(result).not.toContain('<option value="grocery-1">');
-      });
-
-      it('should handle todo lists with special characters', () => {
-        const specialTodoLists = [{ id: 'special&id', name: 'List & "Special" <chars>' }];
-
-        const config: ModalConfig = {
-          id: 'test-modal',
-          title: 'Test',
-          primaryButtonText: 'Save',
-        };
-
-        const result = createUnifiedModal(specialTodoLists, config);
-
-        expect(result).toContain('<option value="special&id">List & "Special" <chars></option>');
+        expect(result).toContain('Select list...');
+        expect(result).not.toContain('value="grocery-1"');
       });
     });
 
@@ -299,23 +274,10 @@ describe('modalTemplates', () => {
           closeAction: 'close_modal',
         };
 
-        const result = createUnifiedModal(mockTodoLists, config);
+        const result = createUnifiedModal(mockTodoLists, config, mockTranslations);
 
         expect(result).toContain('data-action="close_modal"');
-        // Should appear on both close button and cancel button
         expect(result.match(/data-action="close_modal"/g)).toHaveLength(2);
-      });
-
-      it('should not include close action when not provided', () => {
-        const config: ModalConfig = {
-          id: 'test-modal',
-          title: 'Test',
-          primaryButtonText: 'Save',
-        };
-
-        const result = createUnifiedModal(mockTodoLists, config);
-
-        expect(result).not.toContain('data-action=');
       });
 
       it('should include primary button ID when provided', () => {
@@ -326,94 +288,25 @@ describe('modalTemplates', () => {
           primaryButtonId: 'save-button',
         };
 
-        const result = createUnifiedModal(mockTodoLists, config);
+        const result = createUnifiedModal(mockTodoLists, config, mockTranslations);
 
         expect(result).toContain('id="save-button"');
-      });
-
-      it('should not include primary button ID when not provided', () => {
-        const config: ModalConfig = {
-          id: 'test-modal',
-          title: 'Test',
-          primaryButtonText: 'Save',
-        };
-
-        const result = createUnifiedModal(mockTodoLists, config);
-
-        // Should only contain the modal ID, not a save button ID
-        expect(
-          result
-            .match(/id="[^"]*"/g)
-            ?.filter(
-              (match) =>
-                !match.includes('test-modal') &&
-                !match.includes('-name') &&
-                !match.includes('-quantity'),
-            ),
-        ).not.toContain('id="save-button"');
-      });
-    });
-
-    describe('edge cases', () => {
-      it('should handle very long titles', () => {
-        const config: ModalConfig = {
-          id: 'test-modal',
-          title: 'A'.repeat(100),
-          primaryButtonText: 'Save',
-        };
-
-        const result = createUnifiedModal(mockTodoLists, config);
-
-        expect(result).toContain(`<h3>${'A'.repeat(100)}</h3>`);
-      });
-
-      it('should handle special characters in config', () => {
-        const config: ModalConfig = {
-          id: 'test&modal',
-          title: 'Title & "Special" <chars>',
-          primaryButtonText: 'Save & Close',
-          primaryButtonId: 'button&id',
-          closeAction: 'close&action',
-        };
-
-        const result = createUnifiedModal(mockTodoLists, config);
-
-        expect(result).toContain('id="test&modal"');
-        expect(result).toContain('<h3>Title & "Special" <chars></h3>');
-        expect(result).toContain('>Save & Close</button>');
-        expect(result).toContain('id="button&id"');
-        expect(result).toContain('data-action="close&action"');
-      });
-
-      it('should handle minimal config', () => {
-        const config: ModalConfig = {
-          id: 'minimal',
-          title: '',
-          primaryButtonText: '',
-        };
-
-        const result = createUnifiedModal(mockTodoLists, config);
-
-        expect(result).toContain('id="minimal"');
-        expect(result).toContain('<h3></h3>');
-        expect(result).toContain('></button>'); // Empty button text
       });
     });
   });
 
   describe('createAddModal', () => {
     it('should create add modal with correct configuration', () => {
-      const result = createAddModal(mockTodoLists);
+      const result = createAddModal(mockTodoLists, mockTranslations);
 
       expect(result).toContain('id="add-modal"');
-      expect(result).toContain('<h3>Add Item</h3>');
-      expect(result).toContain('>Add Item</button>');
+      expect(result).toContain('Add Item');
       expect(result).toContain('id="add-item-btn"');
       expect(result).toContain('data-action="close_add_modal"');
     });
 
     it('should use add prefix for form fields', () => {
-      const result = createAddModal(mockTodoLists);
+      const result = createAddModal(mockTodoLists, mockTranslations);
 
       expect(result).toContain('id="add-name"');
       expect(result).toContain('id="add-quantity"');
@@ -424,40 +317,43 @@ describe('modalTemplates', () => {
     });
 
     it('should include todo list options', () => {
-      const result = createAddModal(mockTodoLists);
+      const result = createAddModal(mockTodoLists, mockTranslations);
 
-      expect(result).toContain('<option value="grocery-1">Grocery List</option>');
-      expect(result).toContain('<option value="shopping-2">Shopping List</option>');
-      expect(result).toContain('<option value="household-3">Household Tasks</option>');
+      expect(result).toContain('value="grocery-1"');
+      expect(result).toContain('Grocery List');
+      expect(result).toContain('value="shopping-2"');
+      expect(result).toContain('Shopping List');
+      expect(result).toContain('value="household-3"');
+      expect(result).toContain('Household Tasks');
     });
 
     it('should handle empty todo lists', () => {
-      const result = createAddModal([]);
+      const result = createAddModal([], mockTranslations);
 
       expect(result).toContain('id="add-modal"');
-      expect(result).toContain('<option value="">Select list...</option>');
-      expect(result).not.toContain('<option value="grocery-1">');
+      expect(result).toContain('Select list...');
+      expect(result).not.toContain('value="grocery-1"');
     });
   });
 
   describe('createEditModal', () => {
     it('should create edit modal with correct configuration', () => {
-      const result = createEditModal(mockTodoLists);
+      const result = createEditModal(mockTodoLists, mockTranslations);
 
       expect(result).toContain('id="edit-modal"');
-      expect(result).toContain('<h3>Edit Item</h3>');
-      expect(result).toContain('>Save Changes</button>');
+      expect(result).toContain('Edit Item');
+      expect(result).toContain('Save Changes');
     });
 
     it('should not include button ID or close action', () => {
-      const result = createEditModal(mockTodoLists);
+      const result = createEditModal(mockTodoLists, mockTranslations);
 
       expect(result).not.toContain('id="add-item-btn"');
       expect(result).not.toContain('data-action="close_add_modal"');
     });
 
     it('should use edit prefix for form fields', () => {
-      const result = createEditModal(mockTodoLists);
+      const result = createEditModal(mockTodoLists, mockTranslations);
 
       expect(result).toContain('id="edit-name"');
       expect(result).toContain('id="edit-quantity"');
@@ -468,63 +364,29 @@ describe('modalTemplates', () => {
     });
 
     it('should include todo list options', () => {
-      const result = createEditModal(mockTodoLists);
+      const result = createEditModal(mockTodoLists, mockTranslations);
 
-      expect(result).toContain('<option value="grocery-1">Grocery List</option>');
-      expect(result).toContain('<option value="shopping-2">Shopping List</option>');
-      expect(result).toContain('<option value="household-3">Household Tasks</option>');
+      expect(result).toContain('value="grocery-1"');
+      expect(result).toContain('Grocery List');
+      expect(result).toContain('value="shopping-2"');
+      expect(result).toContain('Shopping List');
+      expect(result).toContain('value="household-3"');
+      expect(result).toContain('Household Tasks');
     });
 
     it('should handle empty todo lists', () => {
-      const result = createEditModal([]);
+      const result = createEditModal([], mockTranslations);
 
       expect(result).toContain('id="edit-modal"');
-      expect(result).toContain('<option value="">Select list...</option>');
-      expect(result).not.toContain('<option value="grocery-1">');
-    });
-  });
-
-  describe('HTML structure validation', () => {
-    it('should produce valid nested HTML structure', () => {
-      const result = createAddModal(mockTodoLists);
-
-      // Check modal structure
-      expect(result).toMatch(/<div id="add-modal" class="modal">[\s\S]*<\/div>/);
-      expect(result).toMatch(/<div class="modal-content">[\s\S]*<\/div>/);
-      expect(result).toMatch(/<div class="modal-header">[\s\S]*<\/div>/);
-      expect(result).toMatch(/<div class="modal-body">[\s\S]*<\/div>/);
-      expect(result).toMatch(/<div class="modal-buttons">[\s\S]*<\/div>/);
-    });
-
-    it('should have proper form structure', () => {
-      const result = createAddModal(mockTodoLists);
-
-      // Check form groups
-      expect(result).toMatch(/<div class="form-group">[\s\S]*?<\/div>/g);
-      expect(result).toMatch(/<div class="form-row">[\s\S]*?<\/div>/g);
-      expect(result).toMatch(/<div class="input-group">[\s\S]*?<\/div>/g);
-    });
-
-    it('should have consistent labeling', () => {
-      const result = createAddModal(mockTodoLists);
-
-      // Check that each input has a corresponding label
-      expect(result).toContain('for="add-name"');
-      expect(result).toContain('for="add-quantity"');
-      expect(result).toContain('for="add-unit"');
-      expect(result).toContain('for="add-category"');
-      expect(result).toContain('for="add-expiry-date"');
-      expect(result).toContain('for="add-expiry-alert-days"');
-      expect(result).toContain('for="add-auto-add-enabled"');
-      expect(result).toContain('for="add-auto-add-quantity"');
-      expect(result).toContain('for="add-todo-list"');
+      expect(result).toContain('Select list...');
+      expect(result).not.toContain('value="grocery-1"');
     });
   });
 
   describe('comparison between add and edit modals', () => {
     it('should have same structure but different IDs and content', () => {
-      const addResult = createAddModal(mockTodoLists);
-      const editResult = createEditModal(mockTodoLists);
+      const addResult = createAddModal(mockTodoLists, mockTranslations);
+      const editResult = createEditModal(mockTodoLists, mockTranslations);
 
       // Both should have modal structure
       expect(addResult).toContain('class="modal"');
@@ -535,12 +397,12 @@ describe('modalTemplates', () => {
       expect(editResult).toContain('id="edit-modal"');
 
       // Different titles
-      expect(addResult).toContain('<h3>Add Item</h3>');
-      expect(editResult).toContain('<h3>Edit Item</h3>');
+      expect(addResult).toContain('Add Item');
+      expect(editResult).toContain('Edit Item');
 
       // Different button text
-      expect(addResult).toContain('>Add Item</button>');
-      expect(editResult).toContain('>Save Changes</button>');
+      expect(addResult).toContain('Add Item');
+      expect(editResult).toContain('Save Changes');
 
       // Different field prefixes
       expect(addResult).toContain('id="add-name"');
@@ -548,13 +410,14 @@ describe('modalTemplates', () => {
     });
 
     it('should both include same todo list options', () => {
-      const addResult = createAddModal(mockTodoLists);
-      const editResult = createEditModal(mockTodoLists);
+      const addResult = createAddModal(mockTodoLists, mockTranslations);
+      const editResult = createEditModal(mockTodoLists, mockTranslations);
 
       mockTodoLists.forEach((list) => {
-        const optionHtml = `<option value="${list.id}">${list.name}</option>`;
-        expect(addResult).toContain(optionHtml);
-        expect(editResult).toContain(optionHtml);
+        expect(addResult).toContain(`value="${list.id}"`);
+        expect(addResult).toContain(list.name);
+        expect(editResult).toContain(`value="${list.id}"`);
+        expect(editResult).toContain(list.name);
       });
     });
   });

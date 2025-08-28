@@ -1,10 +1,13 @@
 import { Utilities } from '../utils/utilities';
 import { InventoryItem } from '../types/homeAssistant';
 import { DEFAULTS } from '../utils/constants';
+import { TranslationData } from '@/types/translatableComponent';
+import { TranslationManager } from '@/services/translationManager';
 
 export function createInventoryHeader(
   inventoryName: string,
   allItems: InventoryItem[],
+  translations: TranslationData,
   description?: string,
 ): string {
   const expiringCount = getExpiringItemsCount(allItems);
@@ -27,7 +30,12 @@ export function createInventoryHeader(
             ${
               expiredCount > 0
                 ? `
-              <span class="expired-badge" title="${expiredCount} items expired">
+                <span class="expired-badge" title="${TranslationManager.localize(
+                  translations,
+                  'header.items_expired',
+                  { count: expiredCount },
+                  `${expiredCount} items expired`,
+                )}">
                 <ha-icon icon="mdi:calendar-remove"></ha-icon>
                 ${expiredCount}
               </span>
@@ -37,7 +45,12 @@ export function createInventoryHeader(
             ${
               expiringCount > 0
                 ? `
-              <span class="expiring-badge" title="${expiringCount} items expiring soon">
+                <span class="expiring-badge" title="${TranslationManager.localize(
+                  translations,
+                  'header.items_expiring_soon',
+                  { count: expiringCount },
+                  `${expiringCount} items expiring soon`,
+                )}">
                 <ha-icon icon="mdi:calendar-alert"></ha-icon>
                 ${expiringCount}
               </span>

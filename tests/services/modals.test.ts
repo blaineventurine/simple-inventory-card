@@ -7,7 +7,9 @@ import { Utilities } from '../../src/utils/utilities';
 import { HomeAssistant, InventoryConfig } from '../../src/types/homeAssistant';
 import { RawFormData, SanitizedItemData, ItemData } from '../../src/types/inventoryItem';
 import { ValidationError } from '../../src/types/validationError';
+
 import { createMockHomeAssistant } from '../testHelpers';
+import { TranslationData } from '@/types/translatableComponent';
 
 vi.mock('../../src/services/modals/modalFormManager');
 vi.mock('../../src/services/modals/modalValidationManager');
@@ -20,6 +22,7 @@ describe('Modals (Integration)', () => {
   let mockServices: InventoryServices;
   let mockHass: HomeAssistant;
   let mockConfig: InventoryConfig;
+  let mockTranslations: TranslationData;
 
   let mockGetInventoryId: (entityId: string) => string;
   let mockOnDataChanged: () => void;
@@ -35,6 +38,16 @@ describe('Modals (Integration)', () => {
       addItem: vi.fn(),
       updateItem: vi.fn(),
     } as any;
+
+    mockTranslations = {
+      modal: {
+        add_item: 'Add Item',
+        auto_add_when_low: 'Auto-add to todo list when low',
+        auto_add_settings: 'Auto-add Settings',
+        cancel: 'Cancel',
+        category: 'Category',
+      },
+    };
 
     mockHass = createMockHomeAssistant();
     mockConfig = {
@@ -97,17 +110,18 @@ describe('Modals (Integration)', () => {
 
   describe('Public API Delegation', () => {
     it('should delegate modal operations to UIManager', () => {
-      modals.openAddModal();
+      modals.openAddModal(mockTranslations);
       expect(vi.mocked(mockUIManager.openAddModal)).toHaveBeenCalled();
 
       modals.closeAddModal();
       expect(vi.mocked(mockUIManager.closeAddModal)).toHaveBeenCalled();
 
       vi.mocked(mockUIManager.openEditModal).mockReturnValue({ found: true });
-      modals.openEditModal('Test Item', mockGetFreshStateCallback);
+      modals.openEditModal('Test Item', mockGetFreshStateCallback, mockTranslations);
       expect(vi.mocked(mockUIManager.openEditModal)).toHaveBeenCalledWith(
         'Test Item',
         mockGetFreshStateCallback,
+        mockTranslations,
       );
 
       modals.closeEditModal();
@@ -275,7 +289,7 @@ describe('Modals (Integration)', () => {
 
     it('should successfully save edit with valid data', async () => {
       vi.mocked(mockUIManager.openEditModal).mockReturnValue({ found: true });
-      modals.openEditModal('Test Item', mockGetFreshStateCallback);
+      modals.openEditModal('Test Item', mockGetFreshStateCallback, mockTranslations);
 
       const mockValidation = { isValid: true, errors: [] };
       const mockItemData: ItemData = { name: 'Updated Item', quantity: 10 };
@@ -312,7 +326,7 @@ describe('Modals (Integration)', () => {
 
     it('should handle validation errors in edit mode', async () => {
       vi.mocked(mockUIManager.openEditModal).mockReturnValue({ found: true });
-      modals.openEditModal('Test Item', mockGetFreshStateCallback);
+      modals.openEditModal('Test Item', mockGetFreshStateCallback, mockTranslations);
 
       const mockValidation = {
         isValid: false,
@@ -336,7 +350,7 @@ describe('Modals (Integration)', () => {
 
     it('should handle service errors in edit mode', async () => {
       vi.mocked(mockUIManager.openEditModal).mockReturnValue({ found: true });
-      modals.openEditModal('Test Item', mockGetFreshStateCallback);
+      modals.openEditModal('Test Item', mockGetFreshStateCallback, mockTranslations);
 
       const mockValidation = { isValid: true, errors: [] };
       const mockResult: InventoryServiceResult = { success: false, error: 'Update failed' };
@@ -366,7 +380,7 @@ describe('Modals (Integration)', () => {
 
       // Start editing an item
       vi.mocked(mockUIManager.openEditModal).mockReturnValue({ found: true });
-      modals.openEditModal('Test Item', mockGetFreshStateCallback);
+      modals.openEditModal('Test Item', mockGetFreshStateCallback, mockTranslations);
 
       // Now editing should work (assuming validation passes)
       const mockValidation = { isValid: true, errors: [] };
@@ -386,7 +400,7 @@ describe('Modals (Integration)', () => {
 
     it('should not set editing state when item not found', async () => {
       vi.mocked(mockUIManager.openEditModal).mockReturnValue({ found: false });
-      modals.openEditModal('Missing Item', mockGetFreshStateCallback);
+      modals.openEditModal('Missing Item', mockGetFreshStateCallback, mockTranslations);
 
       // Should not be in editing state
       const result = await modals.saveEditModal({} as InventoryConfig);
