@@ -1,0 +1,109 @@
+{
+  "card": {
+    "description": "Une carte pour gérer vos stocks"
+  },
+  "common": {
+    "loading": "Chargement...",
+    "name": "Ma carte personnalisée",
+    "off": "Off",
+    "on": "On",
+    "uncategorized": "Sans catégorie",
+    "unknown": "Inconnu"
+  },
+  "editor": {
+    "entity": "Entité",
+    "name": "Nom (Optionnel)",
+    "show_icon": "Montrer l'icône",
+    "show_state": "Montrer l'état"
+  },
+  "state": {
+    "active": "Actif",
+    "inactive": "Inactif",
+    "unavailable": "Non disponible"
+  },
+  "expiry": {
+    "expired_day_ago": "Expiré depuis {days} jour",
+    "expired_days_ago": "Expiré depuis {days} jours",
+    "expires_in_day": "Expire dans {days} jour",
+    "expires_in_days": "Expire dans {days} jours",
+    "expires_today": "Expire aujourd'hui"
+  },
+  "items": {
+    "auto_add_info": "Ajout automatique à ≤ {quantity} → {list}",
+    "no_items": "Aucun article en stock"
+  },
+  "header": {
+    "items_expired": "{count} article{count, plural, one {} other {s}} expiré(s)",
+    "items_expiring_soon": "{count} article{count, plural, one {} other {s}} expirant bientôt"
+  },
+  "modal": {
+    "add_item": "Ajouter un article",
+    "auto_add_when_low": "Ajout automatique à la liste de tâches quand faible",
+    "auto_add_settings": "Paramètres d'ajout automatique",
+    "cancel": "Annuler",
+    "category": "Catégorie",
+    "category_placeholder": "Alimentation, Ménage, etc.",
+    "days_before_expiry": "(jours avant expiration)",
+    "edit_item": "Modifier l'article",
+    "expiry_alert_threshold": "Seuil d'alerte d'expiration",
+    "expiry_date": "Date d'expiration",
+    "expiry_help_text": "Combien de jours avant expiration pour afficher les alertes",
+    "expiry_threshold_placeholder": "Jours avant expiration pour alerter (défaut : 0)",
+    "minimum_quantity": "Quantité minimale",
+    "name_required": "Nom *",
+    "quantity": "Quantité",
+    "quantity_threshold": "Seuil de quantité",
+    "save_changes": "Enregistrer les modifications",
+    "select_list": "Sélectionner une liste...",
+    "set_expiry_first": "Définir d'abord la date d'expiration",
+    "todo_list": "Liste de tâches",
+    "unit": "Unité",
+      "unit_placeholder": "kg, pcs, etc."
+    },
+    "filters": {
+    "all_categories": "Toutes les catégories",
+    "all_items": "Tous les articles",
+    "all_quantities": "Toutes les quantités",
+    "category": "Catégorie",
+    "clear_all_filters": "Effacer tous les filtres",
+    "expired": "Expiré",
+    "expiring_soon": "Expire bientôt",
+    "expiry": "Expiration",
+    "filters": "Filtres",
+    "future": "Futur",
+    "hide_filters": "Masquer les filtres",
+    "no_expiry": "Pas d'expiration",
+    "non_zero": "Non nul",
+    "quantity": "Quantité",
+    "search_placeholder": "Rechercher des articles...",
+    "zero": "Zéro"
+  },
+  "sort": {
+    "category": "Catégorie",
+    "expiry_date": "Date d'expiration",
+    "name": "Nom",
+    "quantity_high": "Quantité (décroissante)",
+    "quantity_low": "Quantité (croissante)",
+    "sort_by": "Trier par :",
+    "zero_last": "Zéro en dernier"
+  },
+  "active_filters": {
+    "category": "Catégorie",
+    "expiry": "Expiration",
+    "label": "Filtres actifs :",
+    "quantity": "Quantité",
+    "search": "Recherche"
+  },
+  "config": {
+    "inventory_entity_required": "Entité d'inventaire (requis)",
+    "items_count": "Articles",
+    "select_entity_message": "Veuillez sélectionner une entité d'inventaire ci-dessus",
+    "selected_inventory": "Inventaire sélectionné :"
+  },
+  "actions": {
+    "confirm_remove": "Retirer {name} de l'inventaire ?"
+  },
+  "errors": {
+    "clear_filters_error": "Erreur lors de l'effacement des filtres. Veuillez réessayer."
+  }
+}
