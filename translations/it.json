@@ -1,0 +1,109 @@
+{
+  "card": {
+    "description": "Una Card per gestire i tuoi inventari"
+  },
+  "common": {
+    "loading": "Carico...",
+    "name": "La mia Card",
+    "off": "Off",
+    "on": "On",
+    "uncategorized": "Senza Categoria",
+    "unknown": "Sconosciuto"
+  },
+  "editor": {
+    "entity": "Entità",
+    "name": "Nome (Opzionale)",
+    "show_icon": "Mostra Icone",
+    "show_state": "Mostra Stato"
+  },
+  "state": {
+    "active": "Attivo",
+    "inactive": "Inattivo",
+    "unavailable": "Non Disponibile"
+  },
+  "expiry": {
+    "expired_day_ago": "Scaduto {days} giorno fa",
+    "expired_days_ago": "Scaduto {days} giorni fa",
+    "expires_in_day": "Scade tra {days} giorno",
+    "expires_in_days": "Scade tra {days} giorni",
+    "expires_today": "Scade oggi"
+  },
+  "items": {
+    "auto_add_info": "Aggiunge a ≤ {quantity} → {list}",
+    "no_items": "Nessun oggetto in inventario"
+  },
+  "header": {
+    "items_expired": "{count} oggett{count, plural, one {o} other {i}} scadut{count, plural, one {o} other {i}}",
+    "items_expiring_soon": "{count} oggett{count, plural, one {o} other {i}} scadra{count, plural, one {'} other {nno}} presto"
+  },
+  "modal": {
+    "add_item": "Aggiungi Oggetto",
+    "auto_add_when_low": "Aggiungi alla lista quando è basso",
+    "auto_add_settings": "Impostazioni Auto Aggiunta",
+    "cancel": "Cancella",
+    "category": "Categoria",
+    "category_placeholder": "Cibo, Pulizia, etc.",
+    "days_before_expiry": "(giorni prima della scadenza)",
+    "edit_item": "Aggiorna oggetto",
+    "expiry_alert_threshold": "Soglia Avviso scadenza (giorni)",
+    "expiry_date": "Data di Scadenza",
+    "expiry_help_text": "Quanti giorni prima della scadenza vuoi essere avvisato?",
+    "expiry_threshold_placeholder": "Giorni prima della scadenza da avvisare (predefinito: 0)",
+    "minimum_quantity": "Quantità minima",
+    "name_required": "Nome *",
+    "quantity": "Quantità",
+    "quantity_threshold": "Soglia avviso Quantità",
+    "save_changes": "Salva",
+    "select_list": "Seleziona la lista...",
+    "set_expiry_first": "Prima imposta la data di scadenza",
+    "todo_list": "Lista attività",
+    "unit": "Unità",
+    "unit_placeholder": "kg, pz, etc."
+  },
+  "filters": {
+    "all_categories": "Tutte le Categorie",
+    "all_items": "Tutti gli Oggetti",
+    "all_quantities": "Tutte le Quantità",
+    "category": "Categoria",
+    "clear_all_filters": "Cancella Filtri",
+    "expired": "Scaduti",
+    "expiring_soon": "Scadenza Prossima",
+    "expiry": "Scadenza",
+    "filters": "Filtri",
+    "future": "Scadenza Lontana",
+    "hide_filters": "Nascondi Filtri",
+    "no_expiry": "Non Scaduti",
+    "non_zero": "Non-zero",
+    "quantity": "Quantità",
+    "search_placeholder": "Cerca oggetti...",
+    "zero": "Zero"
+  },
+  "sort": {
+    "category": "Categoria",
+    "expiry_date": "Data Scadenza",
+    "name": "Nome",
+    "quantity_high": "Quantità (Alta)",
+    "quantity_low": "Quantità (Bassa)",
+    "sort_by": "Ordina per:",
+    "zero_last": "Zero (Ultimo)"
+  },
+  "active_filters": {
+    "category": "Categoria",
+    "expiry": "Scadenza",
+    "label": "Filtri Attivi:",
+    "quantity": "Quantità",
+    "search": "Cerca"
+  },
+  "config": {
+    "inventory_entity_required": "Nome Inventario (Richiesta)",
+    "items_count": "Oggetti",
+    "select_entity_message": "Seleziona un Inventario",
+    "selected_inventory": "Inventario selezionato:"
+  },
+  "actions": {
+    "confirm_remove": "Rimuovi {name} dall'Inventario?"
+  },
+  "errors": {
+    "clear_filters_error": "Errore in rimozione filtri. Riprova per favore."
+  }
+}
