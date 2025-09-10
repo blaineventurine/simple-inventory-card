@@ -29,16 +29,16 @@
     "expires_today": "Scade oggi"
   },
   "items": {
-    "auto_add_info": "Aggiunge a ≤ {quantity} → {list}",
+    "auto_add_info": "Aggiungi quando ≤ {quantity} a {list}",
     "no_items": "Nessun oggetto in inventario"
   },
   "header": {
     "items_expired": "{count} oggett{count, plural, one {o} other {i}} scadut{count, plural, one {o} other {i}}",
-    "items_expiring_soon": "{count} oggett{count, plural, one {o} other {i}} scadra{count, plural, one {'} other {nno}} presto"
+    "items_expiring_soon": "{count} oggett{count, plural, one {o} other {i}} scadr{count, plural, one {à} other {anno}} presto"
   },
   "modal": {
     "add_item": "Aggiungi Oggetto",
-    "auto_add_when_low": "Aggiungi alla lista quando è basso",
+    "auto_add_when_low": "Aggiungi alla lista quando sta per finire",
     "auto_add_settings": "Impostazioni Auto Aggiunta",
     "cancel": "Cancella",
     "category": "Categoria",
@@ -48,7 +48,7 @@
     "expiry_alert_threshold": "Soglia Avviso scadenza (giorni)",
     "expiry_date": "Data di Scadenza",
     "expiry_help_text": "Quanti giorni prima della scadenza vuoi essere avvisato?",
-    "expiry_threshold_placeholder": "Giorni prima della scadenza da avvisare (predefinito: 0)",
+    "expiry_threshold_placeholder": "Avvisa quando mancano questi giorni alla scadenza (predefinito: 0)",
     "minimum_quantity": "Quantità minima",
     "name_required": "Nome *",
     "quantity": "Quantità",
@@ -95,7 +95,7 @@
     "search": "Cerca"
   },
   "config": {
-    "inventory_entity_required": "Nome Inventario (Richiesta)",
+    "inventory_entity_required": "Nome Inventario (Richiesto)",
     "items_count": "Oggetti",
     "select_entity_message": "Seleziona un Inventario",
     "selected_inventory": "Inventario selezionato:"
