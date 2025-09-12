@@ -32,6 +32,8 @@ export class TranslationManager {
     const urls = [
       `/local/community/${this._cardName}/translations/${language}.json`,
       `/hacsfiles/${this._cardName}/translations/${language}.json`,
+      `/local/community/${this._cardName}/${language}.json`,
+      `/hacsfiles/${this._cardName}/${language}.json`,
     ];
 
     for (const url of urls) {
