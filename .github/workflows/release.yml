@@ -54,6 +54,17 @@ jobs:
           echo "version=$RELEASE_VERSION" >> $GITHUB_OUTPUT
           echo "is_prerelease=$IS_PRERELEASE" >> $GITHUB_OUTPUT
 
+      - name: List translation files
+        id: translations
+        run: |
+          cd dist/translations
+          echo "files<<EOF" >> $GITHUB_OUTPUT
+          for file in *.json; do
+            echo "./dist/translations/$file" >> $GITHUB_OUTPUT
+          done
+          echo "EOF" >> $GITHUB_OUTPUT
+
+
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
@@ -62,5 +73,5 @@ jobs:
           prerelease: ${{ steps.version.outputs.is_prerelease }}
           files: |
             ./dist/simple-inventory-card.js
-             ./dist/translations/*.json
+            ${{ steps.translations.outputs.files }}
           token: ${{ secrets.GITHUB_TOKEN }}
