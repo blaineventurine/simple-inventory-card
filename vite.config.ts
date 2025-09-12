@@ -2,8 +2,19 @@
 
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
+import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 export default defineConfig({
+  plugins: [
+    viteStaticCopy({
+      targets: [
+        {
+          src: 'src/translations/*.json',
+          dest: 'translations'
+        }
+      ]
+    })
+  ],
   build: {
     lib: {
       entry: resolve(__dirname, 'src/main.ts'),
@@ -15,7 +26,6 @@ export default defineConfig({
       // External dependencies that shouldn't be bundled
       // external: ['lit'],
       output: {
-        // Global variables to use in UMD build for externalized deps
         globals: {
           lit: 'Lit',
         },
@@ -24,7 +34,9 @@ export default defineConfig({
     },
     minify: 'terser',
     sourcemap: false,
+    copyPublicDir: false,
   },
+  publicDir: false,
   resolve: {
     extensions: ['.js', '.ts'],
     alias: {

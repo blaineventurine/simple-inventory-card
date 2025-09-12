@@ -62,4 +62,5 @@ jobs:
           prerelease: ${{ steps.version.outputs.is_prerelease }}
           files: |
             ./dist/simple-inventory-card.js
+             ./dist/translations/*.json
           token: ${{ secrets.GITHUB_TOKEN }}
