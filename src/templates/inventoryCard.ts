@@ -18,6 +18,7 @@ export function generateCardHTML(
   filters: FilterState,
   sortMethod: string,
   categories: string[],
+  locations: string[],
   todoLists: TodoList[],
   allItems: readonly InventoryItem[],
   description: string | undefined,
@@ -38,7 +39,7 @@ export function generateCardHTML(
       </div>
 
       <div class="search-controls">
-        ${createSearchAndFilters(filters, categories, translations)}
+        ${createSearchAndFilters(filters, categories, locations, translations)}
       </div>
 
       ${createActiveFiltersDisplay(filters, translations)}

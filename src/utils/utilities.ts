@@ -339,6 +339,7 @@ export const Utilities = {
         Utilities.parseNumber(formData.expiryAlertDays, DEFAULTS.EXPIRY_ALERT_DAYS),
       ),
       category: formData.category?.trim() || DEFAULTS.CATEGORY,
+      location: formData.location?.trim() || DEFAULTS.LOCATION,
       unit: formData.unit?.trim() || DEFAULTS.UNIT,
     };
   },
@@ -399,6 +400,22 @@ export const Utilities = {
   },
 
   /**
+   * Groups items by their location
+   * @param items - Array of inventory items
+   * @returns Object with items grouped by location
+   */
+  groupItemsByLocation<T extends { location?: string }>(items: readonly T[]): Record<string, T[]> {
+    return items.reduce<Record<string, T[]>>((groups, item) => {
+      const location = item.location || 'No Location';
+      if (!groups[location]) {
+        groups[location] = [];
+      }
+      groups[location].push(item);
+      return groups;
+    }, {});
+  },
+
+  /**
    * Sanitizes item data to ensure valid values
    * @param itemData - Item data to sanitize
    * @returns Sanitized item data
@@ -423,6 +440,7 @@ export const Utilities = {
       ),
       todoList: this.sanitizeString(itemData.todoList, 100),
       unit: this.sanitizeString(itemData.unit, 20),
+      location: this.sanitizeString(itemData.location, 50),
     };
     return data;
   },
@@ -441,7 +459,13 @@ export const Utilities = {
   },
 
   hasActiveFilters(filters: FilterState): boolean {
-    return Boolean(filters.searchText || filters.category || filters.quantity || filters.expiry);
+    return Boolean(
+      filters.searchText ||
+        filters.category ||
+        filters.quantity ||
+        filters.expiry ||
+        filters.location,
+    );
   },
 
   /**
@@ -465,6 +489,7 @@ export const Utilities = {
           : DEFAULTS.QUANTITY;
       item.unit = typeof item.unit === 'string' ? item.unit : DEFAULTS.UNIT;
       item.category = typeof item.category === 'string' ? item.category : DEFAULTS.CATEGORY;
+      item.location = typeof item.location === 'string' ? item.location : DEFAULTS.LOCATION;
       item.expiry_date =
         typeof item.expiry_date === 'string' ? item.expiry_date : DEFAULTS.EXPIRY_DATE;
       item.expiry_alert_days =

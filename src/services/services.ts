@@ -50,6 +50,7 @@ export class Services {
         [PARAMS.EXPIRY_ALERT_DAYS]: sanitizedItemData.expiryAlertDays,
         [PARAMS.AUTO_ADD_TO_LIST_QUANTITY]: sanitizedItemData.autoAddToListQuantity,
         [PARAMS.AUTO_ADD_ENABLED]: sanitizedItemData.autoAddEnabled,
+        [PARAMS.LOCATION]: sanitizedItemData.location,
       });
       return { success: true };
     } catch (error) {
@@ -166,6 +167,7 @@ export class Services {
         [PARAMS.QUANTITY]: sanitizedItemData.quantity,
         [PARAMS.TODO_LIST]: sanitizedItemData.todoList,
         [PARAMS.UNIT]: sanitizedItemData.unit,
+        [PARAMS.LOCATION]: sanitizedItemData.location,
       };
       await this.hass.callService(DOMAIN, SERVICES.UPDATE_ITEM, parameters);
       return { success: true };

@@ -43,6 +43,19 @@ export const itemRowStyles: CSSResult = css`
     font-size: 0.9em;
     opacity: 0.7;
   }
+
+  .location {
+    font-size: 0.9em;
+    font-style: italic;
+    opacity: 0.7;
+  }
+
+  .location-category {
+    font-size: 0.9em;
+    font-style: italic;
+    opacity: 0.7;
+  }
+
   .item-footer {
     display: flex;
     justify-content: space-between;

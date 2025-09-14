@@ -25,6 +25,7 @@ export class ModalFormManager {
       expiryAlertDays: this.getInputValue(`add-${ELEMENTS.EXPIRY_ALERT_DAYS}`),
       category: this.getInputValue(`add-${ELEMENTS.CATEGORY}`),
       unit: this.getInputValue(`add-${ELEMENTS.UNIT}`),
+      location: this.getInputValue(`add-${ELEMENTS.LOCATION}`),
     };
   }
 
@@ -42,6 +43,7 @@ export class ModalFormManager {
       expiryAlertDays: this.getInputValue(`edit-${ELEMENTS.EXPIRY_ALERT_DAYS}`),
       category: this.getInputValue(`edit-${ELEMENTS.CATEGORY}`),
       unit: this.getInputValue(`edit-${ELEMENTS.UNIT}`),
+      location: this.getInputValue(`edit-${ELEMENTS.LOCATION}`),
     };
   }
 
@@ -54,6 +56,7 @@ export class ModalFormManager {
       { id: `edit-${ELEMENTS.QUANTITY}`, value: (item.quantity ?? DEFAULTS.QUANTITY).toString() },
       { id: `edit-${ELEMENTS.UNIT}`, value: item.unit ?? DEFAULTS.UNIT },
       { id: `edit-${ELEMENTS.CATEGORY}`, value: item.category ?? DEFAULTS.CATEGORY },
+      { id: `edit-${ELEMENTS.LOCATION}`, value: item.location ?? DEFAULTS.LOCATION },
       { id: `edit-${ELEMENTS.EXPIRY_DATE}`, value: item.expiry_date ?? DEFAULTS.EXPIRY_DATE },
       {
         id: `edit-${ELEMENTS.EXPIRY_ALERT_DAYS}`,
@@ -83,6 +86,7 @@ export class ModalFormManager {
       { id: `add-${ELEMENTS.QUANTITY}`, value: DEFAULTS.QUANTITY.toString() },
       { id: `add-${ELEMENTS.UNIT}`, value: DEFAULTS.UNIT },
       { id: `add-${ELEMENTS.CATEGORY}`, value: DEFAULTS.CATEGORY },
+      { id: `add-${ELEMENTS.LOCATION}`, value: DEFAULTS.LOCATION },
       { id: `add-${ELEMENTS.EXPIRY_DATE}`, value: DEFAULTS.EXPIRY_DATE },
       { id: `add-${ELEMENTS.EXPIRY_ALERT_DAYS}`, value: DEFAULTS.EXPIRY_ALERT_DAYS.toString() },
       {

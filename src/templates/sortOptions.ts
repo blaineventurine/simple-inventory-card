@@ -19,6 +19,10 @@ export function createSortOptions(sortMethod: string, translations: TranslationD
         ${TranslationManager.localize(translations, 'sort.category', undefined, 'Category')}
       </option>
 
+      <option value="location" ${sortMethod === 'location' ? 'selected' : ''}>
+        ${TranslationManager.localize(translations, 'sort.location', undefined, 'Location')}
+      </option>
+
       <option value="quantity" ${sortMethod === 'quantity' ? 'selected' : ''}>
         ${TranslationManager.localize(
           translations,

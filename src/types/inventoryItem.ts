@@ -8,6 +8,7 @@ export interface SanitizedItemData {
   quantity: number;
   todoList: string;
   unit: string;
+  location: string;
 }
 
 export interface ItemData {
@@ -20,6 +21,7 @@ export interface ItemData {
   quantity?: number;
   todoList?: string;
   unit?: string;
+  location?: string;
 }
 
 export interface RawFormData {
@@ -32,4 +34,5 @@ export interface RawFormData {
   expiryAlertDays: string;
   category: string;
   unit: string;
+  location: string;
 }

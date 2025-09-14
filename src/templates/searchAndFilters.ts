@@ -7,22 +7,25 @@ import { TranslationManager } from '@/services/translationManager';
 export function createSearchAndFilters(
   filters: FilterState,
   categories: string[],
+  locations: string[],
   translations: TranslationData,
 ): string {
   return `
     ${searchRow(filters, translations)}
-    ${advancedFilters(filters, categories, translations)}
+    ${advancedFilters(filters, categories, locations, translations)}
   `;
 }
 
 function advancedFilters(
   filters: FilterState,
   categories: string[],
+  locations: string[],
   translations: TranslationData,
 ): string {
   return `
     <div id="advanced-filters" class="advanced-filters" style="display: ${filters.showAdvanced ? 'block' : 'none'}">
       ${categoryFilters(filters, categories, translations)}
+      ${locationFilters(filters, locations, translations)}
       ${quantityFilters(filters, translations)}
       ${expiryFilters(filters, translations)}
       ${clearFiltersButton(translations)}
@@ -136,6 +139,33 @@ function categoryFilters(
 `;
 }
 
+function locationFilters(
+  filters: FilterState,
+  locations: string[],
+  translations: TranslationData,
+): string {
+  return `
+    <div class="filter-row">
+      <div class="filter-group">
+        <label>
+          ${TranslationManager.localize(translations, 'filters.location', undefined, 'Location')}
+        </label>
+        <select id="${ELEMENTS.FILTER_LOCATION}">
+          <option value="">
+            ${TranslationManager.localize(
+              translations,
+              'filters.all_locations',
+              undefined,
+              'All Locations',
+            )}
+          </option>
+          ${createLocationOptions(locations, filters.location)}
+        </select>
+      </div>
+    </div>
+`;
+}
+
 function searchRow(filters: FilterState, translations: TranslationData): string {
   return `
     <div class="search-row">
@@ -169,10 +199,21 @@ function searchRow(filters: FilterState, translations: TranslationData): string 
 }
 
 function createCategoryOptions(categories: string[], selectedCategory: string): string {
+  console.log('Creating category options:', categories, selectedCategory);
   return categories
     .map(
       (category) =>
         `<option value="${category}" ${category === selectedCategory ? 'selected' : ''}>${category}</option>`,
+    )
+    .join('');
+}
+
+function createLocationOptions(locations: string[], selectedLocation: string): string {
+  console.log('Creating location options:', locations, selectedLocation);
+  return locations
+    .map(
+      (location) =>
+        `<option value="${location}" ${location === selectedLocation ? 'selected' : ''}>${location}</option>`,
     )
     .join('');
 }

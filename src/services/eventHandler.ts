@@ -167,7 +167,8 @@ export class EventHandler {
       target instanceof HTMLSelectElement &&
       (target.id === ELEMENTS.FILTER_CATEGORY ||
         target.id === ELEMENTS.FILTER_QUANTITY ||
-        target.id === ELEMENTS.FILTER_EXPIRY)
+        target.id === ELEMENTS.FILTER_EXPIRY ||
+        target.id === ELEMENTS.FILTER_LOCATION)
     ) {
       this.autoApplyFilter(target);
       return;
@@ -320,6 +321,10 @@ export class EventHandler {
         }
         case ELEMENTS.FILTER_EXPIRY: {
           filters.expiry = selectElement.value;
+          break;
+        }
+        case ELEMENTS.FILTER_LOCATION: {
+          filters.location = selectElement.value;
           break;
         }
       }

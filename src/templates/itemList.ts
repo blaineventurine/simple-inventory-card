@@ -26,6 +26,10 @@ export function createItemsList(
     return createItemsByCategory(items, todoLists, translations);
   }
 
+  if (sortMethod === 'location') {
+    return createItemsByLocation(items, todoLists, translations);
+  }
+
   return items.map((item) => createItemRowTemplate(item, todoLists, translations)).join('');
 }
 
@@ -45,6 +49,25 @@ export function createItemsByCategory(
           ${grouped[category].map((item) => createItemRowTemplate(item, todoLists, translations)).join('')}
         </div>
       `,
+    )
+    .join('');
+}
+
+export function createItemsByLocation(
+  items: InventoryItem[],
+  todoLists: TodoList[],
+  translations: TranslationData,
+): string {
+  const grouped = Utilities.groupItemsByLocation(items);
+  const sortedLocations = Object.keys(grouped).sort();
+  return sortedLocations
+    .map(
+      (location) => `
+        <div class="${CSS_CLASSES.CATEGORY_GROUP}">
+          <div class="${CSS_CLASSES.CATEGORY_HEADER}">${location}</div>
+          ${grouped[location].map((item) => createItemRowTemplate(item, todoLists, translations)).join('')}
+        </div>
+`,
     )
     .join('');
 }

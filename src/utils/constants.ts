@@ -30,6 +30,7 @@ export const PARAMS = {
   QUANTITY: 'quantity',
   TODO_LIST: 'todo_list',
   UNIT: 'unit',
+  LOCATION: 'location',
 };
 
 export const ELEMENTS = {
@@ -45,6 +46,7 @@ export const ELEMENTS = {
   AUTO_ADD_ENABLED: 'auto-add-enabled',
   AUTO_ADD_TO_LIST_QUANTITY: 'auto-add-to-list-quantity',
   TODO_LIST: 'todo-list',
+  LOCATION: 'location',
 
   ADD_ITEM_BTN: 'add-item-btn',
   OPEN_ADD_MODAL: 'open-add-modal',
@@ -53,6 +55,7 @@ export const ELEMENTS = {
   SORT_METHOD: 'sort-method',
   ADVANCED_SEARCH_TOGGLE: 'advanced-search-toggle',
   FILTER_CATEGORY: 'filter-category',
+  FILTER_LOCATION: 'filter-location',
   FILTER_QUANTITY: 'filter-quantity',
   FILTER_EXPIRY: 'filter-expiry',
   APPLY_FILTERS: 'apply-filters',
@@ -89,6 +92,7 @@ export const DEFAULTS = {
   SORT_METHOD: 'name',
   TODO_LIST: '',
   UNIT: '',
+  LOCATION: '',
 };
 
 export const SORT_METHODS = {
@@ -98,6 +102,7 @@ export const SORT_METHODS = {
   QUANTITY: 'quantity',
   QUANTITY_LOW: 'quantity-low',
   ZERO_LAST: 'zero-last',
+  LOCATION: 'location',
 };
 
 export const FILTERS = {
@@ -106,6 +111,7 @@ export const FILTERS = {
   QUANTITY: 'quantity',
   SEARCH_TEXT: 'searchText',
   SHOW_ADVANCED: 'showAdvanced',
+  LOCATION: 'location',
 };
 
 export const FILTER_VALUES = {
