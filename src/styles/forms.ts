@@ -91,7 +91,7 @@ export const formStyles: CSSResult = css`
   .form-row {
     display: flex;
     gap: 16px;
-    margin-bottom: 0;
+    margin-bottom: 20px;
     flex-wrap: wrap;
   }
 

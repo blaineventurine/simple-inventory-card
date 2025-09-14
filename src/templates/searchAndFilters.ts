@@ -50,64 +50,68 @@ function clearFiltersButton(translations: TranslationData): string {
 
 function expiryFilters(filters: FilterState, translations: TranslationData): string {
   return `
-    <div class="filter-group">
-      <label>
-        ${TranslationManager.localize(translations, 'filters.expiry', undefined, 'Expiry')}
-      </label>
-      <select id="${ELEMENTS.FILTER_EXPIRY}">
-        <option value="">
-          ${TranslationManager.localize(translations, 'filters.all_items', undefined, 'All Items')}
-        </option>
+    <div class="filter-row">
+      <div class="filter-group">
+        <label>
+          ${TranslationManager.localize(translations, 'filters.expiry', undefined, 'Expiry')}
+        </label>
+        <select id="${ELEMENTS.FILTER_EXPIRY}">
+          <option value="">
+            ${TranslationManager.localize(translations, 'filters.all_items', undefined, 'All Items')}
+          </option>
 
-        <option value="none" ${filters.expiry === 'none' ? 'selected' : ''}>
-          ${TranslationManager.localize(translations, 'filters.no_expiry', undefined, 'No Expiry')}
-        </option>
+          <option value="none" ${filters.expiry === 'none' ? 'selected' : ''}>
+            ${TranslationManager.localize(translations, 'filters.no_expiry', undefined, 'No Expiry')}
+          </option>
 
-        <option value="expired" ${filters.expiry === 'expired' ? 'selected' : ''}>
-          ${TranslationManager.localize(translations, 'filters.expired', undefined, 'Expired')}
-        </option>
+          <option value="expired" ${filters.expiry === 'expired' ? 'selected' : ''}>
+            ${TranslationManager.localize(translations, 'filters.expired', undefined, 'Expired')}
+          </option>
 
-        <option value="soon" ${filters.expiry === 'soon' ? 'selected' : ''}>
-          ${TranslationManager.localize(
-            translations,
-            'filters.expiring_soon',
-            undefined,
-            'Expiring Soon',
-          )}
-        </option>
+          <option value="soon" ${filters.expiry === 'soon' ? 'selected' : ''}>
+            ${TranslationManager.localize(
+              translations,
+              'filters.expiring_soon',
+              undefined,
+              'Expiring Soon',
+            )}
+          </option>
 
-        <option value="future" ${filters.expiry === 'future' ? 'selected' : ''}>
-          ${TranslationManager.localize(translations, 'filters.future', undefined, 'Future')}
-        </option>
-      </select>
+          <option value="future" ${filters.expiry === 'future' ? 'selected' : ''}>
+            ${TranslationManager.localize(translations, 'filters.future', undefined, 'Future')}
+          </option>
+        </select>
+      </div>
     </div>
 `;
 }
 
 function quantityFilters(filters: FilterState, translations: TranslationData): string {
   return `
-    <div class="filter-group">
-      <label>
-        ${TranslationManager.localize(translations, 'filters.quantity', undefined, 'Quantity')}
-      </label>
-      <select id="${ELEMENTS.FILTER_QUANTITY}">
-        <option value="">
-          ${TranslationManager.localize(
-            translations,
-            'filters.all_quantities',
-            undefined,
-            'All Quantities',
-          )}
-        </option>
+    <div class="filter-row">
+      <div class="filter-group">
+        <label>
+          ${TranslationManager.localize(translations, 'filters.quantity', undefined, 'Quantity')}
+        </label>
+        <select id="${ELEMENTS.FILTER_QUANTITY}">
+          <option value="">
+            ${TranslationManager.localize(
+              translations,
+              'filters.all_quantities',
+              undefined,
+              'All Quantities',
+            )}
+          </option>
 
-        <option value="zero" ${filters.quantity === 'zero' ? 'selected' : ''}>
-          ${TranslationManager.localize(translations, 'filters.zero', undefined, 'Zero')}
-        </option>
+          <option value="zero" ${filters.quantity === 'zero' ? 'selected' : ''}>
+            ${TranslationManager.localize(translations, 'filters.zero', undefined, 'Zero')}
+          </option>
 
-        <option value="nonzero" ${filters.quantity === 'nonzero' ? 'selected' : ''}>
-          ${TranslationManager.localize(translations, 'filters.non_zero', undefined, 'Non-zero')}
-        </option>
-      </select>
+          <option value="nonzero" ${filters.quantity === 'nonzero' ? 'selected' : ''}>
+            ${TranslationManager.localize(translations, 'filters.non_zero', undefined, 'Non-zero')}
+          </option>
+        </select>
+      </div>
     </div>
 `;
 }
