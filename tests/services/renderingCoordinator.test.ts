@@ -26,13 +26,14 @@ describe('RenderingCoordinator', () => {
 
   const mockInventoryItems: InventoryItem[] = [
     {
+      auto_add_enabled: false,
+      category: 'Food',
+      expiry_date: '2024-12-31',
+      location: 'Pantry',
       name: 'Test Item',
       quantity: 5,
-      category: 'Food',
-      unit: 'pieces',
-      expiry_date: '2024-12-31',
       todo_list: 'shopping',
-      auto_add_enabled: false,
+      unit: 'pieces',
     },
   ];
 
@@ -114,10 +115,11 @@ describe('RenderingCoordinator', () => {
   describe('render', () => {
     beforeEach(() => {
       const mockFilters = {
-        searchText: '',
         category: '',
-        quantity: '',
         expiry: '',
+        location: '',
+        quantity: '',
+        searchText: '',
         showAdvanced: false,
       };
 
@@ -510,10 +512,11 @@ describe('RenderingCoordinator', () => {
   describe('Error Handling and Edge Cases', () => {
     it('should handle missing entity attributes gracefully', () => {
       const mockFilters = {
-        searchText: '',
         category: '',
-        quantity: '',
         expiry: '',
+        location: '',
+        quantity: '',
+        searchText: '',
         showAdvanced: false,
       };
 

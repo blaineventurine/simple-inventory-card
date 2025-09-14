@@ -63,8 +63,8 @@ export function createItemsByLocation(
   return sortedLocations
     .map(
       (location) => `
-        <div class="${CSS_CLASSES.CATEGORY_GROUP}">
-          <div class="${CSS_CLASSES.CATEGORY_HEADER}">${location}</div>
+        <div class="${CSS_CLASSES.LOCATION_GROUP}">
+          <div class="${CSS_CLASSES.LOCATION_HEADER}">${location}</div>
           ${grouped[location].map((item) => createItemRowTemplate(item, todoLists, translations)).join('')}
         </div>
 `,

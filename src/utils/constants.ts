@@ -72,6 +72,8 @@ export const CSS_CLASSES = {
   MODAL_CONTENT: 'modal-content',
   CATEGORY_GROUP: 'category-group',
   CATEGORY_HEADER: 'category-header',
+  LOCATION_GROUP: 'location-group',
+  LOCATION_HEADER: 'location-header',
 };
 
 export const ACTIONS = {
