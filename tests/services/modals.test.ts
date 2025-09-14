@@ -17,19 +17,19 @@ vi.mock('../../src/services/modals/modalUIManager');
 vi.mock('../../src/utils/utilities');
 
 describe('Modals (Integration)', () => {
-  let modals: Modals;
-  let mockShadowRoot: ShadowRoot;
-  let mockServices: InventoryServices;
-  let mockHass: HomeAssistant;
   let mockConfig: InventoryConfig;
+  let mockHass: HomeAssistant;
+  let mockServices: InventoryServices;
+  let mockShadowRoot: ShadowRoot;
   let mockTranslations: TranslationData;
+  let modals: Modals;
 
+  let mockFormManager: any;
+  let mockGetFreshStateCallback: () => { hass: HomeAssistant; config: InventoryConfig };
   let mockGetInventoryId: (entityId: string) => string;
   let mockOnDataChanged: () => void;
-  let mockFormManager: any;
-  let mockValidationManager: any;
   let mockUIManager: any;
-  let mockGetFreshStateCallback: () => { hass: HomeAssistant; config: InventoryConfig };
+  let mockValidationManager: any;
 
   beforeEach(() => {
     mockShadowRoot = {} as ShadowRoot;
@@ -42,10 +42,11 @@ describe('Modals (Integration)', () => {
     mockTranslations = {
       modal: {
         add_item: 'Add Item',
-        auto_add_when_low: 'Auto-add to todo list when low',
         auto_add_settings: 'Auto-add Settings',
+        auto_add_when_low: 'Auto-add to todo list when low',
         cancel: 'Cancel',
         category: 'Category',
+        location: 'Location',
       },
     };
 
@@ -152,14 +153,15 @@ describe('Modals (Integration)', () => {
     };
 
     const mockRawFormData: RawFormData = {
-      name: 'Test Item',
-      quantity: '5',
       autoAddEnabled: false,
       autoAddToListQuantity: '0',
-      todoList: '',
-      expiryDate: '',
-      expiryAlertDays: '7',
       category: 'Food',
+      expiryAlertDays: '7',
+      expiryDate: '',
+      location: 'Pantry',
+      name: 'Test Item',
+      quantity: '5',
+      todoList: '',
       unit: 'pcs',
     };
 
@@ -171,15 +173,16 @@ describe('Modals (Integration)', () => {
       const mockValidation = { isValid: true, errors: [] };
       const mockItemData: ItemData = { name: 'Test Item', quantity: 5 };
       const mockSanitizedData: SanitizedItemData = {
-        name: 'Test Item',
-        quantity: 5,
-        category: 'Food',
-        unit: 'pcs',
         autoAddEnabled: false,
         autoAddToListQuantity: 0,
-        todoList: '',
-        expiryDate: '',
+        category: 'Food',
         expiryAlertDays: 7,
+        expiryDate: '',
+        location: 'Pantry',
+        name: 'Test Item',
+        quantity: 5,
+        todoList: '',
+        unit: 'pcs',
       };
       const mockResult: InventoryServiceResult = { success: true };
 
@@ -243,7 +246,7 @@ describe('Modals (Integration)', () => {
     });
 
     it('should handle exceptions', async () => {
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
       vi.mocked(mockFormManager.getRawAddModalData).mockImplementation(() => {
         throw new Error('Form error');
       });
@@ -266,14 +269,15 @@ describe('Modals (Integration)', () => {
     };
 
     const mockRawFormData: RawFormData = {
-      name: 'Updated Item',
-      quantity: '10',
       autoAddEnabled: true,
       autoAddToListQuantity: '2',
-      todoList: 'shopping',
-      expiryDate: '2024-12-31',
-      expiryAlertDays: '7',
       category: 'Food',
+      expiryAlertDays: '7',
+      expiryDate: '2024-12-31',
+      location: 'Pantry',
+      name: 'Updated Item',
+      quantity: '10',
+      todoList: 'shopping',
       unit: 'pcs',
     };
 
@@ -294,15 +298,16 @@ describe('Modals (Integration)', () => {
       const mockValidation = { isValid: true, errors: [] };
       const mockItemData: ItemData = { name: 'Updated Item', quantity: 10 };
       const mockSanitizedData: SanitizedItemData = {
-        name: 'Updated Item',
-        quantity: 10,
-        category: 'Food',
-        unit: 'pcs',
         autoAddEnabled: true,
         autoAddToListQuantity: 2,
-        todoList: 'shopping',
-        expiryDate: '2024-12-31',
+        category: 'Food',
         expiryAlertDays: 7,
+        expiryDate: '2024-12-31',
+        location: 'Pantry',
+        name: 'Updated Item',
+        quantity: 10,
+        todoList: 'shopping',
+        unit: 'pcs',
       };
       const mockResult: InventoryServiceResult = { success: true };
 

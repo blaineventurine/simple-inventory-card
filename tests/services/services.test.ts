@@ -31,7 +31,7 @@ describe('Services', () => {
 
     services = new Services(mockHass);
 
-    vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => { });
   });
 
   afterEach(() => {
@@ -48,15 +48,16 @@ describe('Services', () => {
   describe('addItem', () => {
     const inventoryId = 'test-inventory';
     const itemData: ItemData = {
+      autoAddEnabled: true,
+      autoAddToListQuantity: 2,
+      category: 'Food',
+      expiryAlertDays: 3,
+      expiryDate: '2023-12-25',
+      location: 'Pantry',
       name: 'Test Item',
       quantity: 5,
-      unit: 'pieces',
-      category: 'Food',
-      expiryDate: '2023-12-25',
       todoList: 'todo.shopping',
-      expiryAlertDays: 3,
-      autoAddToListQuantity: 2,
-      autoAddEnabled: true,
+      unit: 'pieces',
     };
 
     it('should successfully add item with all data', async () => {
@@ -64,46 +65,49 @@ describe('Services', () => {
 
       expect(result).toEqual({ success: true });
       expect(mockHass.callService).toHaveBeenCalledWith(DOMAIN, SERVICES.ADD_ITEM, {
+        [PARAMS.AUTO_ADD_ENABLED]: itemData.autoAddEnabled,
+        [PARAMS.AUTO_ADD_TO_LIST_QUANTITY]: itemData.autoAddToListQuantity,
+        [PARAMS.CATEGORY]: itemData.category,
+        [PARAMS.EXPIRY_ALERT_DAYS]: itemData.expiryAlertDays,
+        [PARAMS.EXPIRY_DATE]: itemData.expiryDate,
         [PARAMS.INVENTORY_ID]: inventoryId,
+        [PARAMS.LOCATION]: itemData.location,
         [PARAMS.NAME]: itemData.name,
         [PARAMS.QUANTITY]: itemData.quantity,
-        [PARAMS.UNIT]: itemData.unit,
-        [PARAMS.CATEGORY]: itemData.category,
-        [PARAMS.EXPIRY_DATE]: itemData.expiryDate,
         [PARAMS.TODO_LIST]: itemData.todoList,
-        [PARAMS.EXPIRY_ALERT_DAYS]: itemData.expiryAlertDays,
-        [PARAMS.AUTO_ADD_TO_LIST_QUANTITY]: itemData.autoAddToListQuantity,
-        [PARAMS.AUTO_ADD_ENABLED]: itemData.autoAddEnabled,
+        [PARAMS.UNIT]: itemData.unit,
       });
     });
 
     it('should use default values for undefined properties', async () => {
       const minimalItemData: ItemData = {
+        autoAddEnabled: undefined as any,
+        autoAddToListQuantity: undefined as any,
+        category: undefined as any,
+        expiryAlertDays: undefined as any,
+        expiryDate: undefined as any,
+        location: undefined as any,
         name: 'Minimal Item',
         quantity: 1,
-        unit: undefined as any,
-        category: undefined as any,
-        expiryDate: undefined as any,
         todoList: undefined as any,
-        expiryAlertDays: undefined as any,
-        autoAddToListQuantity: undefined as any,
-        autoAddEnabled: undefined as any,
+        unit: undefined as any,
       };
 
       const result = await services.addItem(inventoryId, minimalItemData);
 
       expect(result).toEqual({ success: true });
       expect(mockHass.callService).toHaveBeenCalledWith(DOMAIN, SERVICES.ADD_ITEM, {
+        [PARAMS.AUTO_ADD_ENABLED]: DEFAULTS.AUTO_ADD_ENABLED,
+        [PARAMS.AUTO_ADD_TO_LIST_QUANTITY]: DEFAULTS.AUTO_ADD_TO_LIST_QUANTITY,
+        [PARAMS.CATEGORY]: DEFAULTS.CATEGORY,
+        [PARAMS.EXPIRY_ALERT_DAYS]: DEFAULTS.EXPIRY_ALERT_DAYS,
+        [PARAMS.EXPIRY_DATE]: DEFAULTS.EXPIRY_DATE,
         [PARAMS.INVENTORY_ID]: inventoryId,
+        [PARAMS.LOCATION]: DEFAULTS.LOCATION,
         [PARAMS.NAME]: minimalItemData.name,
         [PARAMS.QUANTITY]: minimalItemData.quantity,
-        [PARAMS.UNIT]: DEFAULTS.UNIT,
-        [PARAMS.CATEGORY]: DEFAULTS.CATEGORY,
-        [PARAMS.EXPIRY_DATE]: DEFAULTS.EXPIRY_DATE,
         [PARAMS.TODO_LIST]: DEFAULTS.TODO_LIST,
-        [PARAMS.EXPIRY_ALERT_DAYS]: DEFAULTS.EXPIRY_ALERT_DAYS,
-        [PARAMS.AUTO_ADD_TO_LIST_QUANTITY]: DEFAULTS.AUTO_ADD_TO_LIST_QUANTITY,
-        [PARAMS.AUTO_ADD_ENABLED]: DEFAULTS.AUTO_ADD_ENABLED,
+        [PARAMS.UNIT]: DEFAULTS.UNIT,
       });
     });
 
@@ -136,31 +140,33 @@ describe('Services', () => {
 
     it('should handle null and empty string values', async () => {
       const itemDataWithNulls: ItemData = {
+        autoAddEnabled: false,
+        autoAddToListQuantity: 0,
+        category: '',
+        expiryAlertDays: 0,
+        expiryDate: null as any,
+        location: null as any,
         name: 'Test Item',
         quantity: 0,
-        unit: null as any,
-        category: '',
-        expiryDate: null as any,
         todoList: '',
-        expiryAlertDays: 0,
-        autoAddToListQuantity: 0,
-        autoAddEnabled: false,
+        unit: null as any,
       };
 
       const result = await services.addItem(inventoryId, itemDataWithNulls);
 
       expect(result).toEqual({ success: true });
       expect(mockHass.callService).toHaveBeenCalledWith(DOMAIN, SERVICES.ADD_ITEM, {
+        [PARAMS.AUTO_ADD_ENABLED]: false,
+        [PARAMS.AUTO_ADD_TO_LIST_QUANTITY]: DEFAULTS.AUTO_ADD_TO_LIST_QUANTITY, // 0 should use default
+        [PARAMS.CATEGORY]: '', // empty string should be preserved
+        [PARAMS.EXPIRY_ALERT_DAYS]: 0,
+        [PARAMS.EXPIRY_DATE]: DEFAULTS.EXPIRY_DATE, // null should use default
         [PARAMS.INVENTORY_ID]: inventoryId,
+        [PARAMS.LOCATION]: DEFAULTS.LOCATION, // null should use default
         [PARAMS.NAME]: itemDataWithNulls.name,
         [PARAMS.QUANTITY]: 0,
-        [PARAMS.UNIT]: DEFAULTS.UNIT, // null should use default
-        [PARAMS.CATEGORY]: '', // empty string should be preserved
-        [PARAMS.EXPIRY_DATE]: DEFAULTS.EXPIRY_DATE, // null should use default
         [PARAMS.TODO_LIST]: '', // empty string should be preserved
-        [PARAMS.EXPIRY_ALERT_DAYS]: 0,
-        [PARAMS.AUTO_ADD_TO_LIST_QUANTITY]: DEFAULTS.AUTO_ADD_TO_LIST_QUANTITY, // 0 should use default
-        [PARAMS.AUTO_ADD_ENABLED]: false,
+        [PARAMS.UNIT]: DEFAULTS.UNIT, // null should use default
       });
     });
   });
@@ -314,15 +320,16 @@ describe('Services', () => {
     const inventoryId = 'test-inventory';
     const oldName = 'Old Item Name';
     const itemData: ItemData = {
+      autoAddEnabled: false,
+      autoAddToListQuantity: 3,
+      category: 'Updated Category',
+      expiryAlertDays: 5,
+      expiryDate: '2024-01-01',
+      location: 'Updated Location',
       name: 'Updated Item',
       quantity: 10,
-      unit: 'kg',
-      category: 'Updated Category',
-      expiryDate: '2024-01-01',
       todoList: 'todo.updated',
-      expiryAlertDays: 5,
-      autoAddToListQuantity: 3,
-      autoAddEnabled: false,
+      unit: 'kg',
     };
 
     it('should successfully update item with all data', async () => {
@@ -336,6 +343,7 @@ describe('Services', () => {
         [PARAMS.EXPIRY_ALERT_DAYS]: itemData.expiryAlertDays,
         [PARAMS.EXPIRY_DATE]: itemData.expiryDate,
         [PARAMS.INVENTORY_ID]: inventoryId,
+        [PARAMS.LOCATION]: itemData.location,
         [PARAMS.NAME]: itemData.name,
         [PARAMS.OLD_NAME]: oldName,
         [PARAMS.QUANTITY]: itemData.quantity,
@@ -346,15 +354,16 @@ describe('Services', () => {
 
     it('should use default values for undefined properties', async () => {
       const minimalItemData: ItemData = {
+        autoAddEnabled: undefined as any,
+        autoAddToListQuantity: undefined as any,
+        category: undefined as any,
+        expiryAlertDays: undefined as any,
+        expiryDate: undefined as any,
+        location: undefined as any,
         name: 'Updated Name',
         quantity: 5,
-        unit: undefined as any,
-        category: undefined as any,
-        expiryDate: undefined as any,
         todoList: undefined as any,
-        expiryAlertDays: undefined as any,
-        autoAddToListQuantity: undefined as any,
-        autoAddEnabled: undefined as any,
+        unit: undefined as any,
       };
 
       const result = await services.updateItem(inventoryId, oldName, minimalItemData);
@@ -367,6 +376,7 @@ describe('Services', () => {
         [PARAMS.EXPIRY_ALERT_DAYS]: DEFAULTS.EXPIRY_ALERT_DAYS,
         [PARAMS.EXPIRY_DATE]: DEFAULTS.EXPIRY_DATE,
         [PARAMS.INVENTORY_ID]: inventoryId,
+        [PARAMS.LOCATION]: DEFAULTS.LOCATION,
         [PARAMS.NAME]: minimalItemData.name,
         [PARAMS.OLD_NAME]: oldName,
         [PARAMS.QUANTITY]: minimalItemData.quantity,
@@ -377,15 +387,16 @@ describe('Services', () => {
 
     it('should preserve falsy values that are not undefined', async () => {
       const falsyItemData: ItemData = {
+        autoAddEnabled: false,
+        autoAddToListQuantity: 0,
+        category: '',
+        expiryAlertDays: 0,
+        expiryDate: '',
+        location: '',
         name: '',
         quantity: 0,
-        unit: '',
-        category: '',
-        expiryDate: '',
         todoList: '',
-        expiryAlertDays: 0,
-        autoAddToListQuantity: 0,
-        autoAddEnabled: false,
+        unit: '',
       };
 
       const result = await services.updateItem(inventoryId, oldName, falsyItemData);
@@ -394,15 +405,16 @@ describe('Services', () => {
       expect(mockHass.callService).toHaveBeenCalledWith(DOMAIN, SERVICES.UPDATE_ITEM, {
         [PARAMS.AUTO_ADD_ENABLED]: false,
         [PARAMS.AUTO_ADD_TO_LIST_QUANTITY]: 0,
-        [PARAMS.CATEGORY]: '',
+        [PARAMS.CATEGORY]: DEFAULTS.CATEGORY, // empty string should use default
         [PARAMS.EXPIRY_ALERT_DAYS]: 0,
         [PARAMS.EXPIRY_DATE]: '',
         [PARAMS.INVENTORY_ID]: inventoryId,
+        [PARAMS.LOCATION]: DEFAULTS.LOCATION, // empty string should use defaulth
         [PARAMS.NAME]: '',
         [PARAMS.OLD_NAME]: oldName,
         [PARAMS.QUANTITY]: 0,
         [PARAMS.TODO_LIST]: '',
-        [PARAMS.UNIT]: '',
+        [PARAMS.UNIT]: DEFAULTS.UNIT, // empty string should use default
       });
     });
 

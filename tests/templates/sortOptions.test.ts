@@ -17,12 +17,13 @@ describe('createSortOptions', () => {
   beforeEach(() => {
     mockTranslations = {
       sort: {
-        sort_by: 'Sort by:',
-        name: 'Name',
         category: 'Category',
+        expiry_date: 'Expiry Date',
+        location: 'Location',
+        name: 'Name',
         quantity_high: 'Quantity (High)',
         quantity_low: 'Quantity (Low)',
-        expiry_date: 'Expiry Date',
+        sort_by: 'Sort by:',
         zero_last: 'Zero Last',
       },
     };
@@ -55,6 +56,8 @@ describe('createSortOptions', () => {
       expect(result).toContain('Expiry Date');
       expect(result).toContain('value="zero-last"');
       expect(result).toContain('Zero Last');
+      expect(result).toContain('value="location"');
+      expect(result).toContain('Location');
     });
 
     it('should use correct element ID from constants', () => {
@@ -73,6 +76,7 @@ describe('createSortOptions', () => {
       expect(result).toContain('Name');
       expect(result).toContain('value="category"');
       expect(result).not.toContain('value="category" selected');
+      expect(result).not.toContain('value="location" selected');
     });
 
     it('should select category option when sortMethod is category', () => {
@@ -82,6 +86,17 @@ describe('createSortOptions', () => {
       expect(result).toContain('Category');
       expect(result).toContain('value="name"');
       expect(result).not.toContain('value="name" selected');
+    });
+
+    it('should select location option when sortMethod is location', () => {
+      const result = createSortOptions('location', mockTranslations);
+
+      expect(result).toContain('value="location" selected');
+      expect(result).toContain('Location');
+      expect(result).toContain('value="name"');
+      expect(result).toContain('value="category"');
+      expect(result).not.toContain('value="name" selected');
+      expect(result).not.toContain('value="category" selected');
     });
 
     it('should select quantity option when sortMethod is quantity', () => {
@@ -207,7 +222,7 @@ describe('createSortOptions', () => {
 
       const optionMatches = result.match(/<option/g);
       expect(optionMatches).toBeTruthy();
-      expect(optionMatches?.length).toBe(6);
+      expect(optionMatches?.length).toBe(7);
     });
 
     it('should have valid option values', () => {
@@ -215,6 +230,7 @@ describe('createSortOptions', () => {
 
       expect(result).toContain('value="name"');
       expect(result).toContain('value="category"');
+      expect(result).toContain('value="location"');
       expect(result).toContain('value="quantity"');
       expect(result).toContain('value="quantity-low"');
       expect(result).toContain('value="expiry"');
@@ -226,6 +242,7 @@ describe('createSortOptions', () => {
 
       expect(result).toContain('Name');
       expect(result).toContain('Category');
+      expect(result).toContain('Location');
       expect(result).toContain('Quantity (High)');
       expect(result).toContain('Quantity (Low)');
       expect(result).toContain('Expiry Date');
@@ -284,6 +301,7 @@ describe('createSortOptions', () => {
       expect(orderName).toEqual([
         'name',
         'category',
+        'location',
         'quantity',
         'quantity-low',
         'expiry',

@@ -5,14 +5,15 @@ import { RawFormData, ItemData } from '../../src/types/inventoryItem';
 import { createMockHassEntity, createMockHomeAssistant } from '../testHelpers';
 
 const createValidFormData = (overrides: Partial<RawFormData> = {}): RawFormData => ({
-  name: 'Test Item',
-  quantity: '5',
   autoAddEnabled: false,
   autoAddToListQuantity: '',
-  todoList: '',
-  expiryDate: '',
-  expiryAlertDays: '',
   category: 'Food',
+  expiryAlertDays: '',
+  expiryDate: '',
+  location: 'kitchen',
+  name: 'Test Item',
+  quantity: '5',
+  todoList: '',
   unit: 'pieces',
   ...overrides,
 });
@@ -430,28 +431,30 @@ describe('Utilities', () => {
     describe('convertRawFormDataToItemData', () => {
       it('should convert valid form data correctly', () => {
         const formData: RawFormData = {
-          name: '  Test Item  ',
-          quantity: '5.5',
           autoAddEnabled: true,
           autoAddToListQuantity: '2',
-          todoList: 'todo.shopping',
-          expiryDate: '2023-12-25',
-          expiryAlertDays: '3',
           category: 'Food',
+          expiryAlertDays: '3',
+          expiryDate: '2023-12-25',
+          location: 'kitchen',
+          name: '  Test Item  ',
+          quantity: '5.5',
+          todoList: 'todo.shopping',
           unit: 'kg',
         };
 
         const result = Utilities.convertRawFormDataToItemData(formData);
 
         expect(result).toEqual({
-          name: 'Test Item',
-          quantity: 5.5,
           autoAddEnabled: true,
           autoAddToListQuantity: 2,
-          todoList: 'todo.shopping',
-          expiryDate: '2023-12-25',
-          expiryAlertDays: 3,
           category: 'Food',
+          expiryAlertDays: 3,
+          expiryDate: '2023-12-25',
+          location: 'kitchen',
+          name: 'Test Item',
+          quantity: 5.5,
+          todoList: 'todo.shopping',
           unit: 'kg',
         });
       });
@@ -483,28 +486,30 @@ describe('Utilities', () => {
 
       it('should handle undefined/null values gracefully', () => {
         const formData: RawFormData = {
-          name: null as any,
-          quantity: undefined as any,
           autoAddEnabled: false,
           autoAddToListQuantity: null as any,
-          todoList: undefined as any,
-          expiryDate: null as any,
-          expiryAlertDays: undefined as any,
           category: null as any,
+          expiryAlertDays: undefined as any,
+          expiryDate: null as any,
+          location: null as any,
+          name: null as any,
+          quantity: undefined as any,
+          todoList: undefined as any,
           unit: undefined as any,
         };
 
         const result = Utilities.convertRawFormDataToItemData(formData);
 
         expect(result).toEqual({
-          name: '',
-          quantity: 1,
           autoAddEnabled: false,
           autoAddToListQuantity: 0,
-          todoList: '',
-          expiryDate: '',
-          expiryAlertDays: 1,
           category: '',
+          expiryAlertDays: 1,
+          expiryDate: '',
+          location: '',
+          name: '',
+          quantity: 1,
+          todoList: '',
           unit: '',
         });
       });
@@ -556,26 +561,46 @@ describe('Utilities', () => {
       it.each([
         {
           filters: {
-            searchText: 'test',
             category: '',
-            quantity: '',
             expiry: '',
+            location: '',
+            quantity: '',
+            searchText: 'test',
             showAdvanced: false,
           },
           expected: true,
         },
         {
           filters: {
-            searchText: '',
             category: 'Food',
-            quantity: '',
             expiry: '',
+            location: '',
+            quantity: '',
+            searchText: '',
             showAdvanced: false,
           },
           expected: true,
         },
         {
-          filters: { searchText: '', category: '', quantity: '', expiry: '', showAdvanced: false },
+          filters: {
+            category: '',
+            expiry: '',
+            location: 'kitchen',
+            quantity: '',
+            searchText: '',
+            showAdvanced: false,
+          },
+          expected: true,
+        },
+        {
+          filters: {
+            category: '',
+            expiry: '',
+            location: '',
+            quantity: '',
+            searchText: '',
+            showAdvanced: false,
+          },
           expected: false,
         },
       ])('should detect active filters correctly', ({ filters, expected }) => {
@@ -604,19 +629,41 @@ describe('Utilities', () => {
       });
     });
 
+    describe('groupItemsByLocation', () => {
+      it('should group items by location', () => {
+        const items = [
+          { name: 'Apple', location: 'Fridge' },
+          { name: 'Banana', location: 'Fridge' },
+          { name: 'Carrot', location: 'Root Cellar' },
+          { name: 'Bread' },
+        ];
+
+        const result = Utilities.groupItemsByLocation(items);
+
+        expect(result['Fridge']).toHaveLength(2);
+        expect(result['Root Cellar']).toHaveLength(1);
+        expect(result['No Location']).toHaveLength(1);
+      });
+
+      it('should handle empty array', () => {
+        expect(Utilities.groupItemsByLocation([])).toEqual({});
+      });
+    });
+
     describe('sanitizeItemData', () => {
       it('should sanitize and enforce limits', () => {
         const itemData: ItemData = {
-          name: '  Test Item  ',
-          quantity: -5,
           autoAddEnabled: 'true' as any,
           autoAddToListQuantity: 1_000_000,
           category:
             'A very long category name that should definitely be truncated because it exceeds the limit',
-          unit: 'a very long unit name that should also be truncated',
-          todoList: 'todo.test',
           expiryDate: '2023-12-25',
           expiryAlertDays: 0,
+          location: '  A very long location name that really should also be truncated  ',
+          name: '  Test Item  ',
+          quantity: -5,
+          todoList: 'todo.test',
+          unit: 'a very long unit name that should also be truncated',
         };
 
         const result = Utilities.sanitizeItemData(itemData);
@@ -656,13 +703,14 @@ describe('Utilities', () => {
         expect(result[0].name).toBe('Valid Item');
         expect(result[0].quantity).toBe(5);
 
+        expect(result[1].auto_add_enabled).toBe(false); // Normalized missing auto_add_enabled
+        expect(result[1].auto_add_to_list_quantity).toBe(0); // Normalized missing auto_add_to_list_quantity
+        expect(result[1].category).toBe(''); // Normalized missing category
+        expect(result[1].expiry_date).toBe(''); // Normalized missing expiry_date
+        expect(result[1].location).toBe(''); // Normalized missing location
         expect(result[1].name).toBe('Item with invalid quantity');
         expect(result[1].quantity).toBe(1); // Normalized invalid quantity
         expect(result[1].unit).toBe(''); // Normalized missing unit
-        expect(result[1].category).toBe(''); // Normalized missing category
-        expect(result[1].expiry_date).toBe(''); // Normalized missing expiry_date
-        expect(result[1].auto_add_enabled).toBe(false); // Normalized missing auto_add_enabled
-        expect(result[1].auto_add_to_list_quantity).toBe(0); // Normalized missing auto_add_to_list_quantity
 
         expect(result[2].name).toBe('Item with missing fields');
         expect(result[2].quantity).toBe(1); // Default for missing quantity
@@ -1046,15 +1094,18 @@ describe('Utilities', () => {
       it('should handle fields without trim method', () => {
         const formData = createValidFormData();
         // Remove trim by setting to non-string values
-        (formData as any).todoList = null;
-        (formData as any).expiryDate = undefined;
         (formData as any).category = null;
+        (formData as any).expiryDate = undefined;
+        (formData as any).location = null;
+        (formData as any).todoList = null;
         (formData as any).unit = undefined;
 
         const result = Utilities.convertRawFormDataToItemData(formData);
-        expect(result.todoList).toBe('');
-        expect(result.expiryDate).toBe('');
+
         expect(result.category).toBe('');
+        expect(result.expiryDate).toBe('');
+        expect(result.location).toBe('');
+        expect(result.todoList).toBe('');
         expect(result.unit).toBe('');
       });
     });
@@ -1062,15 +1113,15 @@ describe('Utilities', () => {
     describe('sanitizeItemData - Math Function Coverage', () => {
       it('should use Math.max instead of Math.min for autoAddToListQuantity', () => {
         const itemData: ItemData = {
-          name: 'Test',
-          quantity: 5,
           autoAddEnabled: true,
           autoAddToListQuantity: -10, // Negative value
           category: 'Test',
-          unit: 'test',
-          todoList: 'todo.test',
-          expiryDate: '',
           expiryAlertDays: 7,
+          expiryDate: '',
+          name: 'Test',
+          quantity: 5,
+          todoList: 'todo.test',
+          unit: 'test',
         };
 
         const result = Utilities.sanitizeItemData(itemData);
@@ -1100,58 +1151,75 @@ describe('Utilities', () => {
       it('should handle items with typeof mutations', () => {
         const items: InventoryItem[] = [
           {
+            auto_add_enabled: false,
+            auto_add_to_list_quantity: 0,
+            category: '',
+            expiry_alert_days: 0,
+            expiry_date: '',
+            location: '',
             name: 'Valid Item',
             quantity: 5,
-            unit: 123 as any,
-            category: '',
-            expiry_date: '',
-            expiry_alert_days: 0,
             todo_list: '',
-            auto_add_enabled: false,
-            auto_add_to_list_quantity: 0,
+            unit: 123 as any,
           },
           {
+            auto_add_enabled: false,
+            auto_add_to_list_quantity: 0,
+            category: true as any,
+            expiry_alert_days: 0,
+            expiry_date: '',
+            location: '',
             name: 'Another Item',
             quantity: 0,
-            unit: '',
-            category: true as any,
-            expiry_date: '',
-            expiry_alert_days: 0,
             todo_list: '',
-            auto_add_enabled: false,
-            auto_add_to_list_quantity: 0,
+            unit: '',
           },
           {
+            auto_add_enabled: false,
+            auto_add_to_list_quantity: 0,
+            category: '',
+            expiry_alert_days: 0,
+            expiry_date: 456 as any,
+            location: '',
             name: 'Third Item',
             quantity: 0,
-            unit: '',
-            category: '',
-            expiry_date: 456 as any,
-            expiry_alert_days: 0,
             todo_list: '',
-            auto_add_enabled: false,
-            auto_add_to_list_quantity: 0,
+            unit: '',
           },
           {
-            name: 'Fourth Item',
-            quantity: 0,
-            unit: '',
-            category: '',
-            expiry_date: '',
-            expiry_alert_days: 0,
-            todo_list: false as any,
             auto_add_enabled: false,
             auto_add_to_list_quantity: 0,
+            category: '',
+            expiry_alert_days: 0,
+            expiry_date: '',
+            location: '',
+            name: 'Fourth Item',
+            quantity: 0,
+            todo_list: false as any,
+            unit: '',
+          },
+          {
+            auto_add_enabled: false,
+            auto_add_to_list_quantity: 0,
+            category: false as any,
+            expiry_alert_days: 0,
+            expiry_date: '',
+            location: '',
+            name: 'Fifth Item',
+            quantity: 0,
+            todo_list: '',
+            unit: '',
           },
         ];
 
         const result = Utilities.validateInventoryItems(items);
 
-        expect(result).toHaveLength(4);
+        expect(result).toHaveLength(5);
         expect(result[0].unit).toBe(''); // Should be normalized to empty string
         expect(result[1].category).toBe(''); // Should be normalized to empty string
         expect(result[2].expiry_date).toBe(''); // Should be normalized to empty string
         expect(result[3].todo_list).toBe(''); // Should be normalized to empty string
+        expect(result[4].location).toBe(''); // Should be normalized to empty string
       });
 
       it('should handle quantity type checking with logical OR', () => {

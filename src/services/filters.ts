@@ -28,11 +28,11 @@ export class Filters {
     }
 
     return {
-      searchText: '',
       category: '',
+      expiry: '',
       location: '',
       quantity: '',
-      expiry: '',
+      searchText: '',
       showAdvanced: false,
       sortMethod: DEFAULTS.SORT_METHOD,
     };
@@ -77,11 +77,11 @@ export class Filters {
   }
 
   private matchesTextSearch(item: InventoryItem, searchText: string): boolean {
-    const search = searchText.toLowerCase();
-    const itemName = (item.name ?? '').toLowerCase();
     const itemCategory = (item.category ?? '').toLowerCase();
     const itemLocation = (item.location ?? '').toLowerCase();
+    const itemName = (item.name ?? '').toLowerCase();
     const itemUnit = (item.unit ?? '').toLowerCase();
+    const search = searchText.toLowerCase();
 
     return (
       itemName.includes(search) ||
@@ -388,6 +388,7 @@ export class Filters {
           `${TranslationManager.localize(translations, 'active_filters.search', undefined, 'Search')}: "${filters.searchText}"`,
         );
       }
+
       if (filters.category) {
         activeFilters.push(
           `${TranslationManager.localize(translations, 'active_filters.category', undefined, 'Category')}: ${filters.category}`,
@@ -399,6 +400,7 @@ export class Filters {
           `${TranslationManager.localize(translations, 'active_filters.location', undefined, 'Location')}: ${filters.location}`,
         );
       }
+
       if (filters.quantity) {
         const quantityLabel = TranslationManager.localize(
           translations,
@@ -410,6 +412,7 @@ export class Filters {
           `${TranslationManager.localize(translations, 'active_filters.quantity', undefined, 'Quantity')}: ${quantityLabel}`,
         );
       }
+
       if (filters.expiry) {
         const expiryLabel = TranslationManager.localize(
           translations,
