@@ -19,6 +19,7 @@ export function createActiveFiltersDisplay(
       )}: "${filters.searchText}"`,
     );
   }
+
   if (filters.category) {
     activeFilters.push(
       `${TranslationManager.localize(
@@ -29,6 +30,7 @@ export function createActiveFiltersDisplay(
       )}: ${filters.category}`,
     );
   }
+
   if (filters.quantity) {
     const quantityLabel = TranslationManager.localize(
       translations,
@@ -45,6 +47,7 @@ export function createActiveFiltersDisplay(
       )}: ${quantityLabel}`,
     );
   }
+
   if (filters.expiry) {
     const expiryLabel = TranslationManager.localize(
       translations,
@@ -52,6 +55,7 @@ export function createActiveFiltersDisplay(
       undefined,
       filters.expiry,
     );
+
     activeFilters.push(
       `${TranslationManager.localize(
         translations,
@@ -59,6 +63,17 @@ export function createActiveFiltersDisplay(
         undefined,
         'Expiry',
       )}: ${expiryLabel}`,
+    );
+  }
+
+  if (filters.location) {
+    activeFilters.push(
+      `${TranslationManager.localize(
+        translations,
+        'active_filters.location',
+        undefined,
+        'Location',
+      )}: ${filters.location}`,
     );
   }
 

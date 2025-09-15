@@ -64,6 +64,7 @@ describe('generateCardHTML', () => {
   let mockFilters: FilterState;
   let mockTodoLists: TodoList[];
   let mockCategories: string[];
+  let mockLocations: string[];
   let mockTranslations: TranslationData;
 
   beforeEach(() => {
@@ -71,34 +72,37 @@ describe('generateCardHTML', () => {
 
     mockItems = [
       {
-        name: 'Apple',
-        quantity: 5,
-        category: 'Fruit',
-        unit: 'pieces',
-        expiry_date: '2024-12-31',
-        expiry_alert_days: 7,
         auto_add_enabled: false,
         auto_add_to_list_quantity: 2,
+        category: 'Fruit',
+        expiry_alert_days: 7,
+        expiry_date: '2024-12-31',
+        location: 'Kitchen',
+        name: 'Apple',
+        quantity: 5,
         todo_list: 'grocery',
+        unit: 'pieces',
       },
       {
-        name: 'Banana',
-        quantity: 3,
-        category: 'Fruit',
-        unit: 'pieces',
-        expiry_date: '2024-11-15',
-        expiry_alert_days: 5,
         auto_add_enabled: true,
         auto_add_to_list_quantity: 1,
+        category: 'Fruit',
+        expiry_alert_days: 5,
+        expiry_date: '2024-11-15',
+        location: 'Kitchen',
+        name: 'Banana',
+        quantity: 3,
         todo_list: 'shopping',
+        unit: 'pieces',
       },
     ];
 
     mockFilters = {
-      searchText: '',
       category: '',
-      quantity: '',
       expiry: '',
+      location: '',
+      quantity: '',
+      searchText: '',
       showAdvanced: false,
     };
 
@@ -116,6 +120,7 @@ describe('generateCardHTML', () => {
     ];
 
     mockCategories = ['Fruit', 'Vegetable', 'Dairy'];
+    mockLocations = ['Kitchen', 'Pantry', 'Fridge'];
 
     mockTranslations = {
       items: {
@@ -135,6 +140,7 @@ describe('generateCardHTML', () => {
         mockFilters,
         'name',
         mockCategories,
+        mockLocations,
         mockTodoLists,
         mockItems,
         'Kitchen items description',
@@ -156,6 +162,7 @@ describe('generateCardHTML', () => {
         mockFilters,
         'category',
         mockCategories,
+        mockLocations,
         mockTodoLists,
         mockItems,
         undefined,
@@ -179,6 +186,7 @@ describe('generateCardHTML', () => {
         mockFilters,
         'name',
         mockCategories,
+        mockLocations,
         mockTodoLists,
         mockItems,
         undefined,
@@ -199,6 +207,7 @@ describe('generateCardHTML', () => {
         mockFilters,
         'name',
         mockCategories,
+        mockLocations,
         mockTodoLists,
         [],
         undefined,
@@ -219,6 +228,7 @@ describe('generateCardHTML', () => {
         [],
         [],
         [],
+        [],
         undefined,
         mockTranslations,
       );
@@ -234,6 +244,7 @@ describe('generateCardHTML', () => {
         [],
         mockFilters,
         'name',
+        [],
         [],
         [],
         [],
@@ -258,6 +269,7 @@ describe('generateCardHTML', () => {
         mockFilters,
         'name',
         mockCategories,
+        mockLocations,
         mockTodoLists,
         mockItems,
         undefined,
@@ -274,6 +286,7 @@ describe('generateCardHTML', () => {
         mockFilters,
         'quantity_desc',
         mockCategories,
+        mockLocations,
         mockTodoLists,
         mockItems,
         undefined,
@@ -291,6 +304,7 @@ describe('generateCardHTML', () => {
         mockFilters,
         'name',
         mockCategories,
+        mockLocations,
         mockTodoLists,
         mockItems,
         'Test description',
@@ -305,6 +319,7 @@ describe('generateCardHTML', () => {
         mockFilters,
         'name',
         mockCategories,
+        mockLocations,
         mockTodoLists,
         mockItems,
         undefined,
@@ -328,6 +343,7 @@ describe('generateCardHTML', () => {
         mockFilters,
         'name',
         largeCategories,
+        mockLocations,
         largeTodoLists,
         mockItems,
         undefined,
@@ -347,6 +363,7 @@ describe('generateCardHTML', () => {
         mockFilters,
         'name',
         mockCategories,
+        mockLocations,
         mockTodoLists,
         mockItems,
         undefined,
@@ -372,6 +389,7 @@ describe('generateCardHTML', () => {
         mockFilters,
         'name',
         mockCategories,
+        mockLocations,
         mockTodoLists,
         mockItems,
         undefined,
@@ -388,6 +406,7 @@ describe('generateCardHTML', () => {
         mockFilters,
         'name',
         mockCategories,
+        mockLocations,
         mockTodoLists,
         mockItems,
         undefined,
@@ -410,6 +429,7 @@ describe('generateCardHTML', () => {
         mockFilters,
         'name',
         mockCategories,
+        mockLocations,
         mockTodoLists,
         mockItems,
         undefined,
@@ -427,6 +447,7 @@ describe('generateCardHTML', () => {
         mockFilters,
         'name',
         mockCategories,
+        mockLocations,
         mockTodoLists,
         [],
         undefined,
@@ -445,6 +466,7 @@ describe('generateCardHTML', () => {
         mockFilters,
         'name',
         mockCategories,
+        mockLocations,
         mockTodoLists,
         singleItem,
         undefined,
@@ -464,6 +486,7 @@ describe('generateCardHTML', () => {
         mockFilters,
         'name',
         mockCategories,
+        mockLocations,
         mockTodoLists,
         mockItems,
         undefined,
@@ -480,6 +503,7 @@ describe('generateCardHTML', () => {
         mockFilters,
         'name',
         mockCategories,
+        mockLocations,
         mockTodoLists,
         mockItems,
         undefined,
@@ -498,6 +522,7 @@ describe('generateCardHTML', () => {
         [],
         [],
         [],
+        [],
         undefined,
         mockTranslations,
       );
@@ -509,10 +534,11 @@ describe('generateCardHTML', () => {
 
     it('should handle filters with active values', () => {
       const activeFilters: FilterState = {
-        searchText: 'apple',
         category: 'Fruit',
-        quantity: 'low',
         expiry: 'soon',
+        location: 'Kitchen',
+        quantity: 'low',
+        searchText: 'apple',
         showAdvanced: true,
       };
 
@@ -522,6 +548,7 @@ describe('generateCardHTML', () => {
         activeFilters,
         'name',
         mockCategories,
+        mockLocations,
         mockTodoLists,
         mockItems,
         undefined,
@@ -547,6 +574,7 @@ describe('generateCardHTML', () => {
         mockFilters,
         'category',
         mockCategories,
+        mockLocations,
         mockTodoLists,
         mockItems,
         'Test description',
@@ -562,6 +590,7 @@ describe('generateCardHTML', () => {
       expect(searchAndFiltersModule.createSearchAndFilters).toHaveBeenCalledWith(
         mockFilters,
         mockCategories,
+        mockLocations,
         mockTranslations,
       );
       expect(sortOptionsModule.createSortOptions).toHaveBeenCalledWith(

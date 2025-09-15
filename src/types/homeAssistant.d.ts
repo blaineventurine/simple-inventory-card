@@ -153,6 +153,7 @@ export interface InventoryItem {
   quantity: number;
   todo_list: string;
   unit: string;
+  location: string;
 }
 
 export interface InventoryConfig extends LovelaceCardConfig {

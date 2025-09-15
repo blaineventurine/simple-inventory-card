@@ -33,17 +33,28 @@ vi.useFakeTimers();
 
 describe('Filters', () => {
   let filters: Filters;
-  let mockShadowRoot: ShadowRoot;
-  let mockSearchInput: HTMLInputElement;
-  let mockAdvancedToggle: HTMLElement;
   let mockActiveFiltersDiv: HTMLElement;
   let mockActiveFiltersList: HTMLElement;
+  let mockAdvancedToggle: HTMLElement;
+  let mockSearchInput: HTMLInputElement;
+  let mockShadowRoot: ShadowRoot;
   let mockTranslations: TranslationData;
+
+  const testFilters: FilterState = {
+    category: '',
+    expiry: '',
+    location: '',
+    quantity: '',
+    searchText: '',
+    showAdvanced: false,
+    sortMethod: '',
+  };
 
   const createMockItem = (overrides: Partial<InventoryItem> = {}): InventoryItem => ({
     auto_add_enabled: false,
     category: 'Test Category',
     expiry_date: '2024-12-31',
+    location: 'Test Location',
     name: 'Test Item',
     quantity: 5,
     todo_list: 'test-list',
@@ -116,11 +127,12 @@ describe('Filters', () => {
       FUTURE: 'future',
     };
 
-    vi.mocked(SORT_METHODS).NAME = 'name';
     vi.mocked(SORT_METHODS).CATEGORY = 'category';
+    vi.mocked(SORT_METHODS).EXPIRY = 'expiry';
+    vi.mocked(SORT_METHODS).LOCATION = 'location';
+    vi.mocked(SORT_METHODS).NAME = 'name';
     vi.mocked(SORT_METHODS).QUANTITY = 'quantity';
     vi.mocked(SORT_METHODS).QUANTITY_LOW = 'quantity_low';
-    vi.mocked(SORT_METHODS).EXPIRY = 'expiry';
     vi.mocked(SORT_METHODS).ZERO_LAST = 'zero_last';
     vi.mocked(Utilities.isExpired).mockReturnValue(false);
     vi.mocked(Utilities.isExpiringSoon).mockReturnValue(false);
@@ -140,10 +152,11 @@ describe('Filters', () => {
     describe('localStorage operations', () => {
       it('should return parsed filters from localStorage when valid JSON exists', () => {
         const savedFilters: FilterState = {
-          searchText: 'test search',
           category: 'test category',
-          quantity: 'nonzero',
           expiry: 'soon',
+          location: 'test location',
+          quantity: 'nonzero',
+          searchText: 'test search',
           showAdvanced: true,
           sortMethod: SORT_METHODS.NAME,
         };
@@ -161,11 +174,7 @@ describe('Filters', () => {
         const result = filters.getCurrentFilters('test.entity');
 
         expect(result).toEqual({
-          searchText: '',
-          category: '',
-          quantity: '',
-          expiry: '',
-          showAdvanced: false,
+          ...testFilters,
           sortMethod: SORT_METHODS.NAME,
         });
       });
@@ -181,11 +190,7 @@ describe('Filters', () => {
           expect.any(SyntaxError),
         );
         expect(result).toEqual({
-          searchText: '',
-          category: '',
-          quantity: '',
-          expiry: '',
-          showAdvanced: false,
+          ...testFilters,
           sortMethod: SORT_METHODS.NAME,
         });
 
@@ -198,21 +203,18 @@ describe('Filters', () => {
         const result = filters.getCurrentFilters('test.entity');
 
         expect(result).toEqual({
-          searchText: '',
-          category: '',
-          quantity: '',
-          expiry: '',
-          showAdvanced: false,
+          ...testFilters,
           sortMethod: SORT_METHODS.NAME,
         });
       });
 
       it('should save filters to localStorage as JSON', () => {
         const testFilters: FilterState = {
-          searchText: 'test',
           category: 'category',
-          quantity: 'zero',
           expiry: 'expired',
+          location: 'a location',
+          quantity: 'zero',
+          searchText: 'test',
           showAdvanced: true,
           sortMethod: SORT_METHODS.NAME,
         };
@@ -255,17 +257,7 @@ describe('Filters', () => {
 
     it('should treat filters with all empty string values same as no filters', () => {
       const items: InventoryItem[] = [createMockItem(), createMockItem({ name: 'Item 2' })];
-
-      const filtersWithEmptyKeys = {
-        searchText: '',
-        category: '',
-        quantity: '',
-        expiry: '',
-        showAdvanced: false,
-        sortMethod: '',
-      } as FilterState;
-
-      const result = filters.filterItems(items, filtersWithEmptyKeys);
+      const result = filters.filterItems(items, testFilters);
       expect(result).toHaveLength(2);
 
       const noFiltersResult = filters.filterItems(items, {} as FilterState);
@@ -281,11 +273,8 @@ describe('Filters', () => {
         ];
 
         const result = filters.filterItems(items, {
+          ...testFilters,
           searchText: 'juice',
-          category: '',
-          quantity: '',
-          expiry: '',
-          showAdvanced: false,
         });
 
         expect(result).toHaveLength(2);
@@ -300,11 +289,8 @@ describe('Filters', () => {
         ];
 
         const result = filters.filterItems(items, {
+          ...testFilters,
           searchText: 'beverage',
-          category: '',
-          quantity: '',
-          expiry: '',
-          showAdvanced: false,
         });
 
         expect(result).toHaveLength(1);
@@ -318,11 +304,8 @@ describe('Filters', () => {
         ];
 
         const result = filters.filterItems(items, {
+          ...testFilters,
           searchText: 'liter',
-          category: '',
-          quantity: '',
-          expiry: '',
-          showAdvanced: false,
         });
 
         expect(result).toHaveLength(1);
@@ -337,11 +320,8 @@ describe('Filters', () => {
         ];
 
         const result = filters.filterItems(items, {
+          ...testFilters,
           searchText: 'case',
-          category: '',
-          quantity: '',
-          expiry: '',
-          showAdvanced: false,
         });
 
         expect(result).toHaveLength(3);
@@ -355,11 +335,8 @@ describe('Filters', () => {
         ];
 
         const result = filters.filterItems(items, {
+          ...testFilters,
           searchText: 'test',
-          category: '',
-          quantity: '',
-          expiry: '',
-          showAdvanced: false,
         });
 
         expect(result).toHaveLength(3);
@@ -371,11 +348,8 @@ describe('Filters', () => {
         ];
 
         const result = filters.filterItems(items, {
+          ...testFilters,
           searchText: 'stryker', // Should NOT match if name is null -> ''
-          category: '',
-          quantity: '',
-          expiry: '',
-          showAdvanced: false,
         });
 
         expect(result).toHaveLength(0);
@@ -389,11 +363,8 @@ describe('Filters', () => {
         ];
 
         const result = filters.filterItems(items, {
+          ...testFilters,
           searchText: 'stryker',
-          category: '',
-          quantity: '',
-          expiry: '',
-          showAdvanced: false,
         });
 
         expect(result).toHaveLength(0);
@@ -406,11 +377,8 @@ describe('Filters', () => {
         ];
 
         const result = filters.filterItems(items, {
+          ...testFilters,
           searchText: 'stryker', // Should NOT match if unit becomes ''
-          category: '',
-          quantity: '',
-          expiry: '',
-          showAdvanced: false,
         });
 
         expect(result).toHaveLength(0);
@@ -427,15 +395,30 @@ describe('Filters', () => {
         ];
 
         const result = filters.filterItems(items, {
-          searchText: '',
+          ...testFilters,
           category: 'Food',
-          quantity: '',
-          expiry: '',
-          showAdvanced: false,
         });
 
         expect(result).toHaveLength(2);
         expect(result.every((item) => item.category === 'Food')).toBe(true);
+      });
+    });
+
+    describe('location filtering', () => {
+      it('should filter by location', () => {
+        const items: InventoryItem[] = [
+          createMockItem({ location: 'Pantry' }),
+          createMockItem({ location: 'Pantry' }),
+          createMockItem({ location: 'Freezer' }),
+        ];
+
+        const result = filters.filterItems(items, {
+          ...testFilters,
+          location: 'Pantry',
+        });
+
+        expect(result).toHaveLength(2);
+        expect(result.every((item) => item.location === 'Pantry')).toBe(true);
       });
     });
 
@@ -448,11 +431,8 @@ describe('Filters', () => {
         ];
 
         const result = filters.filterItems(items, {
-          searchText: '',
-          category: '',
+          ...testFilters,
           quantity: 'zero',
-          expiry: '',
-          showAdvanced: false,
         });
 
         expect(result).toHaveLength(2);
@@ -467,11 +447,8 @@ describe('Filters', () => {
         ];
 
         const result = filters.filterItems(items, {
-          searchText: '',
-          category: '',
+          ...testFilters,
           quantity: 'nonzero',
-          expiry: '',
-          showAdvanced: false,
         });
 
         expect(result).toHaveLength(2);
@@ -482,11 +459,8 @@ describe('Filters', () => {
         const items: InventoryItem[] = [createMockItem({ quantity: 5 })];
 
         const result = filters.filterItems(items, {
-          searchText: '',
-          category: '',
+          ...testFilters,
           quantity: 'unknown_filter_value', // Should hit default case
-          expiry: '',
-          showAdvanced: false,
         });
 
         expect(result).toHaveLength(1); // Should include item (default: return true)
@@ -503,11 +477,8 @@ describe('Filters', () => {
         ];
 
         const result = filters.filterItems(items, {
-          searchText: '',
-          category: '',
-          quantity: '',
+          ...testFilters,
           expiry: 'future',
-          showAdvanced: false,
         });
 
         expect(result).toHaveLength(0);
@@ -521,11 +492,8 @@ describe('Filters', () => {
         ];
 
         const result = filters.filterItems(items, {
-          searchText: '',
-          category: '',
-          quantity: '',
+          ...testFilters,
           expiry: 'future',
-          showAdvanced: false,
         });
 
         expect(result).toHaveLength(0);
@@ -540,11 +508,8 @@ describe('Filters', () => {
         ];
 
         const result = filters.filterItems(items, {
-          searchText: '',
-          category: '',
-          quantity: '',
+          ...testFilters,
           expiry: 'future',
-          showAdvanced: false,
         });
 
         expect(result).toHaveLength(0);
@@ -564,11 +529,8 @@ describe('Filters', () => {
         ];
 
         const result = filters.filterItems(items, {
-          searchText: '',
-          category: '',
-          quantity: '',
+          ...testFilters,
           expiry: 'expired',
-          showAdvanced: false,
         });
 
         expect(result).toHaveLength(1);
@@ -585,11 +547,8 @@ describe('Filters', () => {
         ];
 
         const result = filters.filterItems(items, {
-          searchText: '',
-          category: '',
-          quantity: '',
+          ...testFilters,
           expiry: 'none',
-          showAdvanced: false,
         });
 
         expect(result).toHaveLength(3); // null, undefined, and empty string
@@ -608,11 +567,8 @@ describe('Filters', () => {
         ];
 
         const result = filters.filterItems(items, {
-          searchText: '',
-          category: '',
-          quantity: '',
+          ...testFilters,
           expiry: 'soon',
-          showAdvanced: false,
         });
 
         expect(result).toHaveLength(1);
@@ -631,11 +587,8 @@ describe('Filters', () => {
         ];
 
         const result = filters.filterItems(items, {
-          searchText: '',
-          category: '',
-          quantity: '',
+          ...testFilters,
           expiry: 'soon',
-          showAdvanced: false,
         });
 
         expect(result).toHaveLength(1);
@@ -659,11 +612,8 @@ describe('Filters', () => {
         ];
 
         const result = filters.filterItems(items, {
-          searchText: '',
-          category: '',
-          quantity: '',
+          ...testFilters,
           expiry: 'future',
-          showAdvanced: false,
         });
 
         expect(result).toHaveLength(0); // With >, should exclude exact match
@@ -686,11 +636,8 @@ describe('Filters', () => {
         ];
 
         const result = filters.filterItems(items, {
-          searchText: '',
-          category: '',
-          quantity: '',
+          ...testFilters,
           expiry: 'future',
-          showAdvanced: false,
         });
 
         expect(result).toHaveLength(1);
@@ -700,11 +647,8 @@ describe('Filters', () => {
         const items: InventoryItem[] = [createMockItem({ expiry_date: '2024-12-31' })];
 
         const result = filters.filterItems(items, {
-          searchText: '',
-          category: '',
-          quantity: '',
+          ...testFilters,
           expiry: 'unknown_expiry_filter', // Should hit default case
-          showAdvanced: false,
         });
 
         expect(result).toHaveLength(1); // Should include item (default: return true)
@@ -713,21 +657,39 @@ describe('Filters', () => {
 
     it('should apply multiple filters together', () => {
       const items: InventoryItem[] = [
-        createMockItem({ name: 'Apple Juice', category: 'Drinks', quantity: 5 }),
-        createMockItem({ name: 'Apple Pie', category: 'Food', quantity: 3 }),
-        createMockItem({ name: 'Orange Juice', category: 'Drinks', quantity: 0 }),
+        createMockItem({
+          name: 'Apple Juice',
+          category: 'Drinks',
+          quantity: 5,
+          location: 'Fridge',
+        }),
+        createMockItem({ name: 'Apple Pie', category: 'Food', quantity: 3, location: 'Fridge' }),
+        createMockItem({
+          name: 'Orange Juice',
+          category: 'Drinks',
+          quantity: 0,
+          location: 'Fridge',
+        }),
+        createMockItem({
+          name: 'Tomato Juice',
+          category: 'Drinks',
+          quantity: 2,
+          location: 'Pantry',
+        }),
+        createMockItem({ name: 'Tomatoes', category: 'Food', quantity: 10, location: 'Fridge' }),
       ];
 
       const result = filters.filterItems(items, {
-        searchText: 'apple',
+        searchText: 'tomato',
         category: 'Drinks',
+        location: 'Pantry',
         quantity: 'nonzero',
         expiry: '',
         showAdvanced: false,
       });
 
       expect(result).toHaveLength(1);
-      expect(result[0].name).toBe('Apple Juice');
+      expect(result[0].name).toBe('Tomato Juice');
     });
   });
 
@@ -1055,11 +1017,8 @@ describe('Filters', () => {
       it('should handle search input changes with debouncing', () => {
         const onFilterChange = vi.fn();
         const existingFilters: FilterState = {
-          searchText: '',
+          ...testFilters,
           category: 'test',
-          quantity: '',
-          expiry: '',
-          showAdvanced: false,
           sortMethod: SORT_METHODS.NAME,
         };
 
@@ -1120,13 +1079,6 @@ describe('Filters', () => {
 
     describe('updateFilterIndicators', () => {
       it('should update advanced toggle when no active filters', () => {
-        const testFilters: FilterState = {
-          searchText: '',
-          category: '',
-          quantity: '',
-          expiry: '',
-          showAdvanced: false,
-        };
         vi.mocked(Utilities.hasActiveFilters).mockReturnValue(false);
 
         filters.updateFilterIndicators(testFilters, mockTranslations);
@@ -1136,77 +1088,62 @@ describe('Filters', () => {
       });
 
       it('should update advanced toggle when active filters exist', () => {
-        const testFilters: FilterState = {
+        const _testFilters: FilterState = {
+          ...testFilters,
           searchText: 'test',
-          category: '',
-          quantity: '',
-          expiry: '',
-          showAdvanced: false,
         };
         vi.mocked(Utilities.hasActiveFilters).mockReturnValue(true);
 
-        filters.updateFilterIndicators(testFilters, mockTranslations);
+        filters.updateFilterIndicators(_testFilters, mockTranslations);
 
         expect(mockAdvancedToggle.textContent).toBe('Filters ●');
         expect(mockAdvancedToggle.style.background).toBe('var(--warning-color, #ff9800)');
       });
 
       it('should handle showAdvanced=true with active filters', () => {
-        const testFilters: FilterState = {
+        const _testFilters: FilterState = {
+          ...testFilters,
           searchText: 'test',
-          category: '',
-          quantity: '',
-          expiry: '',
           showAdvanced: true,
         };
         vi.mocked(Utilities.hasActiveFilters).mockReturnValue(true);
 
-        filters.updateFilterIndicators(testFilters, mockTranslations);
+        filters.updateFilterIndicators(_testFilters, mockTranslations);
 
         expect(mockAdvancedToggle.textContent).toBe('Hide Filters ●');
       });
 
       it('should handle showAdvanced=true without active filters', () => {
-        const testFilters: FilterState = {
-          searchText: '',
-          category: '',
-          quantity: '',
-          expiry: '',
+        const _testFilters: FilterState = {
+          ...testFilters,
           showAdvanced: true,
         };
         vi.mocked(Utilities.hasActiveFilters).mockReturnValue(false);
 
-        filters.updateFilterIndicators(testFilters, mockTranslations);
+        filters.updateFilterIndicators(_testFilters, mockTranslations);
 
         expect(mockAdvancedToggle.textContent).toBe('Hide Filters');
       });
 
       it('should show active filters when filters are applied', () => {
         const testFilters: FilterState = {
-          searchText: 'test search',
           category: 'Food',
-          quantity: 'nonzero',
           expiry: 'soon',
+          location: 'Pantry',
+          quantity: 'nonzero',
+          searchText: 'test search',
           showAdvanced: true,
         };
 
         filters.updateFilterIndicators(testFilters, mockTranslations);
 
         expect(mockActiveFiltersList.textContent).toBe(
-          'Search: "test search", Category: Food, Quantity: nonzero, Expiry: soon',
+          'Search: "test search", Category: Food, Location: Pantry, Quantity: nonzero, Expiry: soon',
         );
         expect(mockActiveFiltersDiv.style.display).toBe('block');
       });
 
       it('should hide active filters when no filters are applied', () => {
-        const testFilters: FilterState = {
-          searchText: '',
-          category: '',
-          quantity: '',
-          expiry: '',
-          showAdvanced: false,
-        };
-
         filters.updateFilterIndicators(testFilters, mockTranslations);
 
         expect(mockActiveFiltersDiv.style.display).toBe('none');
@@ -1215,16 +1152,13 @@ describe('Filters', () => {
       it('should handle case when elements are not found', () => {
         vi.mocked(mockShadowRoot.getElementById).mockReturnValue(null);
 
-        const testFilters: FilterState = {
+        const _testFilters: FilterState = {
+          ...testFilters,
           searchText: 'test',
-          category: '',
-          quantity: '',
-          expiry: '',
-          showAdvanced: false,
         };
 
         expect(() => {
-          filters.updateFilterIndicators(testFilters, mockTranslations);
+          filters.updateFilterIndicators(_testFilters, mockTranslations);
         }).not.toThrow();
       });
     });
@@ -1233,10 +1167,11 @@ describe('Filters', () => {
   describe('edge cases and stress tests', () => {
     it('should handle empty items array', () => {
       const result = filters.filterItems([], {
-        searchText: 'test',
         category: 'Food',
-        quantity: 'nonzero',
         expiry: 'soon',
+        location: 'Pantry',
+        quantity: 'nonzero',
+        searchText: 'test',
         showAdvanced: false,
       });
 
@@ -1248,10 +1183,11 @@ describe('Filters', () => {
       const items: InventoryItem[] = [createMockItem({ name: longName })];
 
       const result = filters.filterItems(items, {
-        searchText: 'A'.repeat(100),
         category: '',
-        quantity: '',
         expiry: '',
+        location: '',
+        quantity: '',
+        searchText: 'A'.repeat(100),
         showAdvanced: false,
       });
 
@@ -1265,10 +1201,11 @@ describe('Filters', () => {
       ];
 
       const result = filters.filterItems(items, {
-        searchText: '&',
         category: '',
-        quantity: '',
         expiry: '',
+        location: '',
+        quantity: '',
+        searchText: '&',
         showAdvanced: false,
       });
 

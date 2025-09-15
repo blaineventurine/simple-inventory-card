@@ -12,25 +12,35 @@ vi.mock('../../src/services/translationManager', () => ({
   },
 }));
 
+const baseFilters: FilterState = {
+  category: '',
+  expiry: '',
+  location: '',
+  quantity: '',
+  searchText: '',
+  showAdvanced: false,
+};
+
 describe('createActiveFiltersDisplay', () => {
   let mockTranslations: TranslationData;
 
   beforeEach(() => {
     mockTranslations = {
       active_filters: {
-        label: 'Active filters:',
-        search: 'Search',
         category: 'Category',
-        quantity: 'Quantity',
         expiry: 'Expiry',
+        label: 'Active filters:',
+        location: 'Location',
+        quantity: 'Quantity',
+        search: 'Search',
       },
       filters: {
-        zero: 'Zero',
-        nonzero: 'Non-zero',
-        none: 'No Expiry',
         expired: 'Expired',
-        soon: 'Expiring Soon',
         future: 'Future',
+        none: 'No Expiry',
+        nonzero: 'Non-zero',
+        soon: 'Expiring Soon',
+        zero: 'Zero',
       },
     };
     vi.clearAllMocks();
@@ -38,15 +48,7 @@ describe('createActiveFiltersDisplay', () => {
 
   describe('basic functionality', () => {
     it('should hide display when no filters are active', () => {
-      const filters: FilterState = {
-        searchText: '',
-        category: '',
-        quantity: '',
-        expiry: '',
-        showAdvanced: false,
-      };
-
-      const result = createActiveFiltersDisplay(filters, mockTranslations);
+      const result = createActiveFiltersDisplay(baseFilters, mockTranslations);
 
       expect(result).toContain('style="display: none;"');
       expect(result).toContain(`id="${ELEMENTS.ACTIVE_FILTERS}"`);
@@ -55,11 +57,8 @@ describe('createActiveFiltersDisplay', () => {
 
     it('should show display when filters are active', () => {
       const filters: FilterState = {
+        ...baseFilters,
         searchText: 'apple',
-        category: '',
-        quantity: '',
-        expiry: '',
-        showAdvanced: false,
       };
 
       const result = createActiveFiltersDisplay(filters, mockTranslations);
@@ -70,11 +69,8 @@ describe('createActiveFiltersDisplay', () => {
 
     it('should include active filters list element', () => {
       const filters: FilterState = {
+        ...baseFilters,
         searchText: 'test',
-        category: '',
-        quantity: '',
-        expiry: '',
-        showAdvanced: false,
       };
 
       const result = createActiveFiltersDisplay(filters, mockTranslations);
@@ -86,11 +82,8 @@ describe('createActiveFiltersDisplay', () => {
   describe('individual filter types', () => {
     it('should display search text filter', () => {
       const filters: FilterState = {
+        ...baseFilters,
         searchText: 'banana',
-        category: '',
-        quantity: '',
-        expiry: '',
-        showAdvanced: false,
       };
 
       const result = createActiveFiltersDisplay(filters, mockTranslations);
@@ -101,11 +94,8 @@ describe('createActiveFiltersDisplay', () => {
 
     it('should display category filter', () => {
       const filters: FilterState = {
-        searchText: '',
+        ...baseFilters,
         category: 'Fruit',
-        quantity: '',
-        expiry: '',
-        showAdvanced: false,
       };
 
       const result = createActiveFiltersDisplay(filters, mockTranslations);
@@ -116,11 +106,8 @@ describe('createActiveFiltersDisplay', () => {
 
     it('should display quantity filter', () => {
       const filters: FilterState = {
-        searchText: '',
-        category: '',
+        ...baseFilters,
         quantity: 'zero',
-        expiry: '',
-        showAdvanced: false,
       };
 
       const result = createActiveFiltersDisplay(filters, mockTranslations);
@@ -131,11 +118,8 @@ describe('createActiveFiltersDisplay', () => {
 
     it('should display expiry filter', () => {
       const filters: FilterState = {
-        searchText: '',
-        category: '',
-        quantity: '',
+        ...baseFilters,
         expiry: 'expired',
-        showAdvanced: false,
       };
 
       const result = createActiveFiltersDisplay(filters, mockTranslations);
@@ -148,11 +132,9 @@ describe('createActiveFiltersDisplay', () => {
   describe('multiple filters', () => {
     it('should display multiple filters separated by commas', () => {
       const filters: FilterState = {
+        ...baseFilters,
         searchText: 'apple',
         category: 'Fruit',
-        quantity: '',
-        expiry: '',
-        showAdvanced: false,
       };
 
       const result = createActiveFiltersDisplay(filters, mockTranslations);
@@ -165,6 +147,7 @@ describe('createActiveFiltersDisplay', () => {
       const filters: FilterState = {
         searchText: 'test',
         category: 'Food',
+        location: 'Pantry',
         quantity: 'zero',
         expiry: 'soon',
         showAdvanced: true,
@@ -176,6 +159,7 @@ describe('createActiveFiltersDisplay', () => {
       expect(result).toContain('Category: Food');
       expect(result).toContain('Quantity: zero');
       expect(result).toContain('Expiry: soon');
+      expect(result).toContain('Location: Pantry');
       expect(result).toContain('style="display: block;"');
 
       // Check they're comma-separated
@@ -188,13 +172,14 @@ describe('createActiveFiltersDisplay', () => {
         searchText: 'milk',
         category: 'Dairy',
         quantity: 'zero',
+        location: 'Pantry',
         expiry: '',
         showAdvanced: false,
       };
 
       const result = createActiveFiltersDisplay(filters, mockTranslations);
 
-      const expectedText = 'Search: "milk", Category: Dairy, Quantity: zero';
+      const expectedText = 'Search: "milk", Category: Dairy, Quantity: zero, Location: Pantry';
       expect(result).toContain(expectedText);
     });
   });
@@ -202,11 +187,8 @@ describe('createActiveFiltersDisplay', () => {
   describe('edge cases', () => {
     it('should handle special characters in search text', () => {
       const filters: FilterState = {
+        ...baseFilters,
         searchText: 'coffee & cream "special"',
-        category: '',
-        quantity: '',
-        expiry: '',
-        showAdvanced: false,
       };
 
       const result = createActiveFiltersDisplay(filters, mockTranslations);
@@ -215,30 +197,20 @@ describe('createActiveFiltersDisplay', () => {
     });
 
     it('should handle empty string filters (should not display)', () => {
-      const filters: FilterState = {
-        searchText: '',
-        category: '',
-        quantity: '',
-        expiry: '',
-        showAdvanced: false,
-      };
-
-      const result = createActiveFiltersDisplay(filters, mockTranslations);
+      const result = createActiveFiltersDisplay(baseFilters, mockTranslations);
 
       expect(result).not.toContain('Search:');
       expect(result).not.toContain('Category:');
       expect(result).not.toContain('Quantity:');
       expect(result).not.toContain('Expiry:');
+      expect(result).not.toContain('Location:');
       expect(result).toContain('style="display: none;"');
     });
 
     it('should handle whitespace-only filters (should display)', () => {
       const filters: FilterState = {
+        ...baseFilters,
         searchText: '   ',
-        category: '',
-        quantity: '',
-        expiry: '',
-        showAdvanced: false,
       };
 
       const result = createActiveFiltersDisplay(filters, mockTranslations);
@@ -251,6 +223,7 @@ describe('createActiveFiltersDisplay', () => {
       const filters = {
         searchText: 'test',
         category: '',
+        location: '',
         quantity: '',
         expiry: '',
       } as FilterState;
@@ -265,11 +238,9 @@ describe('createActiveFiltersDisplay', () => {
   describe('HTML structure', () => {
     it('should generate valid HTML structure', () => {
       const filters: FilterState = {
+        ...baseFilters,
         searchText: 'test',
         category: 'Food',
-        quantity: '',
-        expiry: '',
-        showAdvanced: false,
       };
 
       const result = createActiveFiltersDisplay(filters, mockTranslations);
@@ -286,11 +257,8 @@ describe('createActiveFiltersDisplay', () => {
 
     it('should use correct element IDs from constants', () => {
       const filters: FilterState = {
+        ...baseFilters,
         searchText: 'test',
-        category: '',
-        quantity: '',
-        expiry: '',
-        showAdvanced: false,
       };
 
       const result = createActiveFiltersDisplay(filters, mockTranslations);
@@ -300,15 +268,7 @@ describe('createActiveFiltersDisplay', () => {
     });
 
     it('should have consistent whitespace and formatting', () => {
-      const filters: FilterState = {
-        searchText: '',
-        category: '',
-        quantity: '',
-        expiry: '',
-        showAdvanced: false,
-      };
-
-      const result = createActiveFiltersDisplay(filters, mockTranslations);
+      const result = createActiveFiltersDisplay(baseFilters, mockTranslations);
 
       expect(result).toContain('\n');
       expect(result.trim()).toBeTruthy(); // Should not be just whitespace
@@ -324,10 +284,11 @@ describe('createActiveFiltersDisplay', () => {
   describe('filter ordering', () => {
     it('should display filters in consistent order', () => {
       const filters: FilterState = {
-        searchText: 'search',
         category: 'category',
-        quantity: 'quantity',
         expiry: 'expiry',
+        location: 'location',
+        quantity: 'quantity',
+        searchText: 'search',
         showAdvanced: false,
       };
 
@@ -340,14 +301,16 @@ describe('createActiveFiltersDisplay', () => {
       expect(parts[1]).toBe('Category: category');
       expect(parts[2]).toBe('Quantity: quantity');
       expect(parts[3]).toBe('Expiry: expiry');
+      expect(parts[4]).toBe('Location: location');
     });
 
     it('should maintain order even when some filters are missing', () => {
       const filters: FilterState = {
-        searchText: 'search',
         category: '',
-        quantity: 'quantity',
         expiry: '',
+        location: '',
+        quantity: 'quantity',
+        searchText: 'search',
         showAdvanced: false,
       };
 

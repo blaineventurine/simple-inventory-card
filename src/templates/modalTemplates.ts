@@ -9,6 +9,7 @@ import { itemCategory } from './modalPartials/itemCategory';
 import { itemExpiryDate } from './modalPartials/itemExpiryDate';
 import { itemName } from './modalPartials/itemName';
 import { itemQuantity } from './modalPartials/itemQuantity';
+import { itemLocation } from './modalPartials/itemLocation';
 import { itemUnit } from './modalPartials/itemUnit';
 import { modalHeader } from './modalPartials/modalHeader';
 import { autoAddControls } from './modalPartials/autoAddControls';
@@ -39,6 +40,7 @@ export function createUnifiedModal(
           </div>
 
           ${itemCategory(prefix, translations)}
+          ${itemLocation(prefix, translations)}
           ${itemExpiryDate(prefix, translations)}
           ${expiryAlertDays(prefix, translations)}
 

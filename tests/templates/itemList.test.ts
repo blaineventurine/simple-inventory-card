@@ -16,6 +16,7 @@ vi.mock('../../src/services/translationManager', () => ({
 vi.mock('../../src/utils/utilities', () => ({
   Utilities: {
     groupItemsByCategory: vi.fn(),
+    groupItemsByLocation: vi.fn(),
   },
 }));
 
@@ -30,6 +31,8 @@ vi.mock('../../src/utils/constants', () => ({
   CSS_CLASSES: {
     CATEGORY_GROUP: 'category-group',
     CATEGORY_HEADER: 'category-header',
+    LOCATION_GROUP: 'location-group',
+    LOCATION_HEADER: 'location-header',
   },
 }));
 
@@ -43,37 +46,40 @@ describe('itemList', () => {
 
     mockItems = [
       {
-        name: 'Apple',
-        quantity: 5,
-        category: 'Fruit',
-        unit: 'pieces',
-        expiry_date: '2024-12-31',
-        expiry_alert_days: 7,
         auto_add_enabled: false,
         auto_add_to_list_quantity: 2,
+        category: 'Fruit',
+        expiry_alert_days: 7,
+        expiry_date: '2024-12-31',
+        location: 'Fridge',
+        name: 'Apple',
+        quantity: 5,
         todo_list: 'grocery',
+        unit: 'pieces',
       },
       {
-        name: 'Banana',
-        quantity: 3,
-        category: 'Fruit',
-        unit: 'pieces',
-        expiry_date: '2024-11-15',
-        expiry_alert_days: 5,
         auto_add_enabled: true,
         auto_add_to_list_quantity: 1,
+        category: 'Fruit',
+        expiry_alert_days: 5,
+        expiry_date: '2024-11-15',
+        location: 'Pantry',
+        name: 'Banana',
+        quantity: 3,
         todo_list: 'shopping',
+        unit: 'pieces',
       },
       {
-        name: 'Milk',
-        quantity: 1,
-        category: 'Dairy',
-        unit: 'carton',
-        expiry_date: '2024-10-20',
-        expiry_alert_days: 3,
         auto_add_enabled: false,
         auto_add_to_list_quantity: 1,
+        category: 'Dairy',
+        expiry_alert_days: 3,
+        expiry_date: '2024-10-20',
+        location: 'Fridge',
+        name: 'Milk',
+        quantity: 1,
         todo_list: 'grocery',
+        unit: 'carton',
       },
     ];
 
@@ -138,7 +144,32 @@ describe('itemList', () => {
       });
     });
 
-    describe('non-category sort methods', () => {
+    describe('location sort method', () => {
+      it('should call createItemsByLocation when sortMethod is "location"', () => {
+        vi.mocked(Utilities.groupItemsByLocation).mockReturnValue({
+          Fridge: [mockItems[0], mockItems[2]],
+          Pantry: [mockItems[1]],
+        });
+
+        const result = createItemsList(mockItems, 'location', mockTodoLists, mockTranslations);
+
+        expect(Utilities.groupItemsByLocation).toHaveBeenCalledWith(mockItems);
+        expect(result).toContain('class="location-group"');
+        expect(result).toContain('class="location-header"');
+      });
+
+      it('should pass correct parameters to createItemsByLocation', () => {
+        vi.mocked(Utilities.groupItemsByLocation).mockReturnValue({
+          Test: [mockItems[0]],
+        });
+
+        createItemsList(mockItems, 'location', mockTodoLists, mockTranslations);
+
+        expect(Utilities.groupItemsByLocation).toHaveBeenCalledWith(mockItems);
+      });
+    });
+
+    describe('other sort methods', () => {
       it('should render items directly when sortMethod is not "category"', () => {
         createItemsList(mockItems, 'name', mockTodoLists, mockTranslations);
 

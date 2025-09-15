@@ -43,6 +43,19 @@ export const itemRowStyles: CSSResult = css`
     font-size: 0.9em;
     opacity: 0.7;
   }
+
+  .location {
+    font-size: 0.9em;
+    font-style: italic;
+    opacity: 0.7;
+  }
+
+  .location-category {
+    font-size: 0.9em;
+    font-style: italic;
+    opacity: 0.7;
+  }
+
   .item-footer {
     display: flex;
     justify-content: space-between;
@@ -133,7 +146,22 @@ export const itemRowStyles: CSSResult = css`
     margin-bottom: 20px;
   }
 
+  .location-group {
+    margin-bottom: 20px;
+  }
+
   .category-header {
+    font-weight: bold;
+    font-size: 1.1em;
+    color: var(--primary-color);
+    margin-bottom: 8px;
+    padding: 8px 12px;
+    background: var(--secondary-background-color, #f5f5f5);
+    border-radius: 6px;
+    border-left: 4px solid var(--primary-color);
+  }
+
+  .location-header {
     font-weight: bold;
     font-size: 1.1em;
     color: var(--primary-color);

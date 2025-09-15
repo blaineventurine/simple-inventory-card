@@ -38,6 +38,10 @@ describe('ModalFormManager', () => {
       createMockInput((values.category as string) || ''),
     );
     mockElements.set(
+      `add-${ELEMENTS.LOCATION}`,
+      createMockInput((values.location as string) || ''),
+    );
+    mockElements.set(
       `add-${ELEMENTS.EXPIRY_DATE}`,
       createMockInput((values.expiryDate as string) || ''),
     );
@@ -71,6 +75,10 @@ describe('ModalFormManager', () => {
       createMockInput((values.category as string) || ''),
     );
     mockElements.set(
+      `edit-${ELEMENTS.LOCATION}`,
+      createMockInput((values.location as string) || ''),
+    );
+    mockElements.set(
       `edit-${ELEMENTS.EXPIRY_DATE}`,
       createMockInput((values.expiryDate as string) || ''),
     );
@@ -101,29 +109,31 @@ describe('ModalFormManager', () => {
   describe('getRawAddModalData', () => {
     it('should extract all form data from add modal', () => {
       setupAddModalElements({
+        autoAddEnabled: true,
+        autoAddToListQuantity: '2',
+        category: 'Food',
+        expiryAlertDays: '10',
+        expiryDate: '2024-12-31',
+        location: 'Pantry',
         name: 'Test Item',
         quantity: '5',
-        unit: 'pieces',
-        category: 'Food',
-        expiryDate: '2024-12-31',
-        expiryAlertDays: '10',
-        autoAddToListQuantity: '2',
         todoList: 'shopping',
-        autoAddEnabled: true,
+        unit: 'pieces',
       });
 
       const result = modalFormManager.getRawAddModalData();
 
       const expected: RawFormData = {
+        autoAddEnabled: true,
+        autoAddToListQuantity: '2',
+        category: 'Food',
+        expiryAlertDays: '10',
+        expiryDate: '2024-12-31',
+        location: 'Pantry',
         name: 'Test Item',
         quantity: '5',
-        unit: 'pieces',
-        category: 'Food',
-        expiryDate: '2024-12-31',
-        expiryAlertDays: '10',
-        autoAddToListQuantity: '2',
         todoList: 'shopping',
-        autoAddEnabled: true,
+        unit: 'pieces',
       };
 
       expect(result).toEqual(expected);
@@ -135,15 +145,16 @@ describe('ModalFormManager', () => {
       const result = modalFormManager.getRawAddModalData();
 
       const expected: RawFormData = {
+        autoAddEnabled: false,
+        autoAddToListQuantity: '',
+        category: '',
+        expiryAlertDays: '',
+        expiryDate: '',
+        location: '',
         name: '',
         quantity: '',
-        unit: '',
-        category: '',
-        expiryDate: '',
-        expiryAlertDays: '',
-        autoAddToListQuantity: '',
         todoList: '',
-        autoAddEnabled: false,
+        unit: '',
       };
 
       expect(result).toEqual(expected);
@@ -154,6 +165,7 @@ describe('ModalFormManager', () => {
         name: '  Test Item  ',
         category: ' Food ',
         unit: '  pieces  ',
+        location: '  Fridge  ',
       });
 
       const result = modalFormManager.getRawAddModalData();
@@ -161,6 +173,7 @@ describe('ModalFormManager', () => {
       expect(result.name).toBe('Test Item');
       expect(result.category).toBe('Food');
       expect(result.unit).toBe('pieces');
+      expect(result.location).toBe('Fridge');
     });
 
     it('should handle checkbox states correctly', () => {
@@ -177,29 +190,31 @@ describe('ModalFormManager', () => {
   describe('getRawEditModalData', () => {
     it('should extract all form data from edit modal', () => {
       setupEditModalElements({
+        autoAddEnabled: false,
+        autoAddToListQuantity: '1',
+        category: 'Grocery',
+        expiryAlertDays: '5',
+        expiryDate: '2024-11-30',
+        location: 'Kitchen',
         name: 'Edited Item',
         quantity: '3',
-        unit: 'kg',
-        category: 'Grocery',
-        expiryDate: '2024-11-30',
-        expiryAlertDays: '5',
-        autoAddToListQuantity: '1',
         todoList: 'groceries',
-        autoAddEnabled: false,
+        unit: 'kg',
       });
 
       const result = modalFormManager.getRawEditModalData();
 
       const expected: RawFormData = {
+        autoAddEnabled: false,
+        autoAddToListQuantity: '1',
+        category: 'Grocery',
+        expiryAlertDays: '5',
+        expiryDate: '2024-11-30',
+        location: 'Kitchen',
         name: 'Edited Item',
         quantity: '3',
-        unit: 'kg',
-        category: 'Grocery',
-        expiryDate: '2024-11-30',
-        expiryAlertDays: '5',
-        autoAddToListQuantity: '1',
         todoList: 'groceries',
-        autoAddEnabled: false,
+        unit: 'kg',
       };
 
       expect(result).toEqual(expected);
@@ -209,15 +224,16 @@ describe('ModalFormManager', () => {
       const result = modalFormManager.getRawEditModalData();
 
       const expected: RawFormData = {
+        autoAddEnabled: false,
+        autoAddToListQuantity: '',
+        category: '',
+        expiryAlertDays: '',
+        expiryDate: '',
+        location: '',
         name: '',
         quantity: '',
-        unit: '',
-        category: '',
-        expiryDate: '',
-        expiryAlertDays: '',
-        autoAddToListQuantity: '',
         todoList: '',
-        autoAddEnabled: false,
+        unit: '',
       };
 
       expect(result).toEqual(expected);
@@ -231,15 +247,16 @@ describe('ModalFormManager', () => {
 
     it('should populate all fields with item data', () => {
       const item: InventoryItem = {
+        auto_add_enabled: true,
+        auto_add_to_list_quantity: 2,
+        category: 'Food',
+        expiry_alert_days: 10,
+        expiry_date: '2024-12-31',
+        location: 'Pantry',
         name: 'Test Item',
         quantity: 5,
-        unit: 'pieces',
-        category: 'Food',
-        expiry_date: '2024-12-31',
-        expiry_alert_days: 10,
-        auto_add_to_list_quantity: 2,
         todo_list: 'shopping',
-        auto_add_enabled: true,
+        unit: 'pieces',
       };
 
       modalFormManager.populateEditModal(item);
@@ -248,6 +265,7 @@ describe('ModalFormManager', () => {
       expect(mockElements.get(`edit-${ELEMENTS.QUANTITY}`)?.value).toBe('5');
       expect(mockElements.get(`edit-${ELEMENTS.UNIT}`)?.value).toBe('pieces');
       expect(mockElements.get(`edit-${ELEMENTS.CATEGORY}`)?.value).toBe('Food');
+      expect(mockElements.get(`edit-${ELEMENTS.LOCATION}`)?.value).toBe('Pantry');
       expect(mockElements.get(`edit-${ELEMENTS.EXPIRY_DATE}`)?.value).toBe('2024-12-31');
       expect(mockElements.get(`edit-${ELEMENTS.EXPIRY_ALERT_DAYS}`)?.value).toBe('10');
       expect(mockElements.get(`edit-${ELEMENTS.AUTO_ADD_TO_LIST_QUANTITY}`)?.value).toBe('2');
@@ -259,15 +277,16 @@ describe('ModalFormManager', () => {
 
     it('should handle null/undefined values with defaults', () => {
       const item: InventoryItem = {
+        auto_add_enabled: undefined as any,
+        auto_add_to_list_quantity: null as any,
+        category: undefined as any,
+        expiry_alert_days: undefined as any,
+        expiry_date: undefined as any,
+        location: null as any,
         name: 'Test Item',
         quantity: null as any,
-        unit: null as any,
-        category: undefined as any,
-        expiry_date: undefined as any,
-        expiry_alert_days: undefined as any,
-        auto_add_to_list_quantity: null as any,
         todo_list: null as any,
-        auto_add_enabled: undefined as any,
+        unit: null as any,
       };
 
       modalFormManager.populateEditModal(item);
@@ -277,6 +296,7 @@ describe('ModalFormManager', () => {
       expect(mockElements.get(`edit-${ELEMENTS.UNIT}`)?.value).toBe('');
       expect(mockElements.get(`edit-${ELEMENTS.CATEGORY}`)?.value).toBe('');
       expect(mockElements.get(`edit-${ELEMENTS.EXPIRY_DATE}`)?.value).toBe('');
+      expect(mockElements.get(`edit-${ELEMENTS.LOCATION}`)?.value).toBe('');
       expect(mockElements.get(`edit-${ELEMENTS.EXPIRY_ALERT_DAYS}`)?.value).toBe('1');
       expect(mockElements.get(`edit-${ELEMENTS.AUTO_ADD_TO_LIST_QUANTITY}`)?.value).toBe('0');
       expect(mockElements.get(`edit-${ELEMENTS.TODO_LIST}`)?.value).toBe('');
@@ -289,13 +309,14 @@ describe('ModalFormManager', () => {
       mockElements.clear(); // Remove all elements
 
       const item: InventoryItem = {
-        name: 'Test Item',
-        quantity: 5,
-        unit: 'pieces',
+        auto_add_enabled: true,
         category: 'Food',
         expiry_date: '2024-12-31',
+        location: 'Pantry',
+        name: 'Test Item',
+        quantity: 5,
         todo_list: 'shopping',
-        auto_add_enabled: true,
+        unit: 'pieces',
       };
 
       expect(() => modalFormManager.populateEditModal(item)).not.toThrow();
@@ -303,13 +324,14 @@ describe('ModalFormManager', () => {
 
     it('should handle partial item data', () => {
       const item: InventoryItem = {
+        auto_add_enabled: false,
+        category: 'Test',
+        expiry_date: '',
+        location: '',
         name: 'Minimal Item',
         quantity: 1,
-        category: 'Test',
-        unit: '',
-        expiry_date: '',
         todo_list: '',
-        auto_add_enabled: false,
+        unit: '',
       };
 
       modalFormManager.populateEditModal(item);
@@ -325,15 +347,16 @@ describe('ModalFormManager', () => {
     beforeEach(() => {
       // Setup elements with some values to clear
       setupAddModalElements({
+        autoAddEnabled: true,
+        autoAddToListQuantity: '5',
+        category: 'Food',
+        expiryAlertDays: '15',
+        expiryDate: '2024-12-31',
+        location: 'Fridge',
         name: 'Existing Item',
         quantity: '10',
-        unit: 'kg',
-        category: 'Food',
-        expiryDate: '2024-12-31',
-        expiryAlertDays: '15',
-        autoAddToListQuantity: '5',
         todoList: 'shopping',
-        autoAddEnabled: true,
+        unit: 'kg',
       });
     });
 
@@ -344,6 +367,7 @@ describe('ModalFormManager', () => {
       expect(mockElements.get(`add-${ELEMENTS.QUANTITY}`)?.value).toBe('1');
       expect(mockElements.get(`add-${ELEMENTS.UNIT}`)?.value).toBe('');
       expect(mockElements.get(`add-${ELEMENTS.CATEGORY}`)?.value).toBe('');
+      expect(mockElements.get(`add-${ELEMENTS.LOCATION}`)?.value).toBe('');
       expect(mockElements.get(`add-${ELEMENTS.EXPIRY_DATE}`)?.value).toBe('');
       expect(mockElements.get(`add-${ELEMENTS.EXPIRY_ALERT_DAYS}`)?.value).toBe('1');
       expect(mockElements.get(`add-${ELEMENTS.AUTO_ADD_TO_LIST_QUANTITY}`)?.value).toBe('0');
@@ -412,15 +436,16 @@ describe('ModalFormManager', () => {
       setupEditModalElements();
 
       const item: InventoryItem = {
-        name: 'Test',
-        quantity: 0,
-        expiry_alert_days: 0,
+        auto_add_enabled: false,
         auto_add_to_list_quantity: 0,
         category: '',
-        unit: '',
+        expiry_alert_days: 0,
         expiry_date: '',
+        location: '',
+        name: 'Test',
+        quantity: 0,
         todo_list: '',
-        auto_add_enabled: false,
+        unit: '',
       };
 
       modalFormManager.populateEditModal(item);

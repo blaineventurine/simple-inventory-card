@@ -21,21 +21,21 @@ vi.mock('../../src/utils/utilities');
 
 describe('LifecycleManager', () => {
   let lifecycleManager: LifecycleManager;
-  let mockRenderRoot: ShadowRoot;
-  let mockHass: HomeAssistant;
   let mockConfig: InventoryConfig;
-  let mockRenderCallback: () => void;
-  let mockRefreshCallback: () => void;
-  let mockUpdateItemsCallback: (items: any[], sortMethod: string) => void;
   let mockGetFreshStateCallback: () => { hass: HomeAssistant; config: InventoryConfig };
+  let mockHass: HomeAssistant;
+  let mockRefreshCallback: () => void;
+  let mockRenderCallback: () => void;
+  let mockRenderRoot: ShadowRoot;
   let mockTranslations: TranslationData;
+  let mockUpdateItemsCallback: (items: any[], sortMethod: string) => void;
 
-  let mockServices: Services;
-  let mockModals: Modals;
-  let mockFilters: Filters;
-  let mockRenderer: Renderer;
-  let mockState: State;
   let mockEventHandler: EventHandler;
+  let mockFilters: Filters;
+  let mockModals: Modals;
+  let mockRenderer: Renderer;
+  let mockServices: Services;
+  let mockState: State;
 
   beforeEach(() => {
     mockRenderRoot = {
@@ -83,12 +83,12 @@ describe('LifecycleManager', () => {
       cleanupEventListeners: vi.fn(),
     } as unknown as EventHandler;
 
-    vi.mocked(Services).mockImplementation(() => mockServices);
-    vi.mocked(Modals).mockImplementation(() => mockModals);
-    vi.mocked(Filters).mockImplementation(() => mockFilters);
-    vi.mocked(Renderer).mockImplementation(() => mockRenderer);
-    vi.mocked(State).mockImplementation(() => mockState);
     vi.mocked(EventHandler).mockImplementation(() => mockEventHandler);
+    vi.mocked(Filters).mockImplementation(() => mockFilters);
+    vi.mocked(Modals).mockImplementation(() => mockModals);
+    vi.mocked(Renderer).mockImplementation(() => mockRenderer);
+    vi.mocked(Services).mockImplementation(() => mockServices);
+    vi.mocked(State).mockImplementation(() => mockState);
     vi.mocked(Utilities.getInventoryId).mockReturnValue('test-inventory-id');
 
     vi.clearAllMocks();
@@ -276,7 +276,7 @@ describe('LifecycleManager', () => {
     });
 
     it('should handle initialization errors gracefully', () => {
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
       vi.mocked(Services).mockImplementation(() => {
         throw new Error('Initialization failed');
       });
@@ -505,7 +505,7 @@ describe('LifecycleManager', () => {
     });
 
     it('should handle service instantiation failures individually', () => {
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
 
       vi.mocked(EventHandler).mockImplementation(() => {
         throw new Error('EventHandler failed');

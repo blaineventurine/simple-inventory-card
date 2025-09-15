@@ -8,6 +8,7 @@
     "off": "Off",
     "on": "On",
     "uncategorized": "Uncategorized",
+    "no_location": "No Location",
     "unknown": "Unknown"
   },
   "editor": {
@@ -43,6 +44,8 @@
     "cancel": "Cancel",
     "category": "Category",
     "category_placeholder": "Food, Cleaning, etc.",
+    "location": "Location",
+    "location_placeholder": "Pantry, Garage, etc.",
     "days_before_expiry": "(days before expiry)",
     "edit_item": "Edit Item",
     "expiry_alert_threshold": "Expiry Alert Threshold",
@@ -64,7 +67,9 @@
     "all_categories": "All Categories",
     "all_items": "All Items",
     "all_quantities": "All Quantities",
+    "all_locations": "All Locations",
     "category": "Category",
+    "location": "Location",
     "clear_all_filters": "Clear All Filters",
     "expired": "Expired",
     "expiring_soon": "Expiring Soon",
@@ -80,6 +85,7 @@
   },
   "sort": {
     "category": "Category",
+    "location": "Location",
     "expiry_date": "Expiry Date",
     "name": "Name",
     "quantity_high": "Quantity (High)",
@@ -89,6 +95,7 @@
   },
   "active_filters": {
     "category": "Category",
+    "location": "Location",
     "expiry": "Expiry",
     "label": "Active filters:",
     "quantity": "Quantity",

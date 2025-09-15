@@ -69,11 +69,23 @@ export function createItemRowTemplate(
     ? getExpiryStatus(item.expiry_date, item.expiry_alert_days)
     : null;
 
+  const renderLocationAndCategory = () => {
+    if (item.location && item.category) {
+      return `<span class="location-category">${item.location} | ${item.category}</span>`;
+    } else if (item.location) {
+      return `<span class="location">${item.location}</span>`;
+    } else if (item.category) {
+      return `<span class="category">${item.category}</span>`;
+    } else {
+      return '';
+    }
+  };
+
   return `
     <div class="item-row ${item.quantity === 0 ? 'zero-quantity' : ''} ${item.auto_add_enabled ? 'auto-add-enabled' : ''}">
       <div class="item-header">
         <span class="item-name">${item.name}</span>
-        ${item.category ? `<span class="category">${item.category}</span>` : ''}
+        ${renderLocationAndCategory()}
       </div>
       <div class="item-footer">
         <div class="item-details">

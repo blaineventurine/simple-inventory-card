@@ -40,16 +40,17 @@ export class Services {
       }
 
       await this.hass.callService(DOMAIN, SERVICES.ADD_ITEM, {
+        [PARAMS.AUTO_ADD_ENABLED]: sanitizedItemData.autoAddEnabled,
+        [PARAMS.AUTO_ADD_TO_LIST_QUANTITY]: sanitizedItemData.autoAddToListQuantity,
+        [PARAMS.CATEGORY]: sanitizedItemData.category,
+        [PARAMS.EXPIRY_ALERT_DAYS]: sanitizedItemData.expiryAlertDays,
+        [PARAMS.EXPIRY_DATE]: sanitizedItemData.expiryDate,
         [PARAMS.INVENTORY_ID]: sanitizedInventoryId,
+        [PARAMS.LOCATION]: sanitizedItemData.location,
         [PARAMS.NAME]: sanitizedItemData.name,
         [PARAMS.QUANTITY]: sanitizedItemData.quantity,
-        [PARAMS.UNIT]: sanitizedItemData.unit,
-        [PARAMS.CATEGORY]: sanitizedItemData.category,
-        [PARAMS.EXPIRY_DATE]: sanitizedItemData.expiryDate,
         [PARAMS.TODO_LIST]: sanitizedItemData.todoList,
-        [PARAMS.EXPIRY_ALERT_DAYS]: sanitizedItemData.expiryAlertDays,
-        [PARAMS.AUTO_ADD_TO_LIST_QUANTITY]: sanitizedItemData.autoAddToListQuantity,
-        [PARAMS.AUTO_ADD_ENABLED]: sanitizedItemData.autoAddEnabled,
+        [PARAMS.UNIT]: sanitizedItemData.unit,
       });
       return { success: true };
     } catch (error) {
@@ -161,6 +162,7 @@ export class Services {
         [PARAMS.EXPIRY_ALERT_DAYS]: sanitizedItemData.expiryAlertDays,
         [PARAMS.EXPIRY_DATE]: sanitizedItemData.expiryDate,
         [PARAMS.INVENTORY_ID]: sanitizedInventoryId,
+        [PARAMS.LOCATION]: sanitizedItemData.location,
         [PARAMS.NAME]: sanitizedItemData.name,
         [PARAMS.OLD_NAME]: oldName,
         [PARAMS.QUANTITY]: sanitizedItemData.quantity,

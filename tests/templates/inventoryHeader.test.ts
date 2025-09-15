@@ -36,36 +36,39 @@ describe('createInventoryHeader', () => {
 
     mockItems = [
       {
-        name: 'Fresh Apple',
-        quantity: 5,
-        category: 'Fruit',
-        unit: 'pieces',
-        expiry_date: '2024-12-31',
-        expiry_alert_days: 7,
         auto_add_enabled: false,
         auto_add_to_list_quantity: 2,
+        category: 'Fruit',
+        expiry_alert_days: 7,
+        expiry_date: '2024-12-31',
+        location: 'Fridge',
+        name: 'Fresh Apple',
+        quantity: 5,
         todo_list: 'grocery',
+        unit: 'pieces',
       },
       {
+        auto_add_enabled: false,
+        auto_add_to_list_quantity: 1,
+        category: 'Dairy',
+        expiry_alert_days: 5,
+        expiry_date: '2024-01-01',
+        location: 'Fridge',
         name: 'Expired Milk',
         quantity: 1,
-        category: 'Dairy',
-        unit: 'carton',
-        expiry_date: '2024-01-01',
-        expiry_alert_days: 5,
-        auto_add_enabled: false,
-        auto_add_to_list_quantity: 1,
         todo_list: 'shopping',
+        unit: 'carton',
       },
       {
-        name: 'No Expiry Item',
-        quantity: 3,
-        category: 'Canned',
-        unit: 'cans',
-        expiry_date: '',
         auto_add_enabled: false,
         auto_add_to_list_quantity: 1,
+        category: 'Canned',
+        expiry_date: '',
+        location: 'Pantry',
+        name: 'No Expiry Item',
+        quantity: 3,
         todo_list: 'grocery',
+        unit: 'cans',
       },
     ];
 
@@ -226,15 +229,16 @@ describe('createInventoryHeader', () => {
       const multipleExpiredItems = [
         ...mockItems,
         {
-          name: 'Expired Bread',
-          quantity: 2,
-          category: 'Bakery',
-          unit: 'loaf',
-          expiry_date: '2024-01-02',
-          expiry_alert_days: 3,
           auto_add_enabled: false,
           auto_add_to_list_quantity: 1,
+          category: 'Bakery',
+          expiry_alert_days: 3,
+          expiry_date: '2024-01-02',
+          location: 'Fridge',
+          name: 'Expired Bread',
+          quantity: 2,
           todo_list: 'grocery',
+          unit: 'loaf',
         },
       ];
 
@@ -254,24 +258,26 @@ describe('createInventoryHeader', () => {
     it('should exclude items with no expiry date from expiry counts', () => {
       const itemsWithoutExpiry = [
         {
+          auto_add_enabled: false,
+          auto_add_to_list_quantity: 1,
+          category: 'Test',
+          expiry_date: '',
+          location: 'Pantry',
           name: 'No Expiry 1',
           quantity: 5,
-          category: 'Test',
-          unit: 'pieces',
-          expiry_date: '',
-          auto_add_enabled: false,
-          auto_add_to_list_quantity: 1,
           todo_list: 'grocery',
+          unit: 'pieces',
         },
         {
-          name: 'No Expiry 2',
-          quantity: 3,
-          category: 'Test',
-          unit: 'pieces',
-          expiry_date: '',
           auto_add_enabled: false,
           auto_add_to_list_quantity: 1,
+          category: 'Test',
+          expiry_date: '',
+          location: 'Pantry',
+          name: 'No Expiry 2',
+          quantity: 3,
           todo_list: 'grocery',
+          unit: 'pieces',
         },
       ];
 
@@ -288,15 +294,16 @@ describe('createInventoryHeader', () => {
     it('should exclude items with zero quantity from expiry counts', () => {
       const zeroQuantityItems = [
         {
-          name: 'Zero Quantity',
-          quantity: 0,
-          category: 'Test',
-          unit: 'pieces',
-          expiry_date: '2024-01-01',
-          expiry_alert_days: 7,
           auto_add_enabled: false,
           auto_add_to_list_quantity: 1,
+          category: 'Test',
+          expiry_alert_days: 7,
+          expiry_date: '2024-01-01',
+          location: 'Pantry',
+          name: 'Zero Quantity',
+          quantity: 0,
           todo_list: 'grocery',
+          unit: 'pieces',
         },
       ];
 
@@ -311,15 +318,16 @@ describe('createInventoryHeader', () => {
     it('should exclude items with negative quantity from expiry counts', () => {
       const negativeQuantityItems = [
         {
-          name: 'Negative Quantity',
-          quantity: -1,
-          category: 'Test',
-          unit: 'pieces',
-          expiry_date: '2024-01-01',
-          expiry_alert_days: 7,
           auto_add_enabled: false,
           auto_add_to_list_quantity: 1,
+          category: 'Test',
+          expiry_alert_days: 7,
+          expiry_date: '2024-01-01',
+          location: 'Pantry',
+          name: 'Negative Quantity',
+          quantity: -1,
           todo_list: 'grocery',
+          unit: 'pieces',
         },
       ];
 
@@ -333,15 +341,16 @@ describe('createInventoryHeader', () => {
     it('should use custom expiry alert days for expiring calculation', () => {
       const customAlertItem = [
         {
-          name: 'Custom Alert',
-          quantity: 1,
-          category: 'Test',
-          unit: 'pieces',
-          expiry_date: '2024-12-31',
-          expiry_alert_days: 14, // Custom threshold
           auto_add_enabled: false,
           auto_add_to_list_quantity: 1,
+          category: 'Test',
+          expiry_alert_days: 14, // Custom threshold
+          expiry_date: '2024-12-31',
+          location: 'Pantry',
+          name: 'Custom Alert',
+          quantity: 1,
           todo_list: 'grocery',
+          unit: 'pieces',
         },
       ];
 
@@ -355,15 +364,16 @@ describe('createInventoryHeader', () => {
     it('should use default 0 days when expiry_alert_days is undefined', () => {
       const defaultAlertItem = [
         {
-          name: 'Default Alert',
-          quantity: 1,
-          category: 'Test',
-          unit: 'pieces',
-          expiry_date: '2024-12-31',
-          // expiry_alert_days is undefined
           auto_add_enabled: false,
           auto_add_to_list_quantity: 0,
+          category: 'Test',
+          // expiry_alert_days is undefined
+          expiry_date: '2024-12-31',
+          location: 'Pantry',
+          name: 'Default Alert',
+          quantity: 1,
           todo_list: 'grocery',
+          unit: 'pieces',
         },
       ];
 
@@ -386,15 +396,16 @@ describe('createInventoryHeader', () => {
     it('should handle items with undefined quantity', () => {
       const itemsWithUndefinedQuantity = [
         {
-          name: 'Undefined Quantity',
-          quantity: undefined as any,
-          category: 'Test',
-          unit: 'pieces',
-          expiry_date: '2024-01-01',
-          expiry_alert_days: 7,
           auto_add_enabled: false,
           auto_add_to_list_quantity: 1,
+          category: 'Test',
+          expiry_alert_days: 7,
+          expiry_date: '2024-01-01',
+          location: 'Pantry',
+          name: 'Undefined Quantity',
+          quantity: undefined as any,
           todo_list: 'grocery',
+          unit: 'pieces',
         },
       ];
 
@@ -420,15 +431,16 @@ describe('createInventoryHeader', () => {
 
     it('should handle very large expiry counts', () => {
       const manyItems = Array.from({ length: 999 }, (_, i) => ({
-        name: `Item ${i}`,
-        quantity: 1,
-        category: 'Test',
-        unit: 'pieces',
-        expiry_date: '2024-01-01',
-        expiry_alert_days: 7,
         auto_add_enabled: false,
         auto_add_to_list_quantity: 1,
+        category: 'Test',
+        expiry_alert_days: 7,
+        expiry_date: '2024-01-01',
+        location: 'Pantry',
+        name: `Item ${i}`,
+        quantity: 1,
         todo_list: 'grocery',
+        unit: 'pieces',
       }));
 
       vi.mocked(Utilities.isExpired).mockReturnValue(true);
@@ -530,15 +542,16 @@ describe('createInventoryHeader', () => {
     // Test with items that have 0 quantity (should not count as expired even if date is expired)
     const zeroQuantityItems = [
       {
-        name: 'Zero Quantity Expired',
-        quantity: 0,
-        category: 'Test',
-        unit: 'pieces',
-        expiry_date: '2024-01-01',
-        expiry_alert_days: 7,
         auto_add_enabled: false,
         auto_add_to_list_quantity: 1,
+        category: 'Test',
+        expiry_alert_days: 7,
+        expiry_date: '2024-01-01',
+        location: 'Pantry',
+        name: 'Zero Quantity Expired',
+        quantity: 0,
         todo_list: 'grocery',
+        unit: 'pieces',
       },
     ];
 
@@ -556,15 +569,16 @@ describe('createInventoryHeader', () => {
     // Test with items that have 0 quantity (should not count as expiring even if date is expiring)
     const zeroQuantityItems = [
       {
-        name: 'Zero Quantity Expiring',
-        quantity: 0,
-        category: 'Test',
-        unit: 'pieces',
-        expiry_date: '2024-12-31',
-        expiry_alert_days: 7,
         auto_add_enabled: false,
         auto_add_to_list_quantity: 1,
+        category: 'Test',
+        expiry_alert_days: 7,
+        expiry_date: '2024-12-31',
+        location: 'Pantry',
+        name: 'Zero Quantity Expiring',
+        quantity: 0,
         todo_list: 'grocery',
+        unit: 'pieces',
       },
     ];
 
@@ -581,14 +595,15 @@ describe('createInventoryHeader', () => {
   it('should not include any expiry indicator content when no items qualify', () => {
     const noExpiryItems = [
       {
-        name: 'No Expiry',
-        quantity: 5,
-        category: 'Test',
-        unit: 'pieces',
-        expiry_date: '', // No expiry date
         auto_add_enabled: false,
         auto_add_to_list_quantity: 1,
+        category: 'Test',
+        expiry_date: '', // No expiry date
+        location: 'Pantry',
+        name: 'No Expiry',
+        quantity: 5,
         todo_list: 'grocery',
+        unit: 'pieces',
       },
     ];
 

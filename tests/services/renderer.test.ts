@@ -17,6 +17,29 @@ describe('Renderer', () => {
   let mockShadowRoot: ShadowRoot;
   let mockTranslations: TranslationData;
 
+  const mockItems: InventoryItem[] = [
+    {
+      auto_add_enabled: false,
+      category: 'Test Category',
+      expiry_date: '2024-12-31',
+      location: 'Test Location',
+      name: 'Test Item',
+      quantity: 1,
+      todo_list: 'test-list',
+      unit: 'pcs',
+    },
+  ];
+
+  const mockFilters: FilterState = {
+    category: '',
+    expiry: '',
+    location: '',
+    quantity: '',
+    searchText: '',
+    showAdvanced: false,
+  };
+  const mockTodoLists: TodoList[] = [];
+
   beforeEach(() => {
     mockShadowRoot = {
       innerHTML: '',
@@ -46,15 +69,6 @@ describe('Renderer', () => {
   });
 
   describe('renderCard', () => {
-    const mockFilters: FilterState = {
-      searchText: '',
-      category: '',
-      quantity: '',
-      expiry: '',
-      showAdvanced: false,
-    };
-    const mockTodoLists: TodoList[] = [];
-
     it('should render card with valid state and items', () => {
       const mockState: HassEntity = {
         entity_id: 'test.entity',
@@ -65,6 +79,7 @@ describe('Renderer', () => {
               auto_add_enabled: false,
               category: 'Category A',
               expiry_date: '2024-12-31',
+              location: 'Location 1',
               name: 'Item 1',
               quantity: 2,
               todo_list: 'list-1',
@@ -75,6 +90,7 @@ describe('Renderer', () => {
               auto_add_to_list_quantity: 5,
               category: 'Category B',
               expiry_date: '2024-11-30',
+              location: 'Location 2',
               name: 'Item 2',
               quantity: 1,
               todo_list: 'list-2',
@@ -86,18 +102,6 @@ describe('Renderer', () => {
         last_changed: '2023-01-01T00:00:00Z',
         last_updated: '2023-01-01T00:00:00Z',
       };
-
-      const mockItems: InventoryItem[] = [
-        {
-          auto_add_enabled: false,
-          category: 'Test Category',
-          expiry_date: '2024-12-31',
-          name: 'Test Item',
-          quantity: 1,
-          todo_list: 'test-list',
-          unit: 'pcs',
-        },
-      ];
 
       renderer.renderCard(
         mockState,
@@ -117,6 +121,7 @@ describe('Renderer', () => {
         mockFilters,
         'name',
         ['Category A', 'Category B'], // Sorted categories from state.attributes.items
+        ['Location 1', 'Location 2'], // Locations from state.attributes.items
         mockTodoLists,
         mockState.attributes.items,
         'Test Description',
@@ -152,6 +157,7 @@ describe('Renderer', () => {
         mockFilters,
         'name',
         [], // Empty categories when no items
+        [], // Empty locations when no items
         mockTodoLists,
         [], // Empty allItems when no attributes
         'Test Description',
@@ -186,6 +192,7 @@ describe('Renderer', () => {
         mockFilters,
         'name',
         [],
+        [],
         mockTodoLists,
         [], // Empty allItems when attributes.items is undefined
         'Test Description',
@@ -212,6 +219,7 @@ describe('Renderer', () => {
         mockFilters,
         'name',
         [],
+        [],
         mockTodoLists,
         [],
         'Test Description',
@@ -229,6 +237,7 @@ describe('Renderer', () => {
               auto_add_enabled: false,
               category: 'Category A',
               expiry_date: '2024-12-31',
+              location: 'Location 1',
               name: 'Item 1',
               quantity: 1,
               todo_list: 'list-1',
@@ -238,6 +247,7 @@ describe('Renderer', () => {
               auto_add_enabled: false,
               category: null as any,
               expiry_date: '2024-12-31',
+              location: 'Location 2',
               name: 'Item 2',
               quantity: 1,
               todo_list: 'list-1',
@@ -247,6 +257,7 @@ describe('Renderer', () => {
               auto_add_enabled: false,
               category: undefined as any,
               expiry_date: '2024-12-31',
+              location: 'Location 3',
               name: 'Item 3',
               quantity: 1,
               todo_list: 'list-1',
@@ -256,6 +267,7 @@ describe('Renderer', () => {
               auto_add_enabled: false,
               category: '',
               expiry_date: '2024-12-31',
+              location: 'Location 4',
               name: 'Item 4',
               quantity: 1,
               todo_list: 'list-1',
@@ -265,6 +277,7 @@ describe('Renderer', () => {
               auto_add_enabled: false,
               category: 'Category B',
               expiry_date: '2024-12-31',
+              location: 'Location 5',
               name: 'Item 5',
               quantity: 1,
               todo_list: 'list-1',
@@ -293,6 +306,7 @@ describe('Renderer', () => {
         mockFilters,
         'name',
         ['Category A', 'Category B'], // Only truthy categories, sorted
+        ['Location 1', 'Location 2', 'Location 3', 'Location 4', 'Location 5'],
         mockTodoLists,
         mockState.attributes.items,
         'Test Description',
@@ -374,6 +388,7 @@ describe('Renderer', () => {
         mockFilters,
         'name',
         ['Apple', 'Banana', 'Zebra'], // Unique and sorted
+        [],
         mockTodoLists,
         mockState.attributes.items,
         'Test Description',
@@ -409,6 +424,7 @@ describe('Renderer', () => {
         mockFilters,
         'name',
         [], // Empty categories from empty items
+        [], // empty location
         mockTodoLists,
         [],
         'Test Description',
@@ -425,21 +441,11 @@ describe('Renderer', () => {
         last_changed: '2023-01-01T00:00:00Z',
         last_updated: '2023-01-01T00:00:00Z',
       };
-      const mockItems: InventoryItem[] = [
-        {
-          auto_add_enabled: false,
-          category: 'Test Category',
-          expiry_date: '2024-12-31',
-          name: 'Test Item',
-          quantity: 1,
-          todo_list: 'test-list',
-          unit: 'pcs',
-        },
-      ];
       const mockFilters: FilterState = {
         searchText: 'query',
         category: 'test',
         quantity: '1-5',
+        location: 'fridge',
         expiry: 'expired',
         showAdvanced: true,
       };
@@ -460,6 +466,7 @@ describe('Renderer', () => {
         mockItems,
         mockFilters,
         'category',
+        [],
         [],
         mockTodoLists,
         [],
@@ -558,21 +565,7 @@ describe('Renderer', () => {
         last_updated: '2023-01-01T00:00:00Z',
       };
 
-      renderer.renderCard(
-        mockState,
-        'test.entity',
-        [],
-        {
-          searchText: '',
-          category: '',
-          quantity: '',
-          expiry: '',
-          showAdvanced: false,
-        } as FilterState,
-        'name',
-        [],
-        mockTranslations,
-      );
+      renderer.renderCard(mockState, 'test.entity', [], mockFilters, 'name', [], mockTranslations);
 
       expect(generateCardHTML).toHaveBeenCalledWith(
         expect.any(String),
@@ -580,6 +573,47 @@ describe('Renderer', () => {
         expect.any(Object),
         expect.any(String),
         [longCategoryName],
+        expect.any(Array),
+        expect.any(Array),
+        expect.any(Array),
+        expect.any(String),
+        expect.any(Object),
+      );
+    });
+
+    it('should handle very long location names', () => {
+      const longLocationName = 'A'.repeat(1000);
+      const mockState: HassEntity = {
+        entity_id: 'test.entity',
+        state: 'unknown',
+        attributes: {
+          items: [
+            {
+              auto_add_enabled: false,
+              category: 'Category 1',
+              expiry_date: '2024-12-31',
+              location: longLocationName,
+              name: 'Item 1',
+              quantity: 1,
+              todo_list: 'list-1',
+              unit: 'pcs',
+            },
+          ] as InventoryItem[],
+        },
+        context: { id: 'test-context' },
+        last_changed: '2023-01-01T00:00:00Z',
+        last_updated: '2023-01-01T00:00:00Z',
+      };
+
+      renderer.renderCard(mockState, 'test.entity', [], mockFilters, 'name', [], mockTranslations);
+
+      expect(generateCardHTML).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.any(Array),
+        expect.any(Object),
+        expect.any(String),
+        expect.any(Array),
+        [longLocationName],
         expect.any(Array),
         expect.any(Array),
         expect.any(String),
@@ -627,21 +661,7 @@ describe('Renderer', () => {
         last_updated: '2023-01-01T00:00:00Z',
       };
 
-      renderer.renderCard(
-        mockState,
-        'test.entity',
-        [],
-        {
-          searchText: '',
-          category: '',
-          quantity: '',
-          expiry: '',
-          showAdvanced: false,
-        } as FilterState,
-        'name',
-        [],
-        mockTranslations,
-      );
+      renderer.renderCard(mockState, 'test.entity', [], mockFilters, 'name', [], mockTranslations);
 
       // Whitespace-only categories should be included since they're truthy
       expect(generateCardHTML).toHaveBeenCalledWith(
@@ -650,6 +670,7 @@ describe('Renderer', () => {
         expect.any(Object), // filters
         expect.any(String), // sort method
         ['   ', '\t\n', 'Valid Category'].sort(), // categories
+        expect.any(Array), // locations
         expect.any(Array), // todo lists
         expect.any(Array), // all items
         expect.any(String), // description

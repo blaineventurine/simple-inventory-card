@@ -19,15 +19,16 @@ describe('createItemRowTemplate', () => {
 
   beforeEach(() => {
     baseItem = {
-      name: 'Apple',
-      quantity: 5,
-      category: 'Fruit',
-      unit: 'pieces',
-      expiry_date: '2024-12-31',
-      expiry_alert_days: 7,
       auto_add_enabled: false,
       auto_add_to_list_quantity: 2,
+      category: 'Fruit',
+      expiry_alert_days: 7,
+      expiry_date: '2024-12-31',
+      location: '',
+      name: 'Apple',
+      quantity: 5,
       todo_list: 'grocery',
+      unit: 'pieces',
     };
 
     mockTodoLists = [
@@ -68,6 +69,28 @@ describe('createItemRowTemplate', () => {
 
       expect(result).toContain('class="item-name"');
       expect(result).toContain('Apple');
+    });
+
+    it('should include item location', () => {
+      baseItem.location = 'Fridge';
+      baseItem.category = '';
+      const result = createItemRowTemplate(baseItem, mockTodoLists, mockTranslations);
+
+      expect(result).toContain('class="location"');
+      expect(result).toContain('Fridge');
+    });
+
+    it('should include item category', () => {
+      const result = createItemRowTemplate(baseItem, mockTodoLists, mockTranslations);
+      expect(result).toContain('class="category"');
+      expect(result).toContain('Fruit');
+    });
+
+    it('should include location and category when both are present', () => {
+      baseItem.location = 'Fridge';
+      const result = createItemRowTemplate(baseItem, mockTodoLists, mockTranslations);
+      expect(result).toContain('class="location-category"');
+      expect(result).toContain('Fridge | Fruit');
     });
 
     it('should include quantity and unit', () => {
@@ -139,6 +162,22 @@ describe('createItemRowTemplate', () => {
       const result = createItemRowTemplate(noCategoryItem, mockTodoLists, mockTranslations);
 
       expect(result).not.toContain('class="category"');
+    });
+
+    it('should display location when present', () => {
+      baseItem.category = '';
+      baseItem.location = 'Fridge';
+      const result = createItemRowTemplate(baseItem, mockTodoLists, mockTranslations);
+
+      expect(result).toContain('class="location"');
+      expect(result).toContain('Fridge');
+    });
+
+    it('should not display locatio when empty', () => {
+      const noLocationItem = { ...baseItem, location: '' };
+      const result = createItemRowTemplate(noLocationItem, mockTodoLists, mockTranslations);
+
+      expect(result).not.toContain('class="location"');
     });
 
     it('should display expiry date when present', () => {
@@ -332,14 +371,15 @@ describe('createItemRowTemplate', () => {
 
     it('should handle items with all optional fields empty', () => {
       const minimalItem: InventoryItem = {
-        name: 'Minimal Item',
-        quantity: 1,
-        category: '',
-        unit: '',
-        expiry_date: '',
         auto_add_enabled: false,
         auto_add_to_list_quantity: 0,
+        category: '',
+        expiry_date: '',
+        location: '',
+        name: 'Minimal Item',
+        quantity: 1,
         todo_list: '',
+        unit: '',
       };
       const result = createItemRowTemplate(minimalItem, mockTodoLists, mockTranslations);
 
@@ -350,6 +390,7 @@ describe('createItemRowTemplate', () => {
       expect(result).not.toContain('class="category"');
       expect(result).not.toContain('class="expiry"');
       expect(result).not.toContain('class="auto-add-info"');
+      expect(result).not.toContain('class="location"');
     });
 
     it('should handle items with all optional fields populated', () => {
@@ -358,15 +399,16 @@ describe('createItemRowTemplate', () => {
       const futureDateStr = futureDate.toISOString().split('T')[0];
 
       const maximalItem: InventoryItem = {
-        name: 'Maximal Item',
-        quantity: 10,
-        category: 'Test Category',
-        unit: 'units',
-        expiry_date: futureDateStr,
-        expiry_alert_days: 5,
         auto_add_enabled: true,
         auto_add_to_list_quantity: 3,
+        category: 'Test Category',
+        expiry_alert_days: 5,
+        expiry_date: futureDateStr,
+        location: 'Pantry',
+        name: 'Maximal Item',
+        quantity: 10,
         todo_list: 'todo.grocery',
+        unit: 'units',
       };
       const result = createItemRowTemplate(maximalItem, mockTodoLists, mockTranslations);
 
@@ -374,13 +416,13 @@ describe('createItemRowTemplate', () => {
       expect(result).toContain('Maximal Item');
       expect(result).toContain('class="quantity"');
       expect(result).toContain('10 units');
-      expect(result).toContain('class="category"');
-      expect(result).toContain('Test Category');
       expect(result).toContain('class="expiry');
       expect(result).toContain(futureDateStr);
       expect(result).toContain('class="auto-add-info"');
       expect(result).toContain('Auto-add at ≤ 3 → Grocery List');
       expect(result).toContain('auto-add-enabled');
+      expect(result).toContain('class="location-category"');
+      expect(result).toContain('Pantry | Test Category');
     });
   });
 

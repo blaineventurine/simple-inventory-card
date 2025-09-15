@@ -27,6 +27,11 @@ export class Renderer {
         allItems.map((item) => item.category).filter((category): category is string => !!category),
       ),
     ].sort();
+    const locations = [
+      ...new Set(
+        allItems.map((item) => item.location).filter((location): location is string => !!location),
+      ),
+    ].sort();
 
     this.shadowRoot.innerHTML = generateCardHTML(
       inventoryName,
@@ -34,6 +39,7 @@ export class Renderer {
       filters,
       sortMethod,
       categories,
+      locations,
       todoLists,
       allItems,
       description,

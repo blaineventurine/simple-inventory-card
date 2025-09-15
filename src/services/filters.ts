@@ -28,10 +28,11 @@ export class Filters {
     }
 
     return {
-      searchText: '',
       category: '',
-      quantity: '',
       expiry: '',
+      location: '',
+      quantity: '',
+      searchText: '',
       showAdvanced: false,
       sortMethod: DEFAULTS.SORT_METHOD,
     };
@@ -59,6 +60,10 @@ export class Filters {
         return false;
       }
 
+      if (filters.location && item.location !== filters.location) {
+        return false;
+      }
+
       if (filters.quantity && !this.matchesQuantityFilter(item, filters.quantity)) {
         return false;
       }
@@ -72,12 +77,18 @@ export class Filters {
   }
 
   private matchesTextSearch(item: InventoryItem, searchText: string): boolean {
-    const search = searchText.toLowerCase();
-    const itemName = (item.name ?? '').toLowerCase();
     const itemCategory = (item.category ?? '').toLowerCase();
+    const itemLocation = (item.location ?? '').toLowerCase();
+    const itemName = (item.name ?? '').toLowerCase();
     const itemUnit = (item.unit ?? '').toLowerCase();
+    const search = searchText.toLowerCase();
 
-    return itemName.includes(search) || itemCategory.includes(search) || itemUnit.includes(search);
+    return (
+      itemName.includes(search) ||
+      itemCategory.includes(search) ||
+      itemUnit.includes(search) ||
+      itemLocation.includes(search)
+    );
   }
 
   private matchesQuantityFilter(item: InventoryItem, quantityFilter: string): boolean {
@@ -154,6 +165,10 @@ export class Filters {
         return this.sortByCategory(sortedItems, translations);
       }
 
+      case SORT_METHODS.LOCATION: {
+        return this.sortByLocation(sortedItems, translations);
+      }
+
       case SORT_METHODS.QUANTITY: {
         return this.sortByQuantity(sortedItems, false);
       }
@@ -184,6 +199,27 @@ export class Filters {
         numeric: true,
         sensitivity: 'base',
       });
+    });
+  }
+
+  private sortByLocation(items: InventoryItem[], translations: TranslationData): InventoryItem[] {
+    return items.sort((a, b) => {
+      const noLocation = TranslationManager.localize(
+        translations,
+        'common.no_location',
+        undefined,
+        'No Location',
+      );
+      const locationA = (a.location ?? noLocation).toLowerCase().trim();
+      const locationB = (b.location ?? noLocation).toLowerCase().trim();
+
+      // First sort by location
+      const locationCompare = locationA.localeCompare(locationB);
+      if (locationCompare !== 0) {
+        return locationCompare;
+      }
+      // Then sort by name within the same location
+      return this.compareNames(a.name, b.name);
     });
   }
 
@@ -352,11 +388,19 @@ export class Filters {
           `${TranslationManager.localize(translations, 'active_filters.search', undefined, 'Search')}: "${filters.searchText}"`,
         );
       }
+
       if (filters.category) {
         activeFilters.push(
           `${TranslationManager.localize(translations, 'active_filters.category', undefined, 'Category')}: ${filters.category}`,
         );
       }
+
+      if (filters.location) {
+        activeFilters.push(
+          `${TranslationManager.localize(translations, 'active_filters.location', undefined, 'Location')}: ${filters.location}`,
+        );
+      }
+
       if (filters.quantity) {
         const quantityLabel = TranslationManager.localize(
           translations,
@@ -368,6 +412,7 @@ export class Filters {
           `${TranslationManager.localize(translations, 'active_filters.quantity', undefined, 'Quantity')}: ${quantityLabel}`,
         );
       }
+
       if (filters.expiry) {
         const expiryLabel = TranslationManager.localize(
           translations,

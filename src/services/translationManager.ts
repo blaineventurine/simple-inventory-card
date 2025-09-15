@@ -43,7 +43,7 @@ export class TranslationManager {
           const translations = await response.json();
           return translations;
         } else {
-          console.error('❌ Failed to load from', url, 'Status:', response.status);
+          console.debug('❌ Failed to load from', url, 'Status:', response.status);
         }
       } catch (error) {
         console.debug(`Failed to load translations from ${url}:`, error);
