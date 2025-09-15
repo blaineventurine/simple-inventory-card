@@ -203,7 +203,6 @@ function searchRow(filters: FilterState, translations: TranslationData): string 
 }
 
 function createCategoryOptions(categories: string[], selectedCategory: string): string {
-  console.log('Creating category options:', categories, selectedCategory);
   return categories
     .map(
       (category) =>
@@ -213,7 +212,6 @@ function createCategoryOptions(categories: string[], selectedCategory: string): 
 }
 
 function createLocationOptions(locations: string[], selectedLocation: string): string {
-  console.log('Creating location options:', locations, selectedLocation);
   return locations
     .map(
       (location) =>

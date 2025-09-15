@@ -109,7 +109,9 @@ export class EventHandler {
         case ELEMENTS.OPEN_ADD_MODAL: {
           event.preventDefault();
           event.stopPropagation();
-          this.modals.openAddModal(this.translations);
+          const locations = this.getUniqueLocations();
+          const categories = this.getUniqueCategories();
+          this.modals.openAddModal(this.translations, locations, categories);
           break;
         }
         case ELEMENTS.ADD_ITEM_BTN: {
@@ -273,7 +275,15 @@ export class EventHandler {
         }
         case ACTIONS.OPEN_EDIT_MODAL: {
           const freshState = this.getFreshState();
-          this.modals.openEditModal(itemName, () => freshState, this.translations);
+          const locations = this.getUniqueLocations();
+          const categories = this.getUniqueCategories();
+          this.modals.openEditModal(
+            itemName,
+            () => freshState,
+            this.translations,
+            locations,
+            categories,
+          );
           break;
         }
         default: {
@@ -372,5 +382,35 @@ export class EventHandler {
       );
       alert(errorMessage);
     }
+  }
+
+  private getUniqueLocations(): string[] {
+    const state = this.hass.states[this.config.entity];
+    if (!state?.attributes?.items) return [];
+
+    const locations = new Set<string>();
+    Object.values(state.attributes.items).forEach((item: any) => {
+      if (item.location?.trim()) {
+        locations.add(item.location.trim());
+      }
+    });
+    return Array.from(locations).sort((a, b) =>
+      a.localeCompare(b, undefined, { sensitivity: 'base' }),
+    );
+  }
+
+  private getUniqueCategories(): string[] {
+    const state = this.hass.states[this.config.entity];
+    if (!state?.attributes?.items) return [];
+
+    const categories = new Set<string>();
+    Object.values(state.attributes.items).forEach((item: any) => {
+      if (item.category?.trim()) {
+        categories.add(item.category.trim());
+      }
+    });
+    return Array.from(categories).sort((a, b) =>
+      a.localeCompare(b, undefined, { sensitivity: 'base' }),
+    );
   }
 }
