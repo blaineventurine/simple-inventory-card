@@ -34,7 +34,7 @@
   },
   "header": {
     "items_expired": "{count} oggett{count, plural, one {o} other {i}} scadut{count, plural, one {o} other {i}}",
-    "items_expiring_soon": "{count} oggett{count, plural, one {o} other {i}} scadr{count, plural, one {à} other {anno}} presto"
+    "items_expiring_soon": "{count} oggett{count, plural, one {o} other {i}} scadr{count, plural, one {a'} other {anno}} presto"
   },
   "modal": {
     "add_item": "Aggiungi Oggetto",
