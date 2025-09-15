@@ -3,6 +3,7 @@ import { FilterState } from '../types/filterState';
 import { Utilities } from '../utils/utilities';
 import { TranslationData } from '@/types/translatableComponent';
 import { TranslationManager } from '@/services/translationManager';
+import { createMultiSelect } from './multiSelect';
 
 export function createSearchAndFilters(
   filters: FilterState,
@@ -127,17 +128,17 @@ function categoryFilters(
         <label>
           ${TranslationManager.localize(translations, 'filters.category', undefined, 'Category')}
         </label>
-        <select id="${ELEMENTS.FILTER_CATEGORY}">
-          <option value="">
-            ${TranslationManager.localize(
-              translations,
-              'filters.all_categories',
-              undefined,
-              'All Categories',
-            )}
-          </option>
-          ${createCategoryOptions(categories, filters.category)}
-        </select>
+        ${createMultiSelect({
+          id: ELEMENTS.FILTER_CATEGORY,
+          options: categories,
+          selected: filters.category,
+          placeholder: TranslationManager.localize(
+            translations,
+            'filters.all_categories',
+            undefined,
+            'All Categories',
+          ),
+        })}
       </div>
     </div>
 `;
@@ -154,16 +155,17 @@ function locationFilters(
         <label>
           ${TranslationManager.localize(translations, 'filters.location', undefined, 'Location')}
         </label>
-        <select id="${ELEMENTS.FILTER_LOCATION}">
-          <option value="">
-            ${TranslationManager.localize(
-              translations,
-              'filters.all_locations',
-              undefined,
-              'All Locations',
-            )}
-          </option>
-          ${createLocationOptions(locations, filters.location)}
+        ${createMultiSelect({
+          id: ELEMENTS.FILTER_LOCATION,
+          options: locations,
+          selected: filters.location,
+          placeholder: TranslationManager.localize(
+            translations,
+            'filters.all_locations',
+            undefined,
+            'All Locations',
+          ),
+        })}
         </select>
       </div>
     </div>
@@ -200,22 +202,4 @@ function searchRow(filters: FilterState, translations: TranslationData): string 
       </button>
     </div>
 `;
-}
-
-function createCategoryOptions(categories: string[], selectedCategory: string): string {
-  return categories
-    .map(
-      (category) =>
-        `<option value="${category}" ${category === selectedCategory ? 'selected' : ''}>${category}</option>`,
-    )
-    .join('');
-}
-
-function createLocationOptions(locations: string[], selectedLocation: string): string {
-  return locations
-    .map(
-      (location) =>
-        `<option value="${location}" ${location === selectedLocation ? 'selected' : ''}>${location}</option>`,
-    )
-    .join('');
 }

@@ -1,4 +1,4 @@
-import { AutoCompleteConfig } from '@/types/autoComplete';
+import { AutoCompleteConfig } from '@/types/autoCompleteConfig';
 
 export function initializeAutoComplete(
   config: AutoCompleteConfig & { shadowRoot?: ShadowRoot },

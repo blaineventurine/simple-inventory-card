@@ -6,6 +6,7 @@ import { Filters } from './filters';
 import { Utilities } from '../utils/utilities';
 import { TranslationData } from '@/types/translatableComponent';
 import { TranslationManager } from './translationManager';
+import { initializeMultiSelect } from './multiSelect';
 
 export class EventHandler {
   private renderRoot: ShadowRoot;
@@ -66,6 +67,11 @@ export class EventHandler {
 
     this.filters.setupSearchInput(this.config.entity, () => this.handleSearchChange());
     this.eventListenersSetup = true;
+
+    const filters = this.filters.getCurrentFilters(this.config.entity);
+    if (filters.showAdvanced) {
+      this.initializeMultiSelects();
+    }
   }
 
   cleanupEventListeners(): void {
@@ -167,10 +173,7 @@ export class EventHandler {
 
     if (
       target instanceof HTMLSelectElement &&
-      (target.id === ELEMENTS.FILTER_CATEGORY ||
-        target.id === ELEMENTS.FILTER_QUANTITY ||
-        target.id === ELEMENTS.FILTER_EXPIRY ||
-        target.id === ELEMENTS.FILTER_LOCATION)
+      (target.id === ELEMENTS.FILTER_QUANTITY || target.id === ELEMENTS.FILTER_EXPIRY)
     ) {
       this.autoApplyFilter(target);
       return;
@@ -321,20 +324,12 @@ export class EventHandler {
       const filters = this.filters.getCurrentFilters(this.config.entity);
 
       switch (selectElement.id) {
-        case ELEMENTS.FILTER_CATEGORY: {
-          filters.category = selectElement.value;
-          break;
-        }
         case ELEMENTS.FILTER_QUANTITY: {
           filters.quantity = selectElement.value;
           break;
         }
         case ELEMENTS.FILTER_EXPIRY: {
           filters.expiry = selectElement.value;
-          break;
-        }
-        case ELEMENTS.FILTER_LOCATION: {
-          filters.location = selectElement.value;
           break;
         }
       }
@@ -349,12 +344,12 @@ export class EventHandler {
   private toggleAdvancedFilters(): void {
     try {
       const filters = this.filters.getCurrentFilters(this.config.entity);
-
       filters.showAdvanced = !filters.showAdvanced;
-
       this.filters.saveFilters(this.config.entity, filters);
-
       this.renderCallback();
+      if (filters.showAdvanced) {
+        this.initializeMultiSelects();
+      }
     } catch (error) {
       console.error('Error toggling advanced filters:', error);
     }
@@ -372,6 +367,13 @@ export class EventHandler {
       }
 
       this.renderCallback();
+      const filters = this.filters.getCurrentFilters(this.config.entity);
+      setTimeout(() => {
+        this.filters.updateFilterIndicators(filters, this.translations);
+        if (filters.showAdvanced) {
+          this.initializeMultiSelects();
+        }
+      }, 50);
     } catch (error) {
       console.error('Error clearing filters:', error);
       const errorMessage = TranslationManager.localize(
@@ -412,5 +414,70 @@ export class EventHandler {
     return Array.from(categories).sort((a, b) =>
       a.localeCompare(b, undefined, { sensitivity: 'base' }),
     );
+  }
+
+  private initializeMultiSelects(): void {
+    const filters = this.filters.getCurrentFilters(this.config.entity);
+    const categories = this.getUniqueCategories();
+    const locations = this.getUniqueLocations();
+
+    setTimeout(() => {
+      initializeMultiSelect({
+        id: ELEMENTS.FILTER_CATEGORY,
+        options: categories,
+        selected: filters.category,
+        placeholder: TranslationManager.localize(
+          this.translations,
+          'filters.all_categories',
+          undefined,
+          'All Categories',
+        ),
+        shadowRoot: this.renderRoot,
+        onChange: (selected) => {
+          const filters = this.filters.getCurrentFilters(this.config.entity);
+          filters.category = selected;
+          this.filters.saveFilters(this.config.entity, filters);
+          this.filters.updateFilterIndicators(filters, this.translations);
+          this.applyFiltersWithoutRender();
+        },
+      });
+
+      initializeMultiSelect({
+        id: ELEMENTS.FILTER_LOCATION,
+        options: locations,
+        selected: filters.location,
+        placeholder: TranslationManager.localize(
+          this.translations,
+          'filters.all_locations',
+          undefined,
+          'All Locations',
+        ),
+        shadowRoot: this.renderRoot,
+        onChange: (selected) => {
+          const filters = this.filters.getCurrentFilters(this.config.entity);
+          filters.location = selected;
+          this.filters.saveFilters(this.config.entity, filters);
+          this.filters.updateFilterIndicators(filters, this.translations);
+          this.applyFiltersWithoutRender();
+        },
+      });
+    }, 0);
+  }
+
+  private applyFiltersWithoutRender(): void {
+    const state = this.hass.states[this.config.entity];
+    if (!state) return;
+
+    const filters = this.filters.getCurrentFilters(this.config.entity);
+    const sortMethodElement = this.renderRoot.querySelector(
+      `#${ELEMENTS.SORT_METHOD}`,
+    ) as HTMLSelectElement | null;
+    const sortMethod = sortMethodElement?.value || filters.sortMethod || DEFAULTS.SORT_METHOD;
+
+    const allItems = Utilities.validateInventoryItems(state.attributes?.items || []);
+    const filteredItems = this.filters.filterItems(allItems, filters);
+    const sortedItems = this.filters.sortItems(filteredItems, sortMethod, this.translations);
+
+    this.updateItemsCallback(sortedItems, sortMethod);
   }
 }

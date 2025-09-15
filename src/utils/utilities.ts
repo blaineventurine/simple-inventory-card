@@ -461,10 +461,10 @@ export const Utilities = {
   hasActiveFilters(filters: FilterState): boolean {
     return Boolean(
       filters.searchText ||
-        filters.category ||
+        (filters.category && filters.category.length > 0) ||
+        (filters.location && filters.location.length > 0) ||
         filters.quantity ||
-        filters.expiry ||
-        filters.location,
+        filters.expiry,
     );
   },
 

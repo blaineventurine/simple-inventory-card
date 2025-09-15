@@ -1,7 +1,7 @@
 export interface FilterState {
-  category: string;
+  category: string[];
   expiry: string;
-  location: string;
+  location: string[];
   quantity: string;
   searchText: string;
   showAdvanced: boolean;

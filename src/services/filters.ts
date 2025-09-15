@@ -17,7 +17,16 @@ export class Filters {
 
     if (savedFilters) {
       try {
-        const parsed = JSON.parse(savedFilters) as FilterState;
+        const parsed = JSON.parse(savedFilters);
+
+        // Migrate old single-value format to array format
+        if (typeof parsed.category === 'string') {
+          parsed.category = parsed.category ? [parsed.category] : [];
+        }
+        if (typeof parsed.location === 'string') {
+          parsed.location = parsed.location ? [parsed.location] : [];
+        }
+
         if (!parsed.sortMethod) {
           parsed.sortMethod = DEFAULTS.SORT_METHOD;
         }
@@ -28,9 +37,9 @@ export class Filters {
     }
 
     return {
-      category: '',
+      category: [],
       expiry: '',
-      location: '',
+      location: [],
       quantity: '',
       searchText: '',
       showAdvanced: false,
@@ -56,11 +65,11 @@ export class Filters {
         return false;
       }
 
-      if (filters.category && item.category !== filters.category) {
+      if (filters.category.length > 0 && !filters.category.includes(item.category || '')) {
         return false;
       }
 
-      if (filters.location && item.location !== filters.location) {
+      if (filters.location.length > 0 && !filters.location.includes(item.location || '')) {
         return false;
       }
 
@@ -389,15 +398,15 @@ export class Filters {
         );
       }
 
-      if (filters.category) {
+      if (filters.category.length > 0) {
         activeFilters.push(
-          `${TranslationManager.localize(translations, 'active_filters.category', undefined, 'Category')}: ${filters.category}`,
+          `${TranslationManager.localize(translations, 'active_filters.category', undefined, 'Category')}: ${filters.category.join(', ')}`,
         );
       }
 
-      if (filters.location) {
+      if (filters.location.length > 0) {
         activeFilters.push(
-          `${TranslationManager.localize(translations, 'active_filters.location', undefined, 'Location')}: ${filters.location}`,
+          `${TranslationManager.localize(translations, 'active_filters.location', undefined, 'Location')}: ${filters.location.join(', ')}`,
         );
       }
 
