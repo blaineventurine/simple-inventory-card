@@ -181,7 +181,7 @@ describe('modalTemplates', () => {
 
         // Category field
         expect(result).toContain('id="edit-category"');
-        expect(result).toContain('Food, Cleaning, etc.');
+        expect(result).toContain('Food, Tools, Supplies, etc.');
 
         // Expiry date field
         expect(result).toContain('id="edit-expiry-date"');

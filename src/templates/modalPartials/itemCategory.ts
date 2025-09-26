@@ -1,6 +1,6 @@
 import { TranslationManager } from '@/services/translationManager';
 import { TranslationData } from '@/types/translatableComponent';
-import { createAutoCompleteInput } from '../autocompleteInput';
+import { createAutoCompleteInput } from '../autoCompleteInput';
 import { ELEMENTS } from '@/utils/constants';
 
 export function itemCategory(

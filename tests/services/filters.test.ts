@@ -41,9 +41,9 @@ describe('Filters', () => {
   let mockTranslations: TranslationData;
 
   const testFilters: FilterState = {
-    category: '',
+    category: [],
     expiry: '',
-    location: '',
+    location: [],
     quantity: '',
     searchText: '',
     showAdvanced: false,
@@ -152,9 +152,9 @@ describe('Filters', () => {
     describe('localStorage operations', () => {
       it('should return parsed filters from localStorage when valid JSON exists', () => {
         const savedFilters: FilterState = {
-          category: 'test category',
+          category: ['test category'],
           expiry: 'soon',
-          location: 'test location',
+          location: ['test location'],
           quantity: 'nonzero',
           searchText: 'test search',
           showAdvanced: true,
@@ -210,9 +210,9 @@ describe('Filters', () => {
 
       it('should save filters to localStorage as JSON', () => {
         const testFilters: FilterState = {
-          category: 'category',
+          category: ['category'],
           expiry: 'expired',
-          location: 'a location',
+          location: ['a location'],
           quantity: 'zero',
           searchText: 'test',
           showAdvanced: true,
@@ -396,7 +396,7 @@ describe('Filters', () => {
 
         const result = filters.filterItems(items, {
           ...testFilters,
-          category: 'Food',
+          category: ['Food'],
         });
 
         expect(result).toHaveLength(2);
@@ -414,7 +414,7 @@ describe('Filters', () => {
 
         const result = filters.filterItems(items, {
           ...testFilters,
-          location: 'Pantry',
+          location: ['Pantry'],
         });
 
         expect(result).toHaveLength(2);
@@ -681,8 +681,8 @@ describe('Filters', () => {
 
       const result = filters.filterItems(items, {
         searchText: 'tomato',
-        category: 'Drinks',
-        location: 'Pantry',
+        category: ['Drinks'],
+        location: ['Pantry'],
         quantity: 'nonzero',
         expiry: '',
         showAdvanced: false,
@@ -1018,7 +1018,7 @@ describe('Filters', () => {
         const onFilterChange = vi.fn();
         const existingFilters: FilterState = {
           ...testFilters,
-          category: 'test',
+          category: ['test'],
           sortMethod: SORT_METHODS.NAME,
         };
 
@@ -1127,9 +1127,9 @@ describe('Filters', () => {
 
       it('should show active filters when filters are applied', () => {
         const testFilters: FilterState = {
-          category: 'Food',
+          category: ['Food'],
           expiry: 'soon',
-          location: 'Pantry',
+          location: ['Pantry'],
           quantity: 'nonzero',
           searchText: 'test search',
           showAdvanced: true,
@@ -1167,9 +1167,9 @@ describe('Filters', () => {
   describe('edge cases and stress tests', () => {
     it('should handle empty items array', () => {
       const result = filters.filterItems([], {
-        category: 'Food',
+        category: ['Food'],
         expiry: 'soon',
-        location: 'Pantry',
+        location: ['Pantry'],
         quantity: 'nonzero',
         searchText: 'test',
         showAdvanced: false,
@@ -1183,9 +1183,9 @@ describe('Filters', () => {
       const items: InventoryItem[] = [createMockItem({ name: longName })];
 
       const result = filters.filterItems(items, {
-        category: '',
+        category: [],
         expiry: '',
-        location: '',
+        location: [],
         quantity: '',
         searchText: 'A'.repeat(100),
         showAdvanced: false,
@@ -1201,9 +1201,9 @@ describe('Filters', () => {
       ];
 
       const result = filters.filterItems(items, {
-        category: '',
+        category: [],
         expiry: '',
-        location: '',
+        location: [],
         quantity: '',
         searchText: '&',
         showAdvanced: false,

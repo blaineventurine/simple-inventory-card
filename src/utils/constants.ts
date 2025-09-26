@@ -112,7 +112,6 @@ export const FILTERS = {
   EXPIRY: 'expiry',
   QUANTITY: 'quantity',
   SEARCH_TEXT: 'searchText',
-  SHOW_ADVANCED: 'showAdvanced',
   LOCATION: 'location',
 };
 

@@ -15,6 +15,10 @@ vi.mock('../../src/services/modals/modalFormManager');
 vi.mock('../../src/services/modals/modalValidationManager');
 vi.mock('../../src/services/modals/modalUIManager');
 vi.mock('../../src/utils/utilities');
+vi.mock('../../src/templates/autoCompleteInput', () => ({
+  initializeAutocomplete: vi.fn(),
+  createAutocompleteInput: vi.fn(() => '<div></div>'),
+}));
 
 describe('Modals (Integration)', () => {
   let mockConfig: InventoryConfig;
@@ -32,6 +36,7 @@ describe('Modals (Integration)', () => {
   let mockValidationManager: any;
 
   beforeEach(() => {
+    vi.useFakeTimers();
     mockShadowRoot = {} as ShadowRoot;
 
     mockServices = {
@@ -90,6 +95,8 @@ describe('Modals (Integration)', () => {
 
   afterEach(() => {
     vi.clearAllMocks();
+    vi.clearAllTimers();
+    vi.useRealTimers();
   });
 
   describe('Construction', () => {
@@ -111,7 +118,10 @@ describe('Modals (Integration)', () => {
 
   describe('Public API Delegation', () => {
     it('should delegate modal operations to UIManager', () => {
-      modals.openAddModal(mockTranslations);
+      const mockLocations = ['Pantry', 'Fridge'];
+      const mockCategories = ['Food', 'Cleaning'];
+
+      modals.openAddModal(mockTranslations, mockLocations, mockCategories);
       expect(vi.mocked(mockUIManager.openAddModal)).toHaveBeenCalled();
 
       modals.closeAddModal();
@@ -246,7 +256,7 @@ describe('Modals (Integration)', () => {
     });
 
     it('should handle exceptions', async () => {
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       vi.mocked(mockFormManager.getRawAddModalData).mockImplementation(() => {
         throw new Error('Form error');
       });

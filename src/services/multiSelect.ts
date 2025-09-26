@@ -29,9 +29,8 @@ export function initializeMultiSelect(
     toggleDropdown();
   });
 
-  // Handle checkbox changes
   dropdown.addEventListener('change', (e) => {
-    e.stopPropagation(); // Add this to prevent bubbling
+    e.stopPropagation();
     const target = e.target as HTMLInputElement;
     if (target.type === 'checkbox') {
       if (target.checked) {
@@ -47,7 +46,6 @@ export function initializeMultiSelect(
     }
   });
 
-  // Handle clicks on the dropdown (prevent closing)
   dropdown.addEventListener('click', (e) => {
     e.stopPropagation(); // Prevent dropdown from closing when clicking inside
   });

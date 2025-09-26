@@ -13,9 +13,9 @@ vi.mock('../../src/services/translationManager', () => ({
 }));
 
 const filters: FilterState = {
-  category: '',
+  category: [],
   expiry: '',
-  location: '',
+  location: [],
   quantity: '',
   searchText: '',
   showAdvanced: false,
@@ -78,8 +78,8 @@ describe('createSearchAndFilters', () => {
 
       expect(result).toContain(`id="${ELEMENTS.SEARCH_INPUT}"`);
       expect(result).toContain(`id="${ELEMENTS.ADVANCED_SEARCH_TOGGLE}"`);
-      expect(result).toContain(`id="${ELEMENTS.FILTER_CATEGORY}"`);
-      expect(result).toContain(`id="${ELEMENTS.FILTER_LOCATION}"`);
+      expect(result).toContain(`id="${ELEMENTS.FILTER_CATEGORY}-trigger"`);
+      expect(result).toContain(`id="${ELEMENTS.FILTER_LOCATION}-trigger"`);
       expect(result).toContain(`id="${ELEMENTS.FILTER_QUANTITY}"`);
       expect(result).toContain(`id="${ELEMENTS.FILTER_EXPIRY}"`);
       expect(result).toContain(`id="${ELEMENTS.CLEAR_FILTERS}"`);
@@ -146,9 +146,9 @@ describe('createSearchAndFilters', () => {
 
       expect(result).toContain('<option value="">');
       expect(result).toContain('All Categories');
-      expect(result).toContain(`id="${ELEMENTS.FILTER_CATEGORY}"`);
+      expect(result).toContain(`id="${ELEMENTS.FILTER_CATEGORY}-trigger"`);
       expect(result).toContain('All Locations');
-      expect(result).toContain(`id="${ELEMENTS.FILTER_LOCATION}"`);
+      expect(result).toContain(`id="${ELEMENTS.FILTER_LOCATION}-trigger"`);
     });
 
     it('should create options for all categories', () => {
@@ -160,11 +160,11 @@ describe('createSearchAndFilters', () => {
 
       const result = createSearchAndFilters(_filters, categories, locations, mockTranslations);
 
-      expect(result).toContain('<option value="Food" >');
+      expect(result).toContain('<input type="checkbox" value="Food" >');
       expect(result).toContain('Food');
-      expect(result).toContain('<option value="Drinks" >');
+      expect(result).toContain('<input type="checkbox" value="Drinks" >');
       expect(result).toContain('Drinks');
-      expect(result).toContain('<option value="Household" >');
+      expect(result).toContain('<input type="checkbox" value="Household" >');
       expect(result).toContain('Household');
     });
 
@@ -175,9 +175,9 @@ describe('createSearchAndFilters', () => {
       };
       const result = createSearchAndFilters(_filters, categories, locations, mockTranslations);
 
-      expect(result).toContain('<option value="Pantry" >');
+      expect(result).toContain('<input type="checkbox" value="Pantry" >');
       expect(result).toContain('Pantry');
-      expect(result).toContain('<option value="Fridge" >');
+      expect(result).toContain('<input type="checkbox" value="Fridge" >');
       expect(result).toContain('Fridge');
     });
 
@@ -185,14 +185,14 @@ describe('createSearchAndFilters', () => {
       const _filters: FilterState = {
         ...filters,
         showAdvanced: true,
-        category: 'Food',
+        category: ['Food'],
       };
 
       const result = createSearchAndFilters(_filters, categories, locations, mockTranslations);
 
-      expect(result).toContain('<option value="Food" selected>');
+      expect(result).toContain('<input type="checkbox" value="Food" checked>');
       expect(result).toContain('Food');
-      expect(result).toContain('<option value="Drinks" >');
+      expect(result).toContain('<input type="checkbox" value="Drinks" >');
       expect(result).toContain('Drinks');
     });
 
@@ -200,54 +200,113 @@ describe('createSearchAndFilters', () => {
       const _filters: FilterState = {
         ...filters,
         showAdvanced: true,
-        location: 'Pantry',
+        location: ['Pantry'],
       };
 
       const result = createSearchAndFilters(_filters, categories, locations, mockTranslations);
 
-      expect(result).toContain('<option value="Pantry" selected>');
+      expect(result).toContain('<input type="checkbox" value="Pantry" checked>');
       expect(result).toContain('Pantry');
-      expect(result).toContain('<option value="Fridge" >');
+      expect(result).toContain('<input type="checkbox" value="Fridge" >');
       expect(result).toContain('Fridge');
     });
 
-    it('should handle empty categories array', () => {
+    describe('category filter', () => {
+      it('should handle empty categories array', () => {
+        const _filters: FilterState = {
+          ...filters,
+          showAdvanced: true,
+        };
+        const categories: string[] = [];
+
+        const result = createSearchAndFilters(_filters, categories, locations, mockTranslations);
+        expect(result).toContain('class="multi-select-container"');
+        expect(result).toContain('id="filter-category-trigger"');
+        expect(result).toContain('All Categories');
+
+        expect(result).toContain('id="filter-category-dropdown"');
+        const categoryDropdownIndex = result.indexOf('id="filter-category-dropdown"');
+        const nextDropdownIndex = result.indexOf(
+          'id="filter-location-dropdown"',
+          categoryDropdownIndex,
+        );
+        const categorySection = result.substring(categoryDropdownIndex, nextDropdownIndex);
+        expect(categorySection).not.toContain('<input type="checkbox"');
+      });
+
+      it('should render category options from array', () => {
+        const _filters: FilterState = {
+          ...filters,
+          showAdvanced: true,
+        };
+        const categories = ['Food', 'Cleaning', 'Electronics'];
+        const result = createSearchAndFilters(_filters, categories, locations, mockTranslations);
+
+        expect(result).toContain('class="multi-select-container"');
+        categories.forEach((category) => {
+          expect(result).toContain(`value="${category}"`);
+          expect(result).toContain(`<span>${category}</span>`);
+        });
+
+        const checkboxCount = (result.match(/<input type="checkbox"/g) || []).length;
+        expect(checkboxCount).toBeGreaterThanOrEqual(categories.length);
+      });
+
+      it('should show selected categories', () => {
+        const _filters: FilterState = {
+          ...filters,
+          showAdvanced: true,
+          category: ['Food', 'Electronics'],
+        };
+        const categories = ['Food', 'Cleaning', 'Electronics'];
+
+        const result = createSearchAndFilters(_filters, categories, locations, mockTranslations);
+
+        expect(result).toContain('value="Food" checked');
+        expect(result).toContain('value="Electronics" checked');
+        expect(result).not.toContain('value="Cleaning" checked');
+        expect(result).toContain('2 selected');
+      });
+    });
+  });
+
+  describe('location filter', () => {
+    it('should handle empty locations array', () => {
       const _filters: FilterState = {
         ...filters,
         showAdvanced: true,
       };
-      const categories: string[] = [];
+      const locations: string[] = [];
 
       const result = createSearchAndFilters(_filters, categories, locations, mockTranslations);
 
-      expect(result).toContain('<option value="">');
-      expect(result).toContain('All Categories');
-      // Should only contain the "All Categories" option
-      const categorySelect = result.match(
-        /<select id="[^"]*filter-category[^"]*">[\s\S]*?<\/select>/,
-      )?.[0];
-      expect(categorySelect).toBeTruthy();
-      expect((categorySelect?.match(/<option/g) || []).length).toBe(1);
+      expect(result).toContain('class="multi-select-container"');
+      expect(result).toContain('id="filter-location-trigger"');
+      expect(result).toContain('All Locations');
+
+      expect(result).toContain('id="filter-location-dropdown"');
+      const locationDropdownIndex = result.indexOf('id="filter-location-dropdown"');
+      const nextSectionIndex = result.indexOf('id="filter-quantity"', locationDropdownIndex);
+      const locationSection = result.substring(locationDropdownIndex, nextSectionIndex);
+      expect(locationSection).not.toContain('<input type="checkbox"');
     });
-  });
 
-  it('should handle empty locations array', () => {
-    const _filters: FilterState = {
-      ...filters,
-      showAdvanced: true,
-    };
-    const locations: string[] = [];
+    it('should render location options from array', () => {
+      const _filters: FilterState = {
+        ...filters,
+        showAdvanced: true,
+      };
+      const locations = ['Pantry', 'Fridge', 'Garage'];
 
-    const result = createSearchAndFilters(_filters, categories, locations, mockTranslations);
+      const result = createSearchAndFilters(_filters, categories, locations, mockTranslations);
 
-    expect(result).toContain('<option value="">');
-    expect(result).toContain('All Locations');
-    // Should only contain the "All Locations" option
-    const locationSelect = result.match(
-      /<select id="[^"]*filter-location[^"]*">[\s\S]*?<\/select>/,
-    )?.[0];
-    expect(locationSelect).toBeTruthy();
-    expect((locationSelect?.match(/<option/g) || []).length).toBe(1);
+      expect(result).toContain('class="multi-select-container"');
+
+      locations.forEach((location) => {
+        expect(result).toContain(`value="${location}"`);
+        expect(result).toContain(`<span>${location}</span>`);
+      });
+    });
   });
 
   describe('quantity filter', () => {
@@ -395,7 +454,7 @@ describe('createSearchAndFilters', () => {
         ...filters,
         searchText: 'test',
         showAdvanced: true,
-        category: 'Food',
+        category: ['Food'],
       };
 
       const result = createSearchAndFilters(_filters, categories, locations, mockTranslations);
@@ -464,14 +523,14 @@ describe('createSearchAndFilters', () => {
       const _filters: FilterState = {
         ...filters,
         showAdvanced: true,
-        category: 'Food & Drinks',
+        category: ['Food & Drinks'],
       };
       const categories = ['Food & Drinks', 'Health & Beauty'];
 
       const result = createSearchAndFilters(_filters, categories, locations, mockTranslations);
 
-      expect(result).toContain('<option value="Food & Drinks" selected>Food & Drinks</option>');
-      expect(result).toContain('<option value="Health & Beauty" >Health & Beauty</option>');
+      expect(result).toContain('<input type="checkbox" value="Food & Drinks" checked>');
+      expect(result).toContain('<input type="checkbox" value="Health & Beauty" >');
     });
 
     it('should handle search text with quotes', () => {
@@ -506,8 +565,8 @@ describe('createSearchAndFilters', () => {
       const filters: FilterState = {
         searchText: 'apple',
         showAdvanced: true,
-        category: 'Food',
-        location: 'Pantry',
+        category: ['Food'],
+        location: ['Pantry'],
         quantity: 'zero',
         expiry: 'expired',
       };
@@ -516,21 +575,21 @@ describe('createSearchAndFilters', () => {
 
       expect(result).toContain('value="apple"');
       expect(result).toContain('class="search-input has-value"');
-      expect(result).toContain('<option value="Food" selected>Food</option>');
+      expect(result).toContain('<input type="checkbox" value="Food" checked>');
       expect(result).toContain('<option value="zero" selected>');
       expect(result).toContain('Zero');
       expect(result).toContain('<option value="expired" selected>');
       expect(result).toContain('Expired');
       expect(result).toContain('style="display: block"');
-      expect(result).toContain('<option value="Pantry" selected>Pantry</option>');
+      expect(result).toContain('<input type="checkbox" value="Pantry" checked>');
     });
 
     it('should maintain filter independence', () => {
       const filters: FilterState = {
         searchText: 'test',
         showAdvanced: true,
-        category: 'Food',
-        location: '',
+        category: ['Food'],
+        location: [],
         quantity: '',
         expiry: 'soon',
       };
@@ -538,7 +597,7 @@ describe('createSearchAndFilters', () => {
       const result = createSearchAndFilters(filters, categories, locations, mockTranslations);
 
       // Selected filters should be marked as selected
-      expect(result).toContain('<option value="Food" selected>Food</option>');
+      expect(result).toContain('<input type="checkbox" value="Food" checked>');
       expect(result).toContain('value="soon" selected');
       expect(result).toContain('Expiring Soon');
 
@@ -547,9 +606,9 @@ describe('createSearchAndFilters', () => {
       expect(result).toContain('Zero');
       expect(result).toContain('<option value="nonzero" >');
       expect(result).toContain('Non-zero');
-      expect(result).toContain('<option value="Drinks" >');
+      expect(result).toContain('<input type="checkbox" value="Drinks" >');
       expect(result).toContain('Drinks');
-      expect(result).toContain('<option value="Pantry" >');
+      expect(result).toContain('<input type="checkbox" value="Pantry" >');
     });
   });
 });

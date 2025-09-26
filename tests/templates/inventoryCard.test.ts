@@ -98,9 +98,9 @@ describe('generateCardHTML', () => {
     ];
 
     mockFilters = {
-      category: '',
+      category: [],
       expiry: '',
-      location: '',
+      location: [],
       quantity: '',
       searchText: '',
       showAdvanced: false,
@@ -534,9 +534,9 @@ describe('generateCardHTML', () => {
 
     it('should handle filters with active values', () => {
       const activeFilters: FilterState = {
-        category: 'Fruit',
+        category: ['Fruit'],
         expiry: 'soon',
-        location: 'Kitchen',
+        location: ['Kitchen'],
         quantity: 'low',
         searchText: 'apple',
         showAdvanced: true,
@@ -610,10 +610,14 @@ describe('generateCardHTML', () => {
       expect(modalTemplatesModule.createAddModal).toHaveBeenCalledWith(
         mockTodoLists,
         mockTranslations,
+        mockCategories,
+        mockLocations,
       );
       expect(modalTemplatesModule.createEditModal).toHaveBeenCalledWith(
         mockTodoLists,
         mockTranslations,
+        mockCategories,
+        mockLocations,
       );
     });
   });
