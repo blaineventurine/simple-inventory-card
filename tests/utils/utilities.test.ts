@@ -561,9 +561,9 @@ describe('Utilities', () => {
       it.each([
         {
           filters: {
-            category: '',
+            category: [],
             expiry: '',
-            location: '',
+            location: [],
             quantity: '',
             searchText: 'test',
             showAdvanced: false,
@@ -572,9 +572,9 @@ describe('Utilities', () => {
         },
         {
           filters: {
-            category: 'Food',
+            category: ['Food'],
             expiry: '',
-            location: '',
+            location: [],
             quantity: '',
             searchText: '',
             showAdvanced: false,
@@ -583,9 +583,9 @@ describe('Utilities', () => {
         },
         {
           filters: {
-            category: '',
+            category: [],
             expiry: '',
-            location: 'kitchen',
+            location: ['kitchen'],
             quantity: '',
             searchText: '',
             showAdvanced: false,
@@ -594,9 +594,9 @@ describe('Utilities', () => {
         },
         {
           filters: {
-            category: '',
+            category: [],
             expiry: '',
-            location: '',
+            location: [],
             quantity: '',
             searchText: '',
             showAdvanced: false,

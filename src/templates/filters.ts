@@ -20,7 +20,7 @@ export function createActiveFiltersDisplay(
     );
   }
 
-  if (filters.category) {
+  if (filters.category && filters.category.length > 0) {
     activeFilters.push(
       `${TranslationManager.localize(
         translations,
@@ -66,7 +66,7 @@ export function createActiveFiltersDisplay(
     );
   }
 
-  if (filters.location) {
+  if (filters.location && filters.location.length > 0) {
     activeFilters.push(
       `${TranslationManager.localize(
         translations,

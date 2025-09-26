@@ -20,10 +20,10 @@
     "build": "vite build --config vite.config.ts",
     "check-translations": "node scripts/checkTranslations.js",
     "dev": "vite",
-    "format": "prettier --write src/**/*.ts",
-    "format:check": "prettier --check 'src/**/*.{js,ts}'",
-    "lint": "eslint src/**/*.ts",
-    "lint:fix": "eslint src/**/*.ts --fix",
+    "format": "prettier --write ./**/*.ts",
+    "format:check": "prettier --check './**/*.{js,ts}'",
+    "lint": "eslint ./**/*.ts",
+    "lint:fix": "eslint ./**/*.ts --fix",
     "lint:staged": "eslint --fix",
     "pre-commit": "lint-staged",
     "prepare": "husky",
@@ -37,10 +37,8 @@
     "type-check:incremental": "tsc --noEmit --incremental"
   },
   "lint-staged": {
-    "src": [
-      "tsc --noEmit"
-    ],
-    "src/**/*.{ts,js}": [
+    "./**/*.{ts,js}": [
+      "bash -c 'tsc --noEmit'",
       "eslint --fix",
       "prettier --write"
     ]

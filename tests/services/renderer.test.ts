@@ -31,9 +31,9 @@ describe('Renderer', () => {
   ];
 
   const mockFilters: FilterState = {
-    category: '',
+    category: [''],
     expiry: '',
-    location: '',
+    location: [''],
     quantity: '',
     searchText: '',
     showAdvanced: false,
@@ -434,19 +434,19 @@ describe('Renderer', () => {
 
     it('should pass all parameters correctly to generateCardHTML', () => {
       const mockState: HassEntity = {
-        entity_id: 'custom.entity',
-        state: 'unknown',
         attributes: { items: [] },
         context: { id: 'test-context' },
+        entity_id: 'custom.entity',
         last_changed: '2023-01-01T00:00:00Z',
         last_updated: '2023-01-01T00:00:00Z',
+        state: 'unknown',
       };
       const mockFilters: FilterState = {
-        searchText: 'query',
-        category: 'test',
-        quantity: '1-5',
-        location: 'fridge',
+        category: ['test'],
         expiry: 'expired',
+        location: ['fridge'],
+        quantity: '1-5',
+        searchText: 'query',
         showAdvanced: true,
       };
       const mockTodoLists: TodoList[] = [{ id: '1', name: 'Test List' } as TodoList];

@@ -13,9 +13,9 @@ vi.mock('../../src/services/translationManager', () => ({
 }));
 
 const baseFilters: FilterState = {
-  category: '',
+  category: [],
   expiry: '',
-  location: '',
+  location: [],
   quantity: '',
   searchText: '',
   showAdvanced: false,
@@ -95,7 +95,7 @@ describe('createActiveFiltersDisplay', () => {
     it('should display category filter', () => {
       const filters: FilterState = {
         ...baseFilters,
-        category: 'Fruit',
+        category: ['Fruit'],
       };
 
       const result = createActiveFiltersDisplay(filters, mockTranslations);
@@ -134,7 +134,7 @@ describe('createActiveFiltersDisplay', () => {
       const filters: FilterState = {
         ...baseFilters,
         searchText: 'apple',
-        category: 'Fruit',
+        category: ['Fruit'],
       };
 
       const result = createActiveFiltersDisplay(filters, mockTranslations);
@@ -145,11 +145,11 @@ describe('createActiveFiltersDisplay', () => {
 
     it('should display all filter types when active', () => {
       const filters: FilterState = {
-        searchText: 'test',
-        category: 'Food',
-        location: 'Pantry',
-        quantity: 'zero',
+        category: ['Food'],
         expiry: 'soon',
+        location: ['Pantry'],
+        quantity: 'zero',
+        searchText: 'test',
         showAdvanced: true,
       };
 
@@ -169,11 +169,11 @@ describe('createActiveFiltersDisplay', () => {
 
     it('should join filters with commas and spaces', () => {
       const filters: FilterState = {
-        searchText: 'milk',
-        category: 'Dairy',
-        quantity: 'zero',
-        location: 'Pantry',
+        category: ['Dairy'],
         expiry: '',
+        location: ['Pantry'],
+        quantity: 'zero',
+        searchText: 'milk',
         showAdvanced: false,
       };
 
@@ -221,11 +221,11 @@ describe('createActiveFiltersDisplay', () => {
 
     it('should handle undefined showAdvanced property', () => {
       const filters = {
-        searchText: 'test',
-        category: '',
-        location: '',
-        quantity: '',
+        category: [''],
         expiry: '',
+        location: [''],
+        quantity: '',
+        searchText: 'test',
       } as FilterState;
 
       const result = createActiveFiltersDisplay(filters, mockTranslations);
@@ -240,17 +240,15 @@ describe('createActiveFiltersDisplay', () => {
       const filters: FilterState = {
         ...baseFilters,
         searchText: 'test',
-        category: 'Food',
+        category: ['Food'],
       };
 
       const result = createActiveFiltersDisplay(filters, mockTranslations);
 
-      // Check outer div structure
       expect(result).toMatch(
         /<div id="[^"]*" class="active-filters" style="display: block;">[\s\S]*<\/div>/,
       );
 
-      // Check inner spans
       expect(result).toContain('<span>Active filters:</span>');
       expect(result).toMatch(/<span id="[^"]*">.*<\/span>/);
     });
@@ -272,8 +270,6 @@ describe('createActiveFiltersDisplay', () => {
 
       expect(result).toContain('\n');
       expect(result.trim()).toBeTruthy(); // Should not be just whitespace
-
-      // Check that the HTML structure is properly formatted
       expect(result).toContain('<div id=');
       expect(result).toContain('</div>');
       expect(result).toContain('<span>');
@@ -284,9 +280,9 @@ describe('createActiveFiltersDisplay', () => {
   describe('filter ordering', () => {
     it('should display filters in consistent order', () => {
       const filters: FilterState = {
-        category: 'category',
+        category: ['category'],
         expiry: 'expiry',
-        location: 'location',
+        location: ['location'],
         quantity: 'quantity',
         searchText: 'search',
         showAdvanced: false,
@@ -306,9 +302,9 @@ describe('createActiveFiltersDisplay', () => {
 
     it('should maintain order even when some filters are missing', () => {
       const filters: FilterState = {
-        category: '',
+        category: [],
         expiry: '',
-        location: '',
+        location: [],
         quantity: 'quantity',
         searchText: 'search',
         showAdvanced: false,

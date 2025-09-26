@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+
 import {
   createUnifiedModal,
   createAddModal,
@@ -42,6 +43,8 @@ vi.mock('../../src/utils/constants', () => ({
 describe('modalTemplates', () => {
   let mockTodoLists: TodoList[];
   let mockTranslations: TranslationData;
+  let mockCategories: string[];
+  let mockLocations: string[];
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -51,6 +54,10 @@ describe('modalTemplates', () => {
       { id: 'shopping-2', name: 'Shopping List', entity_id: 'todo.shopping' },
       { id: 'household-3', name: 'Household Tasks' },
     ];
+
+    mockCategories = ['Food', 'Cleaning', 'Tools', 'Supplies'];
+
+    mockLocations = ['Pantry', 'Fridge', 'Garage', 'Bathroom'];
 
     mockTranslations = {
       modal: {
@@ -297,7 +304,7 @@ describe('modalTemplates', () => {
 
   describe('createAddModal', () => {
     it('should create add modal with correct configuration', () => {
-      const result = createAddModal(mockTodoLists, mockTranslations);
+      const result = createAddModal(mockTodoLists, mockTranslations, mockCategories, mockLocations);
 
       expect(result).toContain('id="add-modal"');
       expect(result).toContain('Add Item');
@@ -306,7 +313,7 @@ describe('modalTemplates', () => {
     });
 
     it('should use add prefix for form fields', () => {
-      const result = createAddModal(mockTodoLists, mockTranslations);
+      const result = createAddModal(mockTodoLists, mockTranslations, mockCategories, mockLocations);
 
       expect(result).toContain('id="add-name"');
       expect(result).toContain('id="add-quantity"');
@@ -317,7 +324,7 @@ describe('modalTemplates', () => {
     });
 
     it('should include todo list options', () => {
-      const result = createAddModal(mockTodoLists, mockTranslations);
+      const result = createAddModal(mockTodoLists, mockTranslations, mockCategories, mockLocations);
 
       expect(result).toContain('value="grocery-1"');
       expect(result).toContain('Grocery List');
@@ -328,7 +335,7 @@ describe('modalTemplates', () => {
     });
 
     it('should handle empty todo lists', () => {
-      const result = createAddModal([], mockTranslations);
+      const result = createAddModal([], mockTranslations, mockCategories, mockLocations);
 
       expect(result).toContain('id="add-modal"');
       expect(result).toContain('Select list...');
@@ -338,7 +345,12 @@ describe('modalTemplates', () => {
 
   describe('createEditModal', () => {
     it('should create edit modal with correct configuration', () => {
-      const result = createEditModal(mockTodoLists, mockTranslations);
+      const result = createEditModal(
+        mockTodoLists,
+        mockTranslations,
+        mockCategories,
+        mockLocations,
+      );
 
       expect(result).toContain('id="edit-modal"');
       expect(result).toContain('Edit Item');
@@ -346,14 +358,24 @@ describe('modalTemplates', () => {
     });
 
     it('should not include button ID or close action', () => {
-      const result = createEditModal(mockTodoLists, mockTranslations);
+      const result = createEditModal(
+        mockTodoLists,
+        mockTranslations,
+        mockCategories,
+        mockLocations,
+      );
 
       expect(result).not.toContain('id="add-item-btn"');
       expect(result).not.toContain('data-action="close_add_modal"');
     });
 
     it('should use edit prefix for form fields', () => {
-      const result = createEditModal(mockTodoLists, mockTranslations);
+      const result = createEditModal(
+        mockTodoLists,
+        mockTranslations,
+        mockCategories,
+        mockLocations,
+      );
 
       expect(result).toContain('id="edit-name"');
       expect(result).toContain('id="edit-quantity"');
@@ -364,7 +386,12 @@ describe('modalTemplates', () => {
     });
 
     it('should include todo list options', () => {
-      const result = createEditModal(mockTodoLists, mockTranslations);
+      const result = createEditModal(
+        mockTodoLists,
+        mockTranslations,
+        mockCategories,
+        mockLocations,
+      );
 
       expect(result).toContain('value="grocery-1"');
       expect(result).toContain('Grocery List');
@@ -375,7 +402,7 @@ describe('modalTemplates', () => {
     });
 
     it('should handle empty todo lists', () => {
-      const result = createEditModal([], mockTranslations);
+      const result = createEditModal([], mockTranslations, mockCategories, mockLocations);
 
       expect(result).toContain('id="edit-modal"');
       expect(result).toContain('Select list...');
@@ -385,8 +412,18 @@ describe('modalTemplates', () => {
 
   describe('comparison between add and edit modals', () => {
     it('should have same structure but different IDs and content', () => {
-      const addResult = createAddModal(mockTodoLists, mockTranslations);
-      const editResult = createEditModal(mockTodoLists, mockTranslations);
+      const addResult = createAddModal(
+        mockTodoLists,
+        mockTranslations,
+        mockCategories,
+        mockLocations,
+      );
+      const editResult = createEditModal(
+        mockTodoLists,
+        mockTranslations,
+        mockCategories,
+        mockLocations,
+      );
 
       // Both should have modal structure
       expect(addResult).toContain('class="modal"');
@@ -410,8 +447,18 @@ describe('modalTemplates', () => {
     });
 
     it('should both include same todo list options', () => {
-      const addResult = createAddModal(mockTodoLists, mockTranslations);
-      const editResult = createEditModal(mockTodoLists, mockTranslations);
+      const addResult = createAddModal(
+        mockTodoLists,
+        mockTranslations,
+        mockCategories,
+        mockLocations,
+      );
+      const editResult = createEditModal(
+        mockTodoLists,
+        mockTranslations,
+        mockCategories,
+        mockLocations,
+      );
 
       mockTodoLists.forEach((list) => {
         expect(addResult).toContain(`value="${list.id}"`);

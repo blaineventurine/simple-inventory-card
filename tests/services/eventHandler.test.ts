@@ -7,7 +7,6 @@ import { ELEMENTS, ACTIONS, DEFAULTS, CSS_CLASSES, SORT_METHODS } from '../../sr
 import { HomeAssistant, InventoryConfig, InventoryItem } from '../../src/types/homeAssistant';
 import { createMockHomeAssistant, createMockHassEntity } from '../testHelpers';
 import { TranslationData } from '@/types/translatableComponent';
-import { initializeMultiSelect } from '../../src/services/multiSelect';
 
 vi.mock('../../src/services/services');
 vi.mock('../../src/services/modals');
@@ -693,7 +692,7 @@ describe('EventHandler', () => {
       });
 
       it('should handle unknown action', async () => {
-        const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => { });
+        const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
         await eventHandler['handleItemAction'](mockButton, 'unknown', 'Test Item');
 
@@ -702,7 +701,7 @@ describe('EventHandler', () => {
       });
 
       it('should handle service errors gracefully', async () => {
-        const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
+        const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
         vi.mocked(mockServices.incrementItem).mockRejectedValue(new Error('Service error'));
 
         await eventHandler['handleItemAction'](mockButton, ACTIONS.INCREMENT, 'Test Item');
@@ -814,7 +813,7 @@ describe('EventHandler', () => {
       });
 
       it('should handle errors gracefully', () => {
-        const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
+        const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
         vi.mocked(mockFilters.getCurrentFilters).mockImplementation(() => {
           throw new Error('Filter error');
         });
@@ -849,7 +848,7 @@ describe('EventHandler', () => {
       });
 
       it('should handle errors gracefully', () => {
-        const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
+        const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
         vi.mocked(mockFilters.getCurrentFilters).mockImplementation(() => {
           throw new Error('Toggle error');
         });
@@ -887,7 +886,7 @@ describe('EventHandler', () => {
       });
 
       it('should handle errors gracefully', () => {
-        const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
+        const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
         vi.mocked(mockFilters.clearFilters).mockImplementation(() => {
           throw new Error('Clear error');
         });
