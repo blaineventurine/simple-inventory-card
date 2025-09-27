@@ -179,7 +179,6 @@ function locationFilters(
             'All Locations',
           ),
         })}
-        </select>
       </div>
     </div>
 `;

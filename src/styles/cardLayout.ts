@@ -21,7 +21,6 @@ export const cardLayoutStyles: CSSResult = css`
   .active-filters {
     display: block;
     padding: 8px 16px;
-    border-bottom: 1px solid var(--divider-color, rgba(255, 255, 255, 0.1));
   }
 
   .filter-badges-container {
