@@ -18,6 +18,8 @@ export function createUnifiedModal(
   todoLists: TodoList[],
   config: ModalConfig,
   translations: TranslationData,
+  categories: string[] = [],
+  locations: string[] = [],
 ): string {
   const prefix = config.id === ELEMENTS.ADD_MODAL ? 'add' : 'edit';
 
@@ -39,8 +41,8 @@ export function createUnifiedModal(
             ${itemUnit(prefix, translations)}
           </div>
 
-          ${itemCategory(prefix, translations)}
-          ${itemLocation(prefix, translations)}
+          ${itemCategory(prefix, translations, categories)}
+          ${itemLocation(prefix, translations, locations)}
           ${itemExpiryDate(prefix, translations)}
           ${expiryAlertDays(prefix, translations)}
 
@@ -61,7 +63,12 @@ export function createUnifiedModal(
   `;
 }
 
-export function createAddModal(todoLists: TodoList[], translations: TranslationData): string {
+export function createAddModal(
+  todoLists: TodoList[],
+  translations: TranslationData,
+  categories: string[],
+  locations: string[],
+): string {
   return createUnifiedModal(
     todoLists,
     {
@@ -77,10 +84,17 @@ export function createAddModal(todoLists: TodoList[], translations: TranslationD
       closeAction: ACTIONS.CLOSE_ADD_MODAL,
     },
     translations,
+    categories,
+    locations,
   );
 }
 
-export function createEditModal(todoLists: TodoList[], translations: TranslationData): string {
+export function createEditModal(
+  todoLists: TodoList[],
+  translations: TranslationData,
+  categories: string[],
+  locations: string[],
+): string {
   return createUnifiedModal(
     todoLists,
     {
@@ -94,5 +108,7 @@ export function createEditModal(todoLists: TodoList[], translations: Translation
       ),
     },
     translations,
+    categories,
+    locations,
   );
 }

@@ -273,4 +273,132 @@ export const formStyles: CSSResult = css`
   .input-error:focus {
     animation: none; /* Stop shake when user focuses to fix */
   }
+
+  .autocomplete-container {
+    position: relative;
+  }
+
+  .autocomplete-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--card-background-color);
+    border: 2px solid var(--divider-color);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .autocomplete-option {
+    padding: 14px 16px;
+    cursor: pointer;
+    color: var(--primary-text-color);
+    font-size: 16px;
+    transition: background-color 0.2s ease;
+    border-bottom: 1px solid var(--divider-color);
+  }
+
+  .autocomplete-option:last-child {
+    border-bottom: none;
+  }
+
+  .autocomplete-option:hover,
+  .autocomplete-option.selected {
+    background: var(--secondary-background-color, rgba(var(--rgb-primary-color), 0.05));
+  }
+
+  .autocomplete-option.selected {
+    background: var(--primary-color);
+    color: var(--text-primary-color, white);
+  }
+
+  .autocomplete-container input {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 4l3 3 3-3' stroke='%23666' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    padding-right: 48px;
+  }
+
+  .autocomplete-container input:focus {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 4l3 3 3-3' stroke='var(--primary-color)' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+  }
+
+  .multi-select-container {
+    position: relative;
+  }
+
+  .multi-select-trigger {
+    padding: 14px 16px;
+    border: 2px solid var(--divider-color);
+    border-radius: 8px;
+    background: var(--card-background-color);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s ease;
+  }
+
+  .multi-select-trigger:hover {
+    border-color: var(--primary-color);
+  }
+
+  .multi-select-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--card-background-color);
+    border: 2px solid var(--divider-color);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .multi-select-option {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--divider-color);
+    gap: 12px;
+  }
+
+  .multi-select-option:last-child {
+    border-bottom: none;
+  }
+
+  .multi-select-option:hover {
+    background: var(--secondary-background-color);
+  }
+
+  .multi-select-option input[type='checkbox'] {
+    margin: 0;
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+  }
+
+  .multi-select-option span {
+    flex: 1;
+    user-select: none;
+  }
+
+  .multi-select-arrow {
+    transition: transform 0.3s ease;
+    margin-left: 8px;
+  }
+
+  .multi-select-trigger.open .multi-select-arrow {
+    transform: rotate(180deg);
+  }
 `;

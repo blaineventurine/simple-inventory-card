@@ -52,8 +52,8 @@ export function generateCardHTML(
         }
       </div>
 
-      ${createAddModal(todoLists, translations)}
-      ${createEditModal(todoLists, translations)}
+      ${createAddModal(todoLists, translations, categories, locations)}
+      ${createEditModal(todoLists, translations, categories, locations)}
     </ha-card>
   `;
 }

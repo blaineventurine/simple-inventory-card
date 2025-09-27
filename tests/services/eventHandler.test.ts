@@ -2,7 +2,6 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { EventHandler } from '../../src/services/eventHandler';
 import { Services } from '../../src/services/services';
 import { Modals } from '../../src/services/modals';
-import { Filters } from '../../src/services/filters';
 import { Utilities } from '../../src/utils/utilities';
 import { ELEMENTS, ACTIONS, DEFAULTS, CSS_CLASSES, SORT_METHODS } from '../../src/utils/constants';
 import { HomeAssistant, InventoryConfig, InventoryItem } from '../../src/types/homeAssistant';
@@ -13,11 +12,19 @@ vi.mock('../../src/services/services');
 vi.mock('../../src/services/modals');
 vi.mock('../../src/services/filters');
 vi.mock('../../src/utils/utilities');
+vi.mock('../../src/templates/autoCompleteInput', () => ({
+  initializeAutocomplete: vi.fn(),
+  createAutocompleteInput: vi.fn(() => '<div></div>'),
+}));
+vi.mock('../../src/services/multiSelect.ts', () => ({
+  createMultiSelect: vi.fn(() => '<div></div>'),
+  initializeMultiSelect: vi.fn(),
+}));
 
 describe('EventHandler', () => {
   let eventHandler: EventHandler;
   let mockConfig: InventoryConfig;
-  let mockFilters: Filters;
+  let mockFilters: any;
   let mockHass: HomeAssistant;
   let mockModals: Modals;
   let mockRenderCallback: () => void;
@@ -40,6 +47,7 @@ describe('EventHandler', () => {
   ];
 
   beforeEach(() => {
+    vi.useFakeTimers();
     mockRenderRoot = {
       addEventListener: vi.fn(),
       removeEventListener: vi.fn(),
@@ -70,15 +78,22 @@ describe('EventHandler', () => {
     } as unknown as Modals;
 
     mockFilters = {
-      setupSearchInput: vi.fn(),
-      getCurrentFilters: vi.fn(),
-      filterItems: vi.fn(),
-      sortItems: vi.fn(),
-      updateFilterIndicators: vi.fn(),
+      getCurrentFilters: vi.fn().mockReturnValue({
+        category: [],
+        expiry: '',
+        location: [],
+        quantity: '',
+        searchText: '',
+        showAdvanced: false,
+        sortMethod: 'name',
+      }),
       saveFilters: vi.fn(),
       clearFilters: vi.fn(),
-    } as unknown as Filters;
-
+      filterItems: vi.fn((items) => items),
+      sortItems: vi.fn((items) => items),
+      setupSearchInput: vi.fn(),
+      updateFilterIndicators: vi.fn(),
+    };
     mockHass = createMockHomeAssistant({
       'sensor.test_inventory': createMockHassEntity('sensor.test_inventory', {
         attributes: { items: mockInventoryItems },
@@ -96,11 +111,8 @@ describe('EventHandler', () => {
     vi.mocked(Utilities.getInventoryId).mockReturnValue('test-inventory-id');
     vi.mocked(Utilities.validateInventoryItems).mockReturnValue(mockInventoryItems);
 
-    // Mock confirm dialog
     globalThis.confirm = vi.fn();
     globalThis.alert = vi.fn();
-
-    vi.clearAllMocks();
 
     eventHandler = new EventHandler(
       mockRenderRoot,
@@ -114,6 +126,12 @@ describe('EventHandler', () => {
       () => ({ hass: mockHass, config: mockConfig }),
       mockTranslations,
     );
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+    vi.clearAllTimers();
+    vi.useRealTimers();
   });
 
   describe('Constructor', () => {
@@ -459,61 +477,11 @@ describe('EventHandler', () => {
     let mockEvent: Event;
 
     describe('filter selects', () => {
-      it('should handle category filter change', () => {
-        const selectElement = document.createElement('select');
-        selectElement.id = ELEMENTS.FILTER_CATEGORY;
-        selectElement.value = 'Food';
-
-        mockEvent = { target: selectElement } as unknown as Event;
-        const autoApplyFilterSpy = vi.spyOn(eventHandler as any, 'autoApplyFilter');
-
-        eventHandler['handleChange'](mockEvent);
-
-        expect(autoApplyFilterSpy).toHaveBeenCalledWith(selectElement);
-      });
-
-      it('should handle quantity filter change', () => {
-        const selectElement = document.createElement('select');
-        selectElement.id = ELEMENTS.FILTER_QUANTITY;
-        selectElement.value = 'low';
-
-        mockEvent = { target: selectElement } as unknown as Event;
-        const autoApplyFilterSpy = vi.spyOn(eventHandler as any, 'autoApplyFilter');
-
-        eventHandler['handleChange'](mockEvent);
-
-        expect(autoApplyFilterSpy).toHaveBeenCalledWith(selectElement);
-      });
-
-      it('should handle expiry filter change', () => {
-        const selectElement = document.createElement('select');
-        selectElement.id = ELEMENTS.FILTER_EXPIRY;
-        selectElement.value = 'expired';
-
-        mockEvent = { target: selectElement } as unknown as Event;
-        const autoApplyFilterSpy = vi.spyOn(eventHandler as any, 'autoApplyFilter');
-
-        eventHandler['handleChange'](mockEvent);
-
-        expect(autoApplyFilterSpy).toHaveBeenCalledWith(selectElement);
-      });
-
-      it('should handle location filter change', () => {
-        const selectElement = document.createElement('select');
-        selectElement.id = ELEMENTS.FILTER_LOCATION;
-        selectElement.value = 'Pantry';
-
-        mockEvent = { target: selectElement } as unknown as Event;
-        const autoApplyFilterSpy = vi.spyOn(eventHandler as any, 'autoApplyFilter');
-        eventHandler['handleChange'](mockEvent);
-        expect(autoApplyFilterSpy).toHaveBeenCalledWith(selectElement);
-      });
-
       it('should handle sort method change', () => {
         const filterData = {
-          category: '',
+          category: [''],
           expiry: '',
-          location: '',
+          location: [''],
           quantity: '',
           searchText: 'test',
           showAdvanced: false,
@@ -543,7 +511,6 @@ describe('EventHandler', () => {
         const mockParent = document.createElement('div');
         mockParent.append(mockControls);
 
-        // Create a real input element
         const inputElement = document.createElement('input');
         inputElement.type = 'checkbox';
         inputElement.id = 'auto-add-enabled';
@@ -568,9 +535,9 @@ describe('EventHandler', () => {
     describe('handleSearchChange', () => {
       beforeEach(() => {
         const filterData = {
-          category: '',
+          category: [''],
           expiry: '',
-          location: '',
+          location: [''],
           quantity: '',
           searchText: 'test',
           showAdvanced: false,
@@ -772,75 +739,12 @@ describe('EventHandler', () => {
       });
     });
 
-    describe('autoApplyFilter', () => {
-      let filterData: any;
-      let mockSelectElement: HTMLSelectElement;
-
-      beforeEach(() => {
-        filterData = { category: '', quantity: '', expiry: '', location: '' };
-        vi.mocked(mockFilters.getCurrentFilters).mockReturnValue(filterData);
-
-        mockSelectElement = {
-          id: ELEMENTS.FILTER_CATEGORY,
-          value: 'Food',
-        } as HTMLSelectElement;
-      });
-
-      it('should apply category filter', () => {
-        eventHandler['autoApplyFilter'](mockSelectElement);
-
-        filterData.category = 'Food';
-        expect(mockFilters.saveFilters).toHaveBeenCalledWith(mockConfig.entity, filterData);
-        expect(mockRenderCallback).toHaveBeenCalled();
-      });
-
-      it('should apply quantity filter', () => {
-        mockSelectElement.id = ELEMENTS.FILTER_QUANTITY;
-        mockSelectElement.value = 'low';
-
-        eventHandler['autoApplyFilter'](mockSelectElement);
-
-        expect(mockRenderCallback).toHaveBeenCalled();
-      });
-
-      it('should apply expiry filter', () => {
-        mockSelectElement.id = ELEMENTS.FILTER_EXPIRY;
-        mockSelectElement.value = 'expired';
-
-        eventHandler['autoApplyFilter'](mockSelectElement);
-
-        expect(mockRenderCallback).toHaveBeenCalled();
-      });
-
-      it('should apply location filter', () => {
-        mockSelectElement.id = ELEMENTS.FILTER_LOCATION;
-        mockSelectElement.value = 'Pantry';
-        eventHandler['autoApplyFilter'](mockSelectElement);
-        expect(mockRenderCallback).toHaveBeenCalled();
-      });
-
-      it('should handle errors gracefully', () => {
-        const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-        vi.mocked(mockFilters.getCurrentFilters).mockImplementation(() => {
-          throw new Error('Filter error');
-        });
-
-        eventHandler['autoApplyFilter'](mockSelectElement);
-
-        expect(consoleErrorSpy).toHaveBeenCalledWith(
-          'Error auto-applying filter:',
-          expect.any(Error),
-        );
-        consoleErrorSpy.mockRestore();
-      });
-    });
-
     describe('toggleAdvancedFilters', () => {
       it('should toggle advanced filters', () => {
         const filterData = {
-          category: '',
+          category: [''],
           expiry: '',
-          location: '',
+          location: [''],
           quantity: '',
           searchText: '',
           showAdvanced: false,

@@ -5,6 +5,8 @@ import { ModalUIManager } from './modals/modalUIManager';
 import { ModalValidationManager } from './modals/modalValidationManager';
 import { Utilities } from '../utils/utilities';
 import { TranslationData } from '@/types/translatableComponent';
+import { initializeAutoComplete } from './autoComplete';
+import { ELEMENTS } from '@/utils/constants';
 
 export interface InventoryServiceResult {
   success: boolean;
@@ -25,6 +27,7 @@ export class Modals {
   private validationManager: ModalValidationManager;
   private uiManager: ModalUIManager;
   private currentEditingItem: string | undefined = undefined;
+  private shadowRoot: ShadowRoot;
 
   constructor(
     shadowRoot: ShadowRoot,
@@ -35,10 +38,16 @@ export class Modals {
     this.formManager = new ModalFormManager(shadowRoot);
     this.validationManager = new ModalValidationManager(shadowRoot);
     this.uiManager = new ModalUIManager(shadowRoot, this.formManager, this.validationManager);
+    this.shadowRoot = shadowRoot;
   }
 
-  public openAddModal(translations: TranslationData): void {
+  public openAddModal(
+    translations: TranslationData,
+    locations: string[] = [],
+    categories: string[] = [],
+  ): void {
     this.uiManager.openAddModal(translations);
+    this.initializeAutoCompleteInputs('add', locations, categories);
   }
 
   public closeAddModal(): void {
@@ -49,10 +58,13 @@ export class Modals {
     itemName: string,
     getFreshData: () => { hass: HomeAssistant; config: InventoryConfig },
     translations: TranslationData,
+    locations: string[] = [],
+    categories: string[] = [],
   ): void {
     const result = this.uiManager.openEditModal(itemName, getFreshData, translations);
     if (result.found) {
       this.currentEditingItem = itemName;
+      this.initializeAutoCompleteInputs('edit', locations, categories);
     }
   }
 
@@ -167,5 +179,25 @@ export class Modals {
     if (this.onDataChanged) {
       this.onDataChanged();
     }
+  }
+
+  private initializeAutoCompleteInputs(
+    prefix: string,
+    locations: string[],
+    categories: string[],
+  ): void {
+    setTimeout(() => {
+      initializeAutoComplete({
+        id: `${prefix}-${ELEMENTS.LOCATION}`,
+        options: locations,
+        shadowRoot: this.shadowRoot,
+      });
+
+      initializeAutoComplete({
+        id: `${prefix}-${ELEMENTS.CATEGORY}`,
+        options: categories,
+        shadowRoot: this.shadowRoot,
+      });
+    }, 0);
   }
 }

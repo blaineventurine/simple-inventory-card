@@ -13,12 +13,13 @@ vi.mock('../../src/services/translationManager', () => ({
 }));
 
 const baseFilters: FilterState = {
-  category: '',
-  expiry: '',
-  location: '',
-  quantity: '',
+  category: [],
+  expiry: [],
+  location: [],
+  quantity: [],
   searchText: '',
   showAdvanced: false,
+  sortMethod: 'name',
 };
 
 describe('createActiveFiltersDisplay', () => {
@@ -33,6 +34,7 @@ describe('createActiveFiltersDisplay', () => {
         location: 'Location',
         quantity: 'Quantity',
         search: 'Search',
+        selected: 'selected',
       },
       filters: {
         expired: 'Expired',
@@ -50,7 +52,7 @@ describe('createActiveFiltersDisplay', () => {
     it('should hide display when no filters are active', () => {
       const result = createActiveFiltersDisplay(baseFilters, mockTranslations);
 
-      expect(result).toContain('style="display: none;"');
+      expect(result).toContain('style="display: none;">');
       expect(result).toContain(`id="${ELEMENTS.ACTIVE_FILTERS}"`);
       expect(result).toContain('class="active-filters"');
     });
@@ -63,8 +65,7 @@ describe('createActiveFiltersDisplay', () => {
 
       const result = createActiveFiltersDisplay(filters, mockTranslations);
 
-      expect(result).toContain('style="display: block;"');
-      expect(result).toContain('Active filters:');
+      expect(result).toContain('style="display: block;">');
     });
 
     it('should include active filters list element', () => {
@@ -76,11 +77,12 @@ describe('createActiveFiltersDisplay', () => {
       const result = createActiveFiltersDisplay(filters, mockTranslations);
 
       expect(result).toContain(`id="${ELEMENTS.ACTIVE_FILTERS_LIST}"`);
+      expect(result).toContain('class="filter-badges-container"');
     });
   });
 
   describe('individual filter types', () => {
-    it('should display search text filter', () => {
+    it('should display search text filter badge', () => {
       const filters: FilterState = {
         ...baseFilters,
         searchText: 'banana',
@@ -88,99 +90,150 @@ describe('createActiveFiltersDisplay', () => {
 
       const result = createActiveFiltersDisplay(filters, mockTranslations);
 
+      expect(result).toContain('<span class="filter-badge search">');
       expect(result).toContain('Search: "banana"');
-      expect(result).toContain('style="display: block;"');
+      expect(result).toContain('</span>');
+      expect(result).toContain('style="display: block;">');
     });
 
-    it('should display category filter', () => {
+    it('should display single category filter badge', () => {
       const filters: FilterState = {
         ...baseFilters,
-        category: 'Fruit',
+        category: ['Fruit'],
       };
 
       const result = createActiveFiltersDisplay(filters, mockTranslations);
 
+      expect(result).toContain('<span class="filter-badge category">');
       expect(result).toContain('Category: Fruit');
-      expect(result).toContain('style="display: block;"');
+      expect(result).toContain('</span>');
     });
 
-    it('should display quantity filter', () => {
+    it('should display multiple categories as count', () => {
       const filters: FilterState = {
         ...baseFilters,
-        quantity: 'zero',
+        category: ['Fruit', 'Dairy'],
       };
 
       const result = createActiveFiltersDisplay(filters, mockTranslations);
 
+      expect(result).toContain('<span class="filter-badge category">');
+      expect(result).toContain('Category: 2 selected');
+      expect(result).toContain('</span>');
+    });
+
+    it('should display single quantity filter badge', () => {
+      const filters: FilterState = {
+        ...baseFilters,
+        quantity: ['zero'],
+      };
+
+      const result = createActiveFiltersDisplay(filters, mockTranslations);
+
+      expect(result).toContain('<span class="filter-badge quantity">');
       expect(result).toContain('Quantity: zero');
-      expect(result).toContain('style="display: block;"');
+      expect(result).toContain('</span>');
     });
 
-    it('should display expiry filter', () => {
+    it('should display multiple quantity filters as count', () => {
       const filters: FilterState = {
         ...baseFilters,
-        expiry: 'expired',
+        quantity: ['zero', 'nonzero'],
       };
 
       const result = createActiveFiltersDisplay(filters, mockTranslations);
 
-      expect(result).toContain('Expiry: expired');
-      expect(result).toContain('style="display: block;"');
+      expect(result).toContain('<span class="filter-badge quantity">');
+      expect(result).toContain('Quantity: 2 selected');
+      expect(result).toContain('</span>');
+    });
+
+    it('should display single expiry filter badge with translation', () => {
+      const filters: FilterState = {
+        ...baseFilters,
+        expiry: ['expired'],
+      };
+
+      const result = createActiveFiltersDisplay(filters, mockTranslations);
+
+      expect(result).toContain('<span class="filter-badge expiry">');
+      expect(result).toContain('Expiry: expired'); // Note: translated value
+      expect(result).toContain('</span>');
+    });
+
+    it('should display location filter badge', () => {
+      const filters: FilterState = {
+        ...baseFilters,
+        location: ['Pantry'],
+      };
+
+      const result = createActiveFiltersDisplay(filters, mockTranslations);
+
+      expect(result).toContain('<span class="filter-badge location">');
+      expect(result).toContain('Location: Pantry');
+      expect(result).toContain('</span>');
     });
   });
 
   describe('multiple filters', () => {
-    it('should display multiple filters separated by commas', () => {
+    it('should display multiple filter badges', () => {
       const filters: FilterState = {
         ...baseFilters,
         searchText: 'apple',
-        category: 'Fruit',
+        category: ['Fruit'],
       };
 
       const result = createActiveFiltersDisplay(filters, mockTranslations);
 
-      expect(result).toContain('Search: "apple", Category: Fruit');
-      expect(result).toContain('style="display: block;"');
+      expect(result).toContain('<span class="filter-badge search">');
+      expect(result).toContain('Search: "apple"');
+      expect(result).toContain('<span class="filter-badge category">');
+      expect(result).toContain('Category: Fruit');
+      expect(result).toContain('style="display: block;">');
     });
 
     it('should display all filter types when active', () => {
       const filters: FilterState = {
+        category: ['Food'],
+        expiry: ['soon'],
+        location: ['Pantry'],
+        quantity: ['zero'],
         searchText: 'test',
-        category: 'Food',
-        location: 'Pantry',
-        quantity: 'zero',
-        expiry: 'soon',
         showAdvanced: true,
+        sortMethod: 'name',
       };
 
       const result = createActiveFiltersDisplay(filters, mockTranslations);
 
+      expect(result).toContain('<span class="filter-badge search">');
       expect(result).toContain('Search: "test"');
+      expect(result).toContain('<span class="filter-badge category">');
       expect(result).toContain('Category: Food');
-      expect(result).toContain('Quantity: zero');
-      expect(result).toContain('Expiry: soon');
+      expect(result).toContain('<span class="filter-badge location">');
       expect(result).toContain('Location: Pantry');
-      expect(result).toContain('style="display: block;"');
-
-      // Check they're comma-separated
-      const filtersList = result.match(/<span id="[^"]*">[^<]*<\/span>/)?.[0];
-      expect(filtersList).toContain(', ');
+      expect(result).toContain('<span class="filter-badge quantity">');
+      expect(result).toContain('Quantity: zero');
+      expect(result).toContain('<span class="filter-badge expiry">');
+      expect(result).toContain('Expiry: soon'); // Translated
     });
 
-    it('should join filters with commas and spaces', () => {
+    it('should handle mix of single and multiple selections', () => {
       const filters: FilterState = {
+        category: ['Dairy', 'Bakery', 'Frozen'],
+        expiry: [],
+        location: ['Pantry'],
+        quantity: ['zero', 'nonzero'],
         searchText: 'milk',
-        category: 'Dairy',
-        quantity: 'zero',
-        location: 'Pantry',
-        expiry: '',
         showAdvanced: false,
+        sortMethod: 'name',
       };
 
       const result = createActiveFiltersDisplay(filters, mockTranslations);
 
-      const expectedText = 'Search: "milk", Category: Dairy, Quantity: zero, Location: Pantry';
-      expect(result).toContain(expectedText);
+      expect(result).toContain('Search: "milk"');
+      expect(result).toContain('Category: 3 selected');
+      expect(result).toContain('Location: Pantry');
+      expect(result).toContain('Quantity: 2 selected');
     });
   });
 
@@ -193,18 +246,18 @@ describe('createActiveFiltersDisplay', () => {
 
       const result = createActiveFiltersDisplay(filters, mockTranslations);
 
+      expect(result).toContain('<span class="filter-badge search">');
       expect(result).toContain('Search: "coffee & cream "special""');
     });
 
-    it('should handle empty string filters (should not display)', () => {
+    it('should handle empty arrays (should not display)', () => {
       const result = createActiveFiltersDisplay(baseFilters, mockTranslations);
+      const badgesContainer = result.match(/<div id="active-filters-list"[^>]*>([\s\S]*?)<\/div>/);
 
-      expect(result).not.toContain('Search:');
-      expect(result).not.toContain('Category:');
-      expect(result).not.toContain('Quantity:');
-      expect(result).not.toContain('Expiry:');
-      expect(result).not.toContain('Location:');
-      expect(result).toContain('style="display: none;"');
+      expect(result).toContain('style="display: none;">');
+      expect(badgesContainer).toBeTruthy();
+      expect(badgesContainer![1].trim()).toBe('');
+      expect(result).not.toMatch(/<span class="filter-badge[^"]*">/);
     });
 
     it('should handle whitespace-only filters (should display)', () => {
@@ -215,23 +268,9 @@ describe('createActiveFiltersDisplay', () => {
 
       const result = createActiveFiltersDisplay(filters, mockTranslations);
 
+      expect(result).toContain('<span class="filter-badge search">');
       expect(result).toContain('Search: "   "');
-      expect(result).toContain('style="display: block;"');
-    });
-
-    it('should handle undefined showAdvanced property', () => {
-      const filters = {
-        searchText: 'test',
-        category: '',
-        location: '',
-        quantity: '',
-        expiry: '',
-      } as FilterState;
-
-      const result = createActiveFiltersDisplay(filters, mockTranslations);
-
-      expect(result).toContain('Search: "test"');
-      expect(result).toContain('style="display: block;"');
+      expect(result).toContain('style="display: block;">');
     });
   });
 
@@ -240,19 +279,17 @@ describe('createActiveFiltersDisplay', () => {
       const filters: FilterState = {
         ...baseFilters,
         searchText: 'test',
-        category: 'Food',
+        category: ['Food'],
       };
 
       const result = createActiveFiltersDisplay(filters, mockTranslations);
 
-      // Check outer div structure
       expect(result).toMatch(
         /<div id="[^"]*" class="active-filters" style="display: block;">[\s\S]*<\/div>/,
       );
 
-      // Check inner spans
-      expect(result).toContain('<span>Active filters:</span>');
-      expect(result).toMatch(/<span id="[^"]*">.*<\/span>/);
+      expect(result).toContain('class="filter-badges-container"');
+      expect(result).toContain('<span class="filter-badge');
     });
 
     it('should use correct element IDs from constants', () => {
@@ -271,57 +308,35 @@ describe('createActiveFiltersDisplay', () => {
       const result = createActiveFiltersDisplay(baseFilters, mockTranslations);
 
       expect(result).toContain('\n');
-      expect(result.trim()).toBeTruthy(); // Should not be just whitespace
-
-      // Check that the HTML structure is properly formatted
+      expect(result.trim()).toBeTruthy();
       expect(result).toContain('<div id=');
       expect(result).toContain('</div>');
-      expect(result).toContain('<span>');
-      expect(result).toContain('</span>');
     });
   });
 
-  describe('filter ordering', () => {
-    it('should display filters in consistent order', () => {
+  describe('filter badge ordering', () => {
+    it('should display filter badges in consistent order', () => {
       const filters: FilterState = {
-        category: 'category',
-        expiry: 'expiry',
-        location: 'location',
-        quantity: 'quantity',
+        category: ['category'],
+        expiry: ['none'],
+        location: ['location'],
+        quantity: ['zero'],
         searchText: 'search',
         showAdvanced: false,
+        sortMethod: 'name',
       };
 
       const result = createActiveFiltersDisplay(filters, mockTranslations);
+      const searchIndex = result.indexOf('class="filter-badge search"');
+      const categoryIndex = result.indexOf('class="filter-badge category"');
+      const quantityIndex = result.indexOf('class="filter-badge quantity"');
+      const expiryIndex = result.indexOf('class="filter-badge expiry"');
+      const locationIndex = result.indexOf('class="filter-badge location"');
 
-      const filterText = result.match(/<span id="[^"]*">(.*?)<\/span>/)?.[1] || '';
-      const parts = filterText.split(', ');
-
-      expect(parts[0]).toBe('Search: "search"');
-      expect(parts[1]).toBe('Category: category');
-      expect(parts[2]).toBe('Quantity: quantity');
-      expect(parts[3]).toBe('Expiry: expiry');
-      expect(parts[4]).toBe('Location: location');
-    });
-
-    it('should maintain order even when some filters are missing', () => {
-      const filters: FilterState = {
-        category: '',
-        expiry: '',
-        location: '',
-        quantity: 'quantity',
-        searchText: 'search',
-        showAdvanced: false,
-      };
-
-      const result = createActiveFiltersDisplay(filters, mockTranslations);
-
-      const filterText = result.match(/<span id="[^"]*">(.*?)<\/span>/)?.[1] || '';
-      const parts = filterText.split(', ');
-
-      expect(parts[0]).toBe('Search: "search"');
-      expect(parts[1]).toBe('Quantity: quantity');
-      expect(parts.length).toBe(2);
+      expect(searchIndex).toBeLessThan(categoryIndex);
+      expect(categoryIndex).toBeLessThan(locationIndex);
+      expect(locationIndex).toBeLessThan(quantityIndex);
+      expect(quantityIndex).toBeLessThan(expiryIndex);
     });
   });
 });

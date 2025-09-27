@@ -41,10 +41,10 @@ describe('Filters', () => {
   let mockTranslations: TranslationData;
 
   const testFilters: FilterState = {
-    category: '',
-    expiry: '',
-    location: '',
-    quantity: '',
+    category: [],
+    expiry: [],
+    location: [],
+    quantity: [],
     searchText: '',
     showAdvanced: false,
     sortMethod: '',
@@ -152,10 +152,10 @@ describe('Filters', () => {
     describe('localStorage operations', () => {
       it('should return parsed filters from localStorage when valid JSON exists', () => {
         const savedFilters: FilterState = {
-          category: 'test category',
-          expiry: 'soon',
-          location: 'test location',
-          quantity: 'nonzero',
+          category: ['test category'],
+          expiry: ['soon'],
+          location: ['test location'],
+          quantity: ['nonzero'],
           searchText: 'test search',
           showAdvanced: true,
           sortMethod: SORT_METHODS.NAME,
@@ -210,10 +210,10 @@ describe('Filters', () => {
 
       it('should save filters to localStorage as JSON', () => {
         const testFilters: FilterState = {
-          category: 'category',
-          expiry: 'expired',
-          location: 'a location',
-          quantity: 'zero',
+          category: ['category'],
+          expiry: ['expired'],
+          location: ['a location'],
+          quantity: ['zero'],
           searchText: 'test',
           showAdvanced: true,
           sortMethod: SORT_METHODS.NAME,
@@ -396,7 +396,7 @@ describe('Filters', () => {
 
         const result = filters.filterItems(items, {
           ...testFilters,
-          category: 'Food',
+          category: ['Food'],
         });
 
         expect(result).toHaveLength(2);
@@ -414,7 +414,7 @@ describe('Filters', () => {
 
         const result = filters.filterItems(items, {
           ...testFilters,
-          location: 'Pantry',
+          location: ['Pantry'],
         });
 
         expect(result).toHaveLength(2);
@@ -432,7 +432,7 @@ describe('Filters', () => {
 
         const result = filters.filterItems(items, {
           ...testFilters,
-          quantity: 'zero',
+          quantity: ['zero'],
         });
 
         expect(result).toHaveLength(2);
@@ -448,7 +448,7 @@ describe('Filters', () => {
 
         const result = filters.filterItems(items, {
           ...testFilters,
-          quantity: 'nonzero',
+          quantity: ['nonzero'],
         });
 
         expect(result).toHaveLength(2);
@@ -460,7 +460,7 @@ describe('Filters', () => {
 
         const result = filters.filterItems(items, {
           ...testFilters,
-          quantity: 'unknown_filter_value', // Should hit default case
+          quantity: ['unknown_filter_value'], // Should hit default case
         });
 
         expect(result).toHaveLength(1); // Should include item (default: return true)
@@ -478,7 +478,7 @@ describe('Filters', () => {
 
         const result = filters.filterItems(items, {
           ...testFilters,
-          expiry: 'future',
+          expiry: ['future'],
         });
 
         expect(result).toHaveLength(0);
@@ -493,7 +493,7 @@ describe('Filters', () => {
 
         const result = filters.filterItems(items, {
           ...testFilters,
-          expiry: 'future',
+          expiry: ['future'],
         });
 
         expect(result).toHaveLength(0);
@@ -509,7 +509,7 @@ describe('Filters', () => {
 
         const result = filters.filterItems(items, {
           ...testFilters,
-          expiry: 'future',
+          expiry: ['future'],
         });
 
         expect(result).toHaveLength(0);
@@ -530,7 +530,7 @@ describe('Filters', () => {
 
         const result = filters.filterItems(items, {
           ...testFilters,
-          expiry: 'expired',
+          expiry: ['expired'],
         });
 
         expect(result).toHaveLength(1);
@@ -548,7 +548,7 @@ describe('Filters', () => {
 
         const result = filters.filterItems(items, {
           ...testFilters,
-          expiry: 'none',
+          expiry: ['none'],
         });
 
         expect(result).toHaveLength(3); // null, undefined, and empty string
@@ -568,7 +568,7 @@ describe('Filters', () => {
 
         const result = filters.filterItems(items, {
           ...testFilters,
-          expiry: 'soon',
+          expiry: ['soon'],
         });
 
         expect(result).toHaveLength(1);
@@ -588,7 +588,7 @@ describe('Filters', () => {
 
         const result = filters.filterItems(items, {
           ...testFilters,
-          expiry: 'soon',
+          expiry: ['soon'],
         });
 
         expect(result).toHaveLength(1);
@@ -613,7 +613,7 @@ describe('Filters', () => {
 
         const result = filters.filterItems(items, {
           ...testFilters,
-          expiry: 'future',
+          expiry: ['future'],
         });
 
         expect(result).toHaveLength(0); // With >, should exclude exact match
@@ -637,7 +637,7 @@ describe('Filters', () => {
 
         const result = filters.filterItems(items, {
           ...testFilters,
-          expiry: 'future',
+          expiry: ['future'],
         });
 
         expect(result).toHaveLength(1);
@@ -648,7 +648,7 @@ describe('Filters', () => {
 
         const result = filters.filterItems(items, {
           ...testFilters,
-          expiry: 'unknown_expiry_filter', // Should hit default case
+          expiry: ['unknown_expiry_filter'], // Should hit default case
         });
 
         expect(result).toHaveLength(1); // Should include item (default: return true)
@@ -681,10 +681,10 @@ describe('Filters', () => {
 
       const result = filters.filterItems(items, {
         searchText: 'tomato',
-        category: 'Drinks',
-        location: 'Pantry',
-        quantity: 'nonzero',
-        expiry: '',
+        category: ['Drinks'],
+        location: ['Pantry'],
+        quantity: ['nonzero'],
+        expiry: [],
         showAdvanced: false,
       });
 
@@ -1018,7 +1018,7 @@ describe('Filters', () => {
         const onFilterChange = vi.fn();
         const existingFilters: FilterState = {
           ...testFilters,
-          category: 'test',
+          category: ['test'],
           sortMethod: SORT_METHODS.NAME,
         };
 
@@ -1127,19 +1127,29 @@ describe('Filters', () => {
 
       it('should show active filters when filters are applied', () => {
         const testFilters: FilterState = {
-          category: 'Food',
-          expiry: 'soon',
-          location: 'Pantry',
-          quantity: 'nonzero',
+          category: ['Food'],
+          expiry: ['soon'],
+          location: ['Pantry'],
+          quantity: ['nonzero'],
           searchText: 'test search',
           showAdvanced: true,
+          sortMethod: 'name',
         };
 
         filters.updateFilterIndicators(testFilters, mockTranslations);
 
-        expect(mockActiveFiltersList.textContent).toBe(
-          'Search: "test search", Category: Food, Location: Pantry, Quantity: nonzero, Expiry: soon',
-        );
+        // Check that the innerHTML contains the expected badges
+        expect(mockActiveFiltersList.innerHTML).toContain('<span class="filter-badge search">');
+        expect(mockActiveFiltersList.innerHTML).toContain('Search: "test search"');
+        expect(mockActiveFiltersList.innerHTML).toContain('<span class="filter-badge category">');
+        expect(mockActiveFiltersList.innerHTML).toContain('Category: Food');
+        expect(mockActiveFiltersList.innerHTML).toContain('<span class="filter-badge location">');
+        expect(mockActiveFiltersList.innerHTML).toContain('Location: Pantry');
+        expect(mockActiveFiltersList.innerHTML).toContain('<span class="filter-badge quantity">');
+        expect(mockActiveFiltersList.innerHTML).toContain('Quantity: nonzero');
+        expect(mockActiveFiltersList.innerHTML).toContain('<span class="filter-badge expiry">');
+        expect(mockActiveFiltersList.innerHTML).toContain('Expiry: soon');
+
         expect(mockActiveFiltersDiv.style.display).toBe('block');
       });
 
@@ -1167,10 +1177,10 @@ describe('Filters', () => {
   describe('edge cases and stress tests', () => {
     it('should handle empty items array', () => {
       const result = filters.filterItems([], {
-        category: 'Food',
-        expiry: 'soon',
-        location: 'Pantry',
-        quantity: 'nonzero',
+        category: ['Food'],
+        expiry: ['soon'],
+        location: ['Pantry'],
+        quantity: ['nonzero'],
         searchText: 'test',
         showAdvanced: false,
       });
@@ -1183,10 +1193,10 @@ describe('Filters', () => {
       const items: InventoryItem[] = [createMockItem({ name: longName })];
 
       const result = filters.filterItems(items, {
-        category: '',
-        expiry: '',
-        location: '',
-        quantity: '',
+        category: [],
+        expiry: [],
+        location: [],
+        quantity: [],
         searchText: 'A'.repeat(100),
         showAdvanced: false,
       });
@@ -1201,10 +1211,10 @@ describe('Filters', () => {
       ];
 
       const result = filters.filterItems(items, {
-        category: '',
-        expiry: '',
-        location: '',
-        quantity: '',
+        category: [],
+        expiry: [],
+        location: [],
+        quantity: [],
         searchText: '&',
         showAdvanced: false,
       });

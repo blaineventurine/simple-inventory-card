@@ -561,10 +561,10 @@ describe('Utilities', () => {
       it.each([
         {
           filters: {
-            category: '',
-            expiry: '',
-            location: '',
-            quantity: '',
+            category: [],
+            expiry: [],
+            location: [],
+            quantity: [],
             searchText: 'test',
             showAdvanced: false,
           },
@@ -572,10 +572,10 @@ describe('Utilities', () => {
         },
         {
           filters: {
-            category: 'Food',
-            expiry: '',
-            location: '',
-            quantity: '',
+            category: ['Food'],
+            expiry: [],
+            location: [],
+            quantity: [],
             searchText: '',
             showAdvanced: false,
           },
@@ -583,10 +583,10 @@ describe('Utilities', () => {
         },
         {
           filters: {
-            category: '',
-            expiry: '',
-            location: 'kitchen',
-            quantity: '',
+            category: [],
+            expiry: [],
+            location: ['kitchen'],
+            quantity: [],
             searchText: '',
             showAdvanced: false,
           },
@@ -594,10 +594,10 @@ describe('Utilities', () => {
         },
         {
           filters: {
-            category: '',
-            expiry: '',
-            location: '',
-            quantity: '',
+            category: [],
+            expiry: [],
+            location: [],
+            quantity: [],
             searchText: '',
             showAdvanced: false,
           },
