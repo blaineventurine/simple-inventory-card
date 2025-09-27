@@ -27,18 +27,22 @@ export class Filters {
         if (typeof parsed.location === 'string') {
           parsed.location = parsed.location ? [parsed.location] : [];
         }
-
         if (typeof parsed.expiry === 'string') {
           parsed.expiry = parsed.expiry ? [parsed.expiry] : [];
         }
-
         if (typeof parsed.quantity === 'string') {
           parsed.quantity = parsed.quantity ? [parsed.quantity] : [];
         }
 
-        if (!parsed.sortMethod) {
-          parsed.sortMethod = DEFAULTS.SORT_METHOD;
-        }
+        parsed.category = Array.isArray(parsed.category) ? parsed.category : [];
+        parsed.location = Array.isArray(parsed.location) ? parsed.location : [];
+        parsed.quantity = Array.isArray(parsed.quantity) ? parsed.quantity : [];
+        parsed.expiry = Array.isArray(parsed.expiry) ? parsed.expiry : [];
+
+        parsed.searchText = parsed.searchText || '';
+        parsed.showAdvanced = !!parsed.showAdvanced;
+        parsed.sortMethod = parsed.sortMethod || DEFAULTS.SORT_METHOD;
+
         return parsed;
       } catch (error) {
         console.error('Error parsing saved filters:', error);
