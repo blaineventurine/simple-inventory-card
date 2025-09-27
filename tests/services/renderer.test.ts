@@ -32,9 +32,9 @@ describe('Renderer', () => {
 
   const mockFilters: FilterState = {
     category: [''],
-    expiry: '',
+    expiry: [],
     location: [''],
-    quantity: '',
+    quantity: [],
     searchText: '',
     showAdvanced: false,
   };
@@ -443,9 +443,9 @@ describe('Renderer', () => {
       };
       const mockFilters: FilterState = {
         category: ['test'],
-        expiry: 'expired',
+        expiry: ['expired'],
         location: ['fridge'],
-        quantity: '1-5',
+        quantity: ['1-5'],
         searchText: 'query',
         showAdvanced: true,
       };

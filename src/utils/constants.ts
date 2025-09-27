@@ -9,9 +9,9 @@ export const DOMAIN = 'simple_inventory';
 // Services (must match backend const.py)
 export const SERVICES = {
   ADD_ITEM: 'add_item',
-  REMOVE_ITEM: 'remove_item',
-  INCREMENT_ITEM: 'increment_item',
   DECREMENT_ITEM: 'decrement_item',
+  INCREMENT_ITEM: 'increment_item',
+  REMOVE_ITEM: 'remove_item',
   UPDATE_ITEM: 'update_item',
   UPDATE_ITEM_SETTINGS: 'update_item_settings',
 };
@@ -25,94 +25,95 @@ export const PARAMS = {
   EXPIRY_ALERT_DAYS: 'expiry_alert_days',
   EXPIRY_DATE: 'expiry_date',
   INVENTORY_ID: 'inventory_id',
+  LOCATION: 'location',
   NAME: 'name',
   OLD_NAME: 'old_name',
   QUANTITY: 'quantity',
   TODO_LIST: 'todo_list',
   UNIT: 'unit',
-  LOCATION: 'location',
 };
 
 export const ELEMENTS = {
   ADD_MODAL: 'add-modal',
   EDIT_MODAL: 'edit-modal',
 
-  NAME: 'name',
-  QUANTITY: 'quantity',
-  UNIT: 'unit',
-  CATEGORY: 'category',
-  EXPIRY_DATE: 'expiry-date',
-  EXPIRY_ALERT_DAYS: 'expiry-alert-days',
   AUTO_ADD_ENABLED: 'auto-add-enabled',
   AUTO_ADD_TO_LIST_QUANTITY: 'auto-add-to-list-quantity',
-  TODO_LIST: 'todo-list',
+  CATEGORY: 'category',
+  EXPIRY_ALERT_DAYS: 'expiry-alert-days',
+  EXPIRY_DATE: 'expiry-date',
   LOCATION: 'location',
+  NAME: 'name',
+  QUANTITY: 'quantity',
+  TODO_LIST: 'todo-list',
+  UNIT: 'unit',
 
   ADD_ITEM_BTN: 'add-item-btn',
   OPEN_ADD_MODAL: 'open-add-modal',
 
-  SEARCH_INPUT: 'search-input',
-  SORT_METHOD: 'sort-method',
-  ADVANCED_SEARCH_TOGGLE: 'advanced-search-toggle',
-  FILTER_CATEGORY: 'filter-category',
-  FILTER_LOCATION: 'filter-location',
-  FILTER_QUANTITY: 'filter-quantity',
-  FILTER_EXPIRY: 'filter-expiry',
-  APPLY_FILTERS: 'apply-filters',
-  CLEAR_FILTERS: 'clear-filters',
   ACTIVE_FILTERS: 'active-filters',
   ACTIVE_FILTERS_LIST: 'active-filters-list',
+  ADVANCED_SEARCH_TOGGLE: 'advanced-search-toggle',
+  APPLY_FILTERS: 'apply-filters',
+  CLEAR_ALL_FILTERS: 'clear-all-filters',
+  CLEAR_FILTERS: 'clear-filters',
+  FILTER_CATEGORY: 'filter-category',
+  FILTER_EXPIRY: 'filter-expiry',
+  FILTER_LOCATION: 'filter-location',
+  FILTER_QUANTITY: 'filter-quantity',
+  SEARCH_INPUT: 'search-input',
+  SORT_METHOD: 'sort-method',
 };
 
 export const CSS_CLASSES = {
-  SHOW: 'show',
-  SAVE_BTN: 'save-btn',
   CANCEL_BTN: 'cancel-btn',
-  CLOSE_BTN: 'close-btn',
-  MODAL_CONTENT: 'modal-content',
   CATEGORY_GROUP: 'category-group',
   CATEGORY_HEADER: 'category-header',
+  CLOSE_BTN: 'close-btn',
   LOCATION_GROUP: 'location-group',
   LOCATION_HEADER: 'location-header',
+  MODAL_CONTENT: 'modal-content',
+  SAVE_BTN: 'save-btn',
+  SHOW: 'show',
 };
 
 export const ACTIONS = {
-  INCREMENT: 'increment',
-  DECREMENT: 'decrement',
-  REMOVE: 'remove',
-  OPEN_EDIT_MODAL: 'open_edit',
   CLOSE_ADD_MODAL: 'close_add_modal',
+  DECREMENT: 'decrement',
+  INCREMENT: 'increment',
+  OPEN_EDIT_MODAL: 'open_edit',
+  REMOVE: 'remove',
 };
 
 export const DEFAULTS = {
   AUTO_ADD_ENABLED: false,
   AUTO_ADD_TO_LIST_QUANTITY: 0,
   CATEGORY: '',
-  EXPIRY_DATE: '',
   EXPIRY_ALERT_DAYS: 1,
+  EXPIRY_DATE: '',
+  LOCATION: '',
   QUANTITY: 1,
   SORT_METHOD: 'name',
   TODO_LIST: '',
   UNIT: '',
-  LOCATION: '',
 };
 
 export const SORT_METHODS = {
   CATEGORY: 'category',
   EXPIRY: 'expiry',
+  LOCATION: 'location',
   NAME: 'name',
   QUANTITY: 'quantity',
   QUANTITY_LOW: 'quantity-low',
   ZERO_LAST: 'zero-last',
-  LOCATION: 'location',
 };
 
 export const FILTERS = {
   CATEGORY: 'category',
   EXPIRY: 'expiry',
+  LOCATION: 'location',
   QUANTITY: 'quantity',
   SEARCH_TEXT: 'searchText',
-  LOCATION: 'location',
 };
 
 export const FILTER_VALUES = {

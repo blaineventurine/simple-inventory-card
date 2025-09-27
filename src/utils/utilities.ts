@@ -463,8 +463,8 @@ export const Utilities = {
       filters.searchText ||
         (filters.category && filters.category.length > 0) ||
         (filters.location && filters.location.length > 0) ||
-        filters.quantity ||
-        filters.expiry,
+        (filters.quantity && filters.quantity.length > 0) ||
+        (filters.expiry && filters.expiry.length > 0),
     );
   },
 

@@ -20,17 +20,27 @@ export function initializeMultiSelect(
   }
 
   function toggleDropdown() {
+    // Close all other dropdowns first
+    const allDropdowns = root.querySelectorAll('.multi-select-dropdown');
+    allDropdowns.forEach((d) => {
+      if (d !== dropdown) {
+        (d as HTMLElement).style.display = 'none';
+      }
+    });
+
+    // Toggle current dropdown
     isOpen = !isOpen;
     dropdown.style.display = isOpen ? 'block' : 'none';
   }
 
+  // Single trigger click handler
   trigger.addEventListener('click', (e) => {
     e.stopPropagation();
     toggleDropdown();
   });
 
+  // Handle checkbox changes
   dropdown.addEventListener('change', (e) => {
-    e.stopPropagation();
     const target = e.target as HTMLInputElement;
     if (target.type === 'checkbox') {
       if (target.checked) {
@@ -42,16 +52,16 @@ export function initializeMultiSelect(
       }
       updateTriggerText();
       config.onChange?.(selected);
-      // Don't close the dropdown - let user select multiple
     }
   });
 
+  // Prevent dropdown from closing when clicking inside
   dropdown.addEventListener('click', (e) => {
-    e.stopPropagation(); // Prevent dropdown from closing when clicking inside
+    e.stopPropagation();
   });
 
-  // Close dropdown when clicking outside
-  document.addEventListener('click', (e) => {
+  // Close dropdown when clicking outside (use root for consistency)
+  root.addEventListener('click', (e) => {
     if (!trigger.contains(e.target as Node) && !dropdown.contains(e.target as Node)) {
       dropdown.style.display = 'none';
       isOpen = false;

@@ -15,7 +15,7 @@ export function createMultiSelect(config: MultiSelectConfig): string {
             (option) => `
               <label class="multi-select-option">
                 <input type="checkbox" value="${option}" ${config.selected.includes(option) ? 'checked' : ''}>
-                <span>${option}</span>
+                <span>${config.labels?.[option] || option}</span>
               </label>
             `,
           )

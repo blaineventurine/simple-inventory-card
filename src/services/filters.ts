@@ -5,6 +5,7 @@ import { DEFAULTS } from '../utils/constants';
 import { FilterState } from '../types/filterState';
 import { TranslationData } from '@/types/translatableComponent';
 import { TranslationManager } from './translationManager';
+import { createFilterBadges } from '@/templates/filters';
 
 export class Filters {
   private searchTimeout: ReturnType<typeof setTimeout> | undefined = undefined;
@@ -27,6 +28,14 @@ export class Filters {
           parsed.location = parsed.location ? [parsed.location] : [];
         }
 
+        if (typeof parsed.expiry === 'string') {
+          parsed.expiry = parsed.expiry ? [parsed.expiry] : [];
+        }
+
+        if (typeof parsed.quantity === 'string') {
+          parsed.quantity = parsed.quantity ? [parsed.quantity] : [];
+        }
+
         if (!parsed.sortMethod) {
           parsed.sortMethod = DEFAULTS.SORT_METHOD;
         }
@@ -38,9 +47,9 @@ export class Filters {
 
     return {
       category: [],
-      expiry: '',
+      expiry: [],
       location: [],
-      quantity: '',
+      quantity: [],
       searchText: '',
       showAdvanced: false,
       sortMethod: DEFAULTS.SORT_METHOD,
@@ -65,19 +74,35 @@ export class Filters {
         return false;
       }
 
-      if (filters.category.length > 0 && !filters.category.includes(item.category || '')) {
+      if (
+        filters.category &&
+        filters.category.length > 0 &&
+        !filters.category.includes(item.category || '')
+      ) {
         return false;
       }
 
-      if (filters.location.length > 0 && !filters.location.includes(item.location || '')) {
+      if (
+        filters.location &&
+        filters.location.length > 0 &&
+        !filters.location.includes(item.location || '')
+      ) {
         return false;
       }
 
-      if (filters.quantity && !this.matchesQuantityFilter(item, filters.quantity)) {
+      if (
+        filters.quantity &&
+        filters.quantity.length > 0 &&
+        !this.matchesQuantityFilter(item, filters.quantity)
+      ) {
         return false;
       }
 
-      if (filters.expiry && !this.matchesExpiryFilter(item, filters.expiry)) {
+      if (
+        filters.expiry &&
+        filters.expiry.length > 0 &&
+        !this.matchesExpiryFilter(item, filters.expiry)
+      ) {
         return false;
       }
 
@@ -100,62 +125,63 @@ export class Filters {
     );
   }
 
-  private matchesQuantityFilter(item: InventoryItem, quantityFilter: string): boolean {
-    switch (quantityFilter) {
-      case FILTER_VALUES.QUANTITY.ZERO: {
-        return item.quantity === 0;
+  private matchesQuantityFilter(item: InventoryItem, quantityFilter: string[]): boolean {
+    return quantityFilter.some((filter) => {
+      switch (filter) {
+        case FILTER_VALUES.QUANTITY.ZERO:
+          return item.quantity === 0;
+        case FILTER_VALUES.QUANTITY.NONZERO:
+          return item.quantity > 0;
+        default:
+          return true;
       }
-      case FILTER_VALUES.QUANTITY.NONZERO: {
-        return item.quantity > 0;
-      }
-      default: {
-        return true;
-      }
-    }
+    });
   }
 
-  private matchesExpiryFilter(item: InventoryItem, expiryFilter: string): boolean {
+  private matchesExpiryFilter(item: InventoryItem, expiryFilter: string[]): boolean {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-
-    switch (expiryFilter) {
-      case FILTER_VALUES.EXPIRY.NONE: {
-        return !item.expiry_date;
-      }
-
-      case FILTER_VALUES.EXPIRY.EXPIRED: {
-        if (!item.expiry_date || (item.quantity ?? 0) <= 0) {
-          return false;
+    return expiryFilter.some((filter) => {
+      switch (filter) {
+        case FILTER_VALUES.EXPIRY.NONE: {
+          return !item.expiry_date;
         }
 
-        return Utilities.isExpired(item.expiry_date);
-      }
+        case FILTER_VALUES.EXPIRY.EXPIRED: {
+          if (!item.expiry_date || (item.quantity ?? 0) <= 0) {
+            return false;
+          }
 
-      case FILTER_VALUES.EXPIRY.SOON: {
-        if (!item.expiry_date || (item.quantity ?? 0) <= 0) {
-          return false;
+          return Utilities.isExpired(item.expiry_date);
         }
 
-        const itemThreshold = item.expiry_alert_days || 7;
-        return Utilities.isExpiringSoon(item.expiry_date, itemThreshold);
-      }
+        case FILTER_VALUES.EXPIRY.SOON: {
+          if (!item.expiry_date || (item.quantity ?? 0) <= 0) {
+            return false;
+          }
 
-      case FILTER_VALUES.EXPIRY.FUTURE: {
-        if (!item.expiry_date || (item.quantity ?? 0) <= 0) {
-          return false;
+          const itemThreshold = item.expiry_alert_days || 7;
+          return Utilities.isExpiringSoon(item.expiry_date, itemThreshold);
         }
 
-        const futureDate = new Date(item.expiry_date);
-        const itemThreshold2 = item.expiry_alert_days || 7;
-        const thresholdDate = new Date(today);
-        thresholdDate.setDate(today.getDate() + itemThreshold2);
+        case FILTER_VALUES.EXPIRY.FUTURE: {
+          if (!item.expiry_date || (item.quantity ?? 0) <= 0) {
+            return false;
+          }
 
-        return futureDate > thresholdDate;
+          const futureDate = new Date(item.expiry_date);
+          const itemThreshold2 = item.expiry_alert_days || 7;
+          const thresholdDate = new Date(today);
+          thresholdDate.setDate(today.getDate() + itemThreshold2);
+
+          return futureDate > thresholdDate;
+        }
+
+        default: {
+          return true;
+        }
       }
-      default: {
-        return true;
-      }
-    }
+    });
   }
 
   sortItems(
@@ -390,52 +416,10 @@ export class Filters {
     ) as HTMLElement | null;
 
     if (activeFiltersDiv && activeFiltersList) {
-      const activeFilters: string[] = [];
+      const filterBadges = createFilterBadges(filters, translations);
 
-      if (filters.searchText) {
-        activeFilters.push(
-          `${TranslationManager.localize(translations, 'active_filters.search', undefined, 'Search')}: "${filters.searchText}"`,
-        );
-      }
-
-      if (filters.category.length > 0) {
-        activeFilters.push(
-          `${TranslationManager.localize(translations, 'active_filters.category', undefined, 'Category')}: ${filters.category.join(', ')}`,
-        );
-      }
-
-      if (filters.location.length > 0) {
-        activeFilters.push(
-          `${TranslationManager.localize(translations, 'active_filters.location', undefined, 'Location')}: ${filters.location.join(', ')}`,
-        );
-      }
-
-      if (filters.quantity) {
-        const quantityLabel = TranslationManager.localize(
-          translations,
-          `filters.${filters.quantity}`,
-          undefined,
-          filters.quantity,
-        );
-        activeFilters.push(
-          `${TranslationManager.localize(translations, 'active_filters.quantity', undefined, 'Quantity')}: ${quantityLabel}`,
-        );
-      }
-
-      if (filters.expiry) {
-        const expiryLabel = TranslationManager.localize(
-          translations,
-          `filters.${filters.expiry}`,
-          undefined,
-          filters.expiry,
-        );
-        activeFilters.push(
-          `${TranslationManager.localize(translations, 'active_filters.expiry', undefined, 'Expiry')}: ${expiryLabel}`,
-        );
-      }
-
-      if (activeFilters.length > 0) {
-        activeFiltersList.textContent = activeFilters.join(', ');
+      if (filterBadges.length > 0) {
+        activeFiltersList.innerHTML = filterBadges.join('');
         activeFiltersDiv.style.display = 'block';
       } else {
         activeFiltersDiv.style.display = 'none';

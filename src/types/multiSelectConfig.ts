@@ -1,7 +1,8 @@
 export interface MultiSelectConfig {
   id: string;
-  options: string[];
-  selected: string[];
-  placeholder: string;
+  labels?: Record<string, string>;
   onChange?: (selected: string[]) => void;
+  options: string[];
+  placeholder: string;
+  selected: string[];
 }

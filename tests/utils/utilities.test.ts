@@ -562,9 +562,9 @@ describe('Utilities', () => {
         {
           filters: {
             category: [],
-            expiry: '',
+            expiry: [],
             location: [],
-            quantity: '',
+            quantity: [],
             searchText: 'test',
             showAdvanced: false,
           },
@@ -573,9 +573,9 @@ describe('Utilities', () => {
         {
           filters: {
             category: ['Food'],
-            expiry: '',
+            expiry: [],
             location: [],
-            quantity: '',
+            quantity: [],
             searchText: '',
             showAdvanced: false,
           },
@@ -584,9 +584,9 @@ describe('Utilities', () => {
         {
           filters: {
             category: [],
-            expiry: '',
+            expiry: [],
             location: ['kitchen'],
-            quantity: '',
+            quantity: [],
             searchText: '',
             showAdvanced: false,
           },
@@ -595,9 +595,9 @@ describe('Utilities', () => {
         {
           filters: {
             category: [],
-            expiry: '',
+            expiry: [],
             location: [],
-            quantity: '',
+            quantity: [],
             searchText: '',
             showAdvanced: false,
           },

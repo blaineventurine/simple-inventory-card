@@ -171,14 +171,6 @@ export class EventHandler {
   private handleChange(event: Event): void {
     const target = event.target as HTMLElement;
 
-    if (
-      target instanceof HTMLSelectElement &&
-      (target.id === ELEMENTS.FILTER_QUANTITY || target.id === ELEMENTS.FILTER_EXPIRY)
-    ) {
-      this.autoApplyFilter(target);
-      return;
-    }
-
     if (target.id === ELEMENTS.SORT_METHOD) {
       const filters = this.filters.getCurrentFilters(this.config.entity);
       filters.sortMethod = (target as HTMLSelectElement).value;
@@ -319,28 +311,6 @@ export class EventHandler {
     }
   }
 
-  private autoApplyFilter(selectElement: HTMLSelectElement): void {
-    try {
-      const filters = this.filters.getCurrentFilters(this.config.entity);
-
-      switch (selectElement.id) {
-        case ELEMENTS.FILTER_QUANTITY: {
-          filters.quantity = selectElement.value;
-          break;
-        }
-        case ELEMENTS.FILTER_EXPIRY: {
-          filters.expiry = selectElement.value;
-          break;
-        }
-      }
-
-      this.filters.saveFilters(this.config.entity, filters);
-      this.renderCallback();
-    } catch (error) {
-      console.error('Error auto-applying filter:', error);
-    }
-  }
-
   private toggleAdvancedFilters(): void {
     try {
       const filters = this.filters.getCurrentFilters(this.config.entity);
@@ -456,6 +426,81 @@ export class EventHandler {
         onChange: (selected) => {
           const filters = this.filters.getCurrentFilters(this.config.entity);
           filters.location = selected;
+          this.filters.saveFilters(this.config.entity, filters);
+          this.filters.updateFilterIndicators(filters, this.translations);
+          this.applyFiltersWithoutRender();
+        },
+      });
+
+      initializeMultiSelect({
+        id: ELEMENTS.FILTER_EXPIRY,
+        options: ['none', 'expired', 'soon', 'future'],
+        selected: filters.expiry,
+        placeholder: TranslationManager.localize(
+          this.translations,
+          'filters.all_items',
+          undefined,
+          'All Items',
+        ),
+        labels: {
+          none: TranslationManager.localize(
+            this.translations,
+            'filters.no_expiry',
+            undefined,
+            'No Expiry',
+          ),
+          expired: TranslationManager.localize(
+            this.translations,
+            'filters.expired',
+            undefined,
+            'Expired',
+          ),
+          soon: TranslationManager.localize(
+            this.translations,
+            'filters.expiring_soon',
+            undefined,
+            'Expiring Soon',
+          ),
+          future: TranslationManager.localize(
+            this.translations,
+            'filters.future',
+            undefined,
+            'Future',
+          ),
+        },
+        shadowRoot: this.renderRoot,
+        onChange: (selected) => {
+          const filters = this.filters.getCurrentFilters(this.config.entity);
+          filters.expiry = selected;
+          this.filters.saveFilters(this.config.entity, filters);
+          this.filters.updateFilterIndicators(filters, this.translations);
+          this.applyFiltersWithoutRender();
+        },
+      });
+
+      initializeMultiSelect({
+        id: ELEMENTS.FILTER_QUANTITY,
+        options: ['zero', 'nonzero'],
+        selected: filters.quantity,
+        placeholder: TranslationManager.localize(
+          this.translations,
+          'filters.all_quantities',
+          undefined,
+          'All Quantities',
+        ),
+        labels: {
+          zero: TranslationManager.localize(this.translations, 'filters.zero', undefined, 'Zero'),
+          nonzero: TranslationManager.localize(
+            this.translations,
+            'filters.non_zero',
+            undefined,
+            'Non-zero',
+          ),
+        },
+        shadowRoot: this.renderRoot,
+        onChange: (selected) => {
+          const filters = this.filters.getCurrentFilters(this.config.entity);
+          filters.quantity = selected;
           this.filters.saveFilters(this.config.entity, filters);
           this.filters.updateFilterIndicators(filters, this.translations);
           this.applyFiltersWithoutRender();

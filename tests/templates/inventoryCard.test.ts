@@ -99,9 +99,9 @@ describe('generateCardHTML', () => {
 
     mockFilters = {
       category: [],
-      expiry: '',
+      expiry: [],
       location: [],
-      quantity: '',
+      quantity: [],
       searchText: '',
       showAdvanced: false,
     };
@@ -535,9 +535,9 @@ describe('generateCardHTML', () => {
     it('should handle filters with active values', () => {
       const activeFilters: FilterState = {
         category: ['Fruit'],
-        expiry: 'soon',
+        expiry: ['soon'],
         location: ['Kitchen'],
-        quantity: 'low',
+        quantity: ['low'],
         searchText: 'apple',
         showAdvanced: true,
       };
