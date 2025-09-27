@@ -5,7 +5,7 @@ export function createMultiSelect(config: MultiSelectConfig): string {
     <div class="multi-select-container">
       <div class="multi-select-trigger" id="${config.id}-trigger">
         <span class="multi-select-label">
-          ${config.selected.length > 0 ? `${config.selected.length} selected` : config.placeholder}
+          ${config.selected && config.selected.length > 0 ? `${config.selected.length} selected` : config.placeholder}
         </span>
         <span class="multi-select-arrow">▼</span>
       </div>
