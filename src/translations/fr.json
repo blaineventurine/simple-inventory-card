@@ -8,6 +8,7 @@
     "off": "Off",
     "on": "On",
     "uncategorized": "Sans catégorie",
+    "no_location": "Pas d'emplacement",
     "unknown": "Inconnu"
   },
   "editor": {
@@ -43,6 +44,8 @@
     "cancel": "Annuler",
     "category": "Catégorie",
     "category_placeholder": "Alimentation, Ménage, etc.",
+    "location": "Emplacement",
+    "location_placeholder": "Cellier, Garage, Étagère, etc.",
     "days_before_expiry": "(jours avant expiration)",
     "edit_item": "Modifier l'article",
     "expiry_alert_threshold": "Seuil d'alerte d'expiration",
@@ -64,7 +67,9 @@
     "all_categories": "Toutes les catégories",
     "all_items": "Tous les articles",
     "all_quantities": "Toutes les quantités",
+    "all_locations": "Tous les emplacements",
     "category": "Catégorie",
+    "location": "Emplacement",
     "clear_all_filters": "Effacer tous les filtres",
     "expired": "Expiré",
     "expiring_soon": "Expire bientôt",
@@ -80,6 +85,7 @@
   },
   "sort": {
     "category": "Catégorie",
+    "location": "Emplacement",
     "expiry_date": "Date d'expiration",
     "name": "Nom",
     "quantity_high": "Quantité (décroissante)",
@@ -89,6 +95,7 @@
   },
   "active_filters": {
     "category": "Catégorie",
+    "location": "Emplacement",
     "expiry": "Expiration",
     "label": "Filtres actifs :",
     "quantity": "Quantité",
