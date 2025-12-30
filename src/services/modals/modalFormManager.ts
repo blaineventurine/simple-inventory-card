@@ -17,8 +17,12 @@ export class ModalFormManager {
   getRawAddModalData(): RawFormData {
     return {
       autoAddEnabled: this.getInputChecked(`add-${ELEMENTS.AUTO_ADD_ENABLED}`),
+      autoAddIdToDescriptionEnabled: this.getInputChecked(
+        `add-${ELEMENTS.AUTO_ADD_ID_TO_DESCRIPTION_ENABLED}`,
+      ),
       autoAddToListQuantity: this.getInputValue(`add-${ELEMENTS.AUTO_ADD_TO_LIST_QUANTITY}`),
       category: this.getInputValue(`add-${ELEMENTS.CATEGORY}`),
+      description: this.getInputValue(`add-${ELEMENTS.DESCRIPTION}`),
       expiryAlertDays: this.getInputValue(`add-${ELEMENTS.EXPIRY_ALERT_DAYS}`),
       expiryDate: this.getInputValue(`add-${ELEMENTS.EXPIRY_DATE}`),
       location: this.getInputValue(`add-${ELEMENTS.LOCATION}`),
@@ -35,8 +39,12 @@ export class ModalFormManager {
   getRawEditModalData(): RawFormData {
     return {
       autoAddEnabled: this.getInputChecked(`edit-${ELEMENTS.AUTO_ADD_ENABLED}`),
+      autoAddIdToDescriptionEnabled: this.getInputChecked(
+        `edit-${ELEMENTS.AUTO_ADD_ID_TO_DESCRIPTION_ENABLED}`,
+      ),
       autoAddToListQuantity: this.getInputValue(`edit-${ELEMENTS.AUTO_ADD_TO_LIST_QUANTITY}`),
       category: this.getInputValue(`edit-${ELEMENTS.CATEGORY}`),
+      description: this.getInputValue(`edit-${ELEMENTS.DESCRIPTION}`),
       expiryAlertDays: this.getInputValue(`edit-${ELEMENTS.EXPIRY_ALERT_DAYS}`),
       expiryDate: this.getInputValue(`edit-${ELEMENTS.EXPIRY_DATE}`),
       location: this.getInputValue(`edit-${ELEMENTS.LOCATION}`),
@@ -58,6 +66,7 @@ export class ModalFormManager {
       },
 
       { id: `edit-${ELEMENTS.CATEGORY}`, value: item.category ?? DEFAULTS.CATEGORY },
+      { id: `edit-${ELEMENTS.DESCRIPTION}`, value: item.description ?? DEFAULTS.DESCRIPTION },
       {
         id: `edit-${ELEMENTS.EXPIRY_ALERT_DAYS}`,
         value: (item.expiry_alert_days ?? DEFAULTS.EXPIRY_ALERT_DAYS).toString(),
@@ -73,8 +82,16 @@ export class ModalFormManager {
     this.setFormValues(fields);
 
     const autoAddCheckbox = this.getElement<HTMLInputElement>(`edit-${ELEMENTS.AUTO_ADD_ENABLED}`);
+    const autoAddIdCheckbox = this.getElement<HTMLInputElement>(
+      `edit-${ELEMENTS.AUTO_ADD_ID_TO_DESCRIPTION_ENABLED}`,
+    );
+
     if (autoAddCheckbox) {
       autoAddCheckbox.checked = item.auto_add_enabled ?? false;
+    }
+
+    if (autoAddIdCheckbox) {
+      autoAddIdCheckbox.checked = item.auto_add_id_to_description_enabled ?? false;
     }
   }
 
@@ -89,6 +106,7 @@ export class ModalFormManager {
       },
 
       { id: `add-${ELEMENTS.CATEGORY}`, value: DEFAULTS.CATEGORY },
+      { id: `add-${ELEMENTS.DESCRIPTION}`, value: DEFAULTS.DESCRIPTION },
       { id: `add-${ELEMENTS.EXPIRY_ALERT_DAYS}`, value: DEFAULTS.EXPIRY_ALERT_DAYS.toString() },
       { id: `add-${ELEMENTS.EXPIRY_DATE}`, value: DEFAULTS.EXPIRY_DATE },
       { id: `add-${ELEMENTS.LOCATION}`, value: DEFAULTS.LOCATION },
@@ -101,8 +119,16 @@ export class ModalFormManager {
     this.setFormValues(fields);
 
     const autoAddCheckbox = this.getElement<HTMLInputElement>(`add-${ELEMENTS.AUTO_ADD_ENABLED}`);
+    const autoAddIdCheckbox = this.getElement<HTMLInputElement>(
+      `add-${ELEMENTS.AUTO_ADD_ID_TO_DESCRIPTION_ENABLED}`,
+    );
+
     if (autoAddCheckbox) {
       autoAddCheckbox.checked = DEFAULTS.AUTO_ADD_ENABLED;
+    }
+
+    if (autoAddIdCheckbox) {
+      autoAddIdCheckbox.checked = DEFAULTS.AUTO_ADD_ID_TO_DESCRIPTION_ENABLED;
     }
   }
 

@@ -13,6 +13,8 @@ import { itemLocation } from './modalPartials/itemLocation';
 import { itemUnit } from './modalPartials/itemUnit';
 import { modalHeader } from './modalPartials/modalHeader';
 import { autoAddControls } from './modalPartials/autoAddControls';
+import { itemDescription } from './modalPartials/itemDescription';
+import { autoAddIdCheckbox } from './modalPartials/autoAddIdCheckbox';
 
 export function createUnifiedModal(
   todoLists: TodoList[],
@@ -35,16 +37,23 @@ export function createUnifiedModal(
           </div>
 
           ${itemName(prefix, translations)}
+          ${itemDescription(prefix, translations)}
+          ${autoAddIdCheckbox(prefix, translations)}
 
           <div class="form-row">
             ${itemQuantity(prefix, translations)}
             ${itemUnit(prefix, translations)}
           </div>
 
-          ${itemCategory(prefix, translations, categories)}
-          ${itemLocation(prefix, translations, locations)}
-          ${itemExpiryDate(prefix, translations)}
-          ${expiryAlertDays(prefix, translations)}
+          <div class="form-row">
+            ${itemCategory(prefix, translations, categories)}
+            ${itemLocation(prefix, translations, locations)}
+          </div>
+
+          <div class="form-row">
+            ${itemExpiryDate(prefix, translations)}
+            ${expiryAlertDays(prefix, translations)}
+          </div>
 
           <div class="form-group auto-add-section">
             ${autoAddCheckbox(prefix, translations)}

@@ -39,9 +39,12 @@
   },
   "modal": {
     "add_item": "Add Item",
-    "auto_add_when_low": "Auto-add to todo list when low",
+    "auto_add_id_to_description": "Append inventory ID to item description",
     "auto_add_settings": "Auto-add Settings",
+    "auto_add_when_low": "Auto-add to todo list when low",
     "cancel": "Cancel",
+    "description": "Description",
+    "description_placeholder": "Item description",
     "category": "Category",
     "category_placeholder": "Food, Cleaning, etc.",
     "location": "Location",

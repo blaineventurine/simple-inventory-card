@@ -9,7 +9,7 @@ export function itemCategory(
   categories: string[] = [],
 ): string {
   return `
-    <div class="form-group">
+    <div class="input-group">
       <label for="${prefix}-${ELEMENTS.CATEGORY}" class="form-label">
         ${TranslationManager.localize(translations, 'modal.category', undefined, 'Category')}
       </label>

@@ -21,10 +21,13 @@ describe('ModalUIManager', () => {
   const mockTranslations: TranslationData = {
     modal: {
       add_item: 'Add Item',
+      auto_add_id_to_description_enabled: 'Auto-add inventory ID to item description',
       auto_add_settings: 'Auto-add Settings',
       auto_add_when_low: 'Auto-add to todo list when low',
       cancel: 'Cancel',
       category: 'Category',
+      description: 'Description',
+      description_placeholder: 'Item description',
       category_placeholder: 'Food, Cleaning, etc.',
       location_placeholder: 'Pantry, Fridge, etc.',
       days_before_expiry: '(days before expiry)',
@@ -49,7 +52,9 @@ describe('ModalUIManager', () => {
   const mockInventoryItems: InventoryItem[] = [
     {
       auto_add_enabled: false,
+      auto_add_id_to_description_enabled: false,
       category: 'Food',
+      description: 'A test item for unit testing',
       expiry_date: '2024-12-31',
       location: 'Pantry',
       name: 'Test Item',

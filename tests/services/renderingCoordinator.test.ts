@@ -27,7 +27,9 @@ describe('RenderingCoordinator', () => {
   const mockInventoryItems: InventoryItem[] = [
     {
       auto_add_enabled: false,
+      auto_add_id_to_description_enabled: false,
       category: 'Food',
+      description: 'A test item',
       expiry_date: '2024-12-31',
       location: 'Pantry',
       name: 'Test Item',

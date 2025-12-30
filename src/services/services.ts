@@ -41,8 +41,11 @@ export class Services {
 
       await this.hass.callService(DOMAIN, SERVICES.ADD_ITEM, {
         [PARAMS.AUTO_ADD_ENABLED]: sanitizedItemData.autoAddEnabled,
+        [PARAMS.AUTO_ADD_ID_TO_DESCRIPTION_ENABLED]:
+          sanitizedItemData.autoAddIdToDescriptionEnabled,
         [PARAMS.AUTO_ADD_TO_LIST_QUANTITY]: sanitizedItemData.autoAddToListQuantity,
         [PARAMS.CATEGORY]: sanitizedItemData.category,
+        [PARAMS.DESCRIPTION]: sanitizedItemData.description,
         [PARAMS.EXPIRY_ALERT_DAYS]: sanitizedItemData.expiryAlertDays,
         [PARAMS.EXPIRY_DATE]: sanitizedItemData.expiryDate,
         [PARAMS.INVENTORY_ID]: sanitizedInventoryId,
@@ -157,8 +160,11 @@ export class Services {
 
       const parameters = {
         [PARAMS.AUTO_ADD_ENABLED]: sanitizedItemData.autoAddEnabled,
+        [PARAMS.AUTO_ADD_ID_TO_DESCRIPTION_ENABLED]:
+          sanitizedItemData.autoAddIdToDescriptionEnabled,
         [PARAMS.AUTO_ADD_TO_LIST_QUANTITY]: sanitizedItemData.autoAddToListQuantity,
         [PARAMS.CATEGORY]: sanitizedItemData.category,
+        [PARAMS.DESCRIPTION]: sanitizedItemData.description,
         [PARAMS.EXPIRY_ALERT_DAYS]: sanitizedItemData.expiryAlertDays,
         [PARAMS.EXPIRY_DATE]: sanitizedItemData.expiryDate,
         [PARAMS.INVENTORY_ID]: sanitizedInventoryId,
