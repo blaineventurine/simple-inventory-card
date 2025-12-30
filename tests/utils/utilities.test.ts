@@ -6,8 +6,10 @@ import { createMockHassEntity, createMockHomeAssistant } from '../testHelpers';
 
 const createValidFormData = (overrides: Partial<RawFormData> = {}): RawFormData => ({
   autoAddEnabled: false,
+  autoAddIdToDescriptionEnabled: false,
   autoAddToListQuantity: '',
   category: 'Food',
+  description: 'Test description',
   expiryAlertDays: '',
   expiryDate: '',
   location: 'kitchen',
@@ -432,8 +434,10 @@ describe('Utilities', () => {
       it('should convert valid form data correctly', () => {
         const formData: RawFormData = {
           autoAddEnabled: true,
+          autoAddIdToDescriptionEnabled: true,
           autoAddToListQuantity: '2',
           category: 'Food',
+          description: 'Test description',
           expiryAlertDays: '3',
           expiryDate: '2023-12-25',
           location: 'kitchen',
@@ -447,8 +451,10 @@ describe('Utilities', () => {
 
         expect(result).toEqual({
           autoAddEnabled: true,
+          autoAddIdToDescriptionEnabled: true,
           autoAddToListQuantity: 2,
           category: 'Food',
+          description: 'Test description',
           expiryAlertDays: 3,
           expiryDate: '2023-12-25',
           location: 'kitchen',
@@ -487,8 +493,10 @@ describe('Utilities', () => {
       it('should handle undefined/null values gracefully', () => {
         const formData: RawFormData = {
           autoAddEnabled: false,
+          autoAddIdToDescriptionEnabled: false,
           autoAddToListQuantity: null as any,
           category: null as any,
+          description: null as any,
           expiryAlertDays: undefined as any,
           expiryDate: null as any,
           location: null as any,
@@ -502,8 +510,10 @@ describe('Utilities', () => {
 
         expect(result).toEqual({
           autoAddEnabled: false,
+          autoAddIdToDescriptionEnabled: false,
           autoAddToListQuantity: 0,
           category: '',
+          description: '',
           expiryAlertDays: 1,
           expiryDate: '',
           location: '',
@@ -1152,8 +1162,10 @@ describe('Utilities', () => {
         const items: InventoryItem[] = [
           {
             auto_add_enabled: false,
+            auto_add_id_to_description_enabled: false,
             auto_add_to_list_quantity: 0,
             category: '',
+            description: '',
             expiry_alert_days: 0,
             expiry_date: '',
             location: '',
@@ -1164,8 +1176,10 @@ describe('Utilities', () => {
           },
           {
             auto_add_enabled: false,
+            auto_add_id_to_description_enabled: false,
             auto_add_to_list_quantity: 0,
             category: true as any,
+            description: '',
             expiry_alert_days: 0,
             expiry_date: '',
             location: '',
@@ -1176,8 +1190,10 @@ describe('Utilities', () => {
           },
           {
             auto_add_enabled: false,
+            auto_add_id_to_description_enabled: false,
             auto_add_to_list_quantity: 0,
             category: '',
+            description: '',
             expiry_alert_days: 0,
             expiry_date: 456 as any,
             location: '',
@@ -1188,8 +1204,10 @@ describe('Utilities', () => {
           },
           {
             auto_add_enabled: false,
+            auto_add_id_to_description_enabled: false,
             auto_add_to_list_quantity: 0,
             category: '',
+            description: '',
             expiry_alert_days: 0,
             expiry_date: '',
             location: '',
@@ -1200,8 +1218,10 @@ describe('Utilities', () => {
           },
           {
             auto_add_enabled: false,
+            auto_add_id_to_description_enabled: false,
             auto_add_to_list_quantity: 0,
             category: false as any,
+            description: '',
             expiry_alert_days: 0,
             expiry_date: '',
             location: '',

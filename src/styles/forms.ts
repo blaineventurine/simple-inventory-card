@@ -198,6 +198,12 @@ export const formStyles: CSSResult = css`
     padding: 4px 0;
   }
 
+  .auto-add-id-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
   .auto-add-section {
     border-top: 1px solid var(--divider-color);
     padding-top: 20px;

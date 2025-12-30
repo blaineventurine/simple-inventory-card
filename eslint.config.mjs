@@ -26,7 +26,6 @@ export default defineConfig([
         ecmaVersion: 'latest',
         sourceType: 'module',
         tsconfigRootDir: import.meta.dirname,
-        project: './tsconfig.json',
       },
     },
     plugins: {

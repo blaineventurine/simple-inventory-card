@@ -164,8 +164,10 @@ describe('Modals (Integration)', () => {
 
     const mockRawFormData: RawFormData = {
       autoAddEnabled: false,
+      autoAddIdToDescriptionEnabled: false,
       autoAddToListQuantity: '0',
       category: 'Food',
+      description: 'Test',
       expiryAlertDays: '7',
       expiryDate: '',
       location: 'Pantry',
@@ -184,8 +186,10 @@ describe('Modals (Integration)', () => {
       const mockItemData: ItemData = { name: 'Test Item', quantity: 5 };
       const mockSanitizedData: SanitizedItemData = {
         autoAddEnabled: false,
+        autoAddIdToDescriptionEnabled: false,
         autoAddToListQuantity: 0,
         category: 'Food',
+        description: 'Test',
         expiryAlertDays: 7,
         expiryDate: '',
         location: 'Pantry',
@@ -280,8 +284,10 @@ describe('Modals (Integration)', () => {
 
     const mockRawFormData: RawFormData = {
       autoAddEnabled: true,
+      autoAddIdToDescriptionEnabled: false,
       autoAddToListQuantity: '2',
       category: 'Food',
+      description: 'Updated description',
       expiryAlertDays: '7',
       expiryDate: '2024-12-31',
       location: 'Pantry',
@@ -309,8 +315,10 @@ describe('Modals (Integration)', () => {
       const mockItemData: ItemData = { name: 'Updated Item', quantity: 10 };
       const mockSanitizedData: SanitizedItemData = {
         autoAddEnabled: true,
+        autoAddIdToDescriptionEnabled: false,
         autoAddToListQuantity: 2,
         category: 'Food',
+        description: 'Updated description',
         expiryAlertDays: 7,
         expiryDate: '2024-12-31',
         location: 'Pantry',
