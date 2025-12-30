@@ -20,8 +20,10 @@ describe('createItemRowTemplate', () => {
   beforeEach(() => {
     baseItem = {
       auto_add_enabled: false,
+      auto_add_id_to_description_enabled: false,
       auto_add_to_list_quantity: 2,
       category: 'Fruit',
+      description: 'Fresh red apples',
       expiry_alert_days: 7,
       expiry_date: '2024-12-31',
       location: '',
@@ -372,8 +374,10 @@ describe('createItemRowTemplate', () => {
     it('should handle items with all optional fields empty', () => {
       const minimalItem: InventoryItem = {
         auto_add_enabled: false,
+        auto_add_id_to_description_enabled: false,
         auto_add_to_list_quantity: 0,
         category: '',
+        description: '',
         expiry_date: '',
         location: '',
         name: 'Minimal Item',
@@ -400,8 +404,10 @@ describe('createItemRowTemplate', () => {
 
       const maximalItem: InventoryItem = {
         auto_add_enabled: true,
+        auto_add_id_to_description_enabled: true,
         auto_add_to_list_quantity: 3,
         category: 'Test Category',
+        description: 'A fully detailed item',
         expiry_alert_days: 5,
         expiry_date: futureDateStr,
         location: 'Pantry',

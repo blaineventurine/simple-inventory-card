@@ -5,10 +5,10 @@
   "common": {
     "loading": "Chargement...",
     "name": "Ma carte personnalisée",
+    "no_location": "Pas d'emplacement",
     "off": "Off",
     "on": "On",
     "uncategorized": "Sans catégorie",
-    "no_location": "Pas d'emplacement",
     "unknown": "Inconnu"
   },
   "editor": {
@@ -39,19 +39,22 @@
   },
   "modal": {
     "add_item": "Ajouter un article",
-    "auto_add_when_low": "Ajout automatique à la liste de tâches quand faible",
+    "auto_add_id_to_description": "Ajouter l’identifiant de l’inventaire à la description de l’article",
     "auto_add_settings": "Paramètres d'ajout automatique",
+    "auto_add_when_low": "Ajout automatique à la liste de tâches quand faible",
     "cancel": "Annuler",
     "category": "Catégorie",
     "category_placeholder": "Alimentation, Ménage, etc.",
-    "location": "Emplacement",
-    "location_placeholder": "Cellier, Garage, Étagère, etc.",
     "days_before_expiry": "(jours avant expiration)",
+    "description": "Description",
+    "description_placeholder": "Description de l’article",
     "edit_item": "Modifier l'article",
     "expiry_alert_threshold": "Seuil d'alerte d'expiration",
     "expiry_date": "Date d'expiration",
     "expiry_help_text": "Combien de jours avant expiration pour afficher les alertes",
     "expiry_threshold_placeholder": "Jours avant expiration pour alerter (défaut : 0)",
+    "location": "Emplacement",
+    "location_placeholder": "Cellier, Garage, Étagère, etc.",
     "minimum_quantity": "Quantité minimale",
     "name_required": "Nom *",
     "quantity": "Quantité",
@@ -61,15 +64,14 @@
     "set_expiry_first": "Définir d'abord la date d'expiration",
     "todo_list": "Liste de tâches",
     "unit": "Unité",
-      "unit_placeholder": "kg, pcs, etc."
-    },
-    "filters": {
+    "unit_placeholder": "kg, pcs, etc."
+  },
+  "filters": {
     "all_categories": "Toutes les catégories",
     "all_items": "Tous les articles",
-    "all_quantities": "Toutes les quantités",
     "all_locations": "Tous les emplacements",
+    "all_quantities": "Toutes les quantités",
     "category": "Catégorie",
-    "location": "Emplacement",
     "clear_all_filters": "Effacer tous les filtres",
     "expired": "Expiré",
     "expiring_soon": "Expire bientôt",
@@ -77,6 +79,7 @@
     "filters": "Filtres",
     "future": "Futur",
     "hide_filters": "Masquer les filtres",
+    "location": "Emplacement",
     "no_expiry": "Pas d'expiration",
     "non_zero": "Non nul",
     "quantity": "Quantité",
@@ -85,8 +88,8 @@
   },
   "sort": {
     "category": "Catégorie",
-    "location": "Emplacement",
     "expiry_date": "Date d'expiration",
+    "location": "Emplacement",
     "name": "Nom",
     "quantity_high": "Quantité (décroissante)",
     "quantity_low": "Quantité (croissante)",
@@ -95,9 +98,9 @@
   },
   "active_filters": {
     "category": "Catégorie",
-    "location": "Emplacement",
     "expiry": "Expiration",
     "label": "Filtres actifs :",
+    "location": "Emplacement",
     "quantity": "Quantité",
     "search": "Recherche"
   },

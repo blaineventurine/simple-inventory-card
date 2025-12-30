@@ -16,7 +16,9 @@ export function autoAddControls(
         undefined,
         'Auto-add Settings',
       )}</div>
+
       <div class="form-row">
+
         <div class="input-group">
           <label for="${prefix}-${ELEMENTS.AUTO_ADD_TO_LIST_QUANTITY}">
             ${TranslationManager.localize(
@@ -57,7 +59,9 @@ export function autoAddControls(
             ${todoLists.map((list) => `<option value="${list.id}">${list.name}</option>`).join('')}
           </select>
         </div>
+
       </div>
+
     </div>
   `;
 }

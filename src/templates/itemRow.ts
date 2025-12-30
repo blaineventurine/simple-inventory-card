@@ -87,6 +87,9 @@ export function createItemRowTemplate(
         <span class="item-name">${item.name}</span>
         ${renderLocationAndCategory()}
       </div>
+      <div class="item-description">
+        <span>${item.description || ''}</span>
+      </div>
       <div class="item-footer">
         <div class="item-details">
           <span class="quantity">${item.quantity} ${item.unit || ''}</span>

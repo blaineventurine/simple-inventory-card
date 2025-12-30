@@ -9,7 +9,7 @@ export function itemLocation(
   locations: string[] = [],
 ): string {
   return `
-    <div class="form-group">
+    <div class="input-group">
       <label for="${prefix}-${ELEMENTS.LOCATION}" class="form-label">
         ${TranslationManager.localize(translations, 'modal.location', undefined, 'Location')}
       </label>
