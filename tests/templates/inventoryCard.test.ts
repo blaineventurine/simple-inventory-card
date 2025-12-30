@@ -73,8 +73,10 @@ describe('generateCardHTML', () => {
     mockItems = [
       {
         auto_add_enabled: false,
+        auto_add_id_to_description_enabled: false,
         auto_add_to_list_quantity: 2,
         category: 'Fruit',
+        description: 'Fresh red apples',
         expiry_alert_days: 7,
         expiry_date: '2024-12-31',
         location: 'Kitchen',
@@ -85,8 +87,10 @@ describe('generateCardHTML', () => {
       },
       {
         auto_add_enabled: true,
+        auto_add_id_to_description_enabled: false,
         auto_add_to_list_quantity: 1,
         category: 'Fruit',
+        description: 'Ripe bananas',
         expiry_alert_days: 5,
         expiry_date: '2024-11-15',
         location: 'Kitchen',

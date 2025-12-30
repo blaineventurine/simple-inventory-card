@@ -4,7 +4,7 @@ import { ELEMENTS } from '@/utils/constants';
 
 export function itemExpiryDate(prefix: string, translations: TranslationData): string {
   return `
-    <div class="form-group">
+    <div class="input-group">
       <label for="${prefix}-${ELEMENTS.EXPIRY_DATE}" class="form-label">
         ${TranslationManager.localize(translations, 'modal.expiry_date', undefined, 'Expiry Date')}
       </label>

@@ -145,15 +145,17 @@ export interface LovelaceCardEditor extends HTMLElement {
 
 export interface InventoryItem {
   auto_add_enabled: boolean;
+  auto_add_id_to_description_enabled: boolean;
   auto_add_to_list_quantity?: number;
   category: string;
+  description: string;
   expiry_alert_days?: number;
   expiry_date: string;
+  location: string;
   name: string;
   quantity: number;
   todo_list: string;
   unit: string;
-  location: string;
 }
 
 export interface InventoryConfig extends LovelaceCardConfig {

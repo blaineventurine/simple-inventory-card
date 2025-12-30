@@ -37,8 +37,10 @@ describe('createInventoryHeader', () => {
     mockItems = [
       {
         auto_add_enabled: false,
+        auto_add_id_to_description_enabled: false,
         auto_add_to_list_quantity: 2,
         category: 'Fruit',
+        description: 'A fresh apple',
         expiry_alert_days: 7,
         expiry_date: '2024-12-31',
         location: 'Fridge',
@@ -49,8 +51,10 @@ describe('createInventoryHeader', () => {
       },
       {
         auto_add_enabled: false,
+        auto_add_id_to_description_enabled: false,
         auto_add_to_list_quantity: 1,
         category: 'Dairy',
+        description: 'A carton of milk',
         expiry_alert_days: 5,
         expiry_date: '2024-01-01',
         location: 'Fridge',
@@ -61,8 +65,10 @@ describe('createInventoryHeader', () => {
       },
       {
         auto_add_enabled: false,
+        auto_add_id_to_description_enabled: false,
         auto_add_to_list_quantity: 1,
         category: 'Canned',
+        description: 'Canned beans',
         expiry_date: '',
         location: 'Pantry',
         name: 'No Expiry Item',
@@ -230,8 +236,10 @@ describe('createInventoryHeader', () => {
         ...mockItems,
         {
           auto_add_enabled: false,
+          auto_add_id_to_description_enabled: false,
           auto_add_to_list_quantity: 1,
           category: 'Bakery',
+          description: 'A loaf of bread',
           expiry_alert_days: 3,
           expiry_date: '2024-01-02',
           location: 'Fridge',
@@ -259,8 +267,10 @@ describe('createInventoryHeader', () => {
       const itemsWithoutExpiry = [
         {
           auto_add_enabled: false,
+          auto_add_id_to_description_enabled: false,
           auto_add_to_list_quantity: 1,
           category: 'Test',
+          description: 'Item without expiry',
           expiry_date: '',
           location: 'Pantry',
           name: 'No Expiry 1',
@@ -270,8 +280,10 @@ describe('createInventoryHeader', () => {
         },
         {
           auto_add_enabled: false,
+          auto_add_id_to_description_enabled: false,
           auto_add_to_list_quantity: 1,
           category: 'Test',
+          description: 'Another item without expiry',
           expiry_date: '',
           location: 'Pantry',
           name: 'No Expiry 2',
@@ -295,8 +307,10 @@ describe('createInventoryHeader', () => {
       const zeroQuantityItems = [
         {
           auto_add_enabled: false,
+          auto_add_id_to_description_enabled: false,
           auto_add_to_list_quantity: 1,
           category: 'Test',
+          description: 'Item with zero quantity',
           expiry_alert_days: 7,
           expiry_date: '2024-01-01',
           location: 'Pantry',
@@ -319,8 +333,10 @@ describe('createInventoryHeader', () => {
       const negativeQuantityItems = [
         {
           auto_add_enabled: false,
+          auto_add_id_to_description_enabled: false,
           auto_add_to_list_quantity: 1,
           category: 'Test',
+          description: 'Item with negative quantity',
           expiry_alert_days: 7,
           expiry_date: '2024-01-01',
           location: 'Pantry',
@@ -342,8 +358,10 @@ describe('createInventoryHeader', () => {
       const customAlertItem = [
         {
           auto_add_enabled: false,
+          auto_add_id_to_description_enabled: false,
           auto_add_to_list_quantity: 1,
           category: 'Test',
+          description: 'Item with custom alert days',
           expiry_alert_days: 14, // Custom threshold
           expiry_date: '2024-12-31',
           location: 'Pantry',
@@ -365,8 +383,10 @@ describe('createInventoryHeader', () => {
       const defaultAlertItem = [
         {
           auto_add_enabled: false,
+          auto_add_id_to_description_enabled: false,
           auto_add_to_list_quantity: 0,
           category: 'Test',
+          description: 'Item with default alert days',
           // expiry_alert_days is undefined
           expiry_date: '2024-12-31',
           location: 'Pantry',
@@ -397,8 +417,10 @@ describe('createInventoryHeader', () => {
       const itemsWithUndefinedQuantity = [
         {
           auto_add_enabled: false,
+          auto_add_id_to_description_enabled: false,
           auto_add_to_list_quantity: 1,
           category: 'Test',
+          description: 'Item with undefined quantity',
           expiry_alert_days: 7,
           expiry_date: '2024-01-01',
           location: 'Pantry',
@@ -432,8 +454,10 @@ describe('createInventoryHeader', () => {
     it('should handle very large expiry counts', () => {
       const manyItems = Array.from({ length: 999 }, (_, i) => ({
         auto_add_enabled: false,
+        auto_add_id_to_description_enabled: false,
         auto_add_to_list_quantity: 1,
         category: 'Test',
+        description: `Item ${i} description`,
         expiry_alert_days: 7,
         expiry_date: '2024-01-01',
         location: 'Pantry',
@@ -543,8 +567,10 @@ describe('createInventoryHeader', () => {
     const zeroQuantityItems = [
       {
         auto_add_enabled: false,
+        auto_add_id_to_description_enabled: false,
         auto_add_to_list_quantity: 1,
         category: 'Test',
+        description: 'Item with zero quantity',
         expiry_alert_days: 7,
         expiry_date: '2024-01-01',
         location: 'Pantry',
@@ -570,8 +596,10 @@ describe('createInventoryHeader', () => {
     const zeroQuantityItems = [
       {
         auto_add_enabled: false,
+        auto_add_id_to_description_enabled: false,
         auto_add_to_list_quantity: 1,
         category: 'Test',
+        description: 'Item with zero quantity',
         expiry_alert_days: 7,
         expiry_date: '2024-12-31',
         location: 'Pantry',
@@ -596,8 +624,10 @@ describe('createInventoryHeader', () => {
     const noExpiryItems = [
       {
         auto_add_enabled: false,
+        auto_add_id_to_description_enabled: false,
         auto_add_to_list_quantity: 1,
         category: 'Test',
+        description: 'Item with no expiry date',
         expiry_date: '', // No expiry date
         location: 'Pantry',
         name: 'No Expiry',

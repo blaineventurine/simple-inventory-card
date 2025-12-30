@@ -20,8 +20,10 @@ export const SERVICES = {
 export const PARAMS = {
   AMOUNT: 'amount',
   AUTO_ADD_ENABLED: 'auto_add_enabled',
+  AUTO_ADD_ID_TO_DESCRIPTION_ENABLED: 'auto_add_id_to_description_enabled',
   AUTO_ADD_TO_LIST_QUANTITY: 'auto_add_to_list_quantity',
   CATEGORY: 'category',
+  DESCRIPTION: 'description',
   EXPIRY_ALERT_DAYS: 'expiry_alert_days',
   EXPIRY_DATE: 'expiry_date',
   INVENTORY_ID: 'inventory_id',
@@ -38,8 +40,10 @@ export const ELEMENTS = {
   EDIT_MODAL: 'edit-modal',
 
   AUTO_ADD_ENABLED: 'auto-add-enabled',
+  AUTO_ADD_ID_TO_DESCRIPTION_ENABLED: 'auto-add-id-to-description-enabled',
   AUTO_ADD_TO_LIST_QUANTITY: 'auto-add-to-list-quantity',
   CATEGORY: 'category',
+  DESCRIPTION: 'description',
   EXPIRY_ALERT_DAYS: 'expiry-alert-days',
   EXPIRY_DATE: 'expiry-date',
   LOCATION: 'location',
@@ -87,8 +91,10 @@ export const ACTIONS = {
 
 export const DEFAULTS = {
   AUTO_ADD_ENABLED: false,
+  AUTO_ADD_ID_TO_DESCRIPTION_ENABLED: false,
   AUTO_ADD_TO_LIST_QUANTITY: 0,
   CATEGORY: '',
+  DESCRIPTION: '',
   EXPIRY_ALERT_DAYS: 1,
   EXPIRY_DATE: '',
   LOCATION: '',

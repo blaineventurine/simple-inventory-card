@@ -328,6 +328,7 @@ export const Utilities = {
       name: formData.name?.trim() || '',
       quantity: Math.max(0, Utilities.parseNumber(formData.quantity, DEFAULTS.QUANTITY)),
       autoAddEnabled: Boolean(formData.autoAddEnabled),
+      autoAddIdToDescriptionEnabled: Boolean(formData.autoAddIdToDescriptionEnabled),
       autoAddToListQuantity: Math.max(
         0,
         Utilities.parseNumber(formData.autoAddToListQuantity, DEFAULTS.AUTO_ADD_TO_LIST_QUANTITY),
@@ -341,6 +342,7 @@ export const Utilities = {
       category: formData.category?.trim() || DEFAULTS.CATEGORY,
       location: formData.location?.trim() || DEFAULTS.LOCATION,
       unit: formData.unit?.trim() || DEFAULTS.UNIT,
+      description: formData.description?.trim() || DEFAULTS.DESCRIPTION,
     };
   },
 
@@ -423,11 +425,13 @@ export const Utilities = {
   sanitizeItemData(itemData: ItemData): SanitizedItemData {
     const data = {
       autoAddEnabled: Boolean(itemData.autoAddEnabled),
+      autoAddIdToDescriptionEnabled: Boolean(itemData.autoAddIdToDescriptionEnabled),
       autoAddToListQuantity: Math.max(
         0,
         Utilities.parseNumber(itemData.autoAddToListQuantity, DEFAULTS.AUTO_ADD_TO_LIST_QUANTITY),
       ),
       category: this.sanitizeString(itemData.category, 50),
+      description: this.sanitizeString(itemData.description, 500),
       expiryAlertDays: Math.max(
         0,
         Utilities.parseNumber(itemData.expiryAlertDays, DEFAULTS.EXPIRY_ALERT_DAYS),
@@ -461,10 +465,10 @@ export const Utilities = {
   hasActiveFilters(filters: FilterState): boolean {
     return Boolean(
       filters.searchText ||
-        (filters.category && filters.category.length > 0) ||
-        (filters.location && filters.location.length > 0) ||
-        (filters.quantity && filters.quantity.length > 0) ||
-        (filters.expiry && filters.expiry.length > 0),
+      (filters.category && filters.category.length > 0) ||
+      (filters.location && filters.location.length > 0) ||
+      (filters.quantity && filters.quantity.length > 0) ||
+      (filters.expiry && filters.expiry.length > 0),
     );
   },
 
@@ -506,6 +510,9 @@ export const Utilities = {
         item.auto_add_to_list_quantity >= 0
           ? item.auto_add_to_list_quantity
           : DEFAULTS.AUTO_ADD_TO_LIST_QUANTITY;
+      item.auto_add_id_to_description_enabled = Boolean(item.auto_add_id_to_description_enabled);
+      item.description =
+        typeof item.description === 'string' ? item.description : DEFAULTS.DESCRIPTION;
       return true;
     });
   },

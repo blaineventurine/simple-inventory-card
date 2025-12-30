@@ -31,7 +31,7 @@ describe('Services', () => {
 
     services = new Services(mockHass);
 
-    vi.spyOn(console, 'error').mockImplementation(() => { });
+    vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -49,8 +49,10 @@ describe('Services', () => {
     const inventoryId = 'test-inventory';
     const itemData: ItemData = {
       autoAddEnabled: true,
+      autoAddIdToDescriptionEnabled: true,
       autoAddToListQuantity: 2,
       category: 'Food',
+      description: 'A test item',
       expiryAlertDays: 3,
       expiryDate: '2023-12-25',
       location: 'Pantry',
@@ -66,8 +68,10 @@ describe('Services', () => {
       expect(result).toEqual({ success: true });
       expect(mockHass.callService).toHaveBeenCalledWith(DOMAIN, SERVICES.ADD_ITEM, {
         [PARAMS.AUTO_ADD_ENABLED]: itemData.autoAddEnabled,
+        [PARAMS.AUTO_ADD_ID_TO_DESCRIPTION_ENABLED]: itemData.autoAddIdToDescriptionEnabled,
         [PARAMS.AUTO_ADD_TO_LIST_QUANTITY]: itemData.autoAddToListQuantity,
         [PARAMS.CATEGORY]: itemData.category,
+        [PARAMS.DESCRIPTION]: itemData.description,
         [PARAMS.EXPIRY_ALERT_DAYS]: itemData.expiryAlertDays,
         [PARAMS.EXPIRY_DATE]: itemData.expiryDate,
         [PARAMS.INVENTORY_ID]: inventoryId,
@@ -82,8 +86,10 @@ describe('Services', () => {
     it('should use default values for undefined properties', async () => {
       const minimalItemData: ItemData = {
         autoAddEnabled: undefined as any,
+        autoAddIdToDescriptionEnabled: undefined as any,
         autoAddToListQuantity: undefined as any,
         category: undefined as any,
+        description: undefined as any,
         expiryAlertDays: undefined as any,
         expiryDate: undefined as any,
         location: undefined as any,
@@ -98,8 +104,10 @@ describe('Services', () => {
       expect(result).toEqual({ success: true });
       expect(mockHass.callService).toHaveBeenCalledWith(DOMAIN, SERVICES.ADD_ITEM, {
         [PARAMS.AUTO_ADD_ENABLED]: DEFAULTS.AUTO_ADD_ENABLED,
+        [PARAMS.AUTO_ADD_ID_TO_DESCRIPTION_ENABLED]: DEFAULTS.AUTO_ADD_ID_TO_DESCRIPTION_ENABLED,
         [PARAMS.AUTO_ADD_TO_LIST_QUANTITY]: DEFAULTS.AUTO_ADD_TO_LIST_QUANTITY,
         [PARAMS.CATEGORY]: DEFAULTS.CATEGORY,
+        [PARAMS.DESCRIPTION]: DEFAULTS.DESCRIPTION,
         [PARAMS.EXPIRY_ALERT_DAYS]: DEFAULTS.EXPIRY_ALERT_DAYS,
         [PARAMS.EXPIRY_DATE]: DEFAULTS.EXPIRY_DATE,
         [PARAMS.INVENTORY_ID]: inventoryId,
@@ -141,8 +149,10 @@ describe('Services', () => {
     it('should handle null and empty string values', async () => {
       const itemDataWithNulls: ItemData = {
         autoAddEnabled: false,
+        autoAddIdToDescriptionEnabled: false,
         autoAddToListQuantity: 0,
         category: '',
+        description: null as any,
         expiryAlertDays: 0,
         expiryDate: null as any,
         location: null as any,
@@ -157,8 +167,10 @@ describe('Services', () => {
       expect(result).toEqual({ success: true });
       expect(mockHass.callService).toHaveBeenCalledWith(DOMAIN, SERVICES.ADD_ITEM, {
         [PARAMS.AUTO_ADD_ENABLED]: false,
+        [PARAMS.AUTO_ADD_ID_TO_DESCRIPTION_ENABLED]: false,
         [PARAMS.AUTO_ADD_TO_LIST_QUANTITY]: DEFAULTS.AUTO_ADD_TO_LIST_QUANTITY, // 0 should use default
         [PARAMS.CATEGORY]: '', // empty string should be preserved
+        [PARAMS.DESCRIPTION]: DEFAULTS.DESCRIPTION, // null should use default
         [PARAMS.EXPIRY_ALERT_DAYS]: 0,
         [PARAMS.EXPIRY_DATE]: DEFAULTS.EXPIRY_DATE, // null should use default
         [PARAMS.INVENTORY_ID]: inventoryId,
@@ -321,8 +333,10 @@ describe('Services', () => {
     const oldName = 'Old Item Name';
     const itemData: ItemData = {
       autoAddEnabled: false,
+      autoAddIdToDescriptionEnabled: true,
       autoAddToListQuantity: 3,
       category: 'Updated Category',
+      description: 'Updated Description',
       expiryAlertDays: 5,
       expiryDate: '2024-01-01',
       location: 'Updated Location',
@@ -338,8 +352,10 @@ describe('Services', () => {
       expect(result).toEqual({ success: true });
       expect(mockHass.callService).toHaveBeenCalledWith(DOMAIN, SERVICES.UPDATE_ITEM, {
         [PARAMS.AUTO_ADD_ENABLED]: itemData.autoAddEnabled,
+        [PARAMS.AUTO_ADD_ID_TO_DESCRIPTION_ENABLED]: itemData.autoAddIdToDescriptionEnabled,
         [PARAMS.AUTO_ADD_TO_LIST_QUANTITY]: itemData.autoAddToListQuantity,
         [PARAMS.CATEGORY]: itemData.category,
+        [PARAMS.DESCRIPTION]: itemData.description,
         [PARAMS.EXPIRY_ALERT_DAYS]: itemData.expiryAlertDays,
         [PARAMS.EXPIRY_DATE]: itemData.expiryDate,
         [PARAMS.INVENTORY_ID]: inventoryId,
@@ -355,8 +371,10 @@ describe('Services', () => {
     it('should use default values for undefined properties', async () => {
       const minimalItemData: ItemData = {
         autoAddEnabled: undefined as any,
+        autoAddIdToDescriptionEnabled: undefined as any,
         autoAddToListQuantity: undefined as any,
         category: undefined as any,
+        description: undefined as any,
         expiryAlertDays: undefined as any,
         expiryDate: undefined as any,
         location: undefined as any,
@@ -371,8 +389,10 @@ describe('Services', () => {
       expect(result).toEqual({ success: true });
       expect(mockHass.callService).toHaveBeenCalledWith(DOMAIN, SERVICES.UPDATE_ITEM, {
         [PARAMS.AUTO_ADD_ENABLED]: DEFAULTS.AUTO_ADD_ENABLED,
+        [PARAMS.AUTO_ADD_ID_TO_DESCRIPTION_ENABLED]: DEFAULTS.AUTO_ADD_ID_TO_DESCRIPTION_ENABLED,
         [PARAMS.AUTO_ADD_TO_LIST_QUANTITY]: DEFAULTS.AUTO_ADD_TO_LIST_QUANTITY,
         [PARAMS.CATEGORY]: DEFAULTS.CATEGORY,
+        [PARAMS.DESCRIPTION]: DEFAULTS.DESCRIPTION,
         [PARAMS.EXPIRY_ALERT_DAYS]: DEFAULTS.EXPIRY_ALERT_DAYS,
         [PARAMS.EXPIRY_DATE]: DEFAULTS.EXPIRY_DATE,
         [PARAMS.INVENTORY_ID]: inventoryId,
@@ -388,8 +408,10 @@ describe('Services', () => {
     it('should preserve falsy values that are not undefined', async () => {
       const falsyItemData: ItemData = {
         autoAddEnabled: false,
+        autoAddIdToDescriptionEnabled: false,
         autoAddToListQuantity: 0,
         category: '',
+        description: '',
         expiryAlertDays: 0,
         expiryDate: '',
         location: '',
@@ -404,8 +426,10 @@ describe('Services', () => {
       expect(result).toEqual({ success: true });
       expect(mockHass.callService).toHaveBeenCalledWith(DOMAIN, SERVICES.UPDATE_ITEM, {
         [PARAMS.AUTO_ADD_ENABLED]: false,
+        [PARAMS.AUTO_ADD_ID_TO_DESCRIPTION_ENABLED]: false,
         [PARAMS.AUTO_ADD_TO_LIST_QUANTITY]: 0,
         [PARAMS.CATEGORY]: DEFAULTS.CATEGORY, // empty string should use default
+        [PARAMS.DESCRIPTION]: DEFAULTS.DESCRIPTION, // empty string should use default
         [PARAMS.EXPIRY_ALERT_DAYS]: 0,
         [PARAMS.EXPIRY_DATE]: '',
         [PARAMS.INVENTORY_ID]: inventoryId,
