@@ -8,6 +8,7 @@
     "off": "Off",
     "on": "On",
     "uncategorized": "Senza Categoria",
+    "no_location": "Brak lokalizacji",
     "unknown": "Sconosciuto"
   },
   "editor": {
@@ -43,6 +44,8 @@
     "auto_add_when_low": "Aggiungi alla lista quando è basso",
     "cancel": "Cancella",
     "category_placeholder": "Cibo, Pulizia, etc.",
+    "location": "Posizione",
+    "location_placeholder": "Dispensa, Garage, ecc.",
     "days_before_expiry": "(giorni prima della scadenza)",
     "description": "Descrizione",
     "description_placeholder": "Descrizione dell’articolo",
@@ -67,7 +70,9 @@
     "all_categories": "Tutte le Categorie",
     "all_items": "Tutti gli Oggetti",
     "all_quantities": "Tutte le Quantità",
+    "all_locations": "Tutte le Posizioni",
     "category": "Categoria",
+    "location": "Posizione",
     "clear_all_filters": "Cancella Filtri",
     "expired": "Scaduti",
     "expiring_soon": "Scadenza Prossima",
@@ -83,6 +88,7 @@
   },
   "sort": {
     "category": "Categoria",
+    "location": "Posizione",
     "expiry_date": "Data Scadenza",
     "name": "Nome",
     "quantity_high": "Quantità (Alta)",
@@ -92,6 +98,7 @@
   },
   "active_filters": {
     "category": "Categoria",
+    "location": "Posizione",
     "expiry": "Scadenza",
     "label": "Filtri Attivi:",
     "quantity": "Quantità",
