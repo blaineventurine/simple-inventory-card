@@ -8,6 +8,7 @@
     "off": "Apagado",
     "on": "Encendido",
     "uncategorized": "Sin categoría",
+    "no_location": "Sin Ubicación",
     "unknown": "Desconocido"
   },
   "editor": {
@@ -52,6 +53,8 @@
     "expiry_date": "Fecha de Vencimiento",
     "expiry_help_text": "Cuántos días antes del vencimiento mostrar alertas",
     "expiry_threshold_placeholder": "Días antes del vencimiento para alertar (por defecto: 0)",
+    "location": "Ubicación",
+    "location_placeholder": "Despensa, Garaje, etc.",
     "minimum_quantity": "Cantidad mínima",
     "name_required": "Nombre *",
     "quantity": "Cantidad",
@@ -66,6 +69,7 @@
   "filters": {
     "all_categories": "Todas las Categorías",
     "all_items": "Todos los Artículos",
+    "all_locations": "Todas las Ubicaciones",
     "all_quantities": "Todas las Cantidades",
     "category": "Categoría",
     "clear_all_filters": "Limpiar Todos los Filtros",
@@ -75,6 +79,7 @@
     "filters": "Filtros",
     "future": "Futuro",
     "hide_filters": "Ocultar Filtros",
+    "location": "Ubicación",
     "no_expiry": "Sin Vencimiento",
     "non_zero": "No-cero",
     "quantity": "Cantidad",
@@ -84,6 +89,7 @@
   "sort": {
     "category": "Categoría",
     "expiry_date": "Fecha de Vencimiento",
+    "location": "Ubicación",
     "name": "Nombre",
     "quantity_high": "Cantidad (Alto)",
     "quantity_low": "Cantidad (Bajo)",
@@ -94,6 +100,7 @@
     "category": "Categoría",
     "expiry": "Vencimiento",
     "label": "Filtros activos:",
+    "location": "Ubicación",
     "quantity": "Cantidad",
     "search": "Búsqueda"
   },
