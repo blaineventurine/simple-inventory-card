@@ -41,6 +41,9 @@ jobs:
       - name: Run TypeScript type checking
         run: npm run type-check
 
+      - name: Check translations
+        run: node scripts/checkTranslations.js
+
       - name: Check Prettier formatting
         run: npx prettier --check "src/**/*.{ts,js}"
 
