@@ -1,0 +1,119 @@
+{
+    "card": {
+        "description": "Karta do zarządzania magazynem"
+    },
+    "common": {
+        "loading": "Ładowanie...",
+        "name": "Moja Karta",
+        "off": "Wył.",
+        "on": "Wł.",
+        "uncategorized": "Bez kategorii",
+        "no_location": "Brak lokalizacji",
+        "unknown": "Nieznany"
+    },
+    "editor": {
+        "entity": "Encja",
+        "name": "Nazwa (Opcjonalne)",
+        "show_icon": "Pokaż ikonę",
+        "show_state": "Pokaż stan"
+    },
+    "state": {
+        "active": "Aktywny",
+        "inactive": "Nieaktywny",
+        "unavailable": "Niedostępny"
+    },
+    "expiry": {
+        "expired_day_ago": "Wygasło {days} dzień temu",
+        "expired_days_ago": "Wygasło {days} dni temu",
+        "expires_in_day": "Wygasa za {days} dzień",
+        "expires_in_days": "Wygasa za {days} dni",
+        "expires_today": "Wygasa dzisiaj"
+    },
+    "items": {
+        "auto_add_info": "Auto-dodawanie przy ≤ {quantity} → {list}",
+        "no_items": "Brak przedmiotów w magazynie"
+    },
+    "header": {
+        "items_expired": "{count} {count, plural, one {przedmiot} few {przedmioty} many {przedmiotów} other {przedmiotu}} wygasł{count, plural, one {o} few {y} many {o} other {o}}",
+        "items_expiring_soon": "{count} {count, plural, one {przedmiot} few {przedmioty} many {przedmiotów} other {przedmiotu}} wygasa wkrótce"
+    },
+    "modal": {
+        "add_item": "Dodaj przedmiot",
+        "auto_add_id_to_description": "Dołącz ID magazynu do opisu",
+        "auto_add_settings": "Ustawienia auto-dodawania",
+        "auto_add_when_low": "Dodaj do listy zadań, gdy mało",
+        "cancel": "Anuluj",
+        "description": "Opis",
+        "description_placeholder": "Opis przedmiotu",
+        "category": "Kategoria",
+        "category_placeholder": "Jedzenie, Sprzątanie, itp.",
+        "location": "Lokalizacja",
+        "location_placeholder": "Spiżarnia, Garaż, itp.",
+        "days_before_expiry": "(dni przed wygaśnięciem)",
+        "edit_item": "Edytuj przedmiot",
+        "expiry_alert_threshold": "Próg alertu wygaśnięcia",
+        "expiry_date": "Data ważności",
+        "expiry_help_text": "Ile dni przed wygaśnięciem pokazywać alerty",
+        "expiry_threshold_placeholder": "Dni do alertu (domyślnie: 0)",
+        "minimum_quantity": "Minimalna ilość",
+        "name_required": "Nazwa *",
+        "quantity": "Ilość",
+        "quantity_threshold": "Próg ilości",
+        "save_changes": "Zapisz zmiany",
+        "select_list": "Wybierz listę...",
+        "set_expiry_first": "Najpierw ustaw datę ważności",
+        "todo_list": "Lista zadań",
+        "unit": "Jednostka",
+        "unit_placeholder": "kg, szt., itp."
+    },
+    "filters": {
+        "all_categories": "Wszystkie kategorie",
+        "all_items": "Wszystkie przedmioty",
+        "all_quantities": "Wszystkie ilości",
+        "all_locations": "Wszystkie lokalizacje",
+        "category": "Kategoria",
+        "location": "Lokalizacja",
+        "clear_all_filters": "Wyczyść filtry",
+        "expired": "Przeterminowane",
+        "expiring_soon": "Bliski termin ważności",
+        "expiry": "Termin ważności",
+        "filters": "Filtry",
+        "future": "Przyszłe",
+        "hide_filters": "Ukryj filtry",
+        "no_expiry": "Bez daty ważności",
+        "non_zero": "Tylko ze stanem",
+        "quantity": "Ilość",
+        "search_placeholder": "Szukaj...",
+        "zero": "Zerowe stany"
+    },
+    "sort": {
+        "category": "Kategoria",
+        "location": "Lokalizacja",
+        "expiry_date": "Data ważności",
+        "name": "Nazwa",
+        "quantity_high": "Ilość (Największa)",
+        "quantity_low": "Ilość (Najmniejsza)",
+        "sort_by": "Sortuj według:",
+        "zero_last": "Zera na końcu"
+    },
+    "active_filters": {
+        "category": "Kategoria",
+        "location": "Lokalizacja",
+        "expiry": "Termin ważności",
+        "label": "Aktywne filtry:",
+        "quantity": "Ilość",
+        "search": "Szukaj"
+    },
+    "config": {
+        "inventory_entity_required": "Wymagana encja magazynu",
+        "items_count": "Przedmioty",
+        "select_entity_message": "Proszę wybrać encję magazynu",
+        "selected_inventory": "Wybrany magazyn:"
+    },
+    "actions": {
+        "confirm_remove": "Czy usunąć {name} z magazynu?"
+    },
+    "errors": {
+        "clear_filters_error": "Błąd czyszczenia filtrów. Spróbuj ponownie."
+    }
+}
