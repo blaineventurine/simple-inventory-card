@@ -8,6 +8,7 @@
     "off": "Apagado",
     "on": "Encendido",
     "uncategorized": "Sin categoría",
+    "no_location": "Sin Ubicación",
     "unknown": "Desconocido"
   },
   "editor": {
@@ -44,6 +45,8 @@
     "cancel": "Cancelar",
     "category": "Categoría",
     "category_placeholder": "Comida, Limpieza, etc.",
+    "location": "Ubicación",
+    "location_placeholder": "Despensa, Garaje, etc.",
     "days_before_expiry": "(días antes del vencimiento)",
     "description": "Descripción",
     "description_placeholder": "Descripción del artículo",
@@ -67,7 +70,9 @@
     "all_categories": "Todas las Categorías",
     "all_items": "Todos los Artículos",
     "all_quantities": "Todas las Cantidades",
+    "all_locations": "Todas las Ubicaciones",
     "category": "Categoría",
+    "location": "Ubicación",
     "clear_all_filters": "Limpiar Todos los Filtros",
     "expired": "Expirado",
     "expiring_soon": "Expirando Pronto",
@@ -83,6 +88,7 @@
   },
   "sort": {
     "category": "Categoría",
+    "location": "Ubicación",
     "expiry_date": "Fecha de Vencimiento",
     "name": "Nombre",
     "quantity_high": "Cantidad (Alto)",
@@ -92,6 +98,7 @@
   },
   "active_filters": {
     "category": "Categoría",
+    "location": "Ubicación",
     "expiry": "Vencimiento",
     "label": "Filtros activos:",
     "quantity": "Cantidad",
