@@ -63,6 +63,7 @@ function checkTranslations() {
     }
 
     if (extraKeys.length > 0) {
+      hasIssues = true;
       console.log(`   ⚠️  Extra ${extraKeys.length} keys (not in base):`);
       extraKeys.forEach((key) => console.log(`      + ${key}`));
     }
