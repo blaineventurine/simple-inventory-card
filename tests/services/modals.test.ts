@@ -15,9 +15,8 @@ vi.mock('../../src/services/modals/modalFormManager');
 vi.mock('../../src/services/modals/modalValidationManager');
 vi.mock('../../src/services/modals/modalUIManager');
 vi.mock('../../src/utils/utilities');
-vi.mock('../../src/templates/autoCompleteInput', () => ({
-  initializeAutocomplete: vi.fn(),
-  createAutocompleteInput: vi.fn(() => '<div></div>'),
+vi.mock('../../src/services/modalMultiSelect', () => ({
+  initializeModalMultiSelect: vi.fn(),
 }));
 
 describe('Modals (Integration)', () => {
@@ -166,14 +165,17 @@ describe('Modals (Integration)', () => {
       autoAddEnabled: false,
       autoAddIdToDescriptionEnabled: false,
       autoAddToListQuantity: '0',
+      barcode: '',
       category: 'Food',
       description: 'Test',
+      desiredQuantity: '0',
       expiryAlertDays: '7',
       expiryDate: '',
       location: 'Pantry',
       name: 'Test Item',
       quantity: '5',
       todoList: '',
+      todoQuantityPlacement: 'name',
       unit: 'pcs',
     };
 
@@ -188,14 +190,17 @@ describe('Modals (Integration)', () => {
         autoAddEnabled: false,
         autoAddIdToDescriptionEnabled: false,
         autoAddToListQuantity: 0,
+        barcode: '',
         category: 'Food',
         description: 'Test',
+        desiredQuantity: 0,
         expiryAlertDays: 7,
         expiryDate: '',
         location: 'Pantry',
         name: 'Test Item',
         quantity: 5,
         todoList: '',
+        todoQuantityPlacement: 'name',
         unit: 'pcs',
       };
       const mockResult: InventoryServiceResult = { success: true };
@@ -286,14 +291,17 @@ describe('Modals (Integration)', () => {
       autoAddEnabled: true,
       autoAddIdToDescriptionEnabled: false,
       autoAddToListQuantity: '2',
+      barcode: '',
       category: 'Food',
       description: 'Updated description',
+      desiredQuantity: '0',
       expiryAlertDays: '7',
       expiryDate: '2024-12-31',
       location: 'Pantry',
       name: 'Updated Item',
       quantity: '10',
       todoList: 'shopping',
+      todoQuantityPlacement: 'name',
       unit: 'pcs',
     };
 
@@ -317,14 +325,17 @@ describe('Modals (Integration)', () => {
         autoAddEnabled: true,
         autoAddIdToDescriptionEnabled: false,
         autoAddToListQuantity: 2,
+        barcode: '',
         category: 'Food',
         description: 'Updated description',
+        desiredQuantity: 0,
         expiryAlertDays: 7,
         expiryDate: '2024-12-31',
         location: 'Pantry',
         name: 'Updated Item',
         quantity: 10,
         todoList: 'shopping',
+        todoQuantityPlacement: 'name',
         unit: 'pcs',
       };
       const mockResult: InventoryServiceResult = { success: true };

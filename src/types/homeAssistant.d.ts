@@ -147,18 +147,28 @@ export interface InventoryItem {
   auto_add_enabled: boolean;
   auto_add_id_to_description_enabled: boolean;
   auto_add_to_list_quantity?: number;
+  barcodes?: string[];
+  categories?: string[];
   category: string;
   description: string;
+  desired_quantity?: number;
   expiry_alert_days?: number;
   expiry_date: string;
   location: string;
+  locations?: string[];
   name: string;
   quantity: number;
   todo_list: string;
+  todo_quantity_placement?: string;
   unit: string;
 }
 
 export interface InventoryConfig extends LovelaceCardConfig {
   type: string;
   entity: string;
+  show_description?: boolean;
+  show_location?: boolean;
+  show_category?: boolean;
+  show_expiry?: boolean;
+  show_auto_add_info?: boolean;
 }

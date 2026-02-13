@@ -8,12 +8,12 @@ export function itemDescription(prefix: string, translations: TranslationData): 
       <label for="${prefix}-${ELEMENTS.DESCRIPTION}" class="form-label">
         ${TranslationManager.localize(translations, 'modal.description', undefined, 'Description')}
       </label>
-      <input type="text" id="${prefix}-${ELEMENTS.DESCRIPTION}" placeholder="${TranslationManager.localize(
+      <textarea id="${prefix}-${ELEMENTS.DESCRIPTION}" rows="3" placeholder="${TranslationManager.localize(
         translations,
         'modal.description_placeholder',
         undefined,
         'Item description',
-      )}" />
+      )}"></textarea>
     </div> 
   `;
 }

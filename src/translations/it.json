@@ -107,8 +107,14 @@
   "config": {
     "inventory_entity_required": "Entità inventario (Obbligatoria)",
     "items_count": "Oggetti",
-    "select_entity_message": "Seleziona un’entità inventario sopra",
-    "selected_inventory": "Inventario selezionato:"
+    "select_entity_message": "Seleziona un'entità inventario sopra",
+    "selected_inventory": "Inventario selezionato:",
+    "display_options": "Opzioni di visualizzazione",
+    "show_description": "Mostra descrizione",
+    "show_location": "Mostra posizione",
+    "show_category": "Mostra categoria",
+    "show_expiry": "Mostra data di scadenza",
+    "show_auto_add_info": "Mostra info aggiunta automatica"
   },
   "actions": {
     "confirm_remove": "Rimuovere {name} dall’inventario?"

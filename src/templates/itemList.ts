@@ -1,5 +1,5 @@
 import { CSS_CLASSES } from '../utils/constants';
-import { InventoryItem } from '../types/homeAssistant';
+import { InventoryConfig, InventoryItem } from '../types/homeAssistant';
 import { TodoList } from '../types/todoList';
 import { Utilities } from '../utils/utilities';
 import { createItemRowTemplate } from './itemRow';
@@ -11,6 +11,7 @@ export function createItemsList(
   sortMethod: string,
   todoLists: TodoList[],
   translations: TranslationData,
+  config?: InventoryConfig,
 ): string {
   if (items.length === 0) {
     const noItemsMessage = TranslationManager.localize(
@@ -23,20 +24,21 @@ export function createItemsList(
   }
 
   if (sortMethod === 'category') {
-    return createItemsByCategory(items, todoLists, translations);
+    return createItemsByCategory(items, todoLists, translations, config);
   }
 
   if (sortMethod === 'location') {
-    return createItemsByLocation(items, todoLists, translations);
+    return createItemsByLocation(items, todoLists, translations, config);
   }
 
-  return items.map((item) => createItemRowTemplate(item, todoLists, translations)).join('');
+  return items.map((item) => createItemRowTemplate(item, todoLists, translations, config)).join('');
 }
 
 export function createItemsByCategory(
   items: InventoryItem[],
   todoLists: TodoList[],
   translations: TranslationData,
+  config?: InventoryConfig,
 ): string {
   const grouped = Utilities.groupItemsByCategory(items);
   const sortedCategories = Object.keys(grouped).sort();
@@ -46,7 +48,7 @@ export function createItemsByCategory(
       (category) => `
         <div class="${CSS_CLASSES.CATEGORY_GROUP}">
           <div class="${CSS_CLASSES.CATEGORY_HEADER}">${category}</div>
-          ${grouped[category].map((item) => createItemRowTemplate(item, todoLists, translations)).join('')}
+          ${grouped[category].map((item) => createItemRowTemplate(item, todoLists, translations, config)).join('')}
         </div>
       `,
     )
@@ -57,6 +59,7 @@ export function createItemsByLocation(
   items: InventoryItem[],
   todoLists: TodoList[],
   translations: TranslationData,
+  config?: InventoryConfig,
 ): string {
   const grouped = Utilities.groupItemsByLocation(items);
   const sortedLocations = Object.keys(grouped).sort();
@@ -65,7 +68,7 @@ export function createItemsByLocation(
       (location) => `
         <div class="${CSS_CLASSES.LOCATION_GROUP}">
           <div class="${CSS_CLASSES.LOCATION_HEADER}">${location}</div>
-          ${grouped[location].map((item) => createItemRowTemplate(item, todoLists, translations)).join('')}
+          ${grouped[location].map((item) => createItemRowTemplate(item, todoLists, translations, config)).join('')}
         </div>
 `,
     )

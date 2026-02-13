@@ -65,7 +65,17 @@ export class Filters {
   }
 
   clearFilters(entityId: string): void {
-    localStorage.removeItem(STORAGE_KEYS.FILTERS(entityId));
+    const current = this.getCurrentFilters(entityId);
+    const cleared: FilterState = {
+      category: [],
+      expiry: [],
+      location: [],
+      quantity: [],
+      searchText: '',
+      showAdvanced: current.showAdvanced,
+      sortMethod: current.sortMethod ?? DEFAULTS.SORT_METHOD,
+    };
+    this.saveFilters(entityId, cleared);
   }
 
   filterItems(items: readonly InventoryItem[], filters: FilterState): InventoryItem[] {
@@ -78,20 +88,24 @@ export class Filters {
         return false;
       }
 
-      if (
-        filters.category &&
-        filters.category.length > 0 &&
-        !filters.category.includes(item.category || '')
-      ) {
-        return false;
+      if (filters.category && filters.category.length > 0) {
+        const itemCategories =
+          Array.isArray(item.categories) && item.categories.length > 0
+            ? item.categories
+            : [item.category || ''];
+        if (!itemCategories.some((c) => filters.category.includes(c))) {
+          return false;
+        }
       }
 
-      if (
-        filters.location &&
-        filters.location.length > 0 &&
-        !filters.location.includes(item.location || '')
-      ) {
-        return false;
+      if (filters.location && filters.location.length > 0) {
+        const itemLocations =
+          Array.isArray(item.locations) && item.locations.length > 0
+            ? item.locations
+            : [item.location || ''];
+        if (!itemLocations.some((l) => filters.location.includes(l))) {
+          return false;
+        }
       }
 
       if (
@@ -115,18 +129,31 @@ export class Filters {
   }
 
   private matchesTextSearch(item: InventoryItem, searchText: string): boolean {
-    const itemCategory = (item.category ?? '').toLowerCase();
-    const itemLocation = (item.location ?? '').toLowerCase();
+    const search = searchText.toLowerCase();
     const itemName = (item.name ?? '').toLowerCase();
     const itemUnit = (item.unit ?? '').toLowerCase();
-    const search = searchText.toLowerCase();
 
-    return (
-      itemName.includes(search) ||
-      itemCategory.includes(search) ||
-      itemUnit.includes(search) ||
-      itemLocation.includes(search)
-    );
+    if (itemName.includes(search) || itemUnit.includes(search)) {
+      return true;
+    }
+
+    const categoryTexts =
+      Array.isArray(item.categories) && item.categories.length > 0
+        ? item.categories
+        : [item.category ?? ''];
+    if (categoryTexts.some((c) => c.toLowerCase().includes(search))) {
+      return true;
+    }
+
+    const locationTexts =
+      Array.isArray(item.locations) && item.locations.length > 0
+        ? item.locations
+        : [item.location ?? ''];
+    if (locationTexts.some((l) => l.toLowerCase().includes(search))) {
+      return true;
+    }
+
+    return false;
   }
 
   private matchesQuantityFilter(item: InventoryItem, quantityFilter: string[]): boolean {

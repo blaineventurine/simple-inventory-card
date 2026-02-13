@@ -108,7 +108,13 @@
     "inventory_entity_required": "Entité d'inventaire (requis)",
     "items_count": "Articles",
     "select_entity_message": "Veuillez sélectionner une entité d'inventaire ci-dessus",
-    "selected_inventory": "Inventaire sélectionné :"
+    "selected_inventory": "Inventaire sélectionné :",
+    "display_options": "Options d'affichage",
+    "show_description": "Afficher la description",
+    "show_location": "Afficher l'emplacement",
+    "show_category": "Afficher la catégorie",
+    "show_expiry": "Afficher la date d'expiration",
+    "show_auto_add_info": "Afficher les infos d'ajout automatique"
   },
   "actions": {
     "confirm_remove": "Retirer {name} de l'inventaire ?"

@@ -42,6 +42,8 @@
     "auto_add_id_to_description": "Append inventory ID to item description",
     "auto_add_settings": "Auto-add Settings",
     "auto_add_when_low": "Auto-add to todo list when low",
+    "barcode": "Barcode",
+    "barcode_placeholder": "UPC, EAN, etc.",
     "cancel": "Cancel",
     "description": "Description",
     "description_placeholder": "Item description",
@@ -49,6 +51,8 @@
     "category_placeholder": "Food, Cleaning, etc.",
     "location": "Location",
     "location_placeholder": "Pantry, Garage, etc.",
+    "desired_quantity": "Desired Quantity",
+    "desired_quantity_placeholder": "Desired stock level (blank = use threshold)",
     "days_before_expiry": "(days before expiry)",
     "edit_item": "Edit Item",
     "expiry_alert_threshold": "Expiry Alert Threshold",
@@ -63,6 +67,10 @@
     "select_list": "Select list...",
     "set_expiry_first": "Set expiry date first",
     "todo_list": "Todo List",
+    "todo_quantity_placement": "Quantity Placement",
+    "todo_quantity_placement_name": "In name (e.g. Milk (x4))",
+    "todo_quantity_placement_description": "In description",
+    "todo_quantity_placement_none": "Don't show",
     "unit": "Unit",
     "unit_placeholder": "kg, pcs, etc."
   },
@@ -108,12 +116,20 @@
     "inventory_entity_required": "Inventory Entity (Required)",
     "items_count": "Items",
     "select_entity_message": "Please select an inventory entity above",
-    "selected_inventory": "Selected Inventory:"
+    "selected_inventory": "Selected Inventory:",
+    "display_options": "Display Options",
+    "show_description": "Show description",
+    "show_location": "Show location",
+    "show_category": "Show category",
+    "show_expiry": "Show expiry date",
+    "show_auto_add_info": "Show auto-add info"
   },
   "actions": {
     "confirm_remove": "Remove {name} from inventory?"
   },
   "errors": {
-    "clear_filters_error": "Error clearing filters. Please try again."
+    "clear_filters_error": "Error clearing filters. Please try again.",
+    "duplicate_name": "An item named \"{name}\" already exists in this inventory.",
+    "update_failed": "Failed to update item. Please try again."
   }
 }

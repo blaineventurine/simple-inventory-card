@@ -72,6 +72,7 @@ describe('Services', () => {
         [PARAMS.AUTO_ADD_TO_LIST_QUANTITY]: itemData.autoAddToListQuantity,
         [PARAMS.CATEGORY]: itemData.category,
         [PARAMS.DESCRIPTION]: itemData.description,
+        [PARAMS.DESIRED_QUANTITY]: DEFAULTS.DESIRED_QUANTITY,
         [PARAMS.EXPIRY_ALERT_DAYS]: itemData.expiryAlertDays,
         [PARAMS.EXPIRY_DATE]: itemData.expiryDate,
         [PARAMS.INVENTORY_ID]: inventoryId,
@@ -79,6 +80,7 @@ describe('Services', () => {
         [PARAMS.NAME]: itemData.name,
         [PARAMS.QUANTITY]: itemData.quantity,
         [PARAMS.TODO_LIST]: itemData.todoList,
+        [PARAMS.TODO_QUANTITY_PLACEMENT]: DEFAULTS.TODO_QUANTITY_PLACEMENT,
         [PARAMS.UNIT]: itemData.unit,
       });
     });
@@ -108,6 +110,7 @@ describe('Services', () => {
         [PARAMS.AUTO_ADD_TO_LIST_QUANTITY]: DEFAULTS.AUTO_ADD_TO_LIST_QUANTITY,
         [PARAMS.CATEGORY]: DEFAULTS.CATEGORY,
         [PARAMS.DESCRIPTION]: DEFAULTS.DESCRIPTION,
+        [PARAMS.DESIRED_QUANTITY]: DEFAULTS.DESIRED_QUANTITY,
         [PARAMS.EXPIRY_ALERT_DAYS]: DEFAULTS.EXPIRY_ALERT_DAYS,
         [PARAMS.EXPIRY_DATE]: DEFAULTS.EXPIRY_DATE,
         [PARAMS.INVENTORY_ID]: inventoryId,
@@ -115,6 +118,7 @@ describe('Services', () => {
         [PARAMS.NAME]: minimalItemData.name,
         [PARAMS.QUANTITY]: minimalItemData.quantity,
         [PARAMS.TODO_LIST]: DEFAULTS.TODO_LIST,
+        [PARAMS.TODO_QUANTITY_PLACEMENT]: DEFAULTS.TODO_QUANTITY_PLACEMENT,
         [PARAMS.UNIT]: DEFAULTS.UNIT,
       });
     });
@@ -171,6 +175,7 @@ describe('Services', () => {
         [PARAMS.AUTO_ADD_TO_LIST_QUANTITY]: DEFAULTS.AUTO_ADD_TO_LIST_QUANTITY, // 0 should use default
         [PARAMS.CATEGORY]: '', // empty string should be preserved
         [PARAMS.DESCRIPTION]: DEFAULTS.DESCRIPTION, // null should use default
+        [PARAMS.DESIRED_QUANTITY]: DEFAULTS.DESIRED_QUANTITY,
         [PARAMS.EXPIRY_ALERT_DAYS]: 0,
         [PARAMS.EXPIRY_DATE]: DEFAULTS.EXPIRY_DATE, // null should use default
         [PARAMS.INVENTORY_ID]: inventoryId,
@@ -178,6 +183,7 @@ describe('Services', () => {
         [PARAMS.NAME]: itemDataWithNulls.name,
         [PARAMS.QUANTITY]: 0,
         [PARAMS.TODO_LIST]: '', // empty string should be preserved
+        [PARAMS.TODO_QUANTITY_PLACEMENT]: DEFAULTS.TODO_QUANTITY_PLACEMENT,
         [PARAMS.UNIT]: DEFAULTS.UNIT, // null should use default
       });
     });
@@ -356,6 +362,7 @@ describe('Services', () => {
         [PARAMS.AUTO_ADD_TO_LIST_QUANTITY]: itemData.autoAddToListQuantity,
         [PARAMS.CATEGORY]: itemData.category,
         [PARAMS.DESCRIPTION]: itemData.description,
+        [PARAMS.DESIRED_QUANTITY]: DEFAULTS.DESIRED_QUANTITY,
         [PARAMS.EXPIRY_ALERT_DAYS]: itemData.expiryAlertDays,
         [PARAMS.EXPIRY_DATE]: itemData.expiryDate,
         [PARAMS.INVENTORY_ID]: inventoryId,
@@ -364,6 +371,7 @@ describe('Services', () => {
         [PARAMS.OLD_NAME]: oldName,
         [PARAMS.QUANTITY]: itemData.quantity,
         [PARAMS.TODO_LIST]: itemData.todoList,
+        [PARAMS.TODO_QUANTITY_PLACEMENT]: DEFAULTS.TODO_QUANTITY_PLACEMENT,
         [PARAMS.UNIT]: itemData.unit,
       });
     });
@@ -393,6 +401,7 @@ describe('Services', () => {
         [PARAMS.AUTO_ADD_TO_LIST_QUANTITY]: DEFAULTS.AUTO_ADD_TO_LIST_QUANTITY,
         [PARAMS.CATEGORY]: DEFAULTS.CATEGORY,
         [PARAMS.DESCRIPTION]: DEFAULTS.DESCRIPTION,
+        [PARAMS.DESIRED_QUANTITY]: DEFAULTS.DESIRED_QUANTITY,
         [PARAMS.EXPIRY_ALERT_DAYS]: DEFAULTS.EXPIRY_ALERT_DAYS,
         [PARAMS.EXPIRY_DATE]: DEFAULTS.EXPIRY_DATE,
         [PARAMS.INVENTORY_ID]: inventoryId,
@@ -401,6 +410,7 @@ describe('Services', () => {
         [PARAMS.OLD_NAME]: oldName,
         [PARAMS.QUANTITY]: minimalItemData.quantity,
         [PARAMS.TODO_LIST]: DEFAULTS.TODO_LIST,
+        [PARAMS.TODO_QUANTITY_PLACEMENT]: DEFAULTS.TODO_QUANTITY_PLACEMENT,
         [PARAMS.UNIT]: DEFAULTS.UNIT,
       });
     });
@@ -430,6 +440,7 @@ describe('Services', () => {
         [PARAMS.AUTO_ADD_TO_LIST_QUANTITY]: 0,
         [PARAMS.CATEGORY]: DEFAULTS.CATEGORY, // empty string should use default
         [PARAMS.DESCRIPTION]: DEFAULTS.DESCRIPTION, // empty string should use default
+        [PARAMS.DESIRED_QUANTITY]: DEFAULTS.DESIRED_QUANTITY,
         [PARAMS.EXPIRY_ALERT_DAYS]: 0,
         [PARAMS.EXPIRY_DATE]: '',
         [PARAMS.INVENTORY_ID]: inventoryId,
@@ -438,6 +449,7 @@ describe('Services', () => {
         [PARAMS.OLD_NAME]: oldName,
         [PARAMS.QUANTITY]: 0,
         [PARAMS.TODO_LIST]: '',
+        [PARAMS.TODO_QUANTITY_PLACEMENT]: DEFAULTS.TODO_QUANTITY_PLACEMENT,
         [PARAMS.UNIT]: DEFAULTS.UNIT, // empty string should use default
       });
     });

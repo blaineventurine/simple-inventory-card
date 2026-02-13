@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createItemRowTemplate } from '../../src/templates/itemRow';
-import { InventoryItem } from '../../src/types/homeAssistant';
+import { InventoryConfig, InventoryItem } from '../../src/types/homeAssistant';
 import { TodoList } from '../../src/types/todoList';
 import { TranslationData } from '@/types/translatableComponent';
 
@@ -110,7 +110,6 @@ describe('createItemRowTemplate', () => {
       expect(result).toContain('data-action="open_edit"');
       expect(result).toContain('data-action="decrement"');
       expect(result).toContain('data-action="increment"');
-      expect(result).toContain('data-action="remove"');
     });
   });
 
@@ -339,7 +338,7 @@ describe('createItemRowTemplate', () => {
 
       // Count occurrences of data-name="Apple"
       const matches = result.match(/data-name="Apple"/g);
-      expect(matches).toHaveLength(4); // Edit, decrement, increment, remove
+      expect(matches).toHaveLength(3); // Edit, decrement, increment
     });
   });
 
@@ -447,7 +446,165 @@ describe('createItemRowTemplate', () => {
       // Should have enabled other buttons
       expect(result).toContain('data-action="open_edit"');
       expect(result).toContain('data-action="increment"');
-      expect(result).toContain('data-action="remove"');
+    });
+  });
+
+  describe('field visibility toggles', () => {
+    const defaultConfig: InventoryConfig = {
+      type: 'custom:simple-inventory-card',
+      entity: 'sensor.test',
+    };
+
+    it('should show all fields when config is undefined (defaults)', () => {
+      baseItem.location = 'Fridge';
+      baseItem.auto_add_enabled = true;
+      baseItem.todo_list = 'todo.grocery';
+      const result = createItemRowTemplate(baseItem, mockTodoLists, mockTranslations);
+
+      expect(result).toContain('class="item-description"');
+      expect(result).toContain('class="location-category"');
+      expect(result).toContain('class="expiry');
+      expect(result).toContain('class="auto-add-info"');
+    });
+
+    it('should show all fields when all toggles are true', () => {
+      baseItem.location = 'Fridge';
+      baseItem.auto_add_enabled = true;
+      baseItem.todo_list = 'todo.grocery';
+      const config: InventoryConfig = {
+        ...defaultConfig,
+        show_description: true,
+        show_location: true,
+        show_category: true,
+        show_expiry: true,
+        show_auto_add_info: true,
+      };
+      const result = createItemRowTemplate(baseItem, mockTodoLists, mockTranslations, config);
+
+      expect(result).toContain('class="item-description"');
+      expect(result).toContain('class="location-category"');
+      expect(result).toContain('class="expiry');
+      expect(result).toContain('class="auto-add-info"');
+    });
+
+    it('should hide description when show_description is false', () => {
+      const config: InventoryConfig = {
+        ...defaultConfig,
+        show_description: false,
+      };
+      const result = createItemRowTemplate(baseItem, mockTodoLists, mockTranslations, config);
+
+      expect(result).not.toContain('class="item-description"');
+    });
+
+    it('should hide location when show_location is false', () => {
+      baseItem.location = 'Fridge';
+      baseItem.category = '';
+      const config: InventoryConfig = {
+        ...defaultConfig,
+        show_location: false,
+      };
+      const result = createItemRowTemplate(baseItem, mockTodoLists, mockTranslations, config);
+
+      expect(result).not.toContain('class="location"');
+      expect(result).not.toContain('Fridge');
+    });
+
+    it('should hide category when show_category is false', () => {
+      baseItem.location = '';
+      const config: InventoryConfig = {
+        ...defaultConfig,
+        show_category: false,
+      };
+      const result = createItemRowTemplate(baseItem, mockTodoLists, mockTranslations, config);
+
+      expect(result).not.toContain('class="category"');
+      expect(result).not.toContain('Fruit');
+    });
+
+    it('should show only location when show_category is false and both exist', () => {
+      baseItem.location = 'Fridge';
+      const config: InventoryConfig = {
+        ...defaultConfig,
+        show_category: false,
+      };
+      const result = createItemRowTemplate(baseItem, mockTodoLists, mockTranslations, config);
+
+      expect(result).toContain('class="location"');
+      expect(result).toContain('Fridge');
+      expect(result).not.toContain('class="location-category"');
+    });
+
+    it('should show only category when show_location is false and both exist', () => {
+      baseItem.location = 'Fridge';
+      const config: InventoryConfig = {
+        ...defaultConfig,
+        show_location: false,
+      };
+      const result = createItemRowTemplate(baseItem, mockTodoLists, mockTranslations, config);
+
+      expect(result).toContain('class="category"');
+      expect(result).toContain('Fruit');
+      expect(result).not.toContain('class="location-category"');
+    });
+
+    it('should hide expiry when show_expiry is false', () => {
+      const config: InventoryConfig = {
+        ...defaultConfig,
+        show_expiry: false,
+      };
+      const result = createItemRowTemplate(baseItem, mockTodoLists, mockTranslations, config);
+
+      expect(result).not.toContain('class="expiry');
+    });
+
+    it('should hide auto-add info when show_auto_add_info is false', () => {
+      const autoAddItem = {
+        ...baseItem,
+        auto_add_enabled: true,
+        todo_list: 'todo.grocery',
+      };
+      const config: InventoryConfig = {
+        ...defaultConfig,
+        show_auto_add_info: false,
+      };
+      const result = createItemRowTemplate(autoAddItem, mockTodoLists, mockTranslations, config);
+
+      expect(result).not.toContain('class="auto-add-info"');
+    });
+
+    it('should always show name, quantity, and controls regardless of config', () => {
+      const config: InventoryConfig = {
+        ...defaultConfig,
+        show_description: false,
+        show_location: false,
+        show_category: false,
+        show_expiry: false,
+        show_auto_add_info: false,
+      };
+      const result = createItemRowTemplate(baseItem, mockTodoLists, mockTranslations, config);
+
+      expect(result).toContain('class="item-name"');
+      expect(result).toContain('Apple');
+      expect(result).toContain('class="quantity"');
+      expect(result).toContain('class="item-controls"');
+      expect(result).toContain('data-action="open_edit"');
+      expect(result).toContain('data-action="decrement"');
+      expect(result).toContain('data-action="increment"');
+    });
+
+    it('should hide location and category when both toggles are false', () => {
+      baseItem.location = 'Fridge';
+      const config: InventoryConfig = {
+        ...defaultConfig,
+        show_location: false,
+        show_category: false,
+      };
+      const result = createItemRowTemplate(baseItem, mockTodoLists, mockTranslations, config);
+
+      expect(result).not.toContain('class="location');
+      expect(result).not.toContain('class="category"');
+      expect(result).not.toContain('class="location-category"');
     });
   });
 });

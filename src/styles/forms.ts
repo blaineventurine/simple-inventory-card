@@ -110,7 +110,8 @@ export const formStyles: CSSResult = css`
   }
 
   input:not([type='checkbox']),
-  select {
+  select,
+  textarea {
     padding: 14px 16px;
     border: 2px solid var(--divider-color);
     border-radius: 8px;
@@ -122,15 +123,22 @@ export const formStyles: CSSResult = css`
     box-sizing: border-box;
   }
 
+  textarea {
+    font-family: inherit;
+    resize: vertical;
+  }
+
   input:not([type='checkbox']):focus,
-  select:focus {
+  select:focus,
+  textarea:focus {
     outline: none;
     border-color: var(--primary-color);
     box-shadow: 0 0 0 3px rgba(var(--rgb-primary-color), 0.1);
     transform: translateY(-1px);
   }
 
-  input::placeholder {
+  input::placeholder,
+  textarea::placeholder {
     color: var(--secondary-text-color);
     opacity: 0.7;
   }
@@ -332,6 +340,131 @@ export const formStyles: CSSResult = css`
 
   .autocomplete-container input:focus {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 4l3 3 3-3' stroke='var(--primary-color)' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+  }
+
+  .modal-multi-select-container {
+    position: relative;
+  }
+
+  .modal-multi-select-trigger {
+    padding: 10px 16px;
+    border: 2px solid var(--divider-color);
+    border-radius: 8px;
+    background: var(--card-background-color);
+    cursor: pointer;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    min-height: 48px;
+    gap: 4px;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+  }
+
+  .modal-multi-select-trigger:hover {
+    border-color: var(--primary-color);
+  }
+
+  .modal-multi-select-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .modal-multi-select-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--primary-color);
+    color: var(--text-primary-color, white);
+    border-radius: 16px;
+    padding: 2px 8px;
+    font-size: 0.85em;
+    line-height: 1.4;
+    white-space: nowrap;
+  }
+
+  .modal-multi-select-chip-remove {
+    background: transparent;
+    border: none;
+    color: var(--text-primary-color, white);
+    cursor: pointer;
+    font-size: 1.1em;
+    line-height: 1;
+    padding: 0 2px;
+    opacity: 0.8;
+    transition: opacity 0.2s ease;
+  }
+
+  .modal-multi-select-chip-remove:hover {
+    opacity: 1;
+  }
+
+  .modal-multi-select-label {
+    color: var(--secondary-text-color);
+    font-size: 16px;
+  }
+
+  .modal-multi-select-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--card-background-color);
+    border: 2px solid var(--divider-color);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .modal-multi-select-option {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--divider-color);
+    gap: 12px;
+  }
+
+  .modal-multi-select-option:last-child {
+    border-bottom: none;
+  }
+
+  .modal-multi-select-option:hover {
+    background: var(--secondary-background-color);
+  }
+
+  .modal-multi-select-add-new {
+    display: flex;
+    padding: 8px;
+    gap: 8px;
+    border-top: 1px solid var(--divider-color);
+  }
+
+  .modal-multi-select-add-new input {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .modal-multi-select-add-btn {
+    flex-shrink: 0;
+    padding: 8px 12px;
+    border: 1px solid var(--primary-color);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--primary-color);
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+  }
+
+  .modal-multi-select-add-btn:hover {
+    background: var(--primary-color);
+    color: var(--text-primary-color, white);
   }
 
   .multi-select-container {

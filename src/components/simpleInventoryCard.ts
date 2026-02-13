@@ -154,6 +154,7 @@ class SimpleInventoryCard extends LitElement {
       sortMethod,
       this._todoLists,
       this._translations,
+      this._config,
     );
   }
 

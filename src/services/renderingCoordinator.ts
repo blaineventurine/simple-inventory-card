@@ -70,6 +70,7 @@ export class RenderingCoordinator {
         sortMethod,
         todoLists,
         translations,
+        config,
       );
 
       eventHandler.setupEventListeners();
@@ -93,6 +94,7 @@ export class RenderingCoordinator {
     sortMethod: string,
     todoLists: Array<{ id: string; name: string }>,
     translations: TranslationData,
+    config?: InventoryConfig,
   ): void {
     if (!this.renderRoot) {
       return;
@@ -110,6 +112,7 @@ export class RenderingCoordinator {
           sortMethod,
           todoLists,
           translations || {},
+          config,
         );
       })
       .catch((error) => {

@@ -128,6 +128,7 @@ describe('Renderer', () => {
         mockState.attributes.items,
         'Test Description',
         mockTranslations,
+        undefined,
       );
       expect(mockShadowRoot.innerHTML).toBe('<div>Generated Card HTML</div>');
     });
@@ -164,6 +165,7 @@ describe('Renderer', () => {
         [], // Empty allItems when no attributes
         'Test Description',
         mockTranslations,
+        undefined,
       );
     });
 
@@ -199,6 +201,7 @@ describe('Renderer', () => {
         [], // Empty allItems when attributes.items is undefined
         'Test Description',
         mockTranslations,
+        undefined,
       );
     });
 
@@ -226,6 +229,7 @@ describe('Renderer', () => {
         [],
         'Test Description',
         mockTranslations,
+        undefined,
       );
     });
 
@@ -313,6 +317,7 @@ describe('Renderer', () => {
         mockState.attributes.items,
         'Test Description',
         mockTranslations,
+        undefined,
       );
     });
 
@@ -395,6 +400,7 @@ describe('Renderer', () => {
         mockState.attributes.items,
         'Test Description',
         mockTranslations,
+        undefined,
       );
     });
 
@@ -431,6 +437,7 @@ describe('Renderer', () => {
         [],
         'Test Description',
         mockTranslations,
+        undefined,
       );
     });
 
@@ -474,6 +481,7 @@ describe('Renderer', () => {
         [],
         'Test Description',
         mockTranslations,
+        undefined,
       );
     });
   });
@@ -580,6 +588,7 @@ describe('Renderer', () => {
         expect.any(Array),
         expect.any(String),
         expect.any(Object),
+        undefined,
       );
     });
 
@@ -620,6 +629,7 @@ describe('Renderer', () => {
         expect.any(Array),
         expect.any(String),
         expect.any(Object),
+        undefined,
       );
     });
 
@@ -665,18 +675,19 @@ describe('Renderer', () => {
 
       renderer.renderCard(mockState, 'test.entity', [], mockFilters, 'name', [], mockTranslations);
 
-      // Whitespace-only categories should be included since they're truthy
+      // Whitespace-only categories should be filtered out after trimming
       expect(generateCardHTML).toHaveBeenCalledWith(
         expect.any(String), // inventory name
         expect.any(Array), // items
         expect.any(Object), // filters
         expect.any(String), // sort method
-        ['   ', '\t\n', 'Valid Category'].sort(), // categories
+        ['Valid Category'], // categories (whitespace-only trimmed out)
         expect.any(Array), // locations
         expect.any(Array), // todo lists
         expect.any(Array), // all items
         expect.any(String), // description
         expect.any(Object), // translations
+        undefined,
       );
     });
   });

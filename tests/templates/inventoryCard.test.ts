@@ -610,6 +610,7 @@ describe('generateCardHTML', () => {
         'category',
         mockTodoLists,
         mockTranslations,
+        undefined,
       );
       expect(modalTemplatesModule.createAddModal).toHaveBeenCalledWith(
         mockTodoLists,

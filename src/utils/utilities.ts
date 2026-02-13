@@ -340,9 +340,16 @@ export const Utilities = {
         Utilities.parseNumber(formData.expiryAlertDays, DEFAULTS.EXPIRY_ALERT_DAYS),
       ),
       category: formData.category?.trim() || DEFAULTS.CATEGORY,
+      desiredQuantity: Math.max(
+        0,
+        Utilities.parseNumber(formData.desiredQuantity, DEFAULTS.DESIRED_QUANTITY),
+      ),
       location: formData.location?.trim() || DEFAULTS.LOCATION,
       unit: formData.unit?.trim() || DEFAULTS.UNIT,
       description: formData.description?.trim() || DEFAULTS.DESCRIPTION,
+      barcode: formData.barcode?.trim() || DEFAULTS.BARCODE,
+      todoQuantityPlacement:
+        formData.todoQuantityPlacement?.trim() || DEFAULTS.TODO_QUANTITY_PLACEMENT,
     };
   },
 
@@ -430,8 +437,13 @@ export const Utilities = {
         0,
         Utilities.parseNumber(itemData.autoAddToListQuantity, DEFAULTS.AUTO_ADD_TO_LIST_QUANTITY),
       ),
+      barcode: this.sanitizeString(itemData.barcode, 100),
       category: this.sanitizeString(itemData.category, 50),
       description: this.sanitizeString(itemData.description, 500),
+      desiredQuantity: Math.max(
+        0,
+        Utilities.parseNumber(itemData.desiredQuantity, DEFAULTS.DESIRED_QUANTITY),
+      ),
       expiryAlertDays: Math.max(
         0,
         Utilities.parseNumber(itemData.expiryAlertDays, DEFAULTS.EXPIRY_ALERT_DAYS),
@@ -443,6 +455,10 @@ export const Utilities = {
         Math.min(999_999, Utilities.parseNumber(itemData.quantity, DEFAULTS.QUANTITY)),
       ),
       todoList: this.sanitizeString(itemData.todoList, 100),
+      todoQuantityPlacement: this.sanitizeString(
+        itemData.todoQuantityPlacement || DEFAULTS.TODO_QUANTITY_PLACEMENT,
+        20,
+      ),
       unit: this.sanitizeString(itemData.unit, 20),
       location: this.sanitizeString(itemData.location, 50),
     };
@@ -513,6 +529,16 @@ export const Utilities = {
       item.auto_add_id_to_description_enabled = Boolean(item.auto_add_id_to_description_enabled);
       item.description =
         typeof item.description === 'string' ? item.description : DEFAULTS.DESCRIPTION;
+      item.desired_quantity =
+        typeof item.desired_quantity === 'number' &&
+        !Number.isNaN(item.desired_quantity) &&
+        item.desired_quantity >= 0
+          ? item.desired_quantity
+          : DEFAULTS.DESIRED_QUANTITY;
+      item.todo_quantity_placement =
+        typeof item.todo_quantity_placement === 'string'
+          ? item.todo_quantity_placement
+          : DEFAULTS.TODO_QUANTITY_PLACEMENT;
       return true;
     });
   },

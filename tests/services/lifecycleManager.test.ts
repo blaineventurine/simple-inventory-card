@@ -226,6 +226,7 @@ describe('LifecycleManager', () => {
         mockServices,
         expect.any(Function),
         mockRefreshCallback,
+        mockGetFreshStateCallback,
       );
 
       // Test the getInventoryId function passed to Modals
@@ -276,7 +277,7 @@ describe('LifecycleManager', () => {
     });
 
     it('should handle initialization errors gracefully', () => {
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       vi.mocked(Services).mockImplementation(() => {
         throw new Error('Initialization failed');
       });
@@ -505,7 +506,7 @@ describe('LifecycleManager', () => {
     });
 
     it('should handle service instantiation failures individually', () => {
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       vi.mocked(EventHandler).mockImplementation(() => {
         throw new Error('EventHandler failed');

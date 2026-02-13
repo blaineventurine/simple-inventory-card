@@ -7,6 +7,7 @@ import { Utilities } from '../utils/utilities';
 import { TranslationData } from '@/types/translatableComponent';
 import { TranslationManager } from './translationManager';
 import { initializeMultiSelect } from './multiSelect';
+import { createHistoryView } from '../templates/historyView';
 
 export class EventHandler {
   private renderRoot: ShadowRoot;
@@ -136,6 +137,38 @@ export class EventHandler {
           event.preventDefault();
           event.stopPropagation();
           this.clearFilters();
+          break;
+        }
+        case ELEMENTS.EDIT_HISTORY_BTN: {
+          event.preventDefault();
+          event.stopPropagation();
+          await this.handleEditModalHistory();
+          break;
+        }
+        case ELEMENTS.EDIT_DELETE_BTN: {
+          event.preventDefault();
+          event.stopPropagation();
+          await this.handleEditModalDelete();
+          break;
+        }
+        case ELEMENTS.OVERFLOW_MENU_BTN: {
+          event.preventDefault();
+          event.stopPropagation();
+          this.toggleOverflowMenu();
+          break;
+        }
+        case ELEMENTS.EXPORT_INVENTORY: {
+          event.preventDefault();
+          event.stopPropagation();
+          this.closeOverflowMenu();
+          await this.handleExport();
+          break;
+        }
+        case ELEMENTS.IMPORT_INVENTORY: {
+          event.preventDefault();
+          event.stopPropagation();
+          this.closeOverflowMenu();
+          await this.handleImport();
           break;
         }
         default: {
@@ -281,6 +314,10 @@ export class EventHandler {
           );
           break;
         }
+        case ACTIONS.VIEW_HISTORY: {
+          await this.showItemHistory(itemName);
+          break;
+        }
         default: {
           console.warn(`Unknown action: ${action}`);
         }
@@ -362,7 +399,12 @@ export class EventHandler {
 
     const locations = new Set<string>();
     Object.values(state.attributes.items).forEach((item: any) => {
-      if (item.location?.trim()) {
+      if (Array.isArray(item.locations)) {
+        item.locations.forEach((loc: string) => {
+          const name = loc?.trim();
+          if (name) locations.add(name);
+        });
+      } else if (item.location?.trim()) {
         locations.add(item.location.trim());
       }
     });
@@ -377,7 +419,12 @@ export class EventHandler {
 
     const categories = new Set<string>();
     Object.values(state.attributes.items).forEach((item: any) => {
-      if (item.category?.trim()) {
+      if (Array.isArray(item.categories)) {
+        item.categories.forEach((cat: string) => {
+          const trimmed = cat?.trim();
+          if (trimmed) categories.add(trimmed);
+        });
+      } else if (item.category?.trim()) {
         categories.add(item.category.trim());
       }
     });
@@ -524,5 +571,142 @@ export class EventHandler {
     const sortedItems = this.filters.sortItems(filteredItems, sortMethod, this.translations);
 
     this.updateItemsCallback(sortedItems, sortMethod);
+  }
+
+  private async showItemHistory(itemName: string): Promise<void> {
+    try {
+      const inventoryId = Utilities.getInventoryId(this.hass, this.config.entity);
+      const events = await this.services.getHistory(inventoryId, {
+        itemName,
+        limit: 50,
+      });
+      const html = createHistoryView(events, itemName);
+      this.showHistoryModal(html);
+    } catch (error) {
+      console.error('Error fetching history:', error);
+    }
+  }
+
+  private showHistoryModal(content: string): void {
+    let modal = this.renderRoot.getElementById(ELEMENTS.HISTORY_MODAL);
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = ELEMENTS.HISTORY_MODAL;
+      modal.className = 'modal';
+      this.renderRoot.appendChild(modal);
+    }
+    modal.innerHTML = `
+      <div class="modal-content">
+        ${content}
+        <div class="modal-actions">
+          <button class="cancel-btn" id="close-history-modal">Close</button>
+        </div>
+      </div>
+    `;
+    modal.classList.add(CSS_CLASSES.SHOW);
+    const closeBtn = modal.querySelector('#close-history-modal');
+    closeBtn?.addEventListener('click', () => {
+      modal!.classList.remove(CSS_CLASSES.SHOW);
+    });
+  }
+
+  private async handleEditModalHistory(): Promise<void> {
+    const itemName = this.modals.getCurrentEditingItem();
+    if (!itemName) return;
+    this.modals.closeEditModal();
+    await this.showItemHistory(itemName);
+  }
+
+  private async handleEditModalDelete(): Promise<void> {
+    const itemName = this.modals.getCurrentEditingItem();
+    if (!itemName) return;
+    const confirmMessage = TranslationManager.localize(
+      this.translations,
+      'actions.confirm_remove',
+      { name: itemName },
+      `Remove ${itemName} from inventory?`,
+    );
+    if (confirm(confirmMessage)) {
+      const inventoryId = Utilities.getInventoryId(this.hass, this.config.entity);
+      await this.services.removeItem(inventoryId, itemName);
+      this.modals.closeEditModal();
+      this.renderCallback();
+    }
+  }
+
+  private toggleOverflowMenu(): void {
+    const menu = this.renderRoot.getElementById(ELEMENTS.OVERFLOW_MENU);
+    if (!menu) return;
+    const isVisible = menu.style.display !== 'none';
+    menu.style.display = isVisible ? 'none' : 'block';
+    if (!isVisible) {
+      // Close on next outside click
+      setTimeout(() => {
+        const closeHandler = (e: Event) => {
+          if (!menu.contains(e.target as Node)) {
+            menu.style.display = 'none';
+            this.renderRoot.removeEventListener('click', closeHandler);
+          }
+        };
+        this.renderRoot.addEventListener('click', closeHandler);
+      }, 0);
+    }
+  }
+
+  private closeOverflowMenu(): void {
+    const menu = this.renderRoot.getElementById(ELEMENTS.OVERFLOW_MENU);
+    if (menu) {
+      menu.style.display = 'none';
+    }
+  }
+
+  async handleExport(): Promise<void> {
+    try {
+      const inventoryId = Utilities.getInventoryId(this.hass, this.config.entity);
+      const result = await this.services.exportInventory(inventoryId, 'json');
+      const blob = new Blob([JSON.stringify(result.data, null, 2)], {
+        type: 'application/json',
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `inventory_${inventoryId}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error exporting inventory:', error);
+    }
+  }
+
+  async handleImport(): Promise<void> {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json,.csv';
+    input.addEventListener('change', async () => {
+      const file = input.files?.[0];
+      if (!file) return;
+
+      try {
+        const text = await file.text();
+        const inventoryId = Utilities.getInventoryId(this.hass, this.config.entity);
+        const isCSV = file.name.endsWith('.csv');
+        const format = isCSV ? 'csv' : 'json';
+        const data = isCSV ? text : JSON.parse(text);
+        const result = await this.services.importInventory(inventoryId, data, format, 'skip');
+
+        const message = TranslationManager.localize(
+          this.translations,
+          'actions.import_result',
+          { added: result.added, updated: result.updated, skipped: result.skipped },
+          `Import complete: ${result.added} added, ${result.updated} updated, ${result.skipped} skipped`,
+        );
+        alert(message);
+        this.renderCallback();
+      } catch (error) {
+        console.error('Error importing inventory:', error);
+        alert('Import failed. Please check the file format.');
+      }
+    });
+    input.click();
   }
 }

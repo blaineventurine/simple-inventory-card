@@ -4,8 +4,9 @@ import {
   createEntitySelector,
   createEntityInfo,
   createNoEntityMessage,
+  createVisibilityToggles,
 } from '../../src/templates/configEditor';
-import { HomeAssistant } from '../../src/types/homeAssistant';
+import { HomeAssistant, InventoryConfig } from '../../src/types/homeAssistant';
 import { createMockHomeAssistant, createMockHassEntity } from '../testHelpers';
 import { TranslationData } from '@/types/translatableComponent';
 
@@ -360,6 +361,93 @@ describe('Config Editor Templates', () => {
         createEntityInfo(minimalHass, 'sensor.test', mockTranslations);
         createNoEntityMessage(mockTranslations);
       }).not.toThrow();
+    });
+  });
+
+  describe('createVisibilityToggles', () => {
+    const defaultConfig: InventoryConfig = {
+      type: 'custom:simple-inventory-card',
+      entity: 'sensor.test',
+    };
+
+    it('should return a TemplateResult', () => {
+      const onToggle = vi.fn();
+      const result = createVisibilityToggles(defaultConfig, onToggle, mockTranslations);
+
+      expect(result).toBeDefined();
+      expect(result).toHaveProperty('_$litType$', 1);
+    });
+
+    it('should include the visibility section structure', () => {
+      const onToggle = vi.fn();
+      createVisibilityToggles(defaultConfig, onToggle, mockTranslations);
+
+      const htmlCalls = vi.mocked(html).mock.calls;
+      const lastCall = htmlCalls[htmlCalls.length - 1];
+      const templateString = lastCall[0].join('');
+
+      expect(templateString).toContain('class="visibility-section"');
+      expect(templateString).toContain('class="section-header"');
+      expect(templateString).toContain('class="visibility-toggles"');
+    });
+
+    it('should render five toggle items', () => {
+      const onToggle = vi.fn();
+      createVisibilityToggles(defaultConfig, onToggle, mockTranslations);
+
+      const htmlCalls = vi.mocked(html).mock.calls;
+      // The outer template call + 5 inner calls for each toggle
+      // Find calls that contain ha-formfield
+      const toggleCalls = htmlCalls.filter((call) => call[0].join('').includes('ha-formfield'));
+      expect(toggleCalls.length).toBe(5);
+    });
+
+    it('should default all toggles to checked when config has no show_* fields', () => {
+      const onToggle = vi.fn();
+      createVisibilityToggles(defaultConfig, onToggle, mockTranslations);
+
+      const htmlCalls = vi.mocked(html).mock.calls;
+      const toggleCalls = htmlCalls.filter((call) => call[0].join('').includes('ha-switch'));
+
+      for (const call of toggleCalls) {
+        // Find the boolean value (checked state) in the call values
+        const checkedValue = call.slice(1).find((v) => typeof v === 'boolean');
+        expect(checkedValue).toBe(true);
+      }
+    });
+
+    it('should set toggles to unchecked when config fields are false', () => {
+      const config: InventoryConfig = {
+        ...defaultConfig,
+        show_description: false,
+        show_location: false,
+        show_category: false,
+        show_expiry: false,
+        show_auto_add_info: false,
+      };
+      const onToggle = vi.fn();
+      createVisibilityToggles(config, onToggle, mockTranslations);
+
+      const htmlCalls = vi.mocked(html).mock.calls;
+      const toggleCalls = htmlCalls.filter((call) => call[0].join('').includes('ha-switch'));
+
+      for (const call of toggleCalls) {
+        const checkedValue = call.slice(1).find((v) => typeof v === 'boolean');
+        expect(checkedValue).toBe(false);
+      }
+    });
+
+    it('should include Display Options as section header', () => {
+      const onToggle = vi.fn();
+      createVisibilityToggles(defaultConfig, onToggle, mockTranslations);
+
+      const htmlCalls = vi.mocked(html).mock.calls;
+      const outerCall = htmlCalls.find((call) =>
+        call[0].join('').includes('class="section-header"'),
+      );
+      expect(outerCall).toBeDefined();
+      const headerValue = outerCall!.slice(1).find((v) => v === 'Display Options');
+      expect(headerValue).toBe('Display Options');
     });
   });
 

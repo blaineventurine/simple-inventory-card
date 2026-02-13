@@ -1,6 +1,6 @@
 import { Utilities } from '../utils/utilities';
 import { InventoryItem } from '../types/homeAssistant';
-import { DEFAULTS } from '../utils/constants';
+import { DEFAULTS, ELEMENTS } from '../utils/constants';
 import { TranslationData } from '@/types/translatableComponent';
 import { TranslationManager } from '@/services/translationManager';
 
@@ -23,44 +23,53 @@ export function createInventoryHeader(
               : ''
           }
         </div>
-        ${
-          expiredCount > 0 || expiringCount > 0
-            ? `
-          <div class="expiry-indicators">
-            ${
-              expiredCount > 0
-                ? `
-                <span class="expired-badge" title="${TranslationManager.localize(
-                  translations,
-                  'header.items_expired',
-                  { count: expiredCount },
-                  `${expiredCount} items expired`,
-                )}">
-                <ha-icon icon="mdi:calendar-remove"></ha-icon>
-                ${expiredCount}
-              </span>
-            `
-                : ''
-            }
-            ${
-              expiringCount > 0
-                ? `
-                <span class="expiring-badge" title="${TranslationManager.localize(
-                  translations,
-                  'header.items_expiring_soon',
-                  { count: expiringCount },
-                  `${expiringCount} items expiring soon`,
-                )}">
-                <ha-icon icon="mdi:calendar-alert"></ha-icon>
-                ${expiringCount}
-              </span>
-            `
-                : ''
-            }
+        <div class="header-actions">
+          ${
+            expiredCount > 0 || expiringCount > 0
+              ? `
+            <div class="expiry-indicators">
+              ${
+                expiredCount > 0
+                  ? `
+                  <span class="expired-badge" title="${TranslationManager.localize(
+                    translations,
+                    'header.items_expired',
+                    { count: expiredCount },
+                    `${expiredCount} items expired`,
+                  )}">
+                  <ha-icon icon="mdi:calendar-remove"></ha-icon>
+                  ${expiredCount}
+                </span>
+              `
+                  : ''
+              }
+              ${
+                expiringCount > 0
+                  ? `
+                  <span class="expiring-badge" title="${TranslationManager.localize(
+                    translations,
+                    'header.items_expiring_soon',
+                    { count: expiringCount },
+                    `${expiringCount} items expiring soon`,
+                  )}">
+                  <ha-icon icon="mdi:calendar-alert"></ha-icon>
+                  ${expiringCount}
+                </span>
+              `
+                  : ''
+              }
+            </div>
+          `
+              : ''
+          }
+          <div class="overflow-menu-container">
+            <button id="${ELEMENTS.OVERFLOW_MENU_BTN}" class="overflow-menu-btn" title="${TranslationManager.localize(translations, 'header.more_options', undefined, 'More options')}">&#8942;</button>
+            <div class="overflow-menu" id="${ELEMENTS.OVERFLOW_MENU}" style="display: none;">
+              <button id="${ELEMENTS.EXPORT_INVENTORY}" class="overflow-menu-item">${TranslationManager.localize(translations, 'header.export', undefined, 'Export')}</button>
+              <button id="${ELEMENTS.IMPORT_INVENTORY}" class="overflow-menu-item">${TranslationManager.localize(translations, 'header.import', undefined, 'Import')}</button>
+            </div>
           </div>
-        `
-            : ''
-        }
+        </div>
       </div>
     `;
 }

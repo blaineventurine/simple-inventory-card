@@ -1,6 +1,7 @@
-import { DOMAIN, SERVICES, PARAMS } from '../utils/constants';
-import { HomeAssistant } from '../types/homeAssistant';
+import { DOMAIN, SERVICES, PARAMS, WS_COMMANDS } from '../utils/constants';
+import { HomeAssistant, InventoryItem } from '../types/homeAssistant';
 import { ItemData } from '../types/inventoryItem';
+import { HistoryEvent } from '../types/historyEvent';
 import { Utilities } from '../utils/utilities';
 
 export interface ServiceResult {
@@ -39,13 +40,14 @@ export class Services {
         };
       }
 
-      await this.hass.callService(DOMAIN, SERVICES.ADD_ITEM, {
+      const serviceData: Record<string, any> = {
         [PARAMS.AUTO_ADD_ENABLED]: sanitizedItemData.autoAddEnabled,
         [PARAMS.AUTO_ADD_ID_TO_DESCRIPTION_ENABLED]:
           sanitizedItemData.autoAddIdToDescriptionEnabled,
         [PARAMS.AUTO_ADD_TO_LIST_QUANTITY]: sanitizedItemData.autoAddToListQuantity,
         [PARAMS.CATEGORY]: sanitizedItemData.category,
         [PARAMS.DESCRIPTION]: sanitizedItemData.description,
+        [PARAMS.DESIRED_QUANTITY]: sanitizedItemData.desiredQuantity,
         [PARAMS.EXPIRY_ALERT_DAYS]: sanitizedItemData.expiryAlertDays,
         [PARAMS.EXPIRY_DATE]: sanitizedItemData.expiryDate,
         [PARAMS.INVENTORY_ID]: sanitizedInventoryId,
@@ -53,8 +55,15 @@ export class Services {
         [PARAMS.NAME]: sanitizedItemData.name,
         [PARAMS.QUANTITY]: sanitizedItemData.quantity,
         [PARAMS.TODO_LIST]: sanitizedItemData.todoList,
+        [PARAMS.TODO_QUANTITY_PLACEMENT]: sanitizedItemData.todoQuantityPlacement,
         [PARAMS.UNIT]: sanitizedItemData.unit,
-      });
+      };
+
+      if (sanitizedItemData.barcode) {
+        serviceData[PARAMS.BARCODE] = sanitizedItemData.barcode;
+      }
+
+      await this.hass.callService(DOMAIN, SERVICES.ADD_ITEM, serviceData);
       return { success: true };
     } catch (error) {
       console.error('Error adding item:', error);
@@ -158,13 +167,14 @@ export class Services {
         };
       }
 
-      const parameters = {
+      const parameters: Record<string, any> = {
         [PARAMS.AUTO_ADD_ENABLED]: sanitizedItemData.autoAddEnabled,
         [PARAMS.AUTO_ADD_ID_TO_DESCRIPTION_ENABLED]:
           sanitizedItemData.autoAddIdToDescriptionEnabled,
         [PARAMS.AUTO_ADD_TO_LIST_QUANTITY]: sanitizedItemData.autoAddToListQuantity,
         [PARAMS.CATEGORY]: sanitizedItemData.category,
         [PARAMS.DESCRIPTION]: sanitizedItemData.description,
+        [PARAMS.DESIRED_QUANTITY]: sanitizedItemData.desiredQuantity,
         [PARAMS.EXPIRY_ALERT_DAYS]: sanitizedItemData.expiryAlertDays,
         [PARAMS.EXPIRY_DATE]: sanitizedItemData.expiryDate,
         [PARAMS.INVENTORY_ID]: sanitizedInventoryId,
@@ -173,8 +183,14 @@ export class Services {
         [PARAMS.OLD_NAME]: oldName,
         [PARAMS.QUANTITY]: sanitizedItemData.quantity,
         [PARAMS.TODO_LIST]: sanitizedItemData.todoList,
+        [PARAMS.TODO_QUANTITY_PLACEMENT]: sanitizedItemData.todoQuantityPlacement,
         [PARAMS.UNIT]: sanitizedItemData.unit,
       };
+
+      if (sanitizedItemData.barcode) {
+        parameters[PARAMS.BARCODE] = sanitizedItemData.barcode;
+      }
+
       await this.hass.callService(DOMAIN, SERVICES.UPDATE_ITEM, parameters);
       return { success: true };
     } catch (error) {
@@ -184,5 +200,72 @@ export class Services {
         error: error instanceof Error ? error.message : String(error),
       };
     }
+  }
+
+  async getItems(inventoryId: string): Promise<InventoryItem[]> {
+    const result = await this.hass.callWS<{ items: InventoryItem[] }>({
+      type: WS_COMMANDS.LIST_ITEMS,
+      inventory_id: inventoryId,
+    });
+    return result.items;
+  }
+
+  async getItem(inventoryId: string, name: string): Promise<InventoryItem | null> {
+    try {
+      const result = await this.hass.callWS<{ item: InventoryItem }>({
+        type: WS_COMMANDS.GET_ITEM,
+        inventory_id: inventoryId,
+        name,
+      });
+      return result.item;
+    } catch {
+      return null;
+    }
+  }
+
+  async getHistory(
+    inventoryId: string,
+    options?: { itemName?: string; eventType?: string; limit?: number },
+  ): Promise<HistoryEvent[]> {
+    const msg: { type: string; inventory_id: string; [key: string]: any } = {
+      type: WS_COMMANDS.GET_HISTORY,
+      inventory_id: inventoryId,
+    };
+    if (options?.itemName) msg.item_name = options.itemName;
+    if (options?.eventType) msg.event_type = options.eventType;
+    if (options?.limit) msg.limit = options.limit;
+    const result = await this.hass.callWS<{ events: HistoryEvent[] }>(msg);
+    return result.events;
+  }
+
+  async exportInventory(
+    inventoryId: string,
+    format: 'json' | 'csv' = 'json',
+  ): Promise<{ data: any }> {
+    return this.hass.callWS<{ data: any }>({
+      type: WS_COMMANDS.EXPORT,
+      inventory_id: inventoryId,
+      format,
+    });
+  }
+
+  async importInventory(
+    inventoryId: string,
+    data: any,
+    format: 'json' | 'csv' = 'json',
+    mergeStrategy: 'skip' | 'overwrite' | 'merge_quantities' = 'skip',
+  ): Promise<{ added: number; updated: number; skipped: number; errors: string[] }> {
+    return this.hass.callWS<{
+      added: number;
+      updated: number;
+      skipped: number;
+      errors: string[];
+    }>({
+      type: WS_COMMANDS.IMPORT,
+      inventory_id: inventoryId,
+      data,
+      format,
+      merge_strategy: mergeStrategy,
+    });
   }
 }

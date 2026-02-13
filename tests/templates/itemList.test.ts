@@ -22,7 +22,7 @@ vi.mock('../../src/utils/utilities', () => ({
 
 vi.mock('../../src/templates/itemRow', () => ({
   createItemRowTemplate: vi.fn(
-    (item: InventoryItem, todoLists: TodoList[], _translations: any) =>
+    (item: InventoryItem, todoLists: TodoList[], _translations: any, _config?: any) =>
       `<mock-item-row name="${item.name}" todos="${todoLists.length}" />`,
   ),
 }));
@@ -184,16 +184,19 @@ describe('itemList', () => {
           mockItems[0],
           mockTodoLists,
           mockTranslations,
+          undefined,
         );
         expect(vi.mocked(createItemRowTemplate)).toHaveBeenCalledWith(
           mockItems[1],
           mockTodoLists,
           mockTranslations,
+          undefined,
         );
         expect(vi.mocked(createItemRowTemplate)).toHaveBeenCalledWith(
           mockItems[2],
           mockTodoLists,
           mockTranslations,
+          undefined,
         );
         expect(Utilities.groupItemsByCategory).not.toHaveBeenCalled();
       });
@@ -230,16 +233,19 @@ describe('itemList', () => {
           mockItems[0],
           customTodoLists,
           mockTranslations,
+          undefined,
         );
         expect(vi.mocked(createItemRowTemplate)).toHaveBeenCalledWith(
           mockItems[1],
           customTodoLists,
           mockTranslations,
+          undefined,
         );
         expect(vi.mocked(createItemRowTemplate)).toHaveBeenCalledWith(
           mockItems[2],
           customTodoLists,
           mockTranslations,
+          undefined,
         );
       });
 
@@ -250,6 +256,7 @@ describe('itemList', () => {
           mockItems[0],
           [],
           mockTranslations,
+          undefined,
         );
       });
     });
@@ -306,16 +313,19 @@ describe('itemList', () => {
           mockItems[0],
           mockTodoLists,
           mockTranslations,
+          undefined,
         );
         expect(vi.mocked(createItemRowTemplate)).toHaveBeenCalledWith(
           mockItems[1],
           mockTodoLists,
           mockTranslations,
+          undefined,
         );
         expect(vi.mocked(createItemRowTemplate)).toHaveBeenCalledWith(
           mockItems[2],
           mockTodoLists,
           mockTranslations,
+          undefined,
         );
       });
     });
