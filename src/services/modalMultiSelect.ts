@@ -55,12 +55,22 @@ export function initializeModalMultiSelect(config: ModalMultiSelectInitConfig): 
     }
 
     if (label) label.style.display = 'none';
-    chipsContainer.innerHTML = selected
-      .map(
-        (value) =>
-          `<span class="modal-multi-select-chip" data-value="${value}">${value}<button type="button" class="modal-multi-select-chip-remove" data-value="${value}">&times;</button></span>`,
-      )
-      .join('');
+    chipsContainer.innerHTML = '';
+    for (const value of selected) {
+      const chip = document.createElement('span');
+      chip.className = 'modal-multi-select-chip';
+      chip.dataset.value = value;
+      chip.appendChild(document.createTextNode(value));
+
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.className = 'modal-multi-select-chip-remove';
+      removeBtn.dataset.value = value;
+      removeBtn.textContent = '\u00d7';
+
+      chip.appendChild(removeBtn);
+      chipsContainer.appendChild(chip);
+    }
   }
 
   function rebuildOptions(): void {
@@ -68,16 +78,23 @@ export function initializeModalMultiSelect(config: ModalMultiSelectInitConfig): 
     const sorted = Array.from(allOptions).sort((a, b) =>
       a.localeCompare(b, undefined, { sensitivity: 'base' }),
     );
-    optionsContainer.innerHTML = sorted
-      .map(
-        (option) => `
-          <label class="modal-multi-select-option">
-            <input type="checkbox" value="${option}" ${selected.includes(option) ? 'checked' : ''}>
-            <span>${option}</span>
-          </label>
-        `,
-      )
-      .join('');
+    optionsContainer.innerHTML = '';
+    for (const option of sorted) {
+      const label = document.createElement('label');
+      label.className = 'modal-multi-select-option';
+
+      const input = document.createElement('input');
+      input.type = 'checkbox';
+      input.value = option;
+      input.checked = selected.includes(option);
+
+      const span = document.createElement('span');
+      span.textContent = option;
+
+      label.appendChild(input);
+      label.appendChild(span);
+      optionsContainer.appendChild(label);
+    }
   }
 
   // Initialize: sync checkboxes with hidden input value

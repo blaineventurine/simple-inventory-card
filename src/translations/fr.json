@@ -63,6 +63,14 @@
     "select_list": "Sélectionner une liste...",
     "set_expiry_first": "Définir d'abord la date d'expiration",
     "todo_list": "Liste de tâches",
+    "todo_quantity_placement": "Emplacement de la quantité",
+    "todo_quantity_placement_name": "Dans le nom (ex. Lait (x4))",
+    "todo_quantity_placement_description": "Dans la description",
+    "todo_quantity_placement_none": "Ne pas afficher",
+    "barcode": "Code-barres",
+    "barcode_placeholder": "UPC, EAN, etc.",
+    "desired_quantity": "Quantité souhaitée",
+    "desired_quantity_placeholder": "Niveau de stock souhaité (vide = utiliser le seuil)",
     "unit": "Unité",
     "unit_placeholder": "kg, pcs, etc."
   },
@@ -120,6 +128,8 @@
     "confirm_remove": "Retirer {name} de l'inventaire ?"
   },
   "errors": {
-    "clear_filters_error": "Erreur lors de l'effacement des filtres. Veuillez réessayer."
+    "clear_filters_error": "Erreur lors de l'effacement des filtres. Veuillez réessayer.",
+    "duplicate_name": "Un article nommé \"{name}\" existe déjà dans cet inventaire.",
+    "update_failed": "Échec de la mise à jour de l'article. Veuillez réessayer."
   }
 }

@@ -63,6 +63,14 @@
     "select_list": "Seleziona la lista...",
     "set_expiry_first": "Imposta prima la data di scadenza",
     "todo_list": "Lista attività",
+    "todo_quantity_placement": "Posizione della quantità",
+    "todo_quantity_placement_name": "Nel nome (es. Latte (x4))",
+    "todo_quantity_placement_description": "Nella descrizione",
+    "todo_quantity_placement_none": "Non mostrare",
+    "barcode": "Codice a barre",
+    "barcode_placeholder": "UPC, EAN, ecc.",
+    "desired_quantity": "Quantità desiderata",
+    "desired_quantity_placeholder": "Livello di stock desiderato (vuoto = usa soglia)",
     "unit": "Unità",
     "unit_placeholder": "kg, pz, ecc."
   },
@@ -120,6 +128,8 @@
     "confirm_remove": "Rimuovere {name} dall’inventario?"
   },
   "errors": {
-    "clear_filters_error": "Errore nella cancellazione dei filtri. Riprova."
+    "clear_filters_error": "Errore nella cancellazione dei filtri. Riprova.",
+    "duplicate_name": "Un oggetto chiamato \"{name}\" esiste già in questo inventario.",
+    "update_failed": "Impossibile aggiornare l'oggetto. Riprova."
   }
 }

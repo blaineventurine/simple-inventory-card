@@ -63,6 +63,14 @@
     "select_list": "Seleccionar lista...",
     "set_expiry_first": "Establece la fecha de vencimiento primero",
     "todo_list": "Lista de Tareas",
+    "todo_quantity_placement": "Ubicación de la Cantidad",
+    "todo_quantity_placement_name": "En el nombre (ej. Leche (x4))",
+    "todo_quantity_placement_description": "En la descripción",
+    "todo_quantity_placement_none": "No mostrar",
+    "barcode": "Código de Barras",
+    "barcode_placeholder": "UPC, EAN, etc.",
+    "desired_quantity": "Cantidad Deseada",
+    "desired_quantity_placeholder": "Nivel de stock deseado (vacío = usar umbral)",
     "unit": "Unidad",
     "unit_placeholder": "kg, pzs, etc."
   },
@@ -120,6 +128,8 @@
     "confirm_remove": "¿Eliminar {name} del inventario?"
   },
   "errors": {
-    "clear_filters_error": "Error al limpiar filtros. Por favor inténtalo de nuevo."
+    "clear_filters_error": "Error al limpiar filtros. Por favor inténtalo de nuevo.",
+    "duplicate_name": "Ya existe un artículo llamado \"{name}\" en este inventario.",
+    "update_failed": "Error al actualizar el artículo. Por favor inténtalo de nuevo."
   }
 }
