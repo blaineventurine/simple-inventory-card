@@ -2,16 +2,122 @@
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg?style=for-the-badge)](https://github.com/hacs/integration)
 
-To use, install the [Simple Inventory](https://github.com/blaineventurine/simple_inventory) integration first.
+A Lovelace card for the [Simple Inventory](https://github.com/blaineventurine/simple_inventory) integration. Manage your household inventory directly from the Home Assistant dashboard.
+
+## Installation
+
+Install the [Simple Inventory](https://github.com/blaineventurine/simple_inventory) integration first, then install this card:
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=blaineventurine&repository=simple-inventory-card&category=Dashboard)
 
-This card allows you to track various items in different inventories, and automatically add an item to a specific to-do list when it is below a certain threshold.
+Or manually: copy `dist/simple-inventory-card.js` to your `www/` directory and add it as a Lovelace resource.
 
-<img width="513" height="1098" alt="image" src="https://github.com/user-attachments/assets/8c621dda-a5a9-480b-a813-0512ed416ca6" />
+## Card Configuration
 
-You can set an expiration date for an item, how far ahead you want to be warned, a par level that will update a given todo list:
+Add the card via the UI editor or YAML. The only required option is the inventory entity:
 
-<img width="539" height="258" alt="image" src="https://github.com/user-attachments/assets/9d43c244-1cd9-47f3-8c35-7ac1eb040ff6" />
+```yaml
+type: custom:simple-inventory-card
+entity: sensor.kitchen_inventory
+```
 
-(the description will not sync with the built-in Home Assistant `todo.shopping_list`, but any other list you create will work)
+### Display Options
+
+The card editor lets you toggle which fields are shown on each item row:
+
+| Option               | Default | Description                     |
+| -------------------- | ------- | ------------------------------- |
+| `show_description`   | `true`  | Show item descriptions          |
+| `show_location`      | `true`  | Show item locations             |
+| `show_category`      | `true`  | Show item categories            |
+| `show_expiry`        | `true`  | Show expiration dates           |
+| `show_auto_add_info` | `true`  | Show auto-add to todo list info |
+
+## Features
+
+### Item Management
+
+- **Add items** — Click the "+" button to open the add item modal with all available fields
+- **Edit items** — Click an item row to edit its details
+- **Delete items** — Remove items from the edit modal
+- **Increment/Decrement** — Use the +/- buttons on each item row to adjust quantity
+
+### Real-Time Updates
+
+The card uses WebSocket subscriptions (`simple_inventory/subscribe`) for real-time updates. When any item changes — whether from the card, a service call, or an automation — the card updates immediately without polling.
+
+### Search and Filtering
+
+**Text search** searches across item names, descriptions, locations, and categories with a 300ms debounce.
+
+**Advanced filters** (toggle with the "Filters" button):
+
+| Filter   | Options                                        |
+| -------- | ---------------------------------------------- |
+| Category | Multi-select from categories in your inventory |
+| Location | Multi-select from locations in your inventory  |
+| Quantity | Zero, Non-zero                                 |
+| Expiry   | No Expiry, Expired, Expiring Soon, Future      |
+
+Active filters are shown as badges above the item list. Filters persist in browser local storage per entity.
+
+### Sorting
+
+Sort items by:
+
+| Sort Method     | Description                                   |
+| --------------- | --------------------------------------------- |
+| Name            | Alphabetical (default)                        |
+| Category        | Grouped by category                           |
+| Location        | Grouped by location                           |
+| Quantity (High) | Highest quantity first                        |
+| Quantity (Low)  | Lowest quantity first                         |
+| Expiry Date     | Soonest expiration first                      |
+| Zero Last       | Items with zero quantity sorted to the bottom |
+
+When sorting by category or location, items are grouped under headers.
+
+### Expiry Badges
+
+The card header shows badge counts for expired and expiring-soon items, with distinct icons:
+
+- **Expired** (red) — Items past their expiry date
+- **Expiring soon** (amber) — Items within their alert threshold
+
+### Multi-Value Locations and Categories
+
+Items can have multiple locations and categories. The add/edit modals use a multi-select dropdown with checkboxes. Values are stored as comma-separated strings.
+
+### Barcodes
+
+Each item can have a barcode associated with it. Enter barcodes in the add/edit modal. Barcodes can be used to identify items in automations (e.g. scan-to-increment).
+
+### Auto-Add to Todo List
+
+Configure items to be automatically added to a Home Assistant todo list when stock drops below a threshold. In the add/edit modal:
+
+1. Enable "Auto-add to todo list"
+2. Set the threshold quantity (when to trigger)
+3. Optionally set a desired quantity (how much to buy)
+4. Select the target todo list entity
+5. Choose where the needed quantity appears: in the item name (e.g. "Milk (x4)"), in the description, or hidden
+
+### Item History
+
+View the change history for any item from the edit modal. History shows a timeline of all changes (add, increment, decrement, update, remove) with before/after quantities and timestamps.
+
+### Import and Export
+
+Access import/export from the overflow menu (three-dot button) in the card header:
+
+- **Export** — Download your inventory as JSON
+- **Import** — Upload JSON or CSV data
+
+### Translations
+
+The card supports localization. Translation files are loaded from the integration and the card adapts to the user's Home Assistant language setting.
+
+## Notes
+
+- The built-in `todo.shopping_list` does not support item descriptions, so description-based features (description quantity placement, inventory ID in description) only work with other todo list integrations.
+- `desired_quantity` of 0 is displayed as blank in the UI, meaning "use the threshold-based formula instead."
