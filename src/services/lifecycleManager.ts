@@ -52,7 +52,13 @@ export class LifecycleManager {
       state.setRenderCallback(renderCallback);
 
       const getInventoryId = (entityId: string) => Utilities.getInventoryId(hass, entityId);
-      const modals = new Modals(this.renderRoot, services, getInventoryId, refreshCallback);
+      const modals = new Modals(
+        this.renderRoot,
+        services,
+        getInventoryId,
+        refreshCallback,
+        getFreshState,
+      );
 
       const eventHandler = new EventHandler(
         this.renderRoot,

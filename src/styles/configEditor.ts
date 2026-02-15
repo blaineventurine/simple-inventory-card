@@ -55,4 +55,25 @@ export const configEditorStyles: CSSResult = css`
     border-radius: 8px;
     margin-top: 16px;
   }
+
+  .visibility-section {
+    margin-top: 16px;
+  }
+
+  .section-header {
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: var(--primary-color);
+  }
+
+  .visibility-toggles {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .visibility-toggles ha-formfield {
+    display: flex;
+    align-items: center;
+  }
 `;

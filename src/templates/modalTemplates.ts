@@ -1,4 +1,4 @@
-import { ELEMENTS, ACTIONS } from '../utils/constants';
+import { ELEMENTS, ACTIONS, CSS_CLASSES } from '../utils/constants';
 import { TodoList } from '../types/todoList';
 import { ModalConfig } from '../types/modalConfig';
 import { TranslationData } from '@/types/translatableComponent';
@@ -13,6 +13,7 @@ import { itemLocation } from './modalPartials/itemLocation';
 import { itemUnit } from './modalPartials/itemUnit';
 import { modalHeader } from './modalPartials/modalHeader';
 import { autoAddControls } from './modalPartials/autoAddControls';
+import { itemBarcode } from './modalPartials/itemBarcode';
 import { itemDescription } from './modalPartials/itemDescription';
 import { autoAddIdCheckbox } from './modalPartials/autoAddIdCheckbox';
 
@@ -38,6 +39,7 @@ export function createUnifiedModal(
 
           ${itemName(prefix, translations)}
           ${itemDescription(prefix, translations)}
+          ${itemBarcode(prefix, translations)}
           ${autoAddIdCheckbox(prefix, translations)}
 
           <div class="form-row">
@@ -67,6 +69,14 @@ export function createUnifiedModal(
             ${TranslationManager.localize(translations, 'modal.cancel', undefined, 'Cancel')}
           </button>
         </div>
+        ${
+          config.showHistory || config.showDelete
+            ? `<div class="modal-secondary-actions">
+              ${config.showHistory ? `<button id="${ELEMENTS.EDIT_HISTORY_BTN}" class="${CSS_CLASSES.HISTORY_LINK}">${TranslationManager.localize(translations, 'modal.view_history', undefined, 'View History')}</button>` : '<span></span>'}
+              ${config.showDelete ? `<button id="${ELEMENTS.EDIT_DELETE_BTN}" class="${CSS_CLASSES.DELETE_BTN}">${TranslationManager.localize(translations, 'modal.delete_item', undefined, 'Delete Item')}</button>` : ''}
+            </div>`
+            : ''
+        }
       </div>
     </div>
   `;
@@ -115,6 +125,8 @@ export function createEditModal(
         undefined,
         'Save Changes',
       ),
+      showHistory: true,
+      showDelete: true,
     },
     translations,
     categories,

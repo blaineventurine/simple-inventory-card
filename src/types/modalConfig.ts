@@ -4,4 +4,6 @@ export interface ModalConfig {
   primaryButtonText: string;
   primaryButtonId?: string;
   closeAction?: string;
+  showHistory?: boolean;
+  showDelete?: boolean;
 }

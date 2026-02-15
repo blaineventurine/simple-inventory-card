@@ -1,5 +1,5 @@
 import { DEFAULTS } from '@/utils/constants';
-import { InventoryItem } from '../types/homeAssistant';
+import { InventoryConfig, InventoryItem } from '../types/homeAssistant';
 import { TodoList } from '../types/todoList';
 import { TranslationData } from '@/types/translatableComponent';
 import { TranslationManager } from '@/services/translationManager';
@@ -8,6 +8,7 @@ export function createItemRowTemplate(
   item: InventoryItem,
   todoLists: TodoList[],
   translations: TranslationData,
+  config?: InventoryConfig,
 ): string {
   const getTodoListName = (entityId: string): string => {
     const list = todoLists.find((l) => l.entity_id === entityId || l.id === entityId);
@@ -69,13 +70,29 @@ export function createItemRowTemplate(
     ? getExpiryStatus(item.expiry_date, item.expiry_alert_days)
     : null;
 
+  const showLocation = config?.show_location !== false;
+  const showCategory = config?.show_category !== false;
+
   const renderLocationAndCategory = () => {
-    if (item.location && item.category) {
-      return `<span class="location-category">${item.location} | ${item.category}</span>`;
-    } else if (item.location) {
-      return `<span class="location">${item.location}</span>`;
-    } else if (item.category) {
-      return `<span class="category">${item.category}</span>`;
+    const locationText =
+      showLocation && item.locations && item.locations.length > 0
+        ? item.locations.join(', ')
+        : showLocation
+          ? item.location
+          : '';
+    const categoryText =
+      showCategory && item.categories && item.categories.length > 0
+        ? item.categories.join(', ')
+        : showCategory
+          ? item.category
+          : '';
+
+    if (locationText && categoryText) {
+      return `<span class="location-category">${locationText} | ${categoryText}</span>`;
+    } else if (locationText) {
+      return `<span class="location">${locationText}</span>`;
+    } else if (categoryText) {
+      return `<span class="category">${categoryText}</span>`;
     } else {
       return '';
     }
@@ -87,15 +104,19 @@ export function createItemRowTemplate(
         <span class="item-name">${item.name}</span>
         ${renderLocationAndCategory()}
       </div>
-      <div class="item-description">
+      ${
+        config?.show_description !== false
+          ? `<div class="item-description">
         <span>${item.description || ''}</span>
-      </div>
+      </div>`
+          : ''
+      }
       <div class="item-footer">
         <div class="item-details">
           <span class="quantity">${item.quantity} ${item.unit || ''}</span>
-          ${expiryInfo ? `<span class="expiry ${expiryInfo.class}">${expiryInfo.label}</span>` : ''}
+          ${config?.show_expiry !== false && expiryInfo ? `<span class="expiry ${expiryInfo.class}">${expiryInfo.label}</span>` : ''}
           ${
-            item.auto_add_enabled
+            config?.show_auto_add_info !== false && item.auto_add_enabled
               ? `<span class="auto-add-info">${TranslationManager.localize(
                   translations,
                   'items.auto_add_info',
@@ -113,7 +134,6 @@ export function createItemRowTemplate(
           <button class="edit-btn" data-action="open_edit" data-name="${item.name}">⚙️</button>
           <button class="control-btn" data-action="decrement" data-name="${item.name}" ${item.quantity === 0 ? 'disabled' : ''}>➖</button>
           <button class="control-btn" data-action="increment" data-name="${item.name}">➕</button>
-          <button class="control-btn" data-action="remove" data-name="${item.name}">❌</button>
         </div>
       </div>
     </div>

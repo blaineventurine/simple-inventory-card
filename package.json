@@ -1,6 +1,6 @@
 {
   "name": "simple-inventory",
-  "version": "0.3.7",
+  "version": "0.4.0b1",
   "description": "Home Assistant Simple Inventory Integration Card",
   "author": "Blaine Venturine",
   "license": "MIT",

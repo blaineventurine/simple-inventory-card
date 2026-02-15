@@ -234,6 +234,7 @@ describe('RenderingCoordinator', () => {
         'name',
         mockTodoLists,
         mockTranslations,
+        mockConfig,
       );
       expect(mockServices.eventHandler.setupEventListeners).toHaveBeenCalled();
       expect(mockServices.filters.updateFilterIndicators).toHaveBeenCalled();
@@ -259,6 +260,7 @@ describe('RenderingCoordinator', () => {
         DEFAULTS.SORT_METHOD,
         mockTodoLists,
         mockTranslations,
+        mockConfig,
       );
     });
 
@@ -349,6 +351,7 @@ describe('RenderingCoordinator', () => {
           'name',
           mockTodoLists,
           mockTranslations,
+          undefined,
         );
       });
 

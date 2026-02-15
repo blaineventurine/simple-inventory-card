@@ -5,6 +5,7 @@ import {
   createEntitySelector,
   createEntityInfo,
   createNoEntityMessage,
+  createVisibilityToggles,
 } from '../templates/configEditor';
 import { configEditorStyles } from '../styles/configEditor';
 import { TranslationData } from '@/types/translatableComponent';
@@ -104,8 +105,37 @@ class ConfigEditor extends LitElement {
         ${this._entity
           ? createEntityInfo(this.hass, this._entity, this._translations)
           : createNoEntityMessage(this._translations)}
+        ${this._entity
+          ? createVisibilityToggles(
+              this._config,
+              this._toggleChanged.bind(this),
+              this._translations,
+            )
+          : ''}
       </div>
     `;
+  }
+
+  private _toggleChanged(key: string, checked: boolean): void {
+    if (!this._config) {
+      return;
+    }
+
+    const config: InventoryConfig = {
+      ...this._config,
+      [key]: checked,
+    };
+
+    this._config = config;
+    this.requestUpdate();
+
+    this.dispatchEvent(
+      new CustomEvent('config-changed', {
+        detail: { config },
+        bubbles: true,
+        composed: true,
+      }),
+    );
   }
 
   private _valueChanged(event_: CustomEvent): void {

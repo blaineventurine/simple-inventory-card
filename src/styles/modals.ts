@@ -68,4 +68,45 @@ export const modalStyles: CSSResult = css`
     cursor: pointer;
     transition: all 0.2s ease;
   }
+
+  .modal-secondary-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--divider-color);
+  }
+
+  .history-link {
+    background: transparent;
+    border: none;
+    color: var(--primary-color);
+    cursor: pointer;
+    font-size: 0.9em;
+    padding: 4px 0;
+    text-decoration: underline;
+    transition: opacity 0.2s ease;
+  }
+
+  .history-link:hover {
+    opacity: 0.8;
+  }
+
+  .delete-btn {
+    background: transparent;
+    border: 1px solid var(--error-color, #f44336);
+    color: var(--error-color, #f44336);
+    cursor: pointer;
+    font-size: 0.85em;
+    font-weight: 500;
+    padding: 6px 16px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+  }
+
+  .delete-btn:hover {
+    background: var(--error-color, #f44336);
+    color: var(--text-primary-color, white);
+  }
 `;

@@ -229,10 +229,33 @@ describe('Filters', () => {
         );
       });
 
-      it('should remove filters from localStorage', () => {
+      it('should clear filters but preserve sort method', () => {
+        localStorageMock.getItem.mockReturnValue(
+          JSON.stringify({
+            category: ['Food'],
+            expiry: ['expired'],
+            location: ['Pantry'],
+            quantity: ['zero'],
+            searchText: 'milk',
+            showAdvanced: true,
+            sortMethod: 'category',
+          }),
+        );
+
         filters.clearFilters('test.entity');
 
-        expect(localStorageMock.removeItem).toHaveBeenCalledWith('filters_test.entity');
+        expect(localStorageMock.setItem).toHaveBeenCalledWith(
+          'filters_test.entity',
+          JSON.stringify({
+            category: [],
+            expiry: [],
+            location: [],
+            quantity: [],
+            searchText: '',
+            showAdvanced: true,
+            sortMethod: 'category',
+          }),
+        );
       });
     });
   });

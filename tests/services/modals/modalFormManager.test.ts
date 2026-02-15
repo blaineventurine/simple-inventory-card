@@ -87,6 +87,10 @@ describe('ModalFormManager', () => {
       createMockInput((values.description as string) || ''),
     );
     mockElements.set(
+      `edit-${ELEMENTS.DESIRED_QUANTITY}`,
+      createMockInput((values.desiredQuantity as string) || ''),
+    );
+    mockElements.set(
       `edit-${ELEMENTS.LOCATION}`,
       createMockInput((values.location as string) || ''),
     );
@@ -145,14 +149,17 @@ describe('ModalFormManager', () => {
         autoAddEnabled: true,
         autoAddIdToDescriptionEnabled: true,
         autoAddToListQuantity: '2',
+        barcode: '',
         category: 'Food',
         description: 'Test description',
+        desiredQuantity: '',
         expiryAlertDays: '10',
         expiryDate: '2024-12-31',
         location: 'Pantry',
         name: 'Test Item',
         quantity: '5',
         todoList: 'shopping',
+        todoQuantityPlacement: '',
         unit: 'pieces',
       };
 
@@ -168,14 +175,17 @@ describe('ModalFormManager', () => {
         autoAddEnabled: false,
         autoAddIdToDescriptionEnabled: false,
         autoAddToListQuantity: '',
+        barcode: '',
         category: '',
         description: '',
+        desiredQuantity: '',
         expiryAlertDays: '',
         expiryDate: '',
         location: '',
         name: '',
         quantity: '',
         todoList: '',
+        todoQuantityPlacement: '',
         unit: '',
       };
 
@@ -234,14 +244,17 @@ describe('ModalFormManager', () => {
         autoAddEnabled: false,
         autoAddIdToDescriptionEnabled: false,
         autoAddToListQuantity: '1',
+        barcode: '',
         category: 'Grocery',
         description: 'Edited description',
+        desiredQuantity: '',
         expiryAlertDays: '5',
         expiryDate: '2024-11-30',
         location: 'Kitchen',
         name: 'Edited Item',
         quantity: '3',
         todoList: 'groceries',
+        todoQuantityPlacement: '',
         unit: 'kg',
       };
 
@@ -255,14 +268,17 @@ describe('ModalFormManager', () => {
         autoAddEnabled: false,
         autoAddIdToDescriptionEnabled: false,
         autoAddToListQuantity: '',
+        barcode: '',
         category: '',
         description: '',
+        desiredQuantity: '',
         expiryAlertDays: '',
         expiryDate: '',
         location: '',
         name: '',
         quantity: '',
         todoList: '',
+        todoQuantityPlacement: '',
         unit: '',
       };
 
@@ -404,6 +420,86 @@ describe('ModalFormManager', () => {
       expect(mockElements.get(`edit-${ELEMENTS.AUTO_ADD_ID_TO_DESCRIPTION_ENABLED}`)?.checked).toBe(
         true,
       );
+    });
+
+    it('should populate location from locations array when present', () => {
+      const item: InventoryItem = {
+        auto_add_enabled: false,
+        auto_add_id_to_description_enabled: false,
+        category: '',
+        description: '',
+        expiry_date: '',
+        location: 'Old Location',
+        locations: ['Pantry', 'Fridge'],
+        name: 'Test Item',
+        quantity: 5,
+        todo_list: '',
+        unit: '',
+      };
+
+      modalFormManager.populateEditModal(item);
+
+      expect(mockElements.get(`edit-${ELEMENTS.LOCATION}`)?.value).toBe('Pantry, Fridge');
+    });
+
+    it('should populate category from categories array when present', () => {
+      const item: InventoryItem = {
+        auto_add_enabled: false,
+        auto_add_id_to_description_enabled: false,
+        categories: ['Dairy', 'Refrigerated'],
+        category: 'Old Category',
+        description: '',
+        expiry_date: '',
+        location: '',
+        name: 'Test Item',
+        quantity: 5,
+        todo_list: '',
+        unit: '',
+      };
+
+      modalFormManager.populateEditModal(item);
+
+      expect(mockElements.get(`edit-${ELEMENTS.CATEGORY}`)?.value).toBe('Dairy, Refrigerated');
+    });
+
+    it('should show blank for desired_quantity when value is 0', () => {
+      const item: InventoryItem = {
+        auto_add_enabled: false,
+        auto_add_id_to_description_enabled: false,
+        category: '',
+        description: '',
+        desired_quantity: 0,
+        expiry_date: '',
+        location: '',
+        name: 'Test Item',
+        quantity: 5,
+        todo_list: '',
+        unit: '',
+      };
+
+      modalFormManager.populateEditModal(item);
+
+      expect(mockElements.get(`edit-${ELEMENTS.DESIRED_QUANTITY}`)?.value).toBe('');
+    });
+
+    it('should show value for desired_quantity when non-zero', () => {
+      const item: InventoryItem = {
+        auto_add_enabled: false,
+        auto_add_id_to_description_enabled: false,
+        category: '',
+        description: '',
+        desired_quantity: 10,
+        expiry_date: '',
+        location: '',
+        name: 'Test Item',
+        quantity: 5,
+        todo_list: '',
+        unit: '',
+      };
+
+      modalFormManager.populateEditModal(item);
+
+      expect(mockElements.get(`edit-${ELEMENTS.DESIRED_QUANTITY}`)?.value).toBe('10');
     });
   });
 

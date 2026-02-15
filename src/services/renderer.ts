@@ -1,6 +1,6 @@
 import { Utilities } from '../utils/utilities';
 import { styles } from '../styles/styles';
-import { HassEntity, InventoryItem } from '../types/homeAssistant';
+import { HassEntity, InventoryConfig, InventoryItem } from '../types/homeAssistant';
 import { FilterState } from '../types/filterState';
 import { TodoList } from '../types/todoList';
 import { generateCardHTML } from '../templates/inventoryCard';
@@ -18,20 +18,34 @@ export class Renderer {
     sortMethod: string,
     todoLists: TodoList[],
     translations: TranslationData,
+    config?: InventoryConfig,
   ): void {
     const inventoryName = Utilities.getInventoryName(state, entityId);
     const description = Utilities.getInventoryDescription(state);
     const allItems: readonly InventoryItem[] = state?.attributes?.items || [];
-    const categories = [
-      ...new Set(
-        allItems.map((item) => item.category).filter((category): category is string => !!category),
-      ),
-    ].sort();
-    const locations = [
-      ...new Set(
-        allItems.map((item) => item.location).filter((location): location is string => !!location),
-      ),
-    ].sort();
+    const categorySet = new Set<string>();
+    allItems.forEach((item) => {
+      if (Array.isArray(item.categories) && item.categories.length > 0) {
+        item.categories.forEach((c) => {
+          if (c?.trim()) categorySet.add(c.trim());
+        });
+      } else if (item.category?.trim()) {
+        categorySet.add(item.category.trim());
+      }
+    });
+    const categories = [...categorySet].sort();
+
+    const locationSet = new Set<string>();
+    allItems.forEach((item) => {
+      if (Array.isArray(item.locations) && item.locations.length > 0) {
+        item.locations.forEach((loc) => {
+          if (loc?.trim()) locationSet.add(loc.trim());
+        });
+      } else if (item.location?.trim()) {
+        locationSet.add(item.location.trim());
+      }
+    });
+    const locations = [...locationSet].sort();
 
     this.shadowRoot.innerHTML = generateCardHTML(
       inventoryName,
@@ -44,6 +58,7 @@ export class Renderer {
       allItems,
       description,
       translations,
+      config,
     );
   }
 

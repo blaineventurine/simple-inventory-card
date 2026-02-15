@@ -62,6 +62,63 @@ export function autoAddControls(
 
       </div>
 
+      <div class="form-row">
+
+        <div class="input-group">
+          <label for="${prefix}-${ELEMENTS.DESIRED_QUANTITY}">
+            ${TranslationManager.localize(
+              translations,
+              'modal.desired_quantity',
+              undefined,
+              'Desired Quantity',
+            )}
+          </label>
+          <input
+            type="number"
+            id="${prefix}-${ELEMENTS.DESIRED_QUANTITY}"
+            min="0"
+            placeholder="${TranslationManager.localize(
+              translations,
+              'modal.desired_quantity_placeholder',
+              undefined,
+              'Desired stock level (blank = use threshold)',
+            )}"
+          />
+        </div>
+
+        <div class="input-group">
+          <label for="${prefix}-${ELEMENTS.TODO_QUANTITY_PLACEMENT}">
+            ${TranslationManager.localize(
+              translations,
+              'modal.todo_quantity_placement',
+              undefined,
+              'Quantity Placement',
+            )}
+          </label>
+          <select id="${prefix}-${ELEMENTS.TODO_QUANTITY_PLACEMENT}">
+            <option value="name">${TranslationManager.localize(
+              translations,
+              'modal.todo_quantity_placement_name',
+              undefined,
+              'In name (e.g. Milk (x4))',
+            )}</option>
+            <option value="description">${TranslationManager.localize(
+              translations,
+              'modal.todo_quantity_placement_description',
+              undefined,
+              'In description',
+            )}</option>
+            <option value="none">${TranslationManager.localize(
+              translations,
+              'modal.todo_quantity_placement_none',
+              undefined,
+              "Don't show",
+            )}</option>
+          </select>
+        </div>
+
+      </div>
+
     </div>
   `;
 }

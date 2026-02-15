@@ -5,7 +5,8 @@ export const cardHeaderStyles: CSSResult = css`
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    padding: 16px;
+    padding: 12px 16px;
+    gap: 8px;
     border-bottom: 1px solid var(--divider-color);
     background-color: var(--card-background-color);
   }
@@ -17,26 +18,88 @@ export const cardHeaderStyles: CSSResult = css`
 
   .inventory-title {
     margin: 0 0 2px 0;
-    font-size: 1.1em; /* Reduced from 1.2em */
+    font-size: 1em;
     font-weight: 500;
     color: var(--primary-text-color);
-    line-height: 1.1;
+    line-height: 1.2;
   }
 
   .inventory-description {
-    margin: 0;
-    font-size: 0.75em; /* Reduced from 0.8em */
+    margin: 2px 0 0 0;
+    font-size: 0.75em;
     color: var(--secondary-text-color);
     line-height: 1.2;
     opacity: 0.8;
     max-width: 300px;
   }
 
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .overflow-menu-container {
+    position: relative;
+  }
+
+  .overflow-menu-btn {
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: var(--primary-text-color);
+    padding: 4px 8px;
+    border-radius: 4px;
+    line-height: 1;
+    transition: background-color 0.2s ease;
+  }
+
+  .overflow-menu-btn:hover {
+    background-color: var(--secondary-background-color, rgba(0, 0, 0, 0.05));
+  }
+
+  .overflow-menu {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background: var(--card-background-color);
+    border: 1px solid var(--divider-color);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 100;
+    min-width: 140px;
+    overflow: hidden;
+  }
+
+  .overflow-menu-item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 10px 16px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 0.9em;
+    color: var(--primary-text-color);
+    transition: background-color 0.2s ease;
+    text-align: left;
+  }
+
+  .overflow-menu-item:hover {
+    background-color: var(--secondary-background-color, rgba(0, 0, 0, 0.05));
+  }
+
+  .overflow-menu-item + .overflow-menu-item {
+    border-top: 1px solid var(--divider-color);
+  }
+
   .expiry-indicators {
     display: flex;
-    flex-direction: row; /* Changed from column to row */
-    gap: 6px; /* Increased gap for horizontal layout */
-    margin-left: 16px;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
     flex-shrink: 0;
   }
 
@@ -44,47 +107,32 @@ export const cardHeaderStyles: CSSResult = css`
   .expired-badge {
     display: inline-flex;
     align-items: center;
-    gap: 2px; /* Reduced from 3px */
-    padding: 2px 5px; /* Reduced from 2px 6px */
-    border-radius: 6px; /* Reduced from 8px */
-    font-size: 0.65em; /* Reduced from 0.7em */
+    gap: 3px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75em;
     font-weight: 500;
     white-space: nowrap;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s ease;
-  }
-
-  .expiring-badge:hover,
-  .expired-badge:hover {
-    transform: translateY(-1px);
   }
 
   .expiring-badge {
-    background-color: var(--warning-color, #ff9800);
-    color: var(--text-primary-color, white);
+    background-color: rgba(255, 152, 0, 0.12);
+    color: var(--warning-color, #e68900);
   }
 
   .expired-badge {
-    background-color: var(--error-color, #f44336);
-    color: var(--text-primary-color, white);
+    background-color: rgba(244, 67, 54, 0.12);
+    color: var(--error-color, #d32f2f);
   }
 
   .expiring-badge ha-icon,
   .expired-badge ha-icon {
-    --mdc-icon-size: 11px; /* Reduced from 12px */
+    --mdc-icon-size: 13px;
   }
 
   @media (max-width: 600px) {
     .card-header {
-      flex-direction: column;
-      align-items: stretch;
-      gap: 12px;
-    }
-
-    .expiry-indicators {
-      margin-left: 0;
-      align-self: flex-end;
-      gap: 6px;
+      padding: 10px 12px;
     }
 
     .inventory-description {
@@ -94,26 +142,26 @@ export const cardHeaderStyles: CSSResult = css`
 
   @media (max-width: 480px) {
     .card-header {
-      padding: 12px;
+      padding: 8px 12px;
     }
 
     .inventory-title {
-      font-size: 1em; /* Further reduced for mobile */
+      font-size: 0.95em;
     }
 
     .inventory-description {
-      font-size: 0.7em; /* Further reduced for mobile */
+      font-size: 0.7em;
     }
 
     .expiring-badge,
     .expired-badge {
-      padding: 2px 4px; /* Even more compact on mobile */
-      font-size: 0.6em; /* Smaller text on mobile */
+      padding: 2px 6px;
+      font-size: 0.7em;
     }
 
     .expiring-badge ha-icon,
     .expired-badge ha-icon {
-      --mdc-icon-size: 10px; /* Smaller icon on mobile */
+      --mdc-icon-size: 11px;
     }
   }
 `;
