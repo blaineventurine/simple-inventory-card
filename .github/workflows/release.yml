@@ -45,7 +45,7 @@ jobs:
           TAG_VERSION="${{ github.ref_name }}"
           RELEASE_VERSION="${TAG_VERSION#v}"
 
-          if [[ "$RELEASE_VERSION" =~ (beta|alpha|rc|dev) ]]; then
+          if [[ "$RELEASE_VERSION" =~ (a|b|rc|alpha|beta|dev)[0-9]*$ ]]; then
             IS_PRERELEASE="true"
           else
             IS_PRERELEASE="false"
