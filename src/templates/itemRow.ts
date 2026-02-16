@@ -112,29 +112,30 @@ export function createItemRowTemplate(
           : ''
       }
       <div class="item-footer">
-        <div class="item-details">
-          <span class="quantity">${item.quantity} ${item.unit || ''}</span>
-          ${config?.show_expiry !== false && expiryInfo ? `<span class="expiry ${expiryInfo.class}">${expiryInfo.label}</span>` : ''}
-          ${
-            config?.show_auto_add_info !== false && item.auto_add_enabled
-              ? `<span class="auto-add-info">${TranslationManager.localize(
-                  translations,
-                  'items.auto_add_info',
-                  {
-                    quantity: item.auto_add_to_list_quantity || 0,
-                    list: getTodoListName(item.todo_list || ''),
-                  },
-                  `Auto-add at ≤ ${item.auto_add_to_list_quantity || 0} → ${getTodoListName(item.todo_list || '')}`,
-                )}</span>`
-              : ''
-          }
-
+        <div class="item-footer-row">
+          <div class="item-details">
+            <span class="quantity">${item.quantity} ${item.unit || ''}</span>
+            ${config?.show_expiry !== false && expiryInfo ? `<span class="expiry ${expiryInfo.class}">${expiryInfo.label}</span>` : ''}
+          </div>
+          <div class="item-controls">
+            <button class="edit-btn" data-action="open_edit" data-name="${item.name}">⚙️</button>
+            <button class="control-btn" data-action="decrement" data-name="${item.name}" ${item.quantity === 0 ? 'disabled' : ''}>➖</button>
+            <button class="control-btn" data-action="increment" data-name="${item.name}">➕</button>
+          </div>
         </div>
-        <div class="item-controls">
-          <button class="edit-btn" data-action="open_edit" data-name="${item.name}">⚙️</button>
-          <button class="control-btn" data-action="decrement" data-name="${item.name}" ${item.quantity === 0 ? 'disabled' : ''}>➖</button>
-          <button class="control-btn" data-action="increment" data-name="${item.name}">➕</button>
-        </div>
+        ${
+          config?.show_auto_add_info !== false && item.auto_add_enabled
+            ? `<div class="auto-add-info">${TranslationManager.localize(
+                translations,
+                'items.auto_add_info',
+                {
+                  quantity: item.auto_add_to_list_quantity || 0,
+                  list: getTodoListName(item.todo_list || ''),
+                },
+                `Auto-add at ≤ ${item.auto_add_to_list_quantity || 0} → ${getTodoListName(item.todo_list || '')}`,
+              )}</div>`
+            : ''
+        }
       </div>
     </div>
   `;
