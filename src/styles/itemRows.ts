@@ -58,9 +58,17 @@ export const itemRowStyles: CSSResult = css`
 
   .item-footer {
     display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 4px;
+  }
+
+  .item-footer-row {
+    display: flex;
     justify-content: space-between;
     align-items: center;
     width: 100%;
+    gap: 8px;
   }
 
   .item-name-line {
@@ -92,9 +100,11 @@ export const itemRowStyles: CSSResult = css`
     color: var(--secondary-text-color);
     font-size: 0.9em;
     display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
+    align-items: center;
+    gap: 8px;
     flex: 1;
+    min-width: 0;
+    overflow: hidden;
   }
 
   .item-controls {
@@ -106,7 +116,11 @@ export const itemRowStyles: CSSResult = css`
 
   .quantity {
     font-weight: bold;
-    color: var(--primary-color);
+    background: var(--primary-color);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.85em;
   }
 
   .expiry {
@@ -140,6 +154,7 @@ export const itemRowStyles: CSSResult = css`
     font-size: 0.8em;
     color: var(--success-color);
     font-weight: bold;
+    width: 100%;
   }
 
   .category-group {

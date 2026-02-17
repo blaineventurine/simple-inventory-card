@@ -62,6 +62,7 @@ describe('createItemRowTemplate', () => {
       expect(result).toContain('class="item-row');
       expect(result).toContain('class="item-header"');
       expect(result).toContain('class="item-footer"');
+      expect(result).toContain('class="item-footer-row"');
       expect(result).toContain('class="item-controls"');
       expect(result).toContain('class="item-name"');
     });
@@ -267,6 +268,32 @@ describe('createItemRowTemplate', () => {
       const result = createItemRowTemplate(autoAddItem, mockTodoLists, mockTranslations);
 
       expect(result).toContain('Auto-add at ≤ 2 →');
+    });
+
+    it('should render auto-add-info as child of item-footer but not inside item-footer-row', () => {
+      const autoAddItem = {
+        ...baseItem,
+        auto_add_enabled: true,
+        auto_add_to_list_quantity: 3,
+        todo_list: 'todo.grocery',
+      };
+      const result = createItemRowTemplate(autoAddItem, mockTodoLists, mockTranslations);
+
+      // auto-add-info should be outside item-footer-row (it contains item-details and item-controls)
+      const footerRowStart = result.indexOf('class="item-footer-row"');
+      const footerRowContent = result.substring(
+        footerRowStart,
+        result.indexOf(
+          '</div>',
+          result.indexOf('</div>', result.indexOf('</div>', footerRowStart) + 1) + 1,
+        ),
+      );
+      expect(footerRowContent).not.toContain('class="auto-add-info"');
+
+      // auto-add-info should be inside item-footer
+      const footerStart = result.indexOf('class="item-footer"');
+      const footerContent = result.substring(footerStart);
+      expect(footerContent).toContain('class="auto-add-info"');
     });
   });
 
