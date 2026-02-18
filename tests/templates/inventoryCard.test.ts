@@ -563,6 +563,159 @@ describe('generateCardHTML', () => {
     });
   });
 
+  describe('config visibility toggles', () => {
+    it('should render all sections by default (no config)', () => {
+      const result = generateCardHTML(
+        'Test',
+        mockItems,
+        mockFilters,
+        'name',
+        mockCategories,
+        mockLocations,
+        mockTodoLists,
+        mockItems,
+        undefined,
+        mockTranslations,
+      );
+
+      expect(result).toContain('<mock-header');
+      expect(result).toContain('class="controls-row"');
+      expect(result).toContain('class="sorting-controls"');
+      expect(result).toContain('class="add-new-btn"');
+      expect(result).toContain('class="search-controls"');
+      expect(result).toContain('<mock-active-filters');
+    });
+
+    it('should omit header when show_header is false', () => {
+      const config = {
+        type: 'custom:simple-inventory-card',
+        entity: 'sensor.test',
+        show_header: false,
+      } as any;
+      const result = generateCardHTML(
+        'Test',
+        mockItems,
+        mockFilters,
+        'name',
+        mockCategories,
+        mockLocations,
+        mockTodoLists,
+        mockItems,
+        undefined,
+        mockTranslations,
+        config,
+      );
+
+      expect(result).not.toContain('<mock-header');
+      // Other sections should still be present
+      expect(result).toContain('class="controls-row"');
+      expect(result).toContain('class="search-controls"');
+    });
+
+    it('should omit search controls and active filters when show_search is false', () => {
+      const config = {
+        type: 'custom:simple-inventory-card',
+        entity: 'sensor.test',
+        show_search: false,
+      } as any;
+      const result = generateCardHTML(
+        'Test',
+        mockItems,
+        mockFilters,
+        'name',
+        mockCategories,
+        mockLocations,
+        mockTodoLists,
+        mockItems,
+        undefined,
+        mockTranslations,
+        config,
+      );
+
+      expect(result).not.toContain('class="search-controls"');
+      expect(result).not.toContain('<mock-active-filters');
+      // Other sections should still be present
+      expect(result).toContain('<mock-header');
+      expect(result).toContain('class="controls-row"');
+    });
+
+    it('should omit sort dropdown but keep add button when show_sort is false', () => {
+      const config = {
+        type: 'custom:simple-inventory-card',
+        entity: 'sensor.test',
+        show_sort: false,
+      } as any;
+      const result = generateCardHTML(
+        'Test',
+        mockItems,
+        mockFilters,
+        'name',
+        mockCategories,
+        mockLocations,
+        mockTodoLists,
+        mockItems,
+        undefined,
+        mockTranslations,
+        config,
+      );
+
+      expect(result).not.toContain('class="sorting-controls"');
+      expect(result).toContain('class="add-new-btn"');
+      expect(result).toContain('class="controls-row"');
+    });
+
+    it('should omit add button but keep sort when show_add_button is false', () => {
+      const config = {
+        type: 'custom:simple-inventory-card',
+        entity: 'sensor.test',
+        show_add_button: false,
+      } as any;
+      const result = generateCardHTML(
+        'Test',
+        mockItems,
+        mockFilters,
+        'name',
+        mockCategories,
+        mockLocations,
+        mockTodoLists,
+        mockItems,
+        undefined,
+        mockTranslations,
+        config,
+      );
+
+      expect(result).toContain('class="sorting-controls"');
+      expect(result).not.toContain('class="add-new-btn"');
+      expect(result).toContain('class="controls-row"');
+    });
+
+    it('should omit entire controls row when both sort and add button are hidden', () => {
+      const config = {
+        type: 'custom:simple-inventory-card',
+        entity: 'sensor.test',
+        show_sort: false,
+        show_add_button: false,
+      } as any;
+      const result = generateCardHTML(
+        'Test',
+        mockItems,
+        mockFilters,
+        'name',
+        mockCategories,
+        mockLocations,
+        mockTodoLists,
+        mockItems,
+        undefined,
+        mockTranslations,
+        config,
+      );
+
+      expect(result).not.toContain('class="controls-row"');
+      expect(result).not.toContain('class="sorting-controls"');
+      expect(result).not.toContain('class="add-new-btn"');
+    });
+  });
+
   describe('integration with child templates', () => {
     it('should pass correct parameters to all child templates', async () => {
       const inventoryHeaderModule = await import('../../src/templates/inventoryHeader');

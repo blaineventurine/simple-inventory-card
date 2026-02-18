@@ -391,15 +391,15 @@ describe('Config Editor Templates', () => {
       expect(templateString).toContain('class="visibility-toggles"');
     });
 
-    it('should render five toggle items', () => {
+    it('should render nine toggle items', () => {
       const onToggle = vi.fn();
       createVisibilityToggles(defaultConfig, onToggle, mockTranslations);
 
       const htmlCalls = vi.mocked(html).mock.calls;
-      // The outer template call + 5 inner calls for each toggle
+      // The outer template call + 9 inner calls for each toggle
       // Find calls that contain ha-formfield
       const toggleCalls = htmlCalls.filter((call) => call[0].join('').includes('ha-formfield'));
-      expect(toggleCalls.length).toBe(5);
+      expect(toggleCalls.length).toBe(9);
     });
 
     it('should default all toggles to checked when config has no show_* fields', () => {
@@ -419,6 +419,10 @@ describe('Config Editor Templates', () => {
     it('should set toggles to unchecked when config fields are false', () => {
       const config: InventoryConfig = {
         ...defaultConfig,
+        show_header: false,
+        show_search: false,
+        show_sort: false,
+        show_add_button: false,
         show_description: false,
         show_location: false,
         show_category: false,

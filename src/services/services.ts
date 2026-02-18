@@ -2,6 +2,7 @@ import { DOMAIN, SERVICES, PARAMS, WS_COMMANDS } from '../utils/constants';
 import { HomeAssistant, InventoryItem } from '../types/homeAssistant';
 import { ItemData } from '../types/inventoryItem';
 import { HistoryEvent } from '../types/historyEvent';
+import { ItemConsumptionRates } from '../types/consumptionRates';
 import { Utilities } from '../utils/utilities';
 
 export interface ServiceResult {
@@ -236,6 +237,20 @@ export class Services {
     if (options?.limit) msg.limit = options.limit;
     const result = await this.hass.callWS<{ events: HistoryEvent[] }>(msg);
     return result.events;
+  }
+
+  async getItemConsumptionRates(
+    inventoryId: string,
+    itemName: string,
+    windowDays?: number | null,
+  ): Promise<ItemConsumptionRates> {
+    const msg: { type: string; inventory_id: string; item_name: string; [key: string]: any } = {
+      type: WS_COMMANDS.GET_ITEM_CONSUMPTION_RATES,
+      inventory_id: inventoryId,
+      item_name: itemName,
+    };
+    if (windowDays !== null) msg.window_days = windowDays;
+    return this.hass.callWS<ItemConsumptionRates>(msg);
   }
 
   async exportInventory(

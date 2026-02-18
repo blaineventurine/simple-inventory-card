@@ -118,6 +118,10 @@
     "select_entity_message": "Por favor selecciona una entidad de inventario arriba",
     "selected_inventory": "Inventario Seleccionado:",
     "display_options": "Opciones de Visualización",
+    "show_header": "Mostrar encabezado",
+    "show_search": "Mostrar búsqueda y filtros",
+    "show_sort": "Mostrar controles de orden",
+    "show_add_button": "Mostrar botón de agregar",
     "show_description": "Mostrar descripción",
     "show_location": "Mostrar ubicación",
     "show_category": "Mostrar categoría",
@@ -126,6 +130,26 @@
   },
   "actions": {
     "confirm_remove": "¿Eliminar {name} del inventario?"
+  },
+  "analytics": {
+    "tab_history": "Historial",
+    "tab_consumption": "Consumo",
+    "daily_rate": "Diario",
+    "weekly_rate": "Semanal",
+    "days_until_depletion": "Días Restantes",
+    "avg_restock_days": "Reposición Prom.",
+    "total_consumed": "Total Usado",
+    "events_tracked": "Eventos",
+    "insufficient_data": "No hay suficientes datos aún",
+    "insufficient_data_detail": "Se necesitan al menos 2 eventos de consumo para calcular tasas.",
+    "per_day": "/día",
+    "days": "días",
+    "window_30": "30d",
+    "window_60": "60d",
+    "window_90": "90d",
+    "window_all": "Todo",
+    "loading": "Cargando...",
+    "load_error": "Error al cargar los datos de consumo."
   },
   "errors": {
     "clear_filters_error": "Error al limpiar filtros. Por favor inténtalo de nuevo.",

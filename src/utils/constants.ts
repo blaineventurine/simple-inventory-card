@@ -20,6 +20,7 @@ export const SERVICES = {
 export const WS_COMMANDS = {
   EXPORT: `${DOMAIN}/export`,
   GET_HISTORY: `${DOMAIN}/get_history`,
+  GET_ITEM_CONSUMPTION_RATES: `${DOMAIN}/get_item_consumption_rates`,
   GET_ITEM: `${DOMAIN}/get_item`,
   IMPORT: `${DOMAIN}/import`,
   LIST_ITEMS: `${DOMAIN}/list_items`,
@@ -76,6 +77,9 @@ export const ELEMENTS = {
   OVERFLOW_MENU: 'overflow-menu',
   EDIT_HISTORY_BTN: 'edit-history-btn',
   EDIT_DELETE_BTN: 'edit-delete-btn',
+  HISTORY_TAB_HISTORY: 'history-tab-history',
+  HISTORY_TAB_CONSUMPTION: 'history-tab-consumption',
+  HISTORY_TAB_CONTENT: 'history-tab-content',
 
   ACTIVE_FILTERS: 'active-filters',
   ACTIVE_FILTERS_LIST: 'active-filters-list',
@@ -173,6 +177,10 @@ export const TIMING = {
   ADD_ITEM_DELAY: 10,
 };
 export const VISIBLE_FIELDS_DEFAULTS = {
+  show_header: true,
+  show_search: true,
+  show_sort: true,
+  show_add_button: true,
   show_description: true,
   show_location: true,
   show_category: true,
