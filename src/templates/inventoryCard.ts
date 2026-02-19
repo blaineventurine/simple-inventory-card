@@ -25,25 +25,33 @@ export function generateCardHTML(
   translations: TranslationData,
   config?: InventoryConfig,
 ): string {
+  const showHeader = config?.show_header !== false;
+  const showSort = config?.show_sort !== false;
+  const showAddButton = config?.show_add_button !== false;
+  const showSearch = config?.show_search !== false;
+
   return `
     <style>${styles}</style>
     <ha-card>
-      ${createInventoryHeader(inventoryName, allItems as InventoryItem[], translations, description)}
+      ${showHeader ? createInventoryHeader(inventoryName, allItems as InventoryItem[], translations, description) : ''}
 
-      <div class="controls-row">
-        <div class="sorting-controls">
-          ${createSortOptions(sortMethod, translations)}
-        </div>
-        <button id="${ELEMENTS.OPEN_ADD_MODAL}" class="add-new-btn">
-          + ${TranslationManager.localize(translations, 'modal.add_item', undefined, 'Add Item')}
-        </button>
-      </div>
+      ${
+        showSort || showAddButton
+          ? `<div class="controls-row">
+        ${showSort ? `<div class="sorting-controls">${createSortOptions(sortMethod, translations)}</div>` : ''}
+        ${showAddButton ? `<button id="${ELEMENTS.OPEN_ADD_MODAL}" class="add-new-btn">+ ${TranslationManager.localize(translations, 'modal.add_item', undefined, 'Add Item')}</button>` : ''}
+      </div>`
+          : ''
+      }
 
-      <div class="search-controls">
+      ${
+        showSearch
+          ? `<div class="search-controls">
         ${createSearchAndFilters(filters, categories, locations, translations)}
       </div>
-
-      ${createActiveFiltersDisplay(filters, translations)}
+      ${createActiveFiltersDisplay(filters, translations)}`
+          : ''
+      }
 
       <div class="items-container">
         ${

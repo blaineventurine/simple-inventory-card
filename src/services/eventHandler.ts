@@ -7,7 +7,13 @@ import { Utilities } from '../utils/utilities';
 import { TranslationData } from '@/types/translatableComponent';
 import { TranslationManager } from './translationManager';
 import { initializeMultiSelect } from './multiSelect';
-import { createHistoryView } from '../templates/historyView';
+import {
+  createHistoryAndConsumptionView,
+  createHistoryContent,
+  createConsumptionView,
+  createConsumptionLoading,
+} from '../templates/historyView';
+import { ItemConsumptionRates } from '../types/consumptionRates';
 
 export class EventHandler {
   private renderRoot: ShadowRoot;
@@ -580,14 +586,19 @@ export class EventHandler {
         itemName,
         limit: 50,
       });
-      const html = createHistoryView(events, itemName);
-      this.showHistoryModal(html);
+      const html = createHistoryAndConsumptionView(events, itemName, this.translations);
+      this.showHistoryModal(html, events, itemName, inventoryId);
     } catch (error) {
       console.error('Error fetching history:', error);
     }
   }
 
-  private showHistoryModal(content: string): void {
+  private showHistoryModal(
+    content: string,
+    cachedEvents: import('../types/historyEvent').HistoryEvent[],
+    itemName: string,
+    inventoryId: string,
+  ): void {
     let modal = this.renderRoot.getElementById(ELEMENTS.HISTORY_MODAL);
     if (!modal) {
       modal = document.createElement('div');
@@ -604,9 +615,124 @@ export class EventHandler {
       </div>
     `;
     modal.classList.add(CSS_CLASSES.SHOW);
+
     const closeBtn = modal.querySelector('#close-history-modal');
     closeBtn?.addEventListener('click', () => {
       modal!.classList.remove(CSS_CLASSES.SHOW);
+    });
+
+    const cachedRates = new Map<string, ItemConsumptionRates>();
+    let activeWindow: number | null = null;
+
+    const historyTab = modal.querySelector(`#${ELEMENTS.HISTORY_TAB_HISTORY}`);
+    const consumptionTab = modal.querySelector(`#${ELEMENTS.HISTORY_TAB_CONSUMPTION}`);
+    const tabContent = modal.querySelector(`#${ELEMENTS.HISTORY_TAB_CONTENT}`);
+
+    if (!historyTab || !consumptionTab || !tabContent) return;
+
+    const setActiveTab = (tab: 'history' | 'consumption') => {
+      historyTab.classList.toggle('active', tab === 'history');
+      consumptionTab.classList.toggle('active', tab === 'consumption');
+    };
+
+    historyTab.addEventListener('click', () => {
+      setActiveTab('history');
+      tabContent.innerHTML = createHistoryContent(cachedEvents);
+    });
+
+    consumptionTab.addEventListener('click', () => {
+      setActiveTab('consumption');
+      this.loadConsumptionTab(
+        tabContent as HTMLElement,
+        inventoryId,
+        itemName,
+        activeWindow,
+        cachedRates,
+        (w) => {
+          activeWindow = w;
+        },
+      );
+    });
+  }
+
+  private async loadConsumptionTab(
+    container: HTMLElement,
+    inventoryId: string,
+    itemName: string,
+    activeWindow: number | null,
+    cachedRates: Map<string, ItemConsumptionRates>,
+    setActiveWindow: (w: number | null) => void,
+  ): Promise<void> {
+    const cacheKey = activeWindow !== null ? String(activeWindow) : 'all';
+
+    if (cachedRates.has(cacheKey)) {
+      this.renderConsumptionContent(
+        container,
+        cachedRates.get(cacheKey)!,
+        activeWindow,
+        inventoryId,
+        itemName,
+        cachedRates,
+        setActiveWindow,
+      );
+      return;
+    }
+
+    container.innerHTML = createConsumptionLoading(this.translations);
+
+    try {
+      const rates = await this.services.getItemConsumptionRates(
+        inventoryId,
+        itemName,
+        activeWindow,
+      );
+      cachedRates.set(cacheKey, rates);
+      this.renderConsumptionContent(
+        container,
+        rates,
+        activeWindow,
+        inventoryId,
+        itemName,
+        cachedRates,
+        setActiveWindow,
+      );
+    } catch (error) {
+      console.error('Error fetching consumption rates:', error);
+      const errorMsg = TranslationManager.localize(
+        this.translations,
+        'analytics.load_error',
+        undefined,
+        'Failed to load consumption data.',
+      );
+      container.innerHTML = `<p class="consumption-empty">${Utilities.sanitizeHtml(errorMsg)}</p>`;
+    }
+  }
+
+  private renderConsumptionContent(
+    container: HTMLElement,
+    rates: ItemConsumptionRates,
+    activeWindow: number | null,
+    inventoryId: string,
+    itemName: string,
+    cachedRates: Map<string, ItemConsumptionRates>,
+    setActiveWindow: (w: number | null) => void,
+  ): void {
+    container.innerHTML = createConsumptionView(rates, activeWindow, this.translations);
+
+    container.querySelectorAll('.window-pill').forEach((pill) => {
+      pill.addEventListener('click', () => {
+        const value = (pill as HTMLElement).dataset.window;
+        const newWindow = value === 'all' ? null : Number(value);
+        setActiveWindow(newWindow);
+        this.loadConsumptionTab(
+          container,
+          inventoryId,
+          itemName,
+          newWindow,
+          cachedRates,
+          setActiveWindow,
+        );
+      });
     });
   }
 

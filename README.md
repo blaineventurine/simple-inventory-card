@@ -32,6 +32,10 @@ The card editor lets you toggle which fields are shown on each item row:
 | `show_category`      | `true`  | Show item categories            |
 | `show_expiry`        | `true`  | Show expiration dates           |
 | `show_auto_add_info` | `true`  | Show auto-add to todo list info |
+| `show_header`        | `true`  | Show card header row            |
+| `show_search`        | `true`  | Show search and filters         |
+| `show_sort`          | `true`  | Show sorting controls           |
+| `show_add_button`    | `true`  | Show add button                 |
 
 ## Features
 
@@ -102,9 +106,26 @@ Configure items to be automatically added to a Home Assistant todo list when sto
 4. Select the target todo list entity
 5. Choose where the needed quantity appears: in the item name (e.g. "Milk (x4)"), in the description, or hidden
 
-### Item History
+### Item History and Consumption Analytics
 
-View the change history for any item from the edit modal. History shows a timeline of all changes (add, increment, decrement, update, remove) with before/after quantities and timestamps.
+View the change history for any item from the edit modal. The history modal has two tabs:
+
+**History tab** — A timeline of all changes (add, increment, decrement, update, remove) with before/after quantities and timestamps.
+
+**Consumption tab** — Analytics calculated from your decrement history:
+
+| Metric      | Description                                                |
+| ----------- | ---------------------------------------------------------- |
+| Daily rate  | Average units consumed per day                             |
+| Weekly rate | Average units consumed per week                            |
+| Days Left   | Estimated days until the item runs out at the current rate |
+| Avg Restock | Average days between restocking events                     |
+| Total Used  | Total units consumed over the period                       |
+| Events      | Number of decrement events tracked                         |
+
+Use the time window pills (30d / 60d / 90d / All) to change the calculation period. A shorter window reflects recent consumption patterns, while "All" averages across your entire history.
+
+The consumption tab requires at least 2 decrement events before it can calculate rates. Until then, it shows a "not enough data" message.
 
 ### Import and Export
 

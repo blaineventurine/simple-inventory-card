@@ -82,6 +82,10 @@ export function createNoEntityMessage(translations: TranslationData): TemplateRe
 }
 
 const VISIBILITY_TOGGLE_KEYS = [
+  'show_header',
+  'show_search',
+  'show_sort',
+  'show_add_button',
   'show_description',
   'show_location',
   'show_category',
@@ -90,6 +94,10 @@ const VISIBILITY_TOGGLE_KEYS = [
 ] as const;
 
 const VISIBILITY_TOGGLE_FALLBACKS: Record<string, string> = {
+  show_header: 'Show header',
+  show_search: 'Show search & filters',
+  show_sort: 'Show sort controls',
+  show_add_button: 'Show add button',
   show_description: 'Show description',
   show_location: 'Show location',
   show_category: 'Show category',
