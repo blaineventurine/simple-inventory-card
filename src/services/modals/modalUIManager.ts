@@ -4,6 +4,7 @@ import { ModalFormManager } from './modalFormManager';
 import { ModalValidationManager } from './modalValidationManager';
 import { TranslationData } from '@/types/translatableComponent';
 import { TranslationManager } from '../translationManager';
+import { initializeBarcodeTagInput } from '../barcodeTagInput';
 
 export class ModalUIManager {
   private boundEscHandler: ((e: KeyboardEvent) => void) | undefined = undefined;
@@ -27,6 +28,7 @@ export class ModalUIManager {
       this.focusElementWithDelay(ELEMENTS.NAME);
       this.setupExpiryThresholdInteraction(translations);
       this.validationManager.setupValidationListeners();
+      initializeBarcodeTagInput(this.shadowRoot, 'add');
     } else {
       console.warn('Add modal not found in DOM');
     }
@@ -76,6 +78,7 @@ export class ModalUIManager {
       this.focusElementWithDelay(ELEMENTS.NAME, true);
       this.setupExpiryThresholdInteraction(translations);
       this.validationManager.setupValidationListeners();
+      initializeBarcodeTagInput(this.shadowRoot, 'edit');
     }
 
     return { item, found: true };

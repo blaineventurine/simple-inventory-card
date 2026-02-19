@@ -68,6 +68,7 @@
     "todo_quantity_placement_description": "En la descripción",
     "todo_quantity_placement_none": "No mostrar",
     "barcode": "Código de Barras",
+    "barcode_input_placeholder": "Escriba el código de barras y presione Enter",
     "barcode_placeholder": "UPC, EAN, etc.",
     "desired_quantity": "Cantidad Deseada",
     "desired_quantity_placeholder": "Nivel de stock deseado (vacío = usar umbral)",

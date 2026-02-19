@@ -68,6 +68,7 @@
     "todo_quantity_placement_description": "Dans la description",
     "todo_quantity_placement_none": "Ne pas afficher",
     "barcode": "Code-barres",
+    "barcode_input_placeholder": "Saisissez le code-barres et appuyez sur Entrée",
     "barcode_placeholder": "UPC, EAN, etc.",
     "desired_quantity": "Quantité souhaitée",
     "desired_quantity_placeholder": "Niveau de stock souhaité (vide = utiliser le seuil)",

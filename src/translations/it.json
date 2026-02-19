@@ -68,6 +68,7 @@
     "todo_quantity_placement_description": "Nella descrizione",
     "todo_quantity_placement_none": "Non mostrare",
     "barcode": "Codice a barre",
+    "barcode_input_placeholder": "Digita il codice a barre e premi Invio",
     "barcode_placeholder": "UPC, EAN, ecc.",
     "desired_quantity": "Quantità desiderata",
     "desired_quantity_placeholder": "Livello di stock desiderato (vuoto = usa soglia)",

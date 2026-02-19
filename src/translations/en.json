@@ -43,6 +43,7 @@
     "auto_add_settings": "Auto-add Settings",
     "auto_add_when_low": "Auto-add to todo list when low",
     "barcode": "Barcode",
+    "barcode_input_placeholder": "Type barcode and press Enter",
     "barcode_placeholder": "UPC, EAN, etc.",
     "cancel": "Cancel",
     "description": "Description",

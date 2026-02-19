@@ -73,7 +73,7 @@ export class ModalFormManager {
 
       {
         id: `edit-${ELEMENTS.BARCODE}`,
-        value: item.barcodes?.length ? item.barcodes[0] : DEFAULTS.BARCODE,
+        value: item.barcodes?.length ? item.barcodes.join(', ') : DEFAULTS.BARCODE,
       },
       {
         id: `edit-${ELEMENTS.CATEGORY}`,
