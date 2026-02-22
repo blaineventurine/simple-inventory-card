@@ -1,5 +1,6 @@
 import { ELEMENTS } from '../utils/constants';
 import { createInventoryHeader } from '../templates/inventoryHeader';
+import { createScanPanel } from '../templates/scanPanel';
 import { createSearchAndFilters } from '../templates/searchAndFilters';
 import { createAddModal, createEditModal } from '../templates/modalTemplates';
 import { createItemsList } from '../templates/itemList';
@@ -34,6 +35,7 @@ export function generateCardHTML(
     <style>${styles}</style>
     <ha-card>
       ${showHeader ? createInventoryHeader(inventoryName, allItems as InventoryItem[], translations, description) : ''}
+      ${createScanPanel(translations)}
 
       ${
         showSort || showAddButton

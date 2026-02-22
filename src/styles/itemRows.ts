@@ -123,6 +123,12 @@ export const itemRowStyles: CSSResult = css`
     font-size: 0.85em;
   }
 
+  .item-price {
+    font-weight: 500;
+    font-size: 0.85em;
+    color: var(--secondary-text-color, #666);
+  }
+
   .expiry {
     font-weight: 500;
     padding: 2px 6px;

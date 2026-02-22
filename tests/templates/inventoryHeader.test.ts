@@ -117,6 +117,22 @@ describe('createInventoryHeader', () => {
     });
   });
 
+  describe('scan button', () => {
+    it('should include header scan button with correct ID', () => {
+      const result = createInventoryHeader('Test', mockItems, mockTranslations);
+
+      expect(result).toContain('id="header-scan-btn"');
+      expect(result).toContain('class="header-scan-btn"');
+    });
+
+    it('should include scan button SVG icon', () => {
+      const result = createInventoryHeader('Test', mockItems, mockTranslations);
+
+      expect(result).toContain('<svg');
+      expect(result).toContain('viewBox="0 0 24 24"');
+    });
+  });
+
   describe('description handling', () => {
     it('should include description when provided', () => {
       const result = createInventoryHeader(

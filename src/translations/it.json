@@ -35,7 +35,18 @@
   },
   "header": {
     "items_expired": "{count} oggett{count, plural, one {o} other {i}} scadut{count, plural, one {o} other {i}}",
-    "items_expiring_soon": "{count} oggett{count, plural, one {o} other {i}} in scadenza a breve"
+    "items_expiring_soon": "{count} oggett{count, plural, one {o} other {i}} in scadenza a breve",
+    "scan_barcode": "Scansiona codice"
+  },
+  "scanner": {
+    "increment": "Incrementa",
+    "decrement": "Decrementa",
+    "amount": "Quantità",
+    "go": "Vai",
+    "cancel": "Annulla",
+    "starting_camera": "Avvio fotocamera...",
+    "barcode_not_found": "Nessun articolo trovato per questo codice a barre",
+    "scan_success": "Aggiornato {name}"
   },
   "modal": {
     "add_item": "Aggiungi oggetto",
@@ -73,7 +84,13 @@
     "desired_quantity": "Quantità desiderata",
     "desired_quantity_placeholder": "Livello di stock desiderato (vuoto = usa soglia)",
     "unit": "Unità",
-    "unit_placeholder": "kg, pz, ecc."
+    "unit_placeholder": "kg, pz, ecc.",
+    "price": "Prezzo unitario",
+    "price_placeholder": "Prezzo unitario attuale",
+    "scan_barcode": "Scansiona con fotocamera",
+    "close_scanner": "Chiudi scanner",
+    "camera_permission_denied": "Accesso fotocamera negato",
+    "camera_not_available": "Fotocamera non disponibile"
   },
   "filters": {
     "all_categories": "Tutte le categorie",
@@ -127,7 +144,8 @@
     "show_location": "Mostra posizione",
     "show_category": "Mostra categoria",
     "show_expiry": "Mostra data di scadenza",
-    "show_auto_add_info": "Mostra info aggiunta automatica"
+    "show_auto_add_info": "Mostra info aggiunta automatica",
+    "show_price": "Mostra valore totale"
   },
   "actions": {
     "confirm_remove": "Rimuovere {name} dall’inventario?"
@@ -150,7 +168,10 @@
     "window_90": "90g",
     "window_all": "Tutto",
     "loading": "Caricamento...",
-    "load_error": "Impossibile caricare i dati di consumo."
+    "load_error": "Impossibile caricare i dati di consumo.",
+    "daily_spend": "Spesa Giornaliera",
+    "weekly_spend": "Spesa Settimanale",
+    "total_spend": "Spesa Totale"
   },
   "errors": {
     "clear_filters_error": "Errore nella cancellazione dei filtri. Riprova.",

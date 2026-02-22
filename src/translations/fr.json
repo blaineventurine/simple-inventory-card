@@ -35,7 +35,18 @@
   },
   "header": {
     "items_expired": "{count} article{count, plural, one {} other {s}} expiré(s)",
-    "items_expiring_soon": "{count} article{count, plural, one {} other {s}} expirant bientôt"
+    "items_expiring_soon": "{count} article{count, plural, one {} other {s}} expirant bientôt",
+    "scan_barcode": "Scanner code-barres"
+  },
+  "scanner": {
+    "increment": "Incrémenter",
+    "decrement": "Décrémenter",
+    "amount": "Quantité",
+    "go": "Go",
+    "cancel": "Annuler",
+    "starting_camera": "Démarrage de la caméra...",
+    "barcode_not_found": "Aucun article trouvé pour ce code-barres",
+    "scan_success": "Mis à jour {name}"
   },
   "modal": {
     "add_item": "Ajouter un article",
@@ -73,7 +84,13 @@
     "desired_quantity": "Quantité souhaitée",
     "desired_quantity_placeholder": "Niveau de stock souhaité (vide = utiliser le seuil)",
     "unit": "Unité",
-    "unit_placeholder": "kg, pcs, etc."
+    "unit_placeholder": "kg, pcs, etc.",
+    "price": "Prix unitaire",
+    "price_placeholder": "Prix unitaire actuel",
+    "scan_barcode": "Scanner avec caméra",
+    "close_scanner": "Fermer le scanner",
+    "camera_permission_denied": "Accès caméra refusé",
+    "camera_not_available": "Caméra non disponible"
   },
   "filters": {
     "all_categories": "Toutes les catégories",
@@ -127,7 +144,8 @@
     "show_location": "Afficher l'emplacement",
     "show_category": "Afficher la catégorie",
     "show_expiry": "Afficher la date d'expiration",
-    "show_auto_add_info": "Afficher les infos d'ajout automatique"
+    "show_auto_add_info": "Afficher les infos d'ajout automatique",
+    "show_price": "Afficher la valeur totale"
   },
   "actions": {
     "confirm_remove": "Retirer {name} de l'inventaire ?"
@@ -150,7 +168,10 @@
     "window_90": "90j",
     "window_all": "Tout",
     "loading": "Chargement...",
-    "load_error": "Échec du chargement des données de consommation."
+    "load_error": "Échec du chargement des données de consommation.",
+    "daily_spend": "Dépense Quotidienne",
+    "weekly_spend": "Dépense Hebdomadaire",
+    "total_spend": "Dépense Totale"
   },
   "errors": {
     "clear_filters_error": "Erreur lors de l'effacement des filtres. Veuillez réessayer.",

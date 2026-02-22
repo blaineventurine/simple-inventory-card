@@ -62,6 +62,9 @@ export function createInventoryHeader(
           `
               : ''
           }
+          <button id="${ELEMENTS.HEADER_SCAN_BTN}" class="header-scan-btn" title="${TranslationManager.localize(translations, 'header.scan_barcode', undefined, 'Scan Barcode')}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="7" y1="8" x2="17" y2="8"/><line x1="7" y1="16" x2="17" y2="16"/></svg>
+          </button>
           <div class="overflow-menu-container">
             <button id="${ELEMENTS.OVERFLOW_MENU_BTN}" class="overflow-menu-btn" title="${TranslationManager.localize(translations, 'header.more_options', undefined, 'More options')}">&#8942;</button>
             <div class="overflow-menu" id="${ELEMENTS.OVERFLOW_MENU}" style="display: none;">

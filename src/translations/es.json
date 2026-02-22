@@ -35,7 +35,18 @@
   },
   "header": {
     "items_expired": "{count} artículo{count, plural, one {} other {s}} expirado{count, plural, one {} other {s}}",
-    "items_expiring_soon": "{count} artículo{count, plural, one {} other {s}} expirando pronto"
+    "items_expiring_soon": "{count} artículo{count, plural, one {} other {s}} expirando pronto",
+    "scan_barcode": "Escanear código"
+  },
+  "scanner": {
+    "increment": "Incrementar",
+    "decrement": "Decrementar",
+    "amount": "Cantidad",
+    "go": "Ir",
+    "cancel": "Cancelar",
+    "starting_camera": "Iniciando cámara...",
+    "barcode_not_found": "No se encontró artículo para este código de barras",
+    "scan_success": "Actualizado {name}"
   },
   "modal": {
     "add_item": "Agregar Artículo",
@@ -73,7 +84,13 @@
     "desired_quantity": "Cantidad Deseada",
     "desired_quantity_placeholder": "Nivel de stock deseado (vacío = usar umbral)",
     "unit": "Unidad",
-    "unit_placeholder": "kg, pzs, etc."
+    "unit_placeholder": "kg, pzs, etc.",
+    "price": "Precio Unitario",
+    "price_placeholder": "Precio unitario actual",
+    "scan_barcode": "Escanear con cámara",
+    "close_scanner": "Cerrar escáner",
+    "camera_permission_denied": "Acceso a cámara denegado",
+    "camera_not_available": "Cámara no disponible"
   },
   "filters": {
     "all_categories": "Todas las Categorías",
@@ -127,7 +144,8 @@
     "show_location": "Mostrar ubicación",
     "show_category": "Mostrar categoría",
     "show_expiry": "Mostrar fecha de vencimiento",
-    "show_auto_add_info": "Mostrar info de auto-agregar"
+    "show_auto_add_info": "Mostrar info de auto-agregar",
+    "show_price": "Mostrar valor total"
   },
   "actions": {
     "confirm_remove": "¿Eliminar {name} del inventario?"
@@ -150,7 +168,10 @@
     "window_90": "90d",
     "window_all": "Todo",
     "loading": "Cargando...",
-    "load_error": "Error al cargar los datos de consumo."
+    "load_error": "Error al cargar los datos de consumo.",
+    "daily_spend": "Gasto Diario",
+    "weekly_spend": "Gasto Semanal",
+    "total_spend": "Gasto Total"
   },
   "errors": {
     "clear_filters_error": "Error al limpiar filtros. Por favor inténtalo de nuevo.",

@@ -10,4 +10,7 @@ export interface ItemConsumptionRates {
   days_until_depletion: number | null;
   avg_restock_days: number | null;
   has_sufficient_data: boolean;
+  daily_spend_rate: number | null;
+  weekly_spend_rate: number | null;
+  total_spend: number | null;
 }

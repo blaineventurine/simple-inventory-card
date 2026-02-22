@@ -46,8 +46,9 @@ export class Modals {
     translations: TranslationData,
     locations: string[] = [],
     categories: string[] = [],
+    onBarcodeAdded?: (barcode: string) => void,
   ): void {
-    this.uiManager.openAddModal(translations);
+    this.uiManager.openAddModal(translations, onBarcodeAdded);
     this.initializeAutoCompleteInputs('add', locations, categories);
   }
 

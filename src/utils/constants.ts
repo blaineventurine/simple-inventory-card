@@ -14,6 +14,7 @@ export const SERVICES = {
   REMOVE_ITEM: 'remove_item',
   UPDATE_ITEM: 'update_item',
   UPDATE_ITEM_SETTINGS: 'update_item_settings',
+  SCAN_BARCODE: 'scan_barcode',
 };
 
 // Service Parameters (must match backend)
@@ -24,6 +25,7 @@ export const WS_COMMANDS = {
   GET_ITEM: `${DOMAIN}/get_item`,
   IMPORT: `${DOMAIN}/import`,
   LIST_ITEMS: `${DOMAIN}/list_items`,
+  LOOKUP_BARCODE_PRODUCT: `${DOMAIN}/lookup_barcode_product`,
   SUBSCRIBE: `${DOMAIN}/subscribe`,
 };
 
@@ -42,6 +44,7 @@ export const PARAMS = {
   LOCATION: 'location',
   NAME: 'name',
   OLD_NAME: 'old_name',
+  PRICE: 'price',
   QUANTITY: 'quantity',
   TODO_LIST: 'todo_list',
   TODO_QUANTITY_PLACEMENT: 'todo_quantity_placement',
@@ -63,6 +66,7 @@ export const ELEMENTS = {
   EXPIRY_DATE: 'expiry-date',
   LOCATION: 'location',
   NAME: 'name',
+  PRICE: 'price',
   QUANTITY: 'quantity',
   TODO_LIST: 'todo-list',
   TODO_QUANTITY_PLACEMENT: 'todo-quantity-placement',
@@ -80,6 +84,21 @@ export const ELEMENTS = {
   HISTORY_TAB_HISTORY: 'history-tab-history',
   HISTORY_TAB_CONSUMPTION: 'history-tab-consumption',
   HISTORY_TAB_CONTENT: 'history-tab-content',
+
+  BARCODE_SCAN_BTN: 'barcode-scan-btn',
+  BARCODE_SCANNER: 'barcode-scanner',
+  BARCODE_VIEWPORT: 'barcode-viewport',
+  BARCODE_SCANNER_CLOSE: 'barcode-scanner-close',
+
+  HEADER_SCAN_BTN: 'header-scan-btn',
+  SCAN_PANEL: 'scan-panel',
+  SCAN_VIEWPORT: 'scan-viewport',
+  SCAN_CLOSE: 'scan-close',
+  SCAN_ACTION_BAR: 'scan-action-bar',
+  SCAN_ACTION_SELECT: 'scan-action-select',
+  SCAN_AMOUNT_INPUT: 'scan-amount-input',
+  SCAN_GO_BTN: 'scan-go-btn',
+  SCAN_CANCEL_BTN: 'scan-cancel-btn',
 
   ACTIVE_FILTERS: 'active-filters',
   ACTIVE_FILTERS_LIST: 'active-filters-list',
@@ -129,6 +148,7 @@ export const DEFAULTS = {
   EXPIRY_ALERT_DAYS: 1,
   EXPIRY_DATE: '',
   LOCATION: '',
+  PRICE: 0,
   QUANTITY: 1,
   SORT_METHOD: 'name',
   TODO_LIST: '',
@@ -186,6 +206,7 @@ export const VISIBLE_FIELDS_DEFAULTS = {
   show_category: true,
   show_expiry: true,
   show_auto_add_info: true,
+  show_price: true,
 };
 
 export const DEFAULT_INVENTORY_NAME = 'Inventory';

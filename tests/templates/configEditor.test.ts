@@ -391,15 +391,15 @@ describe('Config Editor Templates', () => {
       expect(templateString).toContain('class="visibility-toggles"');
     });
 
-    it('should render nine toggle items', () => {
+    it('should render ten toggle items', () => {
       const onToggle = vi.fn();
       createVisibilityToggles(defaultConfig, onToggle, mockTranslations);
 
       const htmlCalls = vi.mocked(html).mock.calls;
-      // The outer template call + 9 inner calls for each toggle
+      // The outer template call + 10 inner calls for each toggle
       // Find calls that contain ha-formfield
       const toggleCalls = htmlCalls.filter((call) => call[0].join('').includes('ha-formfield'));
-      expect(toggleCalls.length).toBe(9);
+      expect(toggleCalls.length).toBe(10);
     });
 
     it('should default all toggles to checked when config has no show_* fields', () => {
@@ -428,6 +428,7 @@ describe('Config Editor Templates', () => {
         show_category: false,
         show_expiry: false,
         show_auto_add_info: false,
+        show_price: false,
       };
       const onToggle = vi.fn();
       createVisibilityToggles(config, onToggle, mockTranslations);

@@ -94,7 +94,11 @@ Items can have multiple locations and categories. The add/edit modals use a mult
 
 ### Barcodes
 
-Each item can have a barcode associated with it. Enter barcodes in the add/edit modal. Barcodes can be used to identify items in automations (e.g. scan-to-increment).
+Each item can have one or more barcodes associated with it. Enter barcodes manually in the add/edit modal, or use the camera scan button to scan UPC/EAN barcodes with your device camera. When a barcode is scanned or entered, the card automatically looks up the product name from Open Food Facts and pre-fills the item name if found.
+
+Barcodes can also be used to identify items in automations (e.g. scan-to-increment).
+
+> **Note:** Camera barcode scanning requires your Home Assistant instance to be accessed over HTTPS. Browsers block camera access on insecure (HTTP) connections. If you use the Home Assistant Companion app, this is handled automatically. For browser access, ensure you have SSL/TLS configured (e.g. via Nabu Casa, a reverse proxy, or the `ssl` configuration in Home Assistant).
 
 ### Auto-Add to Todo List
 

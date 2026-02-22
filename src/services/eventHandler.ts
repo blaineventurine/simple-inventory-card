@@ -14,6 +14,7 @@ import {
   createConsumptionLoading,
 } from '../templates/historyView';
 import { ItemConsumptionRates } from '../types/consumptionRates';
+import { startScanner, stopScanner } from './barcodeScanner';
 
 export class EventHandler {
   private renderRoot: ShadowRoot;
@@ -30,6 +31,7 @@ export class EventHandler {
   private boundChangeHandler: EventListener | undefined = undefined;
 
   private eventListenersSetup = false;
+  private scannedBarcode: string | null = null;
 
   constructor(
     renderRoot: ShadowRoot,
@@ -124,7 +126,9 @@ export class EventHandler {
           event.stopPropagation();
           const locations = this.getUniqueLocations();
           const categories = this.getUniqueCategories();
-          this.modals.openAddModal(this.translations, locations, categories);
+          this.modals.openAddModal(this.translations, locations, categories, (barcode: string) =>
+            this.handleBarcodeProductLookup(barcode),
+          );
           break;
         }
         case ELEMENTS.ADD_ITEM_BTN: {
@@ -175,6 +179,30 @@ export class EventHandler {
           event.stopPropagation();
           this.closeOverflowMenu();
           await this.handleImport();
+          break;
+        }
+        case ELEMENTS.HEADER_SCAN_BTN: {
+          event.preventDefault();
+          event.stopPropagation();
+          await this.showScanPanel();
+          break;
+        }
+        case ELEMENTS.SCAN_CLOSE: {
+          event.preventDefault();
+          event.stopPropagation();
+          this.hideScanPanel();
+          break;
+        }
+        case ELEMENTS.SCAN_GO_BTN: {
+          event.preventDefault();
+          event.stopPropagation();
+          await this.handleScanGo();
+          break;
+        }
+        case ELEMENTS.SCAN_CANCEL_BTN: {
+          event.preventDefault();
+          event.stopPropagation();
+          this.hideScanPanel();
           break;
         }
         default: {
@@ -786,6 +814,41 @@ export class EventHandler {
     }
   }
 
+  private handleBarcodeProductLookup(barcode: string): void {
+    this.services
+      .lookupBarcodeProduct(barcode)
+      .then((result) => {
+        if (!result.found || !result.product) return;
+        const product = result.product;
+        this.autoFillIfEmpty('add-name', product.name);
+        // Combine brand and description for the description field
+        const descParts: string[] = [];
+        if (product.brand) descParts.push(product.brand);
+        if (product.description) descParts.push(product.description);
+        if (descParts.length > 0) {
+          this.autoFillIfEmpty('add-description', descParts.join(' - '));
+        }
+        if (product.category) {
+          this.autoFillIfEmpty('add-category', product.category);
+        }
+        if (product.unit) {
+          this.autoFillIfEmpty('add-unit', product.unit);
+        }
+      })
+      .catch(() => {
+        // Silent failure — user can fill fields manually
+      });
+  }
+
+  private autoFillIfEmpty(elementId: string, value: string | undefined): void {
+    if (!value) return;
+    const el = this.renderRoot.getElementById(elementId) as HTMLInputElement | null;
+    if (el && !el.value.trim()) {
+      el.value = value;
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  }
+
   async handleExport(): Promise<void> {
     try {
       const inventoryId = Utilities.getInventoryId(this.hass, this.config.entity);
@@ -801,6 +864,114 @@ export class EventHandler {
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Error exporting inventory:', error);
+    }
+  }
+
+  private async showScanPanel(): Promise<void> {
+    const panel = this.renderRoot.getElementById(ELEMENTS.SCAN_PANEL);
+    if (!panel) return;
+
+    panel.style.display = 'block';
+    const viewportContainer = this.renderRoot.getElementById(`${ELEMENTS.SCAN_VIEWPORT}-container`);
+    const viewport = this.renderRoot.getElementById(ELEMENTS.SCAN_VIEWPORT);
+    const actionBar = this.renderRoot.getElementById(ELEMENTS.SCAN_ACTION_BAR);
+    const errorEl = this.renderRoot.getElementById('scan-panel-error');
+    const loadingEl = this.renderRoot.getElementById('scan-panel-loading');
+
+    if (viewportContainer) viewportContainer.style.display = 'block';
+    if (actionBar) actionBar.style.display = 'none';
+    if (loadingEl) loadingEl.style.display = 'flex';
+    if (errorEl) {
+      errorEl.style.display = 'none';
+      errorEl.textContent = '';
+    }
+
+    if (viewport) {
+      const error = await startScanner(viewport, (code: string) => {
+        this.handleScanDetected(code);
+      });
+      if (loadingEl) loadingEl.style.display = 'none';
+      if (error) {
+        this.hideScanPanel();
+        const msgKey =
+          error === 'permission_denied'
+            ? 'modal.camera_permission_denied'
+            : 'modal.camera_not_available';
+        const fallback =
+          error === 'permission_denied' ? 'Camera access denied' : 'Camera not available';
+        alert(TranslationManager.localize(this.translations, msgKey, undefined, fallback));
+      }
+    }
+  }
+
+  private hideScanPanel(): void {
+    stopScanner();
+    this.scannedBarcode = null;
+    const panel = this.renderRoot.getElementById(ELEMENTS.SCAN_PANEL);
+    if (panel) panel.style.display = 'none';
+  }
+
+  private handleScanDetected(barcode: string): void {
+    stopScanner();
+    this.scannedBarcode = barcode;
+
+    const viewportContainer = this.renderRoot.getElementById(`${ELEMENTS.SCAN_VIEWPORT}-container`);
+    const actionBar = this.renderRoot.getElementById(ELEMENTS.SCAN_ACTION_BAR);
+    const label = this.renderRoot.getElementById('scan-barcode-label');
+    const errorEl = this.renderRoot.getElementById('scan-panel-error');
+    const amountInput = this.renderRoot.getElementById(
+      ELEMENTS.SCAN_AMOUNT_INPUT,
+    ) as HTMLInputElement | null;
+    const actionSelect = this.renderRoot.getElementById(
+      ELEMENTS.SCAN_ACTION_SELECT,
+    ) as HTMLSelectElement | null;
+
+    if (viewportContainer) viewportContainer.style.display = 'none';
+    if (label) label.textContent = barcode;
+    if (actionBar) actionBar.style.display = 'flex';
+    if (errorEl) {
+      errorEl.style.display = 'none';
+      errorEl.textContent = '';
+    }
+    if (amountInput) amountInput.value = '1';
+    if (actionSelect) actionSelect.value = 'increment';
+  }
+
+  private async handleScanGo(): Promise<void> {
+    if (!this.scannedBarcode) return;
+
+    const actionSelect = this.renderRoot.getElementById(
+      ELEMENTS.SCAN_ACTION_SELECT,
+    ) as HTMLSelectElement | null;
+    const amountInput = this.renderRoot.getElementById(
+      ELEMENTS.SCAN_AMOUNT_INPUT,
+    ) as HTMLInputElement | null;
+
+    const action = (actionSelect?.value || 'increment') as 'increment' | 'decrement';
+    const amount = parseFloat(amountInput?.value || '1') || 1;
+
+    const inventoryId = Utilities.getInventoryId(this.hass, this.config.entity);
+    const result = await this.services.scanBarcode(
+      inventoryId,
+      this.scannedBarcode,
+      action,
+      amount,
+    );
+
+    if (result.success) {
+      this.hideScanPanel();
+      this.renderCallback();
+    } else {
+      const errorEl = this.renderRoot.getElementById('scan-panel-error');
+      if (errorEl) {
+        errorEl.textContent = TranslationManager.localize(
+          this.translations,
+          'scanner.barcode_not_found',
+          undefined,
+          'No item found for this barcode',
+        );
+        errorEl.style.display = 'block';
+      }
     }
   }
 

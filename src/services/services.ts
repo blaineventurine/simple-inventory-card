@@ -10,6 +10,14 @@ export interface ServiceResult {
   error?: string;
 }
 
+function extractErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (error !== null && typeof error === 'object' && 'message' in error) {
+    return String((error as { message: unknown }).message);
+  }
+  return String(error);
+}
+
 export class Services {
   private hass: HomeAssistant;
 
@@ -57,6 +65,7 @@ export class Services {
         [PARAMS.QUANTITY]: sanitizedItemData.quantity,
         [PARAMS.TODO_LIST]: sanitizedItemData.todoList,
         [PARAMS.TODO_QUANTITY_PLACEMENT]: sanitizedItemData.todoQuantityPlacement,
+        [PARAMS.PRICE]: sanitizedItemData.price,
         [PARAMS.UNIT]: sanitizedItemData.unit,
       };
 
@@ -70,7 +79,7 @@ export class Services {
       console.error('Error adding item:', error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : String(error),
+        error: extractErrorMessage(error),
       };
     }
   }
@@ -92,7 +101,7 @@ export class Services {
       console.error('Error removing item:', error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : String(error),
+        error: extractErrorMessage(error),
       };
     }
   }
@@ -116,7 +125,7 @@ export class Services {
       console.error('Error incrementing item:', error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : String(error),
+        error: extractErrorMessage(error),
       };
     }
   }
@@ -140,7 +149,7 @@ export class Services {
       console.error('Error decrementing item:', error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : String(error),
+        error: extractErrorMessage(error),
       };
     }
   }
@@ -185,6 +194,7 @@ export class Services {
         [PARAMS.QUANTITY]: sanitizedItemData.quantity,
         [PARAMS.TODO_LIST]: sanitizedItemData.todoList,
         [PARAMS.TODO_QUANTITY_PLACEMENT]: sanitizedItemData.todoQuantityPlacement,
+        [PARAMS.PRICE]: sanitizedItemData.price,
         [PARAMS.UNIT]: sanitizedItemData.unit,
       };
 
@@ -198,8 +208,48 @@ export class Services {
       console.error('Error updating item:', error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : String(error),
+        error: extractErrorMessage(error),
       };
+    }
+  }
+
+  async scanBarcode(
+    inventoryId: string,
+    barcode: string,
+    action: 'increment' | 'decrement',
+    amount = 1,
+  ): Promise<ServiceResult> {
+    try {
+      await this.hass.callService(DOMAIN, SERVICES.SCAN_BARCODE, {
+        [PARAMS.INVENTORY_ID]: inventoryId,
+        [PARAMS.BARCODE]: barcode,
+        action,
+        [PARAMS.AMOUNT]: amount,
+      });
+      return { success: true };
+    } catch (error) {
+      console.error('Error scanning barcode:', error);
+      return {
+        success: false,
+        error: extractErrorMessage(error),
+      };
+    }
+  }
+
+  async lookupBarcodeProduct(
+    barcode: string,
+  ): Promise<{ found: boolean; barcode: string; product?: Record<string, string> }> {
+    try {
+      return await this.hass.callWS<{
+        found: boolean;
+        barcode: string;
+        product?: Record<string, string>;
+      }>({
+        type: WS_COMMANDS.LOOKUP_BARCODE_PRODUCT,
+        barcode,
+      });
+    } catch {
+      return { found: false, barcode };
     }
   }
 
