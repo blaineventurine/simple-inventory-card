@@ -228,7 +228,7 @@ describe('Services', () => {
 
       expect(result).toEqual({
         success: false,
-        error: '[object Object]', // String(errorValue)
+        error: 'Not found',
       });
     });
   });
