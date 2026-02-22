@@ -130,6 +130,136 @@ export const cardHeaderStyles: CSSResult = css`
     --mdc-icon-size: 13px;
   }
 
+  .header-scan-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--primary-text-color);
+    padding: 4px 8px;
+    border-radius: 4px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    transition: background-color 0.2s ease;
+  }
+
+  .header-scan-btn:hover {
+    background-color: var(--secondary-background-color, rgba(0, 0, 0, 0.05));
+  }
+
+  .header-scan-btn svg,
+  .header-scan-btn svg * {
+    pointer-events: none;
+    display: block;
+  }
+
+  .scan-panel {
+    border-bottom: 1px solid var(--divider-color);
+    padding: 8px 16px;
+  }
+
+  .scan-panel-viewport-container {
+    position: relative;
+  }
+
+  .scan-panel-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    color: var(--secondary-text-color);
+    font-size: 0.85em;
+  }
+
+  .scan-panel-viewport {
+    max-height: 250px;
+    background: #000;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .scan-panel-viewport video {
+    width: 100%;
+    display: block;
+  }
+
+  .scan-panel-close {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 12px;
+    cursor: pointer;
+    font-size: 0.8em;
+  }
+
+  .scan-action-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+    flex-wrap: wrap;
+  }
+
+  .scan-barcode-label {
+    font-weight: 500;
+    font-size: 0.9em;
+    color: var(--primary-text-color);
+    margin-right: 4px;
+  }
+
+  .scan-action-select,
+  .scan-amount-input {
+    padding: 4px 8px;
+    border: 1px solid var(--divider-color);
+    border-radius: 4px;
+    background: var(--card-background-color);
+    color: var(--primary-text-color);
+    font-size: 0.85em;
+  }
+
+  .scan-amount-input {
+    width: 60px;
+  }
+
+  .scan-go-btn {
+    padding: 4px 16px;
+    border: none;
+    border-radius: 4px;
+    background: var(--primary-color);
+    color: var(--text-primary-color, #fff);
+    cursor: pointer;
+    font-size: 0.85em;
+    font-weight: 500;
+  }
+
+  .scan-go-btn:hover {
+    opacity: 0.9;
+  }
+
+  .scan-cancel-btn {
+    padding: 4px 12px;
+    border: 1px solid var(--divider-color);
+    border-radius: 4px;
+    background: transparent;
+    color: var(--primary-text-color);
+    cursor: pointer;
+    font-size: 0.85em;
+  }
+
+  .scan-cancel-btn:hover {
+    background-color: var(--secondary-background-color, rgba(0, 0, 0, 0.05));
+  }
+
+  .scan-panel-error {
+    color: var(--error-color, #d32f2f);
+    font-size: 0.85em;
+    padding: 4px 0;
+  }
+
   @media (max-width: 600px) {
     .card-header {
       padding: 10px 12px;

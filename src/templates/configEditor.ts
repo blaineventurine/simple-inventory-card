@@ -91,6 +91,7 @@ const VISIBILITY_TOGGLE_KEYS = [
   'show_category',
   'show_expiry',
   'show_auto_add_info',
+  'show_price',
 ] as const;
 
 const VISIBILITY_TOGGLE_FALLBACKS: Record<string, string> = {
@@ -103,6 +104,7 @@ const VISIBILITY_TOGGLE_FALLBACKS: Record<string, string> = {
   show_category: 'Show category',
   show_expiry: 'Show expiry date',
   show_auto_add_info: 'Show auto-add info',
+  show_price: 'Show price',
 };
 
 export function createVisibilityToggles(

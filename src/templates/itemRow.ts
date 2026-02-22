@@ -115,6 +115,7 @@ export function createItemRowTemplate(
         <div class="item-footer-row">
           <div class="item-details">
             <span class="quantity">${item.quantity} ${item.unit || ''}</span>
+            ${config?.show_price !== false && item.price && item.price > 0 ? `<span class="item-price">$${(item.price * item.quantity).toFixed(2)}</span>` : ''}
             ${config?.show_expiry !== false && expiryInfo ? `<span class="expiry ${expiryInfo.class}">${expiryInfo.label}</span>` : ''}
           </div>
           <div class="item-controls">

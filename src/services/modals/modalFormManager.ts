@@ -32,6 +32,7 @@ export class ModalFormManager {
       quantity: this.getInputValue(`add-${ELEMENTS.QUANTITY}`),
       todoList: this.getInputValue(`add-${ELEMENTS.TODO_LIST}`),
       todoQuantityPlacement: this.getInputValue(`add-${ELEMENTS.TODO_QUANTITY_PLACEMENT}`),
+      price: this.getInputValue(`add-${ELEMENTS.PRICE}`),
       unit: this.getInputValue(`add-${ELEMENTS.UNIT}`),
     };
   }
@@ -57,6 +58,7 @@ export class ModalFormManager {
       quantity: this.getInputValue(`edit-${ELEMENTS.QUANTITY}`),
       todoList: this.getInputValue(`edit-${ELEMENTS.TODO_LIST}`),
       todoQuantityPlacement: this.getInputValue(`edit-${ELEMENTS.TODO_QUANTITY_PLACEMENT}`),
+      price: this.getInputValue(`edit-${ELEMENTS.PRICE}`),
       unit: this.getInputValue(`edit-${ELEMENTS.UNIT}`),
     };
   }
@@ -107,6 +109,11 @@ export class ModalFormManager {
         id: `edit-${ELEMENTS.TODO_QUANTITY_PLACEMENT}`,
         value: item.todo_quantity_placement ?? DEFAULTS.TODO_QUANTITY_PLACEMENT,
       },
+      {
+        id: `edit-${ELEMENTS.PRICE}`,
+        value:
+          (item.price ?? DEFAULTS.PRICE) === 0 ? '' : (item.price ?? DEFAULTS.PRICE).toString(),
+      },
       { id: `edit-${ELEMENTS.UNIT}`, value: item.unit ?? DEFAULTS.UNIT },
     ];
 
@@ -153,6 +160,7 @@ export class ModalFormManager {
         id: `add-${ELEMENTS.TODO_QUANTITY_PLACEMENT}`,
         value: DEFAULTS.TODO_QUANTITY_PLACEMENT,
       },
+      { id: `add-${ELEMENTS.PRICE}`, value: '' },
       { id: `add-${ELEMENTS.UNIT}`, value: DEFAULTS.UNIT },
     ];
 

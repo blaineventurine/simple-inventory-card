@@ -348,6 +348,7 @@ export const Utilities = {
       unit: formData.unit?.trim() || DEFAULTS.UNIT,
       description: formData.description?.trim() || DEFAULTS.DESCRIPTION,
       barcode: formData.barcode?.trim() || DEFAULTS.BARCODE,
+      price: Math.max(0, Utilities.parseNumber(formData.price, DEFAULTS.PRICE)),
       todoQuantityPlacement:
         formData.todoQuantityPlacement?.trim() || DEFAULTS.TODO_QUANTITY_PLACEMENT,
     };
@@ -459,6 +460,7 @@ export const Utilities = {
         itemData.todoQuantityPlacement || DEFAULTS.TODO_QUANTITY_PLACEMENT,
         20,
       ),
+      price: Math.max(0, Utilities.parseNumber(itemData.price, DEFAULTS.PRICE)),
       unit: this.sanitizeString(itemData.unit, 20),
       location: this.sanitizeString(itemData.location, 50),
     };

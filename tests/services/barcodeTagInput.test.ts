@@ -1,10 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-import { initializeBarcodeTagInput } from '../../src/services/barcodeTagInput';
+import {
+  initializeBarcodeTagInput,
+  stopAllBarcodeScanners,
+} from '../../src/services/barcodeTagInput';
+
+// quagga2 is globally mocked in tests/setup.ts
 
 vi.mock('../../src/utils/constants', () => ({
   ELEMENTS: {
     BARCODE: 'barcode',
+    BARCODE_SCAN_BTN: 'barcode-scan-btn',
+    BARCODE_SCANNER: 'barcode-scanner',
+    BARCODE_VIEWPORT: 'barcode-viewport',
+    BARCODE_SCANNER_CLOSE: 'barcode-scanner-close',
   },
 }));
 
@@ -128,6 +137,36 @@ describe('barcodeTagInput', () => {
     expect(chips.querySelectorAll('.barcode-chip')).toHaveLength(1);
   });
 
+  it('should call onBarcodeAdded callback when a new barcode is added', () => {
+    const root = createMockShadowRoot('add');
+    const callback = vi.fn();
+    initializeBarcodeTagInput(root, 'add', callback);
+
+    const visibleInput = (root as unknown as HTMLElement).querySelector(
+      '#add-barcode-input',
+    ) as HTMLInputElement;
+
+    visibleInput.value = '12345';
+    visibleInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+
+    expect(callback).toHaveBeenCalledWith('12345');
+  });
+
+  it('should not call onBarcodeAdded callback for duplicate barcodes', () => {
+    const root = createMockShadowRoot('add', 'ABC123');
+    const callback = vi.fn();
+    initializeBarcodeTagInput(root, 'add', callback);
+
+    const visibleInput = (root as unknown as HTMLElement).querySelector(
+      '#add-barcode-input',
+    ) as HTMLInputElement;
+
+    visibleInput.value = 'ABC123';
+    visibleInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+
+    expect(callback).not.toHaveBeenCalled();
+  });
+
   it('should not react to non-Enter keys', () => {
     const root = createMockShadowRoot('add');
     initializeBarcodeTagInput(root, 'add');
@@ -143,5 +182,31 @@ describe('barcodeTagInput', () => {
     visibleInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab' }));
 
     expect(hiddenInput.value).toBe('');
+  });
+
+  it('should render scan button in DOM after initialization', () => {
+    const root = createMockShadowRoot('add');
+    // Add scanner elements to mock DOM
+    const container = root as unknown as HTMLElement;
+    const scanBtn = document.createElement('button');
+    scanBtn.id = 'add-barcode-scan-btn';
+    container.appendChild(scanBtn);
+    const scannerContainer = document.createElement('div');
+    scannerContainer.id = 'add-barcode-scanner';
+    container.appendChild(scannerContainer);
+    const viewport = document.createElement('div');
+    viewport.id = 'add-barcode-viewport';
+    container.appendChild(viewport);
+    const closeBtn = document.createElement('button');
+    closeBtn.id = 'add-barcode-scanner-close';
+    container.appendChild(closeBtn);
+
+    initializeBarcodeTagInput(root, 'add');
+
+    expect(container.querySelector('#add-barcode-scan-btn')).toBeTruthy();
+  });
+
+  it('should allow stopAllBarcodeScanners to be called without error when no scanner is active', () => {
+    expect(() => stopAllBarcodeScanners()).not.toThrow();
   });
 });

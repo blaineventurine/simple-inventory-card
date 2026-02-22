@@ -55,6 +55,11 @@ function formatDays(value: number | null): string {
   return `${Math.round(value)}`;
 }
 
+function formatCurrency(value: number | null): string {
+  if (value === null) return '—';
+  return `$${value.toFixed(2)}`;
+}
+
 function t(translations: TranslationData, key: string, fallback: string): string {
   return TranslationManager.localize(translations, key, undefined, fallback);
 }
@@ -136,6 +141,24 @@ export function createConsumptionView(
         <div class="metric-value">${rates.decrement_count}</div>
         <div class="metric-label">${t(translations, 'analytics.events_tracked', 'Events')}</div>
       </div>
+      ${
+        rates.total_spend !== null && rates.total_spend > 0
+          ? `
+      <div class="metric-card">
+        <div class="metric-value">${formatCurrency(rates.daily_spend_rate)}</div>
+        <div class="metric-label">${t(translations, 'analytics.daily_spend', 'Daily Spend')}</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value">${formatCurrency(rates.weekly_spend_rate)}</div>
+        <div class="metric-label">${t(translations, 'analytics.weekly_spend', 'Weekly Spend')}</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value">${formatCurrency(rates.total_spend)}</div>
+        <div class="metric-label">${t(translations, 'analytics.total_spend', 'Total Spend')}</div>
+      </div>
+      `
+          : ''
+      }
     </div>
   `;
 }

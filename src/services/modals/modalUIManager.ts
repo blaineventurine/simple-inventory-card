@@ -4,7 +4,7 @@ import { ModalFormManager } from './modalFormManager';
 import { ModalValidationManager } from './modalValidationManager';
 import { TranslationData } from '@/types/translatableComponent';
 import { TranslationManager } from '../translationManager';
-import { initializeBarcodeTagInput } from '../barcodeTagInput';
+import { initializeBarcodeTagInput, stopAllBarcodeScanners } from '../barcodeTagInput';
 
 export class ModalUIManager {
   private boundEscHandler: ((e: KeyboardEvent) => void) | undefined = undefined;
@@ -20,7 +20,7 @@ export class ModalUIManager {
   /**
    * Opens the add item modal
    */
-  openAddModal(translations: TranslationData): void {
+  openAddModal(translations: TranslationData, onBarcodeAdded?: (barcode: string) => void): void {
     const modal = this.getElement<HTMLElement>(ELEMENTS.ADD_MODAL);
     if (modal) {
       this.validationManager.clearError(true);
@@ -28,7 +28,7 @@ export class ModalUIManager {
       this.focusElementWithDelay(ELEMENTS.NAME);
       this.setupExpiryThresholdInteraction(translations);
       this.validationManager.setupValidationListeners();
-      initializeBarcodeTagInput(this.shadowRoot, 'add');
+      initializeBarcodeTagInput(this.shadowRoot, 'add', onBarcodeAdded);
     } else {
       console.warn('Add modal not found in DOM');
     }
@@ -38,6 +38,7 @@ export class ModalUIManager {
    * Closes the add item modal
    */
   closeAddModal(): void {
+    stopAllBarcodeScanners();
     const modal = this.getElement<HTMLElement>(ELEMENTS.ADD_MODAL);
     if (modal) {
       modal.classList.remove(CSS_CLASSES.SHOW);
@@ -88,6 +89,7 @@ export class ModalUIManager {
    * Closes the edit item modal
    */
   closeEditModal(): void {
+    stopAllBarcodeScanners();
     const modal = this.getElement<HTMLElement>(ELEMENTS.EDIT_MODAL);
     if (modal) {
       modal.classList.remove(CSS_CLASSES.SHOW);
@@ -274,6 +276,7 @@ export class ModalUIManager {
    * Cleanup method to remove event listeners
    */
   destroy(): void {
+    stopAllBarcodeScanners();
     if (this.boundEscHandler) {
       document.removeEventListener('keydown', this.boundEscHandler);
       this.boundEscHandler = undefined;

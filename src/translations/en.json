@@ -35,7 +35,18 @@
   },
   "header": {
     "items_expired": "{count} item{count, plural, one {} other {s}} expired",
-    "items_expiring_soon": "{count} item{count, plural, one {} other {s}} expiring soon"
+    "items_expiring_soon": "{count} item{count, plural, one {} other {s}} expiring soon",
+    "scan_barcode": "Scan Barcode"
+  },
+  "scanner": {
+    "increment": "Increment",
+    "decrement": "Decrement",
+    "amount": "Amount",
+    "go": "Go",
+    "cancel": "Cancel",
+    "starting_camera": "Starting camera...",
+    "barcode_not_found": "No item found for this barcode",
+    "scan_success": "Updated {name}"
   },
   "modal": {
     "add_item": "Add Item",
@@ -73,7 +84,13 @@
     "todo_quantity_placement_description": "In description",
     "todo_quantity_placement_none": "Don't show",
     "unit": "Unit",
-    "unit_placeholder": "kg, pcs, etc."
+    "unit_placeholder": "kg, pcs, etc.",
+    "price": "Unit Price",
+    "price_placeholder": "Current unit price",
+    "scan_barcode": "Scan with Camera",
+    "close_scanner": "Close Scanner",
+    "camera_permission_denied": "Camera access denied",
+    "camera_not_available": "Camera not available"
   },
   "filters": {
     "all_categories": "All Categories",
@@ -127,7 +144,8 @@
     "show_location": "Show location",
     "show_category": "Show category",
     "show_expiry": "Show expiry date",
-    "show_auto_add_info": "Show auto-add info"
+    "show_auto_add_info": "Show auto-add info",
+    "show_price": "Show total value"
   },
   "actions": {
     "confirm_remove": "Remove {name} from inventory?"
@@ -150,7 +168,10 @@
     "window_90": "90d",
     "window_all": "All",
     "loading": "Loading...",
-    "load_error": "Failed to load consumption data."
+    "load_error": "Failed to load consumption data.",
+    "daily_spend": "Daily Spend",
+    "weekly_spend": "Weekly Spend",
+    "total_spend": "Total Spend"
   },
   "errors": {
     "clear_filters_error": "Error clearing filters. Please try again.",

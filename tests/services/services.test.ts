@@ -78,6 +78,7 @@ describe('Services', () => {
         [PARAMS.INVENTORY_ID]: inventoryId,
         [PARAMS.LOCATION]: itemData.location,
         [PARAMS.NAME]: itemData.name,
+        [PARAMS.PRICE]: DEFAULTS.PRICE,
         [PARAMS.QUANTITY]: itemData.quantity,
         [PARAMS.TODO_LIST]: itemData.todoList,
         [PARAMS.TODO_QUANTITY_PLACEMENT]: DEFAULTS.TODO_QUANTITY_PLACEMENT,
@@ -116,6 +117,7 @@ describe('Services', () => {
         [PARAMS.INVENTORY_ID]: inventoryId,
         [PARAMS.LOCATION]: DEFAULTS.LOCATION,
         [PARAMS.NAME]: minimalItemData.name,
+        [PARAMS.PRICE]: DEFAULTS.PRICE,
         [PARAMS.QUANTITY]: minimalItemData.quantity,
         [PARAMS.TODO_LIST]: DEFAULTS.TODO_LIST,
         [PARAMS.TODO_QUANTITY_PLACEMENT]: DEFAULTS.TODO_QUANTITY_PLACEMENT,
@@ -181,6 +183,7 @@ describe('Services', () => {
         [PARAMS.INVENTORY_ID]: inventoryId,
         [PARAMS.LOCATION]: DEFAULTS.LOCATION, // null should use default
         [PARAMS.NAME]: itemDataWithNulls.name,
+        [PARAMS.PRICE]: DEFAULTS.PRICE,
         [PARAMS.QUANTITY]: 0,
         [PARAMS.TODO_LIST]: '', // empty string should be preserved
         [PARAMS.TODO_QUANTITY_PLACEMENT]: DEFAULTS.TODO_QUANTITY_PLACEMENT,
@@ -225,7 +228,7 @@ describe('Services', () => {
 
       expect(result).toEqual({
         success: false,
-        error: '[object Object]', // String(errorValue)
+        error: 'Not found',
       });
     });
   });
@@ -369,6 +372,7 @@ describe('Services', () => {
         [PARAMS.LOCATION]: itemData.location,
         [PARAMS.NAME]: itemData.name,
         [PARAMS.OLD_NAME]: oldName,
+        [PARAMS.PRICE]: DEFAULTS.PRICE,
         [PARAMS.QUANTITY]: itemData.quantity,
         [PARAMS.TODO_LIST]: itemData.todoList,
         [PARAMS.TODO_QUANTITY_PLACEMENT]: DEFAULTS.TODO_QUANTITY_PLACEMENT,
@@ -408,6 +412,7 @@ describe('Services', () => {
         [PARAMS.LOCATION]: DEFAULTS.LOCATION,
         [PARAMS.NAME]: minimalItemData.name,
         [PARAMS.OLD_NAME]: oldName,
+        [PARAMS.PRICE]: DEFAULTS.PRICE,
         [PARAMS.QUANTITY]: minimalItemData.quantity,
         [PARAMS.TODO_LIST]: DEFAULTS.TODO_LIST,
         [PARAMS.TODO_QUANTITY_PLACEMENT]: DEFAULTS.TODO_QUANTITY_PLACEMENT,
@@ -447,6 +452,7 @@ describe('Services', () => {
         [PARAMS.LOCATION]: DEFAULTS.LOCATION, // empty string should use defaulth
         [PARAMS.NAME]: '',
         [PARAMS.OLD_NAME]: oldName,
+        [PARAMS.PRICE]: DEFAULTS.PRICE,
         [PARAMS.QUANTITY]: 0,
         [PARAMS.TODO_LIST]: '',
         [PARAMS.TODO_QUANTITY_PLACEMENT]: DEFAULTS.TODO_QUANTITY_PLACEMENT,
@@ -523,6 +529,82 @@ describe('Services', () => {
         success: false,
         error: 'false',
       });
+    });
+  });
+
+  describe('scanBarcode', () => {
+    const inventoryId = 'test-inventory';
+    const barcode = '1234567890';
+
+    it('should successfully call scan_barcode service', async () => {
+      const result = await services.scanBarcode(inventoryId, barcode, 'increment', 1);
+
+      expect(result).toEqual({ success: true });
+      expect(mockHass.callService).toHaveBeenCalledWith(DOMAIN, SERVICES.SCAN_BARCODE, {
+        [PARAMS.INVENTORY_ID]: inventoryId,
+        [PARAMS.BARCODE]: barcode,
+        action: 'increment',
+        [PARAMS.AMOUNT]: 1,
+      });
+    });
+
+    it('should call with decrement action and custom amount', async () => {
+      const result = await services.scanBarcode(inventoryId, barcode, 'decrement', 3);
+
+      expect(result).toEqual({ success: true });
+      expect(mockHass.callService).toHaveBeenCalledWith(DOMAIN, SERVICES.SCAN_BARCODE, {
+        [PARAMS.INVENTORY_ID]: inventoryId,
+        [PARAMS.BARCODE]: barcode,
+        action: 'decrement',
+        [PARAMS.AMOUNT]: 3,
+      });
+    });
+
+    it('should return error on service failure', async () => {
+      const error = new Error('Barcode not found');
+      mockHass.callService = vi.fn().mockRejectedValue(error);
+
+      const result = await services.scanBarcode(inventoryId, barcode, 'increment', 1);
+
+      expect(result).toEqual({
+        success: false,
+        error: 'Barcode not found',
+      });
+      expect(console.error).toHaveBeenCalledWith('Error scanning barcode:', error);
+    });
+
+    it('should handle non-Error objects in catch block', async () => {
+      mockHass.callService = vi.fn().mockRejectedValue('string error');
+
+      const result = await services.scanBarcode(inventoryId, barcode, 'increment', 1);
+
+      expect(result).toEqual({
+        success: false,
+        error: 'string error',
+      });
+    });
+  });
+
+  describe('lookupBarcodeProduct', () => {
+    it('should call the correct WS command', async () => {
+      const expected = { found: true, barcode: '123', product: { name: 'Test' } };
+      mockHass.callWS = vi.fn().mockResolvedValue(expected);
+
+      const result = await services.lookupBarcodeProduct('123');
+
+      expect(mockHass.callWS).toHaveBeenCalledWith({
+        type: 'simple_inventory/lookup_barcode_product',
+        barcode: '123',
+      });
+      expect(result).toEqual(expected);
+    });
+
+    it('should return not found on error', async () => {
+      mockHass.callWS = vi.fn().mockRejectedValue(new Error('fail'));
+
+      const result = await services.lookupBarcodeProduct('bad');
+
+      expect(result).toEqual({ found: false, barcode: 'bad' });
     });
   });
 });

@@ -11,6 +11,11 @@ import { TranslationData } from '@/types/translatableComponent';
 vi.mock('../../src/services/services');
 vi.mock('../../src/services/modals');
 vi.mock('../../src/services/filters');
+vi.mock('../../src/services/barcodeScanner', () => ({
+  startScanner: vi.fn().mockResolvedValue(null),
+  stopScanner: vi.fn(),
+  isScannerActive: vi.fn().mockReturnValue(false),
+}));
 vi.mock('../../src/utils/utilities');
 vi.mock('../../src/templates/autoCompleteInput', () => ({
   initializeAutocomplete: vi.fn(),
@@ -810,6 +815,156 @@ describe('EventHandler', () => {
         expect(globalThis.alert).toHaveBeenCalledWith('Error clearing filters. Please try again.');
         consoleErrorSpy.mockRestore();
       });
+    });
+  });
+
+  describe('header scan panel', () => {
+    let mockTarget: HTMLElement;
+    let mockEvent: Event;
+
+    beforeEach(() => {
+      eventHandler.setupEventListeners();
+    });
+
+    it('should show scan panel when header scan button is clicked', async () => {
+      mockTarget = {
+        tagName: 'BUTTON',
+        id: ELEMENTS.HEADER_SCAN_BTN,
+        hasAttribute: vi.fn().mockReturnValue(false),
+        dataset: {},
+      } as unknown as HTMLElement;
+
+      mockEvent = {
+        target: mockTarget,
+        preventDefault: vi.fn(),
+        stopPropagation: vi.fn(),
+      } as unknown as Event;
+
+      vi.mocked(mockModals.handleModalClick).mockReturnValue(false);
+      const showScanPanelSpy = vi
+        .spyOn(eventHandler as any, 'showScanPanel')
+        .mockResolvedValue(undefined);
+
+      await eventHandler['handleClick'](mockEvent);
+
+      expect(showScanPanelSpy).toHaveBeenCalled();
+      expect(mockEvent.preventDefault).toHaveBeenCalled();
+    });
+
+    it('should hide scan panel when close button is clicked', async () => {
+      mockTarget = {
+        tagName: 'BUTTON',
+        id: ELEMENTS.SCAN_CLOSE,
+        hasAttribute: vi.fn().mockReturnValue(false),
+        dataset: {},
+      } as unknown as HTMLElement;
+
+      mockEvent = {
+        target: mockTarget,
+        preventDefault: vi.fn(),
+        stopPropagation: vi.fn(),
+      } as unknown as Event;
+
+      vi.mocked(mockModals.handleModalClick).mockReturnValue(false);
+      const hideScanPanelSpy = vi
+        .spyOn(eventHandler as any, 'hideScanPanel')
+        .mockImplementation(() => {});
+
+      await eventHandler['handleClick'](mockEvent);
+
+      expect(hideScanPanelSpy).toHaveBeenCalled();
+    });
+
+    it('should call handleScanGo when go button is clicked', async () => {
+      mockTarget = {
+        tagName: 'BUTTON',
+        id: ELEMENTS.SCAN_GO_BTN,
+        hasAttribute: vi.fn().mockReturnValue(false),
+        dataset: {},
+      } as unknown as HTMLElement;
+
+      mockEvent = {
+        target: mockTarget,
+        preventDefault: vi.fn(),
+        stopPropagation: vi.fn(),
+      } as unknown as Event;
+
+      vi.mocked(mockModals.handleModalClick).mockReturnValue(false);
+      const handleScanGoSpy = vi.spyOn(eventHandler as any, 'handleScanGo');
+
+      await eventHandler['handleClick'](mockEvent);
+
+      expect(handleScanGoSpy).toHaveBeenCalled();
+    });
+
+    it('should hide scan panel when cancel button is clicked', async () => {
+      mockTarget = {
+        tagName: 'BUTTON',
+        id: ELEMENTS.SCAN_CANCEL_BTN,
+        hasAttribute: vi.fn().mockReturnValue(false),
+        dataset: {},
+      } as unknown as HTMLElement;
+
+      mockEvent = {
+        target: mockTarget,
+        preventDefault: vi.fn(),
+        stopPropagation: vi.fn(),
+      } as unknown as Event;
+
+      vi.mocked(mockModals.handleModalClick).mockReturnValue(false);
+      const hideScanPanelSpy = vi
+        .spyOn(eventHandler as any, 'hideScanPanel')
+        .mockImplementation(() => {});
+
+      await eventHandler['handleClick'](mockEvent);
+
+      expect(hideScanPanelSpy).toHaveBeenCalled();
+    });
+
+    it('should call scanBarcode service when handleScanGo fires with a barcode', async () => {
+      eventHandler['scannedBarcode'] = '1234567890';
+
+      const mockActionSelect = { value: 'increment' } as HTMLSelectElement;
+      const mockAmountInput = { value: '2' } as HTMLInputElement;
+      (mockRenderRoot as any).getElementById = vi.fn((id: string) => {
+        if (id === ELEMENTS.SCAN_ACTION_SELECT) return mockActionSelect;
+        if (id === ELEMENTS.SCAN_AMOUNT_INPUT) return mockAmountInput;
+        if (id === ELEMENTS.SCAN_PANEL) return { style: {} };
+        return null;
+      });
+
+      (mockServices as any).scanBarcode = vi.fn().mockResolvedValue({ success: true });
+
+      await eventHandler['handleScanGo']();
+
+      expect((mockServices as any).scanBarcode).toHaveBeenCalledWith(
+        'test-inventory-id',
+        '1234567890',
+        'increment',
+        2,
+      );
+      expect(mockRenderCallback).toHaveBeenCalled();
+    });
+
+    it('should show error when scanBarcode fails', async () => {
+      eventHandler['scannedBarcode'] = '1234567890';
+
+      const mockErrorEl = { textContent: '', style: { display: 'none' } };
+      (mockRenderRoot as any).getElementById = vi.fn((id: string) => {
+        if (id === ELEMENTS.SCAN_ACTION_SELECT) return { value: 'increment' };
+        if (id === ELEMENTS.SCAN_AMOUNT_INPUT) return { value: '1' };
+        if (id === 'scan-panel-error') return mockErrorEl;
+        return null;
+      });
+
+      (mockServices as any).scanBarcode = vi
+        .fn()
+        .mockResolvedValue({ success: false, error: 'not found' });
+
+      await eventHandler['handleScanGo']();
+
+      expect(mockErrorEl.style.display).toBe('block');
+      expect(mockErrorEl.textContent).toBe('No item found for this barcode');
     });
   });
 });

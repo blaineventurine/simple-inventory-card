@@ -32,6 +32,9 @@ function makeRates(overrides: Partial<ItemConsumptionRates> = {}): ItemConsumpti
     days_until_depletion: 4,
     avg_restock_days: 7,
     has_sufficient_data: true,
+    daily_spend_rate: null,
+    weekly_spend_rate: null,
+    total_spend: null,
     ...overrides,
   };
 }

@@ -10,6 +10,7 @@ export interface SanitizedItemData {
   expiryDate: string;
   location: string;
   name: string;
+  price: number;
   quantity: number;
   todoList: string;
   todoQuantityPlacement: string;
@@ -29,6 +30,7 @@ export interface ItemData {
   location?: string;
   locationQuantities?: string[];
   name: string;
+  price?: number;
   quantity?: number;
   todoList?: string;
   todoQuantityPlacement?: string;
@@ -47,6 +49,7 @@ export interface RawFormData {
   expiryDate: string;
   location: string;
   name: string;
+  price: string;
   quantity: string;
   todoList: string;
   todoQuantityPlacement: string;

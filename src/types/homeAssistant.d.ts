@@ -157,6 +157,7 @@ export interface InventoryItem {
   location: string;
   locations?: string[];
   name: string;
+  price?: number;
   quantity: number;
   todo_list: string;
   todo_quantity_placement?: string;
@@ -175,4 +176,5 @@ export interface InventoryConfig extends LovelaceCardConfig {
   show_category?: boolean;
   show_expiry?: boolean;
   show_auto_add_info?: boolean;
+  show_price?: boolean;
 }

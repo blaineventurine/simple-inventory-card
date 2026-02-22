@@ -1,4 +1,5 @@
 import { ELEMENTS } from '../utils/constants';
+import { startScanner, stopScanner, isScannerActive } from './barcodeScanner';
 
 function getBarcodes(hiddenInput: HTMLInputElement): string[] {
   return hiddenInput.value
@@ -37,7 +38,29 @@ function renderChips(
   }
 }
 
-export function initializeBarcodeTagInput(shadowRoot: ShadowRoot, prefix: string): void {
+function addBarcodeChip(
+  code: string,
+  hiddenInput: HTMLInputElement,
+  chipsContainer: HTMLElement,
+  onBarcodeAdded?: (barcode: string) => void,
+): boolean {
+  const current = getBarcodes(hiddenInput);
+  if (current.includes(code)) return false;
+
+  current.push(code);
+  updateHiddenInput(hiddenInput, current);
+  renderChips(chipsContainer, current, hiddenInput);
+  if (onBarcodeAdded) {
+    onBarcodeAdded(code);
+  }
+  return true;
+}
+
+export function initializeBarcodeTagInput(
+  shadowRoot: ShadowRoot,
+  prefix: string,
+  onBarcodeAdded?: (barcode: string) => void,
+): void {
   const hiddenInput = shadowRoot.getElementById(
     `${prefix}-${ELEMENTS.BARCODE}`,
   ) as HTMLInputElement | null;
@@ -60,16 +83,84 @@ export function initializeBarcodeTagInput(shadowRoot: ShadowRoot, prefix: string
       const value = visibleInput.value.trim();
       if (!value) return;
 
-      const current = getBarcodes(hiddenInput);
-      if (current.includes(value)) {
+      if (addBarcodeChip(value, hiddenInput, chipsContainer, onBarcodeAdded)) {
         visibleInput.value = '';
-        return;
+      } else {
+        // Duplicate
+        visibleInput.value = '';
       }
-
-      current.push(value);
-      updateHiddenInput(hiddenInput, current);
-      renderChips(chipsContainer, current, hiddenInput);
-      visibleInput.value = '';
     }
   });
+
+  // Camera scanner wiring
+  const scanBtn = shadowRoot.getElementById(
+    `${prefix}-${ELEMENTS.BARCODE_SCAN_BTN}`,
+  ) as HTMLButtonElement | null;
+  const scannerContainer = shadowRoot.getElementById(
+    `${prefix}-${ELEMENTS.BARCODE_SCANNER}`,
+  ) as HTMLElement | null;
+  const viewport = shadowRoot.getElementById(
+    `${prefix}-${ELEMENTS.BARCODE_VIEWPORT}`,
+  ) as HTMLElement | null;
+  const closeBtn = shadowRoot.getElementById(
+    `${prefix}-${ELEMENTS.BARCODE_SCANNER_CLOSE}`,
+  ) as HTMLButtonElement | null;
+
+  if (!scanBtn || !scannerContainer || !viewport || !closeBtn) {
+    return;
+  }
+
+  const hideScanner = (): void => {
+    stopScanner();
+    scannerContainer.style.display = 'none';
+  };
+
+  const showError = (message: string): void => {
+    // Remove any existing error
+    const existing = scannerContainer.parentElement?.querySelector('.barcode-scanner-error');
+    if (existing) existing.remove();
+
+    const errorEl = document.createElement('div');
+    errorEl.className = 'barcode-scanner-error';
+    errorEl.textContent = message;
+    scannerContainer.insertAdjacentElement('afterend', errorEl);
+    setTimeout(() => errorEl.remove(), 3000);
+  };
+
+  scanBtn.addEventListener('click', async () => {
+    if (isScannerActive()) {
+      hideScanner();
+      return;
+    }
+
+    scannerContainer.style.display = 'block';
+    const error = await startScanner(viewport, (code: string) => {
+      addBarcodeChip(code, hiddenInput, chipsContainer, onBarcodeAdded);
+      hideScanner();
+    });
+
+    if (error) {
+      hideScanner();
+      const errorKey =
+        error === 'permission_denied'
+          ? 'modal.camera_permission_denied'
+          : 'modal.camera_not_available';
+      // Use a simple fallback since we don't have translations reference here
+      const fallback =
+        error === 'permission_denied' ? 'Camera access denied' : 'Camera not available';
+      // Try to find a localized message from a data attribute, otherwise use fallback
+      const localizedMsg = scanBtn.dataset[errorKey] || fallback;
+      showError(localizedMsg);
+    }
+  });
+
+  closeBtn.addEventListener('click', () => {
+    hideScanner();
+  });
+}
+
+export function stopAllBarcodeScanners(): void {
+  if (isScannerActive()) {
+    stopScanner();
+  }
 }
