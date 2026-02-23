@@ -1,0 +1,119 @@
+{
+  "card": {
+    "description": "Kartica za upravljanje zalog"
+  },
+  "common": {
+    "loading": "Nalaganje...",
+    "name": "Moja prilagojena kartica",
+    "off": "Izklopljeno",
+    "on": "Vklopljeno",
+    "uncategorized": "Brez kategorije",
+    "no_location": "Brez lokacije",
+    "unknown": "Neznano"
+  },
+  "editor": {
+    "entity": "Entiteta",
+    "name": "Ime (neobvezno)",
+    "show_icon": "Prikaži ikono",
+    "show_state": "Prikaži stanje"
+  },
+  "state": {
+    "active": "Aktivno",
+    "inactive": "Neaktivno",
+    "unavailable": "Nedosegljivo"
+  },
+  "expiry": {
+    "expired_day_ago": "Poteklo pred {days} dnevom",
+    "expired_days_ago": "Poteklo pred {days} dnevi",
+    "expires_in_day": "Poteče čez {days} dan",
+    "expires_in_days": "Poteče čez {days} dni",
+    "expires_today": "Poteče danes"
+  },
+  "items": {
+    "auto_add_info": "Samodejno dodaj pri ≤ {quantity} → {list}",
+    "no_items": "V zalogi ni predmetov"
+  },
+  "header": {
+    "items_expired": "{count} predmet{count, plural, one {} other {ov}} s poteklim rokom",
+    "items_expiring_soon": "{count} predmet{count, plural, one {} other {ov}} kmalu poteče"
+  },
+  "modal": {
+    "add_item": "Dodaj predmet",
+    "auto_add_id_to_description": "Dodaj ID zaloge v opis predmeta",
+    "auto_add_settings": "Nastavitve samodejnega dodajanja",
+    "auto_add_when_low": "Samodejno dodaj na seznam opravil ob nizki zalogi",
+    "cancel": "Prekliči",
+    "description": "Opis",
+    "description_placeholder": "Opis predmeta",
+    "category": "Kategorija",
+    "category_placeholder": "Hrana, čiščenje itd.",
+    "location": "Lokacija",
+    "location_placeholder": "Shramba, garaža itd.",
+    "days_before_expiry": "(dni pred potekom)",
+    "edit_item": "Uredi predmet",
+    "expiry_alert_threshold": "Opozorilo pred potekom (dni)",
+    "expiry_date": "Datum poteka",
+    "expiry_help_text": "Koliko dni pred potekom naj se prikaže opozorilo",
+    "expiry_threshold_placeholder": "Število dni pred potekom (privzeto: 0)",
+    "minimum_quantity": "Minimalna količina",
+    "name_required": "Ime *",
+    "quantity": "Količina",
+    "quantity_threshold": "Mejna količina",
+    "save_changes": "Shrani spremembe",
+    "select_list": "Izberi seznam...",
+    "set_expiry_first": "Najprej nastavite datum poteka",
+    "todo_list": "Seznam opravil",
+    "unit": "Enota",
+    "unit_placeholder": "kg, kos itd."
+  },
+  "filters": {
+    "all_categories": "Vse kategorije",
+    "all_items": "Vsi predmeti",
+    "all_quantities": "Vse količine",
+    "all_locations": "Vse lokacije",
+    "category": "Kategorija",
+    "location": "Lokacija",
+    "clear_all_filters": "Počisti vse filtre",
+    "expired": "S poteklim rokom",
+    "expiring_soon": "Kmalu poteče",
+    "expiry": "Potek",
+    "filters": "Filtri",
+    "future": "V prihodnosti",
+    "hide_filters": "Skrij filtre",
+    "no_expiry": "Brez roka poteka",
+    "non_zero": "Več kot 0",
+    "quantity": "Količina",
+    "search_placeholder": "Išči predmete...",
+    "zero": "0"
+  },
+  "sort": {
+    "category": "Kategorija",
+    "location": "Lokacija",
+    "expiry_date": "Datum poteka",
+    "name": "Ime",
+    "quantity_high": "Količina (padajoče)",
+    "quantity_low": "Količina (naraščajoče)",
+    "sort_by": "Razvrsti po:",
+    "zero_last": "Ničelne na koncu"
+  },
+  "active_filters": {
+    "category": "Kategorija",
+    "location": "Lokacija",
+    "expiry": "Potek",
+    "label": "Aktivni filtri:",
+    "quantity": "Količina",
+    "search": "Iskanje"
+  },
+  "config": {
+    "inventory_entity_required": "Entiteta zaloge (obvezno)",
+    "items_count": "Predmeti",
+    "select_entity_message": "Zgoraj izberite entiteto zaloge",
+    "selected_inventory": "Izbrana zaloga:"
+  },
+  "actions": {
+    "confirm_remove": "Odstranim {name} iz zaloge?"
+  },
+  "errors": {
+    "clear_filters_error": "Napaka pri brisanju filtrov. Poskusite znova."
+  }
+}
