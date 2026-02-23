@@ -673,4 +673,64 @@ export const formStyles: CSSResult = css`
     margin-top: 4px;
     padding: 0 4px;
   }
+
+  .product-picker {
+    margin-top: 8px;
+    background: var(--secondary-background-color, rgba(var(--rgb-primary-color), 0.05));
+    border-radius: 8px;
+    padding: 12px;
+  }
+
+  .product-picker-label {
+    font-size: 0.85em;
+    color: var(--secondary-text-color);
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+
+  .product-picker-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .product-picker-item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border: 1px solid var(--divider-color);
+    border-radius: 8px;
+    cursor: pointer;
+    background: var(--card-background-color);
+    transition: all 0.2s ease;
+  }
+
+  .product-picker-item:hover {
+    border-color: var(--primary-color);
+    background: rgba(var(--rgb-primary-color, 25, 118, 210), 0.05);
+  }
+
+  .product-picker-provider {
+    font-size: 0.75em;
+    background: var(--primary-color);
+    color: var(--text-primary-color, white);
+    border-radius: 10px;
+    padding: 2px 8px;
+    white-space: nowrap;
+    font-weight: 500;
+  }
+
+  .product-picker-name {
+    font-weight: 600;
+    font-size: 0.95em;
+    color: var(--primary-text-color);
+  }
+
+  .product-picker-detail {
+    font-size: 0.8em;
+    color: var(--secondary-text-color);
+    flex-basis: 100%;
+  }
 `;

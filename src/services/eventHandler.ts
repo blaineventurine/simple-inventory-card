@@ -818,26 +818,86 @@ export class EventHandler {
     this.services
       .lookupBarcodeProduct(barcode)
       .then((result) => {
-        if (!result.found || !result.product) return;
-        const product = result.product;
-        this.autoFillIfEmpty('add-name', product.name);
-        // Combine brand and description for the description field
-        const descParts: string[] = [];
-        if (product.brand) descParts.push(product.brand);
-        if (product.description) descParts.push(product.description);
-        if (descParts.length > 0) {
-          this.autoFillIfEmpty('add-description', descParts.join(' - '));
+        const foundResults = result.results.filter((r) => r.found && r.product);
+        if (foundResults.length === 0) return;
+
+        if (foundResults.length === 1) {
+          this.selectProduct('add', foundResults[0].product!);
+          return;
         }
-        if (product.category) {
-          this.autoFillIfEmpty('add-category', product.category);
-        }
-        if (product.unit) {
-          this.autoFillIfEmpty('add-unit', product.unit);
-        }
+
+        this.showProductPicker('add', foundResults);
       })
       .catch(() => {
         // Silent failure — user can fill fields manually
       });
+  }
+
+  private showProductPicker(
+    prefix: string,
+    results: Array<{ provider: string; found: boolean; product?: Record<string, string> }>,
+  ): void {
+    const picker = this.renderRoot.getElementById(`${prefix}-${ELEMENTS.PRODUCT_PICKER}`);
+    const list = this.renderRoot.getElementById(`${prefix}-${ELEMENTS.PRODUCT_PICKER_LIST}`);
+    if (!picker || !list) return;
+
+    list.innerHTML = results
+      .map((r, i) => {
+        const product = r.product!;
+        const providerLabel = TranslationManager.localize(
+          this.translations,
+          `modal.provider_${r.provider}`,
+          undefined,
+          r.provider,
+        );
+        const details: string[] = [];
+        if (product.brand) details.push(product.brand);
+        if (product.category) details.push(product.category);
+
+        return `
+        <div class="product-picker-item" data-product-index="${i}">
+          <span class="product-picker-provider">${Utilities.sanitizeHtml(providerLabel)}</span>
+          <span class="product-picker-name">${Utilities.sanitizeHtml(product.name)}</span>
+          ${details.length > 0 ? `<span class="product-picker-detail">${Utilities.sanitizeHtml(details.join(' — '))}</span>` : ''}
+        </div>
+      `;
+      })
+      .join('');
+
+    picker.style.display = 'block';
+
+    list.querySelectorAll('.product-picker-item').forEach((item) => {
+      item.addEventListener('click', () => {
+        const index = parseInt((item as HTMLElement).dataset.productIndex || '0', 10);
+        const selected = results[index];
+        if (selected?.product) {
+          this.selectProduct(prefix, selected.product);
+          this.hideProductPicker(prefix);
+        }
+      });
+    });
+  }
+
+  private hideProductPicker(prefix: string): void {
+    const picker = this.renderRoot.getElementById(`${prefix}-${ELEMENTS.PRODUCT_PICKER}`);
+    if (picker) picker.style.display = 'none';
+  }
+
+  private selectProduct(prefix: string, product: Record<string, string>): void {
+    this.autoFillIfEmpty(`${prefix}-name`, product.name);
+    const descParts: string[] = [];
+    if (product.brand) descParts.push(product.brand);
+    if (product.description) descParts.push(product.description);
+    if (descParts.length > 0) {
+      this.autoFillIfEmpty(`${prefix}-description`, descParts.join(' - '));
+    }
+    if (product.category) {
+      this.autoFillIfEmpty(`${prefix}-category`, product.category);
+    }
+    if (product.unit) {
+      this.autoFillIfEmpty(`${prefix}-unit`, product.unit);
+    }
+    this.hideProductPicker(prefix);
   }
 
   private autoFillIfEmpty(elementId: string, value: string | undefined): void {

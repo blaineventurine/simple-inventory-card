@@ -586,8 +586,14 @@ describe('Services', () => {
   });
 
   describe('lookupBarcodeProduct', () => {
-    it('should call the correct WS command', async () => {
-      const expected = { found: true, barcode: '123', product: { name: 'Test' } };
+    it('should call the correct WS command and return results array', async () => {
+      const expected = {
+        barcode: '123',
+        results: [
+          { provider: 'openfoodfacts', found: true, product: { name: 'Test' } },
+          { provider: 'openbeautyfacts', found: false },
+        ],
+      };
       mockHass.callWS = vi.fn().mockResolvedValue(expected);
 
       const result = await services.lookupBarcodeProduct('123');
@@ -599,12 +605,12 @@ describe('Services', () => {
       expect(result).toEqual(expected);
     });
 
-    it('should return not found on error', async () => {
+    it('should return empty results on error', async () => {
       mockHass.callWS = vi.fn().mockRejectedValue(new Error('fail'));
 
       const result = await services.lookupBarcodeProduct('bad');
 
-      expect(result).toEqual({ found: false, barcode: 'bad' });
+      expect(result).toEqual({ barcode: 'bad', results: [] });
     });
   });
 });

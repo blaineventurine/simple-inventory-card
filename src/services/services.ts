@@ -236,20 +236,28 @@ export class Services {
     }
   }
 
-  async lookupBarcodeProduct(
-    barcode: string,
-  ): Promise<{ found: boolean; barcode: string; product?: Record<string, string> }> {
+  async lookupBarcodeProduct(barcode: string): Promise<{
+    barcode: string;
+    results: Array<{
+      provider: string;
+      found: boolean;
+      product?: Record<string, string>;
+    }>;
+  }> {
     try {
       return await this.hass.callWS<{
-        found: boolean;
         barcode: string;
-        product?: Record<string, string>;
+        results: Array<{
+          provider: string;
+          found: boolean;
+          product?: Record<string, string>;
+        }>;
       }>({
         type: WS_COMMANDS.LOOKUP_BARCODE_PRODUCT,
         barcode,
       });
     } catch {
-      return { found: false, barcode };
+      return { barcode, results: [] };
     }
   }
 

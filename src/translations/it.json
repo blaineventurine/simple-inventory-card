@@ -90,7 +90,12 @@
     "scan_barcode": "Scansiona con fotocamera",
     "close_scanner": "Chiudi scanner",
     "camera_permission_denied": "Accesso fotocamera negato",
-    "camera_not_available": "Fotocamera non disponibile"
+    "camera_not_available": "Fotocamera non disponibile",
+    "multiple_products_found": "Trovati più prodotti — selezionane uno:",
+    "provider_openfoodfacts": "Open Food Facts",
+    "provider_openbeautyfacts": "Open Beauty Facts",
+    "provider_inventory": "Articolo esistente",
+    "provider_openpetfoodfacts": "Open Pet Food Facts"
   },
   "filters": {
     "all_categories": "Tutte le categorie",

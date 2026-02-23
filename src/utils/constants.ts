@@ -85,6 +85,9 @@ export const ELEMENTS = {
   HISTORY_TAB_CONSUMPTION: 'history-tab-consumption',
   HISTORY_TAB_CONTENT: 'history-tab-content',
 
+  PRODUCT_PICKER: 'product-picker',
+  PRODUCT_PICKER_LIST: 'product-picker-list',
+
   BARCODE_SCAN_BTN: 'barcode-scan-btn',
   BARCODE_SCANNER: 'barcode-scanner',
   BARCODE_VIEWPORT: 'barcode-viewport',
