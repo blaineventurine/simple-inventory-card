@@ -198,9 +198,16 @@ export const cardHeaderStyles: CSSResult = css`
 
   .scan-action-bar {
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    align-items: flex-start;
     gap: 8px;
     padding: 8px 0;
+  }
+
+  .scan-info-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     flex-wrap: wrap;
   }
 
@@ -208,27 +215,18 @@ export const cardHeaderStyles: CSSResult = css`
     font-weight: 500;
     font-size: 0.9em;
     color: var(--primary-text-color);
-    margin-right: 4px;
   }
 
-  .scan-action-select,
-  .scan-amount-input {
-    padding: 4px 8px;
-    border: 1px solid var(--divider-color);
-    border-radius: 4px;
-    background: var(--card-background-color);
-    color: var(--primary-text-color);
-    font-size: 0.85em;
-  }
-
-  .scan-amount-input {
-    width: 60px;
+  .scan-buttons-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
 
   .scan-go-btn {
-    padding: 4px 16px;
+    padding: 6px 20px;
     border: none;
-    border-radius: 4px;
+    border-radius: 8px;
     background: var(--primary-color);
     color: var(--text-primary-color, #fff);
     cursor: pointer;
@@ -241,9 +239,9 @@ export const cardHeaderStyles: CSSResult = css`
   }
 
   .scan-cancel-btn {
-    padding: 4px 12px;
+    padding: 6px 14px;
     border: 1px solid var(--divider-color);
-    border-radius: 4px;
+    border-radius: 8px;
     background: transparent;
     color: var(--primary-text-color);
     cursor: pointer;
@@ -272,9 +270,9 @@ export const cardHeaderStyles: CSSResult = css`
   }
 
   .scan-add-btn {
-    padding: 4px 16px;
+    padding: 6px 20px;
     border: 1px solid var(--primary-color);
-    border-radius: 4px;
+    border-radius: 8px;
     background: transparent;
     color: var(--primary-color);
     cursor: pointer;

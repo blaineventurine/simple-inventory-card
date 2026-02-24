@@ -994,6 +994,7 @@ export class EventHandler {
     const itemNameEl = this.renderRoot.getElementById(ELEMENTS.SCAN_ITEM_NAME);
     const existingControls = this.renderRoot.getElementById(ELEMENTS.SCAN_EXISTING_CONTROLS);
     const addBtn = this.renderRoot.getElementById(ELEMENTS.SCAN_ADD_BTN);
+    const goBtn = this.renderRoot.getElementById(ELEMENTS.SCAN_GO_BTN);
 
     if (viewportContainer) viewportContainer.style.display = 'none';
     if (label) label.textContent = barcode;
@@ -1016,6 +1017,7 @@ export class EventHandler {
       }
       if (existingControls) existingControls.style.display = '';
       if (addBtn) addBtn.style.display = 'none';
+      if (goBtn) goBtn.style.display = '';
     } else {
       // Unknown barcode — hide inc/dec, show add button
       if (itemNameEl) {
@@ -1024,6 +1026,7 @@ export class EventHandler {
       }
       if (existingControls) existingControls.style.display = 'none';
       if (addBtn) addBtn.style.display = '';
+      if (goBtn) goBtn.style.display = 'none';
     }
   }
 
