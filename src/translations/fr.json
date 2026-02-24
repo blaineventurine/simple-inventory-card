@@ -46,7 +46,8 @@
     "cancel": "Annuler",
     "starting_camera": "Démarrage de la caméra...",
     "barcode_not_found": "Aucun article trouvé pour ce code-barres",
-    "scan_success": "Mis à jour {name}"
+    "scan_success": "Mis à jour {name}",
+    "add_new_item": "Ajouter"
   },
   "modal": {
     "add_item": "Ajouter un article",

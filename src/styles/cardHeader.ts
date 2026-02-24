@@ -254,6 +254,39 @@ export const cardHeaderStyles: CSSResult = css`
     background-color: var(--secondary-background-color, rgba(0, 0, 0, 0.05));
   }
 
+  .scan-item-name {
+    font-weight: 600;
+    font-size: 0.85em;
+    color: var(--primary-text-color);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 200px;
+    display: inline-block;
+  }
+
+  .scan-existing-controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .scan-add-btn {
+    padding: 4px 16px;
+    border: 1px solid var(--primary-color);
+    border-radius: 4px;
+    background: transparent;
+    color: var(--primary-color);
+    cursor: pointer;
+    font-size: 0.85em;
+    font-weight: 500;
+  }
+
+  .scan-add-btn:hover {
+    background: var(--primary-color);
+    color: var(--text-primary-color, #fff);
+  }
+
   .scan-panel-error {
     color: var(--error-color, #d32f2f);
     font-size: 0.85em;

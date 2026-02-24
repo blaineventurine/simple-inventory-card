@@ -946,6 +946,93 @@ describe('EventHandler', () => {
       expect(mockRenderCallback).toHaveBeenCalled();
     });
 
+    it('should show item name and controls for known barcode', async () => {
+      const mockItemNameEl = { textContent: '', style: { display: 'none' } } as any;
+      const mockExistingControls = { style: { display: 'none' } } as any;
+      const mockAddBtn = { style: { display: '' } } as any;
+
+      (mockRenderRoot as any).getElementById = vi.fn((id: string) => {
+        if (id === `${ELEMENTS.SCAN_VIEWPORT}-container`) return { style: {} };
+        if (id === ELEMENTS.SCAN_ACTION_BAR) return { style: {} };
+        if (id === 'scan-barcode-label') return { textContent: '' };
+        if (id === 'scan-panel-error') return { style: {}, textContent: '' };
+        if (id === ELEMENTS.SCAN_AMOUNT_INPUT) return { value: '1' };
+        if (id === ELEMENTS.SCAN_ACTION_SELECT) return { value: 'increment' };
+        if (id === ELEMENTS.SCAN_ITEM_NAME) return mockItemNameEl;
+        if (id === ELEMENTS.SCAN_EXISTING_CONTROLS) return mockExistingControls;
+        if (id === ELEMENTS.SCAN_ADD_BTN) return mockAddBtn;
+        return null;
+      });
+
+      (mockServices as any).lookupByBarcode = vi.fn().mockResolvedValue({
+        items: [{ name: 'Milk', inventory_id: 'inv-1' }],
+      });
+
+      await eventHandler['handleScanDetected']('1234567890');
+
+      expect(mockItemNameEl.textContent).toBe('Milk');
+      expect(mockItemNameEl.style.display).toBe('');
+      expect(mockExistingControls.style.display).toBe('');
+      expect(mockAddBtn.style.display).toBe('none');
+    });
+
+    it('should hide controls and show add button for unknown barcode', async () => {
+      const mockItemNameEl = { textContent: '', style: { display: '' } } as any;
+      const mockExistingControls = { style: { display: '' } } as any;
+      const mockAddBtn = { style: { display: 'none' } } as any;
+
+      (mockRenderRoot as any).getElementById = vi.fn((id: string) => {
+        if (id === `${ELEMENTS.SCAN_VIEWPORT}-container`) return { style: {} };
+        if (id === ELEMENTS.SCAN_ACTION_BAR) return { style: {} };
+        if (id === 'scan-barcode-label') return { textContent: '' };
+        if (id === 'scan-panel-error') return { style: {}, textContent: '' };
+        if (id === ELEMENTS.SCAN_AMOUNT_INPUT) return { value: '1' };
+        if (id === ELEMENTS.SCAN_ACTION_SELECT) return { value: 'increment' };
+        if (id === ELEMENTS.SCAN_ITEM_NAME) return mockItemNameEl;
+        if (id === ELEMENTS.SCAN_EXISTING_CONTROLS) return mockExistingControls;
+        if (id === ELEMENTS.SCAN_ADD_BTN) return mockAddBtn;
+        return null;
+      });
+
+      (mockServices as any).lookupByBarcode = vi.fn().mockResolvedValue({
+        items: [],
+      });
+
+      await eventHandler['handleScanDetected']('9999999999');
+
+      expect(mockItemNameEl.style.display).toBe('none');
+      expect(mockExistingControls.style.display).toBe('none');
+      expect(mockAddBtn.style.display).toBe('');
+    });
+
+    it('should handle scan add button click — hides panel and opens add modal', async () => {
+      eventHandler['scannedBarcode'] = '5551234567';
+
+      const hideScanPanelSpy = vi
+        .spyOn(eventHandler as any, 'hideScanPanel')
+        .mockImplementation(() => {});
+
+      mockTarget = {
+        tagName: 'BUTTON',
+        id: ELEMENTS.SCAN_ADD_BTN,
+        hasAttribute: vi.fn().mockReturnValue(false),
+        dataset: {},
+      } as unknown as HTMLElement;
+
+      mockEvent = {
+        target: mockTarget,
+        preventDefault: vi.fn(),
+        stopPropagation: vi.fn(),
+      } as unknown as Event;
+
+      vi.mocked(mockModals.handleModalClick).mockReturnValue(false);
+
+      await eventHandler['handleClick'](mockEvent);
+
+      expect(hideScanPanelSpy).toHaveBeenCalled();
+      expect(mockModals.openAddModal).toHaveBeenCalled();
+    });
+
     it('should show error when scanBarcode fails', async () => {
       eventHandler['scannedBarcode'] = '1234567890';
 

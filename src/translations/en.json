@@ -46,7 +46,8 @@
     "cancel": "Cancel",
     "starting_camera": "Starting camera...",
     "barcode_not_found": "No item found for this barcode",
-    "scan_success": "Updated {name}"
+    "scan_success": "Updated {name}",
+    "add_new_item": "Add Item"
   },
   "modal": {
     "add_item": "Add Item",

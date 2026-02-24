@@ -261,6 +261,21 @@ export class Services {
     }
   }
 
+  async lookupByBarcode(
+    barcode: string,
+  ): Promise<{ items: Array<{ name: string; inventory_id: string; [key: string]: any }> }> {
+    try {
+      return await this.hass.callWS<{
+        items: Array<{ name: string; inventory_id: string; [key: string]: any }>;
+      }>({
+        type: WS_COMMANDS.LOOKUP_BY_BARCODE,
+        barcode,
+      });
+    } catch {
+      return { items: [] };
+    }
+  }
+
   async getItems(inventoryId: string): Promise<InventoryItem[]> {
     const result = await this.hass.callWS<{ items: InventoryItem[] }>({
       type: WS_COMMANDS.LIST_ITEMS,

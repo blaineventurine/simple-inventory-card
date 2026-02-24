@@ -613,4 +613,29 @@ describe('Services', () => {
       expect(result).toEqual({ barcode: 'bad', results: [] });
     });
   });
+
+  describe('lookupByBarcode', () => {
+    it('should call the correct WS command and return items', async () => {
+      const expected = {
+        items: [{ name: 'Milk', inventory_id: 'inv-1' }],
+      };
+      mockHass.callWS = vi.fn().mockResolvedValue(expected);
+
+      const result = await services.lookupByBarcode('5901234123457');
+
+      expect(mockHass.callWS).toHaveBeenCalledWith({
+        type: 'simple_inventory/lookup_by_barcode',
+        barcode: '5901234123457',
+      });
+      expect(result).toEqual(expected);
+    });
+
+    it('should return empty items on error', async () => {
+      mockHass.callWS = vi.fn().mockRejectedValue(new Error('fail'));
+
+      const result = await services.lookupByBarcode('bad');
+
+      expect(result).toEqual({ items: [] });
+    });
+  });
 });

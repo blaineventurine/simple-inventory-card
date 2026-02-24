@@ -199,6 +199,12 @@ export class EventHandler {
           await this.handleScanGo();
           break;
         }
+        case ELEMENTS.SCAN_ADD_BTN: {
+          event.preventDefault();
+          event.stopPropagation();
+          await this.handleScanAddItem();
+          break;
+        }
         case ELEMENTS.SCAN_CANCEL_BTN: {
           event.preventDefault();
           event.stopPropagation();
@@ -971,7 +977,7 @@ export class EventHandler {
     if (panel) panel.style.display = 'none';
   }
 
-  private handleScanDetected(barcode: string): void {
+  private async handleScanDetected(barcode: string): Promise<void> {
     stopScanner();
     this.scannedBarcode = barcode;
 
@@ -985,6 +991,9 @@ export class EventHandler {
     const actionSelect = this.renderRoot.getElementById(
       ELEMENTS.SCAN_ACTION_SELECT,
     ) as HTMLSelectElement | null;
+    const itemNameEl = this.renderRoot.getElementById(ELEMENTS.SCAN_ITEM_NAME);
+    const existingControls = this.renderRoot.getElementById(ELEMENTS.SCAN_EXISTING_CONTROLS);
+    const addBtn = this.renderRoot.getElementById(ELEMENTS.SCAN_ADD_BTN);
 
     if (viewportContainer) viewportContainer.style.display = 'none';
     if (label) label.textContent = barcode;
@@ -995,6 +1004,27 @@ export class EventHandler {
     }
     if (amountInput) amountInput.value = '1';
     if (actionSelect) actionSelect.value = 'increment';
+
+    // Look up whether this barcode is known
+    const result = await this.services.lookupByBarcode(barcode);
+
+    if (result.items.length > 0) {
+      // Known barcode — show item name and inc/dec controls
+      if (itemNameEl) {
+        itemNameEl.textContent = result.items[0].name;
+        itemNameEl.style.display = '';
+      }
+      if (existingControls) existingControls.style.display = '';
+      if (addBtn) addBtn.style.display = 'none';
+    } else {
+      // Unknown barcode — hide inc/dec, show add button
+      if (itemNameEl) {
+        itemNameEl.textContent = '';
+        itemNameEl.style.display = 'none';
+      }
+      if (existingControls) existingControls.style.display = 'none';
+      if (addBtn) addBtn.style.display = '';
+    }
   }
 
   private async handleScanGo(): Promise<void> {
@@ -1032,6 +1062,46 @@ export class EventHandler {
         );
         errorEl.style.display = 'block';
       }
+    }
+  }
+
+  private async handleScanAddItem(): Promise<void> {
+    const barcode = this.scannedBarcode;
+    this.hideScanPanel();
+
+    // Open add modal (same as OPEN_ADD_MODAL case)
+    const locations = this.getUniqueLocations();
+    const categories = this.getUniqueCategories();
+    this.modals.openAddModal(this.translations, locations, categories, (bc: string) =>
+      this.handleBarcodeProductLookup(bc),
+    );
+
+    // Pre-fill the barcode after modal opens
+    if (barcode) {
+      setTimeout(() => {
+        const hiddenInput = this.renderRoot.getElementById(
+          `add-${ELEMENTS.BARCODE}`,
+        ) as HTMLInputElement | null;
+        const chipsContainer = this.renderRoot.getElementById(
+          'add-barcode-chips',
+        ) as HTMLElement | null;
+
+        if (hiddenInput) {
+          hiddenInput.value = barcode;
+
+          // Render the barcode chip
+          if (chipsContainer) {
+            const chip = document.createElement('span');
+            chip.className = 'barcode-chip';
+            chip.textContent = barcode;
+            chipsContainer.innerHTML = '';
+            chipsContainer.appendChild(chip);
+          }
+
+          // Trigger product lookup
+          this.handleBarcodeProductLookup(barcode);
+        }
+      }, 0);
     }
   }
 

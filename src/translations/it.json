@@ -46,7 +46,8 @@
     "cancel": "Annulla",
     "starting_camera": "Avvio fotocamera...",
     "barcode_not_found": "Nessun articolo trovato per questo codice a barre",
-    "scan_success": "Aggiornato {name}"
+    "scan_success": "Aggiornato {name}",
+    "add_new_item": "Aggiungi"
   },
   "modal": {
     "add_item": "Aggiungi oggetto",
