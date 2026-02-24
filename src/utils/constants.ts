@@ -26,6 +26,7 @@ export const WS_COMMANDS = {
   IMPORT: `${DOMAIN}/import`,
   LIST_ITEMS: `${DOMAIN}/list_items`,
   LOOKUP_BARCODE_PRODUCT: `${DOMAIN}/lookup_barcode_product`,
+  LOOKUP_BY_BARCODE: `${DOMAIN}/lookup_by_barcode`,
   SUBSCRIBE: `${DOMAIN}/subscribe`,
 };
 
@@ -85,6 +86,9 @@ export const ELEMENTS = {
   HISTORY_TAB_CONSUMPTION: 'history-tab-consumption',
   HISTORY_TAB_CONTENT: 'history-tab-content',
 
+  PRODUCT_PICKER: 'product-picker',
+  PRODUCT_PICKER_LIST: 'product-picker-list',
+
   BARCODE_SCAN_BTN: 'barcode-scan-btn',
   BARCODE_SCANNER: 'barcode-scanner',
   BARCODE_VIEWPORT: 'barcode-viewport',
@@ -98,6 +102,9 @@ export const ELEMENTS = {
   SCAN_ACTION_SELECT: 'scan-action-select',
   SCAN_AMOUNT_INPUT: 'scan-amount-input',
   SCAN_GO_BTN: 'scan-go-btn',
+  SCAN_ITEM_NAME: 'scan-item-name',
+  SCAN_ADD_BTN: 'scan-add-btn',
+  SCAN_EXISTING_CONTROLS: 'scan-existing-controls',
   SCAN_CANCEL_BTN: 'scan-cancel-btn',
 
   ACTIVE_FILTERS: 'active-filters',

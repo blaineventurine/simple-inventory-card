@@ -13,9 +13,11 @@ vi.mock('../../src/services/translationManager');
 vi.mock('../../src/utils/utilities');
 vi.mock('lit-element', () => ({
   LitElement: class MockLitElement {
-    shadowRoot: any = undefined;
+    shadowRoot: any;
     constructor() {
-      this.shadowRoot = document.createElement('div');
+      const root = document.createElement('div');
+      (root as any).getElementById = (id: string) => root.querySelector(`#${id}`);
+      this.shadowRoot = root;
     }
     attachShadow() {
       return this.shadowRoot;
