@@ -965,7 +965,7 @@ describe('EventHandler', () => {
       });
 
       (mockServices as any).lookupByBarcode = vi.fn().mockResolvedValue({
-        items: [{ name: 'Milk', inventory_id: 'inv-1' }],
+        items: [{ name: 'Milk', inventory_id: 'test-inventory-id' }],
       });
 
       await eventHandler['handleScanDetected']('1234567890');
