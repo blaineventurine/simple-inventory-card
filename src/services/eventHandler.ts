@@ -1006,20 +1006,22 @@ export class EventHandler {
     if (amountInput) amountInput.value = '1';
     if (actionSelect) actionSelect.value = 'increment';
 
-    // Look up whether this barcode is known
+    // Look up whether this barcode is known in the current inventory
+    const inventoryId = Utilities.getInventoryId(this.hass, this.config.entity);
     const result = await this.services.lookupByBarcode(barcode);
+    const localItems = result.items.filter((item) => item.inventory_id === inventoryId);
 
-    if (result.items.length > 0) {
-      // Known barcode — show item name and inc/dec controls
+    if (localItems.length > 0) {
+      // Known barcode in this inventory — show item name and inc/dec controls
       if (itemNameEl) {
-        itemNameEl.textContent = result.items[0].name;
+        itemNameEl.textContent = localItems[0].name;
         itemNameEl.style.display = '';
       }
       if (existingControls) existingControls.style.display = '';
       if (addBtn) addBtn.style.display = 'none';
       if (goBtn) goBtn.style.display = '';
     } else {
-      // Unknown barcode — hide inc/dec, show add button
+      // Unknown barcode in this inventory — hide inc/dec, show add button
       if (itemNameEl) {
         itemNameEl.textContent = '';
         itemNameEl.style.display = 'none';
