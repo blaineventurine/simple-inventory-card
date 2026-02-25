@@ -9,6 +9,7 @@ vi.mock('@ericblade/quagga2', () => ({
     stop: vi.fn(),
     onDetected: vi.fn(),
     offDetected: vi.fn(),
+    decodeSingle: vi.fn(),
   },
 }));
 

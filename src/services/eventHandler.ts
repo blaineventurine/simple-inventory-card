@@ -14,7 +14,7 @@ import {
   createConsumptionLoading,
 } from '../templates/historyView';
 import { ItemConsumptionRates } from '../types/consumptionRates';
-import { startScanner, stopScanner } from './barcodeScanner';
+import { startScanner, stopScanner, isLiveScanAvailable, decodeFromFile } from './barcodeScanner';
 
 export class EventHandler {
   private renderRoot: ShadowRoot;
@@ -934,6 +934,35 @@ export class EventHandler {
   }
 
   private async showScanPanel(): Promise<void> {
+    if (!isLiveScanAvailable()) {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.capture = 'environment';
+      input.style.display = 'none';
+      document.body.appendChild(input);
+      input.addEventListener('change', async () => {
+        document.body.removeChild(input);
+        const file = input.files?.[0];
+        if (!file) return;
+        const error = await decodeFromFile(file, (code) => {
+          this.handleScanDetected(code);
+        });
+        if (error) {
+          alert(
+            TranslationManager.localize(
+              this.translations,
+              'scanner.no_barcode_found',
+              undefined,
+              'No barcode found in photo',
+            ),
+          );
+        }
+      });
+      input.click();
+      return;
+    }
+
     const panel = this.renderRoot.getElementById(ELEMENTS.SCAN_PANEL);
     if (!panel) return;
 

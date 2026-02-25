@@ -102,7 +102,71 @@ Barcodes can also be used to identify items in automations (e.g. scan-to-increme
 
 The card header includes a scan button (barcode icon) for quickly incrementing or decrementing an existing item without opening any modal. Tap the scan button to open the camera, scan a barcode, then choose increment/decrement and an amount before confirming. The scanned barcode is resolved across all inventories automatically via the `scan_barcode` service.
 
-> **Note:** Camera barcode scanning requires your Home Assistant instance to be accessed over HTTPS. Browsers block camera access on insecure (HTTP) connections. If you use the Home Assistant Companion app, this is handled automatically. For browser access, ensure you have SSL/TLS configured (e.g. via Nabu Casa, a reverse proxy, or the `ssl` configuration in Home Assistant).
+> **Note:** Camera barcode scanning requires your Home Assistant instance to be accessed over HTTPS. Browsers block camera access on insecure (HTTP) connections, and the Home Assistant Companion app does not handle this automatically. Ensure you have SSL/TLS configured (e.g. via Nabu Casa, a reverse proxy, or the `ssl` configuration in Home Assistant) before expecting the camera to work.
+
+#### Setting up HTTPS with a self-signed certificate
+
+If you don't have an external domain or a Nabu Casa subscription, the easiest approach is [`mkcert`](https://github.com/FiloSottile/mkcert), a tool that creates a local certificate authority (CA) and signs certificates with it. This is the recommended approach — plain self-signed certificates cannot be trusted as a root CA on iOS, which means camera access will not work regardless of what you do in the browser.
+
+Camera access requires the certificate to be **installed and trusted** at the OS level on each device. Clicking through the browser's "Not secure" warning is not enough.
+
+**1. Install mkcert and generate the certificate**
+
+Replace `192.168.1.X` with your Home Assistant server's local IP address.
+
+```bash
+# macOS
+brew install mkcert
+
+# Windows (choose one)
+choco install mkcert
+# or
+scoop bucket add extras && scoop install mkcert
+
+# Linux: see https://github.com/FiloSottile/mkcert#linux
+
+# Create and trust the local CA on this machine, then generate the certificate
+mkcert -install
+mkcert 192.168.1.X
+```
+
+This produces `192.168.1.X.pem` (certificate) and `192.168.1.X-key.pem` (private key) in the current directory.
+
+**2. Place the certificate files in Home Assistant**
+
+Copy both files to the `ssl/` folder inside your Home Assistant configuration directory. On Home Assistant OS this is `/ssl/` on the host; adjust the path if you're using Docker.
+
+**3. Configure Home Assistant**
+
+Add or update the `http` section in `configuration.yaml`:
+
+```yaml
+http:
+  ssl_certificate: /ssl/192.168.1.X.pem
+  ssl_key: /ssl/192.168.1.X-key.pem
+```
+
+Restart Home Assistant. Your instance will now be available at `https://192.168.1.X:8123`.
+
+**4. Trust the mkcert CA on each device**
+
+`mkcert -install` already trusts the CA on the machine where you ran it. For other devices, you need to install the mkcert root CA — not the certificate itself. Find it with:
+
+```bash
+mkcert -CAROOT
+# prints the directory, e.g. /Users/you/Library/Application Support/mkcert/
+```
+
+The file you need is `rootCA.pem` in that directory.
+
+- **iOS / iPadOS**: AirDrop `rootCA.pem` to the device and open it. Go to **Settings → General → VPN & Device Management** and install the profile. Then go to **Settings → General → About → Certificate Trust Settings** and enable full trust for the mkcert CA.
+- **Android**: Transfer `rootCA.pem` to the device, then go to **Settings → Security → Encryption & credentials → Install a certificate → CA certificate** and select it. The exact path varies by manufacturer.
+- **macOS** (other machines): Copy `rootCA.pem`, double-click it to add it to Keychain Access, then double-click the entry in the **System** keychain, expand **Trust**, and set **When using this certificate** to **Always Trust**.
+- **Windows** (other machines): Double-click `rootCA.pem`, click **Install Certificate**, choose **Local Machine**, select **Place all certificates in the following store**, browse to **Trusted Root Certification Authorities**, and complete the wizard.
+
+After installing the CA, open `https://192.168.1.X:8123` — the browser should show a valid certificate and the camera scan button will function.
+
+> **Renewal**: mkcert certificates expire after ~2 years. When they do, re-run `mkcert 192.168.1.X`, replace the files in Home Assistant, and restart. You do not need to reinstall the CA on your devices.
 
 ### Auto-Add to Todo List
 

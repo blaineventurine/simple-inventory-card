@@ -87,3 +87,58 @@ export function stopScanner(): void {
     active = false;
   }
 }
+
+export function isLiveScanAvailable(): boolean {
+  return (
+    typeof navigator !== 'undefined' &&
+    !!navigator.mediaDevices &&
+    typeof navigator.mediaDevices.getUserMedia === 'function'
+  );
+}
+
+export function decodeFromFile(
+  file: File,
+  onDetected: (code: string) => void,
+): Promise<string | null> {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const src = e.target?.result as string;
+      Quagga.decodeSingle(
+        {
+          src,
+          decoder: {
+            readers: [
+              'ean_reader',
+              'ean_8_reader',
+              'upc_reader',
+              'upc_e_reader',
+              'code_128_reader',
+            ],
+          },
+          locate: true,
+        },
+        (result) => {
+          if (!result?.codeResult?.code) {
+            resolve('not_found');
+            return;
+          }
+          const errors = result.codeResult.decodedCodes
+            ?.filter((d) => typeof d.error === 'number')
+            .map((d) => d.error as number);
+          if (errors && errors.length > 0) {
+            const avgError = errors.reduce((sum, e) => sum + e, 0) / errors.length;
+            if (avgError >= 0.1) {
+              resolve('not_found');
+              return;
+            }
+          }
+          onDetected(result.codeResult.code);
+          resolve(null);
+        },
+      );
+    };
+    reader.onerror = () => resolve('not_found');
+    reader.readAsDataURL(file);
+  });
+}

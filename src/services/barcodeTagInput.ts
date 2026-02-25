@@ -1,5 +1,11 @@
 import { ELEMENTS } from '../utils/constants';
-import { startScanner, stopScanner, isScannerActive } from './barcodeScanner';
+import {
+  startScanner,
+  stopScanner,
+  isScannerActive,
+  isLiveScanAvailable,
+  decodeFromFile,
+} from './barcodeScanner';
 
 function getBarcodes(hiddenInput: HTMLInputElement): string[] {
   return hiddenInput.value
@@ -128,6 +134,28 @@ export function initializeBarcodeTagInput(
   };
 
   scanBtn.addEventListener('click', async () => {
+    if (!isLiveScanAvailable()) {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.capture = 'environment';
+      input.style.display = 'none';
+      document.body.appendChild(input);
+      input.addEventListener('change', async () => {
+        document.body.removeChild(input);
+        const file = input.files?.[0];
+        if (!file) return;
+        const error = await decodeFromFile(file, (code) => {
+          addBarcodeChip(code, hiddenInput, chipsContainer, onBarcodeAdded);
+        });
+        if (error) {
+          showError(scanBtn.dataset['scanner.no_barcode_found'] ?? 'No barcode found in photo');
+        }
+      });
+      input.click();
+      return;
+    }
+
     if (isScannerActive()) {
       hideScanner();
       return;
