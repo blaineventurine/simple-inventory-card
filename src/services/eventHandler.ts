@@ -199,6 +199,12 @@ export class EventHandler {
           await this.handleScanGo();
           break;
         }
+        case ELEMENTS.SCAN_ADD_BTN: {
+          event.preventDefault();
+          event.stopPropagation();
+          await this.handleScanAddItem();
+          break;
+        }
         case ELEMENTS.SCAN_CANCEL_BTN: {
           event.preventDefault();
           event.stopPropagation();
@@ -818,26 +824,86 @@ export class EventHandler {
     this.services
       .lookupBarcodeProduct(barcode)
       .then((result) => {
-        if (!result.found || !result.product) return;
-        const product = result.product;
-        this.autoFillIfEmpty('add-name', product.name);
-        // Combine brand and description for the description field
-        const descParts: string[] = [];
-        if (product.brand) descParts.push(product.brand);
-        if (product.description) descParts.push(product.description);
-        if (descParts.length > 0) {
-          this.autoFillIfEmpty('add-description', descParts.join(' - '));
+        const foundResults = result.results.filter((r) => r.found && r.product);
+        if (foundResults.length === 0) return;
+
+        if (foundResults.length === 1) {
+          this.selectProduct('add', foundResults[0].product!);
+          return;
         }
-        if (product.category) {
-          this.autoFillIfEmpty('add-category', product.category);
-        }
-        if (product.unit) {
-          this.autoFillIfEmpty('add-unit', product.unit);
-        }
+
+        this.showProductPicker('add', foundResults);
       })
       .catch(() => {
         // Silent failure — user can fill fields manually
       });
+  }
+
+  private showProductPicker(
+    prefix: string,
+    results: Array<{ provider: string; found: boolean; product?: Record<string, string> }>,
+  ): void {
+    const picker = this.renderRoot.getElementById(`${prefix}-${ELEMENTS.PRODUCT_PICKER}`);
+    const list = this.renderRoot.getElementById(`${prefix}-${ELEMENTS.PRODUCT_PICKER_LIST}`);
+    if (!picker || !list) return;
+
+    list.innerHTML = results
+      .map((r, i) => {
+        const product = r.product!;
+        const providerLabel = TranslationManager.localize(
+          this.translations,
+          `modal.provider_${r.provider}`,
+          undefined,
+          r.provider,
+        );
+        const details: string[] = [];
+        if (product.brand) details.push(product.brand);
+        if (product.category) details.push(product.category);
+
+        return `
+        <div class="product-picker-item" data-product-index="${i}">
+          <span class="product-picker-provider">${Utilities.sanitizeHtml(providerLabel)}</span>
+          <span class="product-picker-name">${Utilities.sanitizeHtml(product.name)}</span>
+          ${details.length > 0 ? `<span class="product-picker-detail">${Utilities.sanitizeHtml(details.join(' — '))}</span>` : ''}
+        </div>
+      `;
+      })
+      .join('');
+
+    picker.style.display = 'block';
+
+    list.querySelectorAll('.product-picker-item').forEach((item) => {
+      item.addEventListener('click', () => {
+        const index = parseInt((item as HTMLElement).dataset.productIndex || '0', 10);
+        const selected = results[index];
+        if (selected?.product) {
+          this.selectProduct(prefix, selected.product);
+          this.hideProductPicker(prefix);
+        }
+      });
+    });
+  }
+
+  private hideProductPicker(prefix: string): void {
+    const picker = this.renderRoot.getElementById(`${prefix}-${ELEMENTS.PRODUCT_PICKER}`);
+    if (picker) picker.style.display = 'none';
+  }
+
+  private selectProduct(prefix: string, product: Record<string, string>): void {
+    this.autoFillIfEmpty(`${prefix}-name`, product.name);
+    const descParts: string[] = [];
+    if (product.brand) descParts.push(product.brand);
+    if (product.description) descParts.push(product.description);
+    if (descParts.length > 0) {
+      this.autoFillIfEmpty(`${prefix}-description`, descParts.join(' - '));
+    }
+    if (product.category) {
+      this.autoFillIfEmpty(`${prefix}-category`, product.category);
+    }
+    if (product.unit) {
+      this.autoFillIfEmpty(`${prefix}-unit`, product.unit);
+    }
+    this.hideProductPicker(prefix);
   }
 
   private autoFillIfEmpty(elementId: string, value: string | undefined): void {
@@ -911,7 +977,7 @@ export class EventHandler {
     if (panel) panel.style.display = 'none';
   }
 
-  private handleScanDetected(barcode: string): void {
+  private async handleScanDetected(barcode: string): Promise<void> {
     stopScanner();
     this.scannedBarcode = barcode;
 
@@ -925,6 +991,10 @@ export class EventHandler {
     const actionSelect = this.renderRoot.getElementById(
       ELEMENTS.SCAN_ACTION_SELECT,
     ) as HTMLSelectElement | null;
+    const itemNameEl = this.renderRoot.getElementById(ELEMENTS.SCAN_ITEM_NAME);
+    const existingControls = this.renderRoot.getElementById(ELEMENTS.SCAN_EXISTING_CONTROLS);
+    const addBtn = this.renderRoot.getElementById(ELEMENTS.SCAN_ADD_BTN);
+    const goBtn = this.renderRoot.getElementById(ELEMENTS.SCAN_GO_BTN);
 
     if (viewportContainer) viewportContainer.style.display = 'none';
     if (label) label.textContent = barcode;
@@ -935,6 +1005,31 @@ export class EventHandler {
     }
     if (amountInput) amountInput.value = '1';
     if (actionSelect) actionSelect.value = 'increment';
+
+    // Look up whether this barcode is known in the current inventory
+    const inventoryId = Utilities.getInventoryId(this.hass, this.config.entity);
+    const result = await this.services.lookupByBarcode(barcode);
+    const localItems = result.items.filter((item) => item.inventory_id === inventoryId);
+
+    if (localItems.length > 0) {
+      // Known barcode in this inventory — show item name and inc/dec controls
+      if (itemNameEl) {
+        itemNameEl.textContent = localItems[0].name;
+        itemNameEl.style.display = '';
+      }
+      if (existingControls) existingControls.style.display = '';
+      if (addBtn) addBtn.style.display = 'none';
+      if (goBtn) goBtn.style.display = '';
+    } else {
+      // Unknown barcode in this inventory — hide inc/dec, show add button
+      if (itemNameEl) {
+        itemNameEl.textContent = '';
+        itemNameEl.style.display = 'none';
+      }
+      if (existingControls) existingControls.style.display = 'none';
+      if (addBtn) addBtn.style.display = '';
+      if (goBtn) goBtn.style.display = 'none';
+    }
   }
 
   private async handleScanGo(): Promise<void> {
@@ -972,6 +1067,46 @@ export class EventHandler {
         );
         errorEl.style.display = 'block';
       }
+    }
+  }
+
+  private async handleScanAddItem(): Promise<void> {
+    const barcode = this.scannedBarcode;
+    this.hideScanPanel();
+
+    // Open add modal (same as OPEN_ADD_MODAL case)
+    const locations = this.getUniqueLocations();
+    const categories = this.getUniqueCategories();
+    this.modals.openAddModal(this.translations, locations, categories, (bc: string) =>
+      this.handleBarcodeProductLookup(bc),
+    );
+
+    // Pre-fill the barcode after modal opens
+    if (barcode) {
+      setTimeout(() => {
+        const hiddenInput = this.renderRoot.getElementById(
+          `add-${ELEMENTS.BARCODE}`,
+        ) as HTMLInputElement | null;
+        const chipsContainer = this.renderRoot.getElementById(
+          'add-barcode-chips',
+        ) as HTMLElement | null;
+
+        if (hiddenInput) {
+          hiddenInput.value = barcode;
+
+          // Render the barcode chip
+          if (chipsContainer) {
+            const chip = document.createElement('span');
+            chip.className = 'barcode-chip';
+            chip.textContent = barcode;
+            chipsContainer.innerHTML = '';
+            chipsContainer.appendChild(chip);
+          }
+
+          // Trigger product lookup
+          this.handleBarcodeProductLookup(barcode);
+        }
+      }, 0);
     }
   }
 

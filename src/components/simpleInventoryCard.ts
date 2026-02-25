@@ -85,6 +85,10 @@ class SimpleInventoryCard extends LitElement {
 
       const services = this.lifecycleManager.getServices();
       if (services && services.state.hasRealEntityChange(hass, entityId)) {
+        const scanPanel = this.shadowRoot?.getElementById('scan-panel') as HTMLElement | null;
+        if (scanPanel && scanPanel.style.display !== 'none') {
+          return;
+        }
         if (services.state.userInteracting) {
           services.state.debouncedRender();
         } else {

@@ -76,4 +76,24 @@ describe('createScanPanel', () => {
 
     expect(result).toContain(`id="${ELEMENTS.SCAN_ACTION_BAR}" style="display:none;"`);
   });
+
+  it('should render scan-item-name element hidden by default', () => {
+    const result = createScanPanel(mockTranslations);
+
+    expect(result).toContain(`id="${ELEMENTS.SCAN_ITEM_NAME}"`);
+    expect(result).toContain('class="scan-item-name" style="display:none;"');
+  });
+
+  it('should render scan-add-btn element hidden by default', () => {
+    const result = createScanPanel(mockTranslations);
+
+    expect(result).toContain(`id="${ELEMENTS.SCAN_ADD_BTN}"`);
+    expect(result).toContain(`id="${ELEMENTS.SCAN_ADD_BTN}" style="display:none;"`);
+  });
+
+  it('should wrap inc/dec controls in scan-existing-controls', () => {
+    const result = createScanPanel(mockTranslations);
+
+    expect(result).toContain(`id="${ELEMENTS.SCAN_EXISTING_CONTROLS}"`);
+  });
 });

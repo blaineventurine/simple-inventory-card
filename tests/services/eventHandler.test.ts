@@ -946,6 +946,93 @@ describe('EventHandler', () => {
       expect(mockRenderCallback).toHaveBeenCalled();
     });
 
+    it('should show item name and controls for known barcode', async () => {
+      const mockItemNameEl = { textContent: '', style: { display: 'none' } } as any;
+      const mockExistingControls = { style: { display: 'none' } } as any;
+      const mockAddBtn = { style: { display: '' } } as any;
+
+      (mockRenderRoot as any).getElementById = vi.fn((id: string) => {
+        if (id === `${ELEMENTS.SCAN_VIEWPORT}-container`) return { style: {} };
+        if (id === ELEMENTS.SCAN_ACTION_BAR) return { style: {} };
+        if (id === 'scan-barcode-label') return { textContent: '' };
+        if (id === 'scan-panel-error') return { style: {}, textContent: '' };
+        if (id === ELEMENTS.SCAN_AMOUNT_INPUT) return { value: '1' };
+        if (id === ELEMENTS.SCAN_ACTION_SELECT) return { value: 'increment' };
+        if (id === ELEMENTS.SCAN_ITEM_NAME) return mockItemNameEl;
+        if (id === ELEMENTS.SCAN_EXISTING_CONTROLS) return mockExistingControls;
+        if (id === ELEMENTS.SCAN_ADD_BTN) return mockAddBtn;
+        return null;
+      });
+
+      (mockServices as any).lookupByBarcode = vi.fn().mockResolvedValue({
+        items: [{ name: 'Milk', inventory_id: 'test-inventory-id' }],
+      });
+
+      await eventHandler['handleScanDetected']('1234567890');
+
+      expect(mockItemNameEl.textContent).toBe('Milk');
+      expect(mockItemNameEl.style.display).toBe('');
+      expect(mockExistingControls.style.display).toBe('');
+      expect(mockAddBtn.style.display).toBe('none');
+    });
+
+    it('should hide controls and show add button for unknown barcode', async () => {
+      const mockItemNameEl = { textContent: '', style: { display: '' } } as any;
+      const mockExistingControls = { style: { display: '' } } as any;
+      const mockAddBtn = { style: { display: 'none' } } as any;
+
+      (mockRenderRoot as any).getElementById = vi.fn((id: string) => {
+        if (id === `${ELEMENTS.SCAN_VIEWPORT}-container`) return { style: {} };
+        if (id === ELEMENTS.SCAN_ACTION_BAR) return { style: {} };
+        if (id === 'scan-barcode-label') return { textContent: '' };
+        if (id === 'scan-panel-error') return { style: {}, textContent: '' };
+        if (id === ELEMENTS.SCAN_AMOUNT_INPUT) return { value: '1' };
+        if (id === ELEMENTS.SCAN_ACTION_SELECT) return { value: 'increment' };
+        if (id === ELEMENTS.SCAN_ITEM_NAME) return mockItemNameEl;
+        if (id === ELEMENTS.SCAN_EXISTING_CONTROLS) return mockExistingControls;
+        if (id === ELEMENTS.SCAN_ADD_BTN) return mockAddBtn;
+        return null;
+      });
+
+      (mockServices as any).lookupByBarcode = vi.fn().mockResolvedValue({
+        items: [],
+      });
+
+      await eventHandler['handleScanDetected']('9999999999');
+
+      expect(mockItemNameEl.style.display).toBe('none');
+      expect(mockExistingControls.style.display).toBe('none');
+      expect(mockAddBtn.style.display).toBe('');
+    });
+
+    it('should handle scan add button click — hides panel and opens add modal', async () => {
+      eventHandler['scannedBarcode'] = '5551234567';
+
+      const hideScanPanelSpy = vi
+        .spyOn(eventHandler as any, 'hideScanPanel')
+        .mockImplementation(() => {});
+
+      mockTarget = {
+        tagName: 'BUTTON',
+        id: ELEMENTS.SCAN_ADD_BTN,
+        hasAttribute: vi.fn().mockReturnValue(false),
+        dataset: {},
+      } as unknown as HTMLElement;
+
+      mockEvent = {
+        target: mockTarget,
+        preventDefault: vi.fn(),
+        stopPropagation: vi.fn(),
+      } as unknown as Event;
+
+      vi.mocked(mockModals.handleModalClick).mockReturnValue(false);
+
+      await eventHandler['handleClick'](mockEvent);
+
+      expect(hideScanPanelSpy).toHaveBeenCalled();
+      expect(mockModals.openAddModal).toHaveBeenCalled();
+    });
+
     it('should show error when scanBarcode fails', async () => {
       eventHandler['scannedBarcode'] = '1234567890';
 
@@ -965,6 +1052,137 @@ describe('EventHandler', () => {
 
       expect(mockErrorEl.style.display).toBe('block');
       expect(mockErrorEl.textContent).toBe('No item found for this barcode');
+    });
+  });
+
+  describe('handleBarcodeProductLookup', () => {
+    it('should auto-fill when single result found', async () => {
+      const mockNameEl = { value: '', dispatchEvent: vi.fn() } as any;
+      const mockDescEl = { value: '', dispatchEvent: vi.fn() } as any;
+      const mockCatEl = { value: '', dispatchEvent: vi.fn() } as any;
+      const mockUnitEl = { value: '', dispatchEvent: vi.fn() } as any;
+
+      (mockRenderRoot as any).getElementById = vi.fn((id: string) => {
+        if (id === 'add-name') return mockNameEl;
+        if (id === 'add-description') return mockDescEl;
+        if (id === 'add-category') return mockCatEl;
+        if (id === 'add-unit') return mockUnitEl;
+        return null;
+      });
+
+      (mockServices as any).lookupBarcodeProduct = vi.fn().mockResolvedValue({
+        barcode: '123',
+        results: [
+          {
+            provider: 'openfoodfacts',
+            found: true,
+            product: { name: 'Soup', brand: 'Campbell', category: 'Food', unit: '400g' },
+          },
+          { provider: 'openbeautyfacts', found: false },
+        ],
+      });
+
+      await eventHandler['handleBarcodeProductLookup']('123');
+      await vi.runAllTimersAsync();
+
+      expect(mockNameEl.value).toBe('Soup');
+    });
+
+    it('should show product picker when multiple results found', async () => {
+      vi.mocked(Utilities.sanitizeHtml).mockImplementation((s: string) => s);
+
+      const mockPicker = { style: { display: 'none' } } as any;
+      const mockList = {
+        innerHTML: '',
+        querySelectorAll: vi.fn().mockReturnValue([]),
+      } as any;
+
+      (mockRenderRoot as any).getElementById = vi.fn((id: string) => {
+        if (id === 'add-product-picker') return mockPicker;
+        if (id === 'add-product-picker-list') return mockList;
+        return null;
+      });
+
+      (mockServices as any).lookupBarcodeProduct = vi.fn().mockResolvedValue({
+        barcode: '123',
+        results: [
+          { provider: 'openfoodfacts', found: true, product: { name: 'Product A' } },
+          { provider: 'openbeautyfacts', found: true, product: { name: 'Product B' } },
+        ],
+      });
+
+      await eventHandler['handleBarcodeProductLookup']('123');
+      await vi.runAllTimersAsync();
+
+      expect(mockPicker.style.display).toBe('block');
+      expect(mockList.innerHTML).toContain('Product A');
+      expect(mockList.innerHTML).toContain('Product B');
+    });
+
+    it('should not auto-fill when no results found', async () => {
+      (mockServices as any).lookupBarcodeProduct = vi.fn().mockResolvedValue({
+        barcode: '123',
+        results: [
+          { provider: 'openfoodfacts', found: false },
+          { provider: 'openbeautyfacts', found: false },
+        ],
+      });
+
+      const getById = vi.fn().mockReturnValue(null);
+      (mockRenderRoot as any).getElementById = getById;
+
+      await eventHandler['handleBarcodeProductLookup']('123');
+      await vi.runAllTimersAsync();
+
+      // Should not have tried to get any form fields
+      expect(getById).not.toHaveBeenCalledWith('add-name');
+    });
+  });
+
+  describe('selectProduct', () => {
+    it('should fill name, description, category and unit fields', () => {
+      const mockNameEl = { value: '', dispatchEvent: vi.fn() } as any;
+      const mockDescEl = { value: '', dispatchEvent: vi.fn() } as any;
+      const mockCatEl = { value: '', dispatchEvent: vi.fn() } as any;
+      const mockUnitEl = { value: '', dispatchEvent: vi.fn() } as any;
+      const mockPicker = { style: { display: 'block' } } as any;
+
+      (mockRenderRoot as any).getElementById = vi.fn((id: string) => {
+        if (id === 'add-name') return mockNameEl;
+        if (id === 'add-description') return mockDescEl;
+        if (id === 'add-category') return mockCatEl;
+        if (id === 'add-unit') return mockUnitEl;
+        if (id === 'add-product-picker') return mockPicker;
+        return null;
+      });
+
+      eventHandler['selectProduct']('add', {
+        name: 'Cheerios',
+        brand: 'General Mills',
+        description: 'Cereal',
+        category: 'Breakfast',
+        unit: '340g',
+      });
+
+      expect(mockNameEl.value).toBe('Cheerios');
+      expect(mockDescEl.value).toBe('General Mills - Cereal');
+      expect(mockCatEl.value).toBe('Breakfast');
+      expect(mockUnitEl.value).toBe('340g');
+      expect(mockPicker.style.display).toBe('none');
+    });
+  });
+
+  describe('hideProductPicker', () => {
+    it('should hide the picker element', () => {
+      const mockPicker = { style: { display: 'block' } } as any;
+      (mockRenderRoot as any).getElementById = vi.fn((id: string) => {
+        if (id === 'add-product-picker') return mockPicker;
+        return null;
+      });
+
+      eventHandler['hideProductPicker']('add');
+
+      expect(mockPicker.style.display).toBe('none');
     });
   });
 });

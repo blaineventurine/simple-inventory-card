@@ -46,7 +46,8 @@
     "cancel": "Cancelar",
     "starting_camera": "Iniciando cámara...",
     "barcode_not_found": "No se encontró artículo para este código de barras",
-    "scan_success": "Actualizado {name}"
+    "scan_success": "Actualizado {name}",
+    "add_new_item": "Agregar"
   },
   "modal": {
     "add_item": "Agregar Artículo",
@@ -90,7 +91,12 @@
     "scan_barcode": "Escanear con cámara",
     "close_scanner": "Cerrar escáner",
     "camera_permission_denied": "Acceso a cámara denegado",
-    "camera_not_available": "Cámara no disponible"
+    "camera_not_available": "Cámara no disponible",
+    "multiple_products_found": "Se encontraron múltiples productos — seleccione uno:",
+    "provider_openfoodfacts": "Open Food Facts",
+    "provider_openbeautyfacts": "Open Beauty Facts",
+    "provider_inventory": "Artículo existente",
+    "provider_openpetfoodfacts": "Open Pet Food Facts"
   },
   "filters": {
     "all_categories": "Todas las Categorías",
