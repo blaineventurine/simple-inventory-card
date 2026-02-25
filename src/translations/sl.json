@@ -46,7 +46,8 @@
     "cancel": "Prekliči",
     "starting_camera": "Zagon kamere ...",
     "barcode_not_found": "Za to črtno kodo ni najdenega predmeta",
-    "scan_success": "Posodobljen predmet: {name}"
+    "scan_success": "Posodobljen predmet: {name}",
+	"add_new_item": "Dodaj predmet"
   },
   "modal": {
     "add_item": "Dodaj predmet",
@@ -90,7 +91,12 @@
     "scan_barcode": "Skeniraj s kamero",
     "close_scanner": "Zapri skener",
     "camera_permission_denied": "Dostop do kamere je zavrnjen",
-    "camera_not_available": "Kamera ni na voljo"
+    "camera_not_available": "Kamera ni na voljo",
+	"multiple_products_found": "Najdenih je več predmetov — izberite enega:",
+    "provider_inventory": "Obstoječi predmet",
+    "provider_openbeautyfacts": "Open Beauty Facts",
+    "provider_openfoodfacts": "Open Food Facts",
+    "provider_openpetfoodfacts": "Open Pet Food Facts"
   },
   "filters": {
     "all_categories": "Vse kategorije",
