@@ -102,7 +102,7 @@ Barcodes can also be used to identify items in automations (e.g. scan-to-increme
 
 The card header includes a scan button (barcode icon) for quickly incrementing or decrementing an existing item without opening any modal. Tap the scan button to open the camera, scan a barcode, then choose increment/decrement and an amount before confirming. The scanned barcode is resolved across all inventories automatically via the `scan_barcode` service.
 
-> **Note:** Camera barcode scanning requires your Home Assistant instance to be accessed over HTTPS. Browsers block camera access on insecure (HTTP) connections. If you use the Home Assistant Companion app, this is handled automatically. For browser access, ensure you have SSL/TLS configured (e.g. via Nabu Casa, a reverse proxy, or the `ssl` configuration in Home Assistant).
+> **Note:** Camera barcode scanning requires your Home Assistant instance to be accessed over HTTPS. Browsers block camera access on insecure (HTTP) connections. If you use the Home Assistant Companion app, this is not handled automatically. For browser access, ensure you have SSL/TLS configured (e.g. via Nabu Casa, a reverse proxy, or the `ssl` configuration in Home Assistant).
 
 ### Auto-Add to Todo List
 
