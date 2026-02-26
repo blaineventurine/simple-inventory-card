@@ -47,6 +47,7 @@
     "starting_camera": "Starting camera...",
     "barcode_not_found": "No item found for this barcode",
     "no_barcode_found": "No barcode found in photo",
+    "in_stock": "In stock: {quantity}",
     "scan_success": "Updated {name}",
     "add_new_item": "Add Item"
   },

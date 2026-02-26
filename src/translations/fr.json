@@ -47,6 +47,7 @@
     "starting_camera": "Démarrage de la caméra...",
     "barcode_not_found": "Aucun article trouvé pour ce code-barres",
     "no_barcode_found": "Aucun code-barres trouvé dans la photo",
+    "in_stock": "En stock : {quantity}",
     "scan_success": "Mis à jour {name}",
     "add_new_item": "Ajouter"
   },

@@ -939,24 +939,40 @@ export class EventHandler {
       input.type = 'file';
       input.accept = 'image/*';
       input.capture = 'environment';
-      input.style.display = 'none';
+      // position off-screen instead of display:none — iOS WKWebView may not fire
+      // the change event on a hidden (display:none) file input
+      input.style.position = 'fixed';
+      input.style.top = '-9999px';
+      input.style.left = '-9999px';
+      input.style.width = '0';
+      input.style.height = '0';
+      input.style.opacity = '0';
       document.body.appendChild(input);
       input.addEventListener('change', async () => {
-        document.body.removeChild(input);
         const file = input.files?.[0];
+        document.body.removeChild(input);
         if (!file) return;
         const error = await decodeFromFile(file, (code) => {
           this.handleScanDetected(code);
         });
         if (error) {
-          alert(
-            TranslationManager.localize(
+          const panel = this.renderRoot.getElementById(ELEMENTS.SCAN_PANEL);
+          const viewportContainer = this.renderRoot.getElementById(
+            `${ELEMENTS.SCAN_VIEWPORT}-container`,
+          );
+          const errorEl = this.renderRoot.getElementById('scan-panel-error');
+          if (panel && errorEl) {
+            panel.style.display = 'block';
+            if (viewportContainer) viewportContainer.style.display = 'none';
+            errorEl.textContent = TranslationManager.localize(
               this.translations,
               'scanner.no_barcode_found',
               undefined,
               'No barcode found in photo',
-            ),
-          );
+            );
+            errorEl.style.display = 'block';
+            setTimeout(() => this.hideScanPanel(), 3000);
+          }
         }
       });
       input.click();
@@ -1010,6 +1026,9 @@ export class EventHandler {
     stopScanner();
     this.scannedBarcode = barcode;
 
+    const panel = this.renderRoot.getElementById(ELEMENTS.SCAN_PANEL);
+    if (panel) panel.style.display = 'block';
+
     const viewportContainer = this.renderRoot.getElementById(`${ELEMENTS.SCAN_VIEWPORT}-container`);
     const actionBar = this.renderRoot.getElementById(ELEMENTS.SCAN_ACTION_BAR);
     const label = this.renderRoot.getElementById('scan-barcode-label');
@@ -1021,6 +1040,7 @@ export class EventHandler {
       ELEMENTS.SCAN_ACTION_SELECT,
     ) as HTMLSelectElement | null;
     const itemNameEl = this.renderRoot.getElementById(ELEMENTS.SCAN_ITEM_NAME);
+    const itemQuantityEl = this.renderRoot.getElementById(ELEMENTS.SCAN_ITEM_QUANTITY);
     const existingControls = this.renderRoot.getElementById(ELEMENTS.SCAN_EXISTING_CONTROLS);
     const addBtn = this.renderRoot.getElementById(ELEMENTS.SCAN_ADD_BTN);
     const goBtn = this.renderRoot.getElementById(ELEMENTS.SCAN_GO_BTN);
@@ -1035,25 +1055,37 @@ export class EventHandler {
     if (amountInput) amountInput.value = '1';
     if (actionSelect) actionSelect.value = 'increment';
 
-    // Look up whether this barcode is known in the current inventory
     const inventoryId = Utilities.getInventoryId(this.hass, this.config.entity);
     const result = await this.services.lookupByBarcode(barcode);
     const localItems = result.items.filter((item) => item.inventory_id === inventoryId);
 
     if (localItems.length > 0) {
-      // Known barcode in this inventory — show item name and inc/dec controls
+      const item = localItems[0];
       if (itemNameEl) {
-        itemNameEl.textContent = localItems[0].name;
+        itemNameEl.textContent = item.name;
         itemNameEl.style.display = '';
+      }
+      if (itemQuantityEl) {
+        const qty = item.unit ? `${item.quantity} ${item.unit}` : String(item.quantity ?? 0);
+        itemQuantityEl.textContent = TranslationManager.localize(
+          this.translations,
+          'scanner.in_stock',
+          { quantity: qty },
+          `In stock: ${qty}`,
+        );
+        itemQuantityEl.style.display = '';
       }
       if (existingControls) existingControls.style.display = '';
       if (addBtn) addBtn.style.display = 'none';
       if (goBtn) goBtn.style.display = '';
     } else {
-      // Unknown barcode in this inventory — hide inc/dec, show add button
       if (itemNameEl) {
         itemNameEl.textContent = '';
         itemNameEl.style.display = 'none';
+      }
+      if (itemQuantityEl) {
+        itemQuantityEl.textContent = '';
+        itemQuantityEl.style.display = 'none';
       }
       if (existingControls) existingControls.style.display = 'none';
       if (addBtn) addBtn.style.display = '';
@@ -1103,14 +1135,12 @@ export class EventHandler {
     const barcode = this.scannedBarcode;
     this.hideScanPanel();
 
-    // Open add modal (same as OPEN_ADD_MODAL case)
     const locations = this.getUniqueLocations();
     const categories = this.getUniqueCategories();
     this.modals.openAddModal(this.translations, locations, categories, (bc: string) =>
       this.handleBarcodeProductLookup(bc),
     );
 
-    // Pre-fill the barcode after modal opens
     if (barcode) {
       setTimeout(() => {
         const hiddenInput = this.renderRoot.getElementById(
@@ -1123,7 +1153,6 @@ export class EventHandler {
         if (hiddenInput) {
           hiddenInput.value = barcode;
 
-          // Render the barcode chip
           if (chipsContainer) {
             const chip = document.createElement('span');
             chip.className = 'barcode-chip';
@@ -1132,7 +1161,6 @@ export class EventHandler {
             chipsContainer.appendChild(chip);
           }
 
-          // Trigger product lookup
           this.handleBarcodeProductLookup(barcode);
         }
       }, 0);

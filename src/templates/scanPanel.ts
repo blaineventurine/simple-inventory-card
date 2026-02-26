@@ -18,6 +18,7 @@ export function createScanPanel(translations: TranslationData): string {
         <div class="scan-info-row">
           <span class="scan-barcode-label" id="scan-barcode-label"></span>
           <span id="${ELEMENTS.SCAN_ITEM_NAME}" class="scan-item-name" style="display:none;"></span>
+          <span id="${ELEMENTS.SCAN_ITEM_QUANTITY}" class="scan-item-quantity" style="display:none;"></span>
         </div>
         <span id="${ELEMENTS.SCAN_EXISTING_CONTROLS}" class="scan-existing-controls">
           <select id="${ELEMENTS.SCAN_ACTION_SELECT}" class="scan-action-select">

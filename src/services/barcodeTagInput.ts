@@ -122,7 +122,6 @@ export function initializeBarcodeTagInput(
   };
 
   const showError = (message: string): void => {
-    // Remove any existing error
     const existing = scannerContainer.parentElement?.querySelector('.barcode-scanner-error');
     if (existing) existing.remove();
 
@@ -139,11 +138,17 @@ export function initializeBarcodeTagInput(
       input.type = 'file';
       input.accept = 'image/*';
       input.capture = 'environment';
-      input.style.display = 'none';
+      input.style.position = 'fixed';
+      input.style.top = '-9999px';
+      input.style.left = '-9999px';
+      input.style.width = '0';
+      input.style.height = '0';
+      input.style.opacity = '0';
       document.body.appendChild(input);
       input.addEventListener('change', async () => {
-        document.body.removeChild(input);
         const file = input.files?.[0];
+        document.body.removeChild(input);
+
         if (!file) return;
         const error = await decodeFromFile(file, (code) => {
           addBarcodeChip(code, hiddenInput, chipsContainer, onBarcodeAdded);

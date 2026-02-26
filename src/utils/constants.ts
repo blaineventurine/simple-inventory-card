@@ -103,6 +103,7 @@ export const ELEMENTS = {
   SCAN_AMOUNT_INPUT: 'scan-amount-input',
   SCAN_GO_BTN: 'scan-go-btn',
   SCAN_ITEM_NAME: 'scan-item-name',
+  SCAN_ITEM_QUANTITY: 'scan-item-quantity',
   SCAN_ADD_BTN: 'scan-add-btn',
   SCAN_EXISTING_CONTROLS: 'scan-existing-controls',
   SCAN_CANCEL_BTN: 'scan-cancel-btn',

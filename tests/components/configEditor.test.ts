@@ -131,7 +131,7 @@ describe('ConfigEditor', () => {
       vi.mocked(Utilities.createEntityOptions).mockReturnValue([]);
     });
 
-    it('should set default entity and dispatch event when no entity selected', () => {
+    it('should set default entity and dispatch event when no entity selected', async () => {
       const mockEntities = ['sensor.inventory1', 'sensor.inventory2'];
       vi.mocked(Utilities.findInventoryEntities).mockReturnValue(mockEntities);
 
@@ -139,8 +139,9 @@ describe('ConfigEditor', () => {
         type: 'custom:simple-inventory-card',
         entity: '',
       };
+      configEditor['_configSetExternally'] = true;
 
-      configEditor.render();
+      await configEditor['updated'](new Map([['hass', undefined]]));
 
       expect(configEditor['_config'].entity).toBe('sensor.inventory1');
       expect(vi.mocked(configEditor.dispatchEvent)).toHaveBeenCalledWith(
@@ -156,7 +157,7 @@ describe('ConfigEditor', () => {
       );
     });
 
-    it('should not set default entity when entity already selected', () => {
+    it('should not set default entity when entity already selected', async () => {
       const mockEntities = ['sensor.inventory1', 'sensor.inventory2'];
       vi.mocked(Utilities.findInventoryEntities).mockReturnValue(mockEntities);
 
@@ -164,10 +165,24 @@ describe('ConfigEditor', () => {
         type: 'custom:simple-inventory-card',
         entity: 'sensor.existing',
       };
+      configEditor['_configSetExternally'] = true;
 
-      configEditor.render();
+      await configEditor['updated'](new Map([['hass', undefined]]));
 
       expect(configEditor['_config'].entity).toBe('sensor.existing');
+      expect(vi.mocked(configEditor.dispatchEvent)).not.toHaveBeenCalled();
+    });
+
+    it('should not auto-select entity before setConfig is called', async () => {
+      const mockEntities = ['sensor.inventory1', 'sensor.inventory2'];
+      vi.mocked(Utilities.findInventoryEntities).mockReturnValue(mockEntities);
+
+      // _configSetExternally is false (setConfig not yet called)
+      configEditor['_config'] = { type: '', entity: '' };
+      configEditor['_configSetExternally'] = false;
+
+      await configEditor['updated'](new Map([['hass', undefined]]));
+
       expect(vi.mocked(configEditor.dispatchEvent)).not.toHaveBeenCalled();
     });
 
@@ -205,10 +220,13 @@ describe('ConfigEditor', () => {
     });
 
     it('should delegate to template functions', () => {
-      const mockEntities = ['sensor.inventory1'];
+      configEditor['_config'] = {
+        type: 'inventory-card',
+        entity: 'sensor.inventory1',
+      };
       const mockOptions = [{ value: 'sensor.inventory1', label: 'Inventory 1' }];
 
-      vi.mocked(Utilities.findInventoryEntities).mockReturnValue(mockEntities);
+      vi.mocked(Utilities.findInventoryEntities).mockReturnValue(['sensor.inventory1']);
       vi.mocked(Utilities.createEntityOptions).mockReturnValue(mockOptions);
 
       configEditor.render();

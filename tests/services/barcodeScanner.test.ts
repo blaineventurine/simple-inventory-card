@@ -180,6 +180,28 @@ describe('decodeFromFile', () => {
     vi.stubGlobal('FileReader', function () {
       return mockFileReader;
     });
+    // Mock Image so resizeToDataUrl resolves without a real browser
+    vi.stubGlobal(
+      'Image',
+      vi.fn().mockImplementation(() => {
+        const imgMock: any = {
+          naturalWidth: 100,
+          naturalHeight: 100,
+          onload: null as (() => void) | null,
+          onerror: null as (() => void) | null,
+        };
+        Object.defineProperty(imgMock, 'src', {
+          set(_: string) {
+            // Fire onload asynchronously (after img.onload is assigned)
+            Promise.resolve().then(() => imgMock.onload?.());
+          },
+          get() {
+            return '';
+          },
+        });
+        return imgMock;
+      }),
+    );
   });
 
   afterEach(() => {
@@ -225,7 +247,7 @@ describe('decodeFromFile', () => {
     expect(onDetected).not.toHaveBeenCalled();
   });
 
-  it('resolves not_found when confidence is too low (avgError >= 0.1)', async () => {
+  it('resolves not_found when confidence is too low (avgError >= 0.2)', async () => {
     mockDecodeSingle.mockImplementation((_config: any, cb: any) => {
       cb({
         codeResult: {
@@ -234,6 +256,22 @@ describe('decodeFromFile', () => {
         },
       });
       return Promise.resolve({} as any);
+    });
+
+    const file = new File(['data'], 'test.jpg', { type: 'image/jpeg' });
+    const onDetected = vi.fn();
+    const resultPromise = decodeFromFile(file, onDetected);
+
+    mockFileReader.onload!({ target: { result: 'data:image/jpeg;base64,abc' } });
+
+    const result = await resultPromise;
+    expect(result).toBe('not_found');
+    expect(onDetected).not.toHaveBeenCalled();
+  });
+
+  it('resolves not_found when decodeSingle throws inside onload', async () => {
+    mockDecodeSingle.mockImplementation(() => {
+      throw new Error('Quagga internal error');
     });
 
     const file = new File(['data'], 'test.jpg', { type: 'image/jpeg' });
@@ -257,5 +295,70 @@ describe('decodeFromFile', () => {
     const result = await resultPromise;
     expect(result).toBe('not_found');
     expect(onDetected).not.toHaveBeenCalled();
+  });
+
+  describe('BarcodeDetector path', () => {
+    let mockDetect: ReturnType<typeof vi.fn>;
+    let mockBitmap: { close: ReturnType<typeof vi.fn> };
+
+    beforeEach(() => {
+      mockBitmap = { close: vi.fn() };
+      vi.stubGlobal('createImageBitmap', vi.fn().mockResolvedValue(mockBitmap));
+      mockDetect = vi.fn();
+      vi.stubGlobal(
+        'BarcodeDetector',
+        vi.fn().mockImplementation(() => ({ detect: mockDetect })),
+      );
+    });
+
+    it('calls onDetected and resolves null when barcode found', async () => {
+      mockDetect.mockResolvedValue([{ rawValue: '1234567890128' }]);
+
+      const file = new File(['data'], 'test.jpg', { type: 'image/jpeg' });
+      const onDetected = vi.fn();
+      const result = await decodeFromFile(file, onDetected);
+
+      expect(result).toBeNull();
+      expect(onDetected).toHaveBeenCalledWith('1234567890128');
+      expect(mockBitmap.close).toHaveBeenCalled();
+    });
+
+    it('resolves not_found when no barcodes detected', async () => {
+      mockDetect.mockResolvedValue([]);
+
+      const file = new File(['data'], 'test.jpg', { type: 'image/jpeg' });
+      const result = await decodeFromFile(file, vi.fn());
+
+      expect(result).toBe('not_found');
+      expect(mockBitmap.close).toHaveBeenCalled();
+    });
+
+    it('falls through to Quagga when BarcodeDetector throws', async () => {
+      mockDetect.mockRejectedValue(new Error('detection failed'));
+      mockDecodeSingle.mockImplementation((_config: any, cb: any) => {
+        cb({
+          codeResult: {
+            code: '1234567890128',
+            decodedCodes: [{ error: 0.01 }],
+          },
+        });
+        return Promise.resolve({} as any);
+      });
+
+      const file = new File(['data'], 'test.jpg', { type: 'image/jpeg' });
+      const onDetected = vi.fn();
+      const resultPromise = decodeFromFile(file, onDetected);
+
+      // Flush: createImageBitmap resolve, then detect rejection + catch block
+      await Promise.resolve();
+      await Promise.resolve();
+
+      // Quagga fallback is now active — trigger FileReader.onload
+      mockFileReader.onload!({ target: { result: 'data:image/jpeg;base64,abc' } });
+
+      const result = await resultPromise;
+      expect(result).toBeNull();
+      expect(onDetected).toHaveBeenCalledWith('1234567890128');
+    });
   });
 });

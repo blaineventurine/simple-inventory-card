@@ -15,6 +15,7 @@ class ConfigEditor extends LitElement {
   public hass?: HomeAssistant;
   private _config?: InventoryConfig;
   private _translations: TranslationData = {};
+  private _configSetExternally = false;
 
   constructor() {
     super();
@@ -43,6 +44,28 @@ class ConfigEditor extends LitElement {
         await this._loadTranslations();
       }
     }
+
+    // Auto-select the first available inventory entity for new cards.
+    // Guarded by _configSetExternally so this never fires before setConfig is called,
+    // which prevents stripping saved show_* toggle values on editor open.
+    if (this._configSetExternally && this.hass && this._config && !this._config.entity) {
+      const inventoryEntities = Utilities.findInventoryEntities(this.hass);
+      if (inventoryEntities.length > 0) {
+        const config: InventoryConfig = {
+          ...this._config,
+          type: this._config.type || 'custom:simple-inventory-card',
+          entity: inventoryEntities[0],
+        };
+        this._config = config;
+        this.dispatchEvent(
+          new CustomEvent('config-changed', {
+            detail: { config },
+            bubbles: true,
+            composed: true,
+          }),
+        );
+      }
+    }
   }
 
   private async _loadTranslations(): Promise<void> {
@@ -58,6 +81,7 @@ class ConfigEditor extends LitElement {
 
   setConfig(config: InventoryConfig): void {
     this._config = { ...config };
+    this._configSetExternally = true;
   }
 
   get _entity(): string {
@@ -77,21 +101,6 @@ class ConfigEditor extends LitElement {
     }
     const inventoryEntities = Utilities.findInventoryEntities(this.hass);
     const entityOptions = Utilities.createEntityOptions(this.hass, inventoryEntities);
-
-    if (!this._config.entity && inventoryEntities.length > 0) {
-      if (!this._config.type) {
-        this._config.type = 'custom:simple-inventory-card';
-      }
-
-      this._config.entity = inventoryEntities[0];
-      this.dispatchEvent(
-        new CustomEvent('config-changed', {
-          detail: { config: this._config },
-          bubbles: true,
-          composed: true,
-        }),
-      );
-    }
 
     return html`
       <div class="card-config">
