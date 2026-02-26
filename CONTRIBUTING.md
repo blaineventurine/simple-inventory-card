@@ -74,7 +74,7 @@ Output is a single ES module at `dist/simple-inventory-card.js`, plus translatio
 
 A few things that are easy to get wrong:
 
-- **Translations**: always use `TranslationManager.localize(translations, key, params, fallback)` for any user-visible string. Never hardcode English text in templates. All four locale files (`en`, `es`, `fr`, `it`) must be updated together — read only `en.json` to find the key path, then apply the same structural change to all four.
+- **Translations**: always use `TranslationManager.localize(translations, key, params, fallback)` for any user-visible string. Never hardcode English text in templates. All locale files (`en`, `es`, `fr`, `it`, etc.) must be updated together — read only `en.json` to find the key path, then apply the same structural change to all four.
 - **String templates**: this project uses plain template literals for HTML generation, not Lit's `html` tagged template. Keep new templates consistent with the existing pattern in `src/templates/`.
 - **Constants**: use named constants from `src/utils/constants.ts` (`DOMAIN`, `SERVICES`, `PARAMS`, `ELEMENTS`, etc.) instead of raw strings.
 - **Multi-value locations and categories**: the backend returns both scalar fields (`location`, `category` with the first value) and array fields (`locations`, `categories` with all values). Prefer the array fields in new frontend code.
