@@ -48,7 +48,7 @@ Runs Prettier. Auto-fix with `npm run format`. Config: single quotes, semi-colon
 npm run check-translations
 ```
 
-Validates that all four locale files (`en.json`, `es.json`, `fr.json`, `it.json`) have identical key structure. This runs during CI and will fail the build if any locale is missing keys or has extras.
+Validates that all locale files (`en.json`, `es.json`, etc.) have identical key structure. This runs during CI and will fail the build if any locale is missing keys or has extras.
 
 ### Tests
 
@@ -56,7 +56,7 @@ Validates that all four locale files (`en.json`, `es.json`, `fr.json`, `it.json`
 npm run test:run
 ```
 
-Coverage must stay at or above **80%** across branches, functions, lines, and statements. Run with coverage:
+Coverage should stay at or above **80%** across branches, functions, lines, and statements. Run with coverage:
 
 ```bash
 npm run test:coverage
@@ -85,7 +85,7 @@ A few things that are easy to get wrong:
 ## What makes a good PR
 
 - Focused on one thing.
-- Includes tests for new behaviour.
+- Includes tests for new behavior.
 - Updates all four translation files if any new user-visible strings are added.
 - Passes all CI checks (type-check, lint, format, translations, tests, build).
 - Has a clear description of what changed and why.
