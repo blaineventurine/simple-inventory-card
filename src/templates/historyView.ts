@@ -31,7 +31,7 @@ function renderEvent(event: HistoryEvent): string {
       <span class="history-icon">${icon}</span>
       <div class="history-details">
         <span class="history-type">${event.event_type}${locationInfo}</span>
-        <span class="history-qty">${event.quantity_before} → ${event.quantity_after} (${event.amount >= 0 ? '+' : ''}${event.amount})</span>
+        <span class="history-qty">${event.quantity_before} → ${event.quantity_after} (${event.quantity_before > event.quantity_after ? '-' : event.quantity_before < event.quantity_after ? '+' : ''}${event.amount})</span>
         <span class="history-time">${formatTimestamp(event.timestamp)}</span>
       </div>
     </div>
