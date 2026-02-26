@@ -198,9 +198,7 @@ export class Services {
         [PARAMS.UNIT]: sanitizedItemData.unit,
       };
 
-      if (sanitizedItemData.barcode) {
-        parameters[PARAMS.BARCODE] = sanitizedItemData.barcode;
-      }
+      parameters[PARAMS.BARCODE] = sanitizedItemData.barcode;
 
       await this.hass.callService(DOMAIN, SERVICES.UPDATE_ITEM, parameters);
       return { success: true };
