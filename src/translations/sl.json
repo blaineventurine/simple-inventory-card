@@ -46,8 +46,10 @@
     "cancel": "Prekliči",
     "starting_camera": "Zagon kamere ...",
     "barcode_not_found": "Za to črtno kodo ni najdenega predmeta",
+    "no_barcode_found": "V fotografiji ni najdene črtne kode",
+    "in_stock": "Na zalogi: {quantity}",
     "scan_success": "Posodobljen predmet: {name}",
-	"add_new_item": "Dodaj predmet"
+    "add_new_item": "Dodaj predmet"
   },
   "modal": {
     "add_item": "Dodaj predmet",

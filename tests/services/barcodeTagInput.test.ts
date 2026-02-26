@@ -1,11 +1,20 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 import {
   initializeBarcodeTagInput,
   stopAllBarcodeScanners,
 } from '../../src/services/barcodeTagInput';
+import { isLiveScanAvailable, decodeFromFile } from '../../src/services/barcodeScanner';
 
 // quagga2 is globally mocked in tests/setup.ts
+
+vi.mock('../../src/services/barcodeScanner', () => ({
+  startScanner: vi.fn().mockResolvedValue(null),
+  stopScanner: vi.fn(),
+  isScannerActive: vi.fn().mockReturnValue(false),
+  isLiveScanAvailable: vi.fn().mockReturnValue(true),
+  decodeFromFile: vi.fn().mockResolvedValue(null),
+}));
 
 vi.mock('../../src/utils/constants', () => ({
   ELEMENTS: {
@@ -208,5 +217,126 @@ describe('barcodeTagInput', () => {
 
   it('should allow stopAllBarcodeScanners to be called without error when no scanner is active', () => {
     expect(() => stopAllBarcodeScanners()).not.toThrow();
+  });
+});
+
+describe('barcodeTagInput file input fallback', () => {
+  beforeEach(() => {
+    vi.mocked(isLiveScanAvailable).mockReturnValue(false);
+    vi.mocked(decodeFromFile).mockResolvedValue(null);
+  });
+
+  afterEach(() => {
+    vi.mocked(isLiveScanAvailable).mockReturnValue(true);
+  });
+
+  function createRootWithScanner(prefix: string): ShadowRoot {
+    const root = createMockShadowRoot(prefix);
+    const container = root as unknown as HTMLElement;
+    const scanBtn = document.createElement('button');
+    scanBtn.id = `${prefix}-barcode-scan-btn`;
+    container.appendChild(scanBtn);
+    const scannerContainer = document.createElement('div');
+    scannerContainer.id = `${prefix}-barcode-scanner`;
+    container.appendChild(scannerContainer);
+    const viewport = document.createElement('div');
+    viewport.id = `${prefix}-barcode-viewport`;
+    container.appendChild(viewport);
+    const closeBtn = document.createElement('button');
+    closeBtn.id = `${prefix}-barcode-scanner-close`;
+    container.appendChild(closeBtn);
+    return root;
+  }
+
+  it('creates a file input when live scan is not available and scan button is clicked', async () => {
+    const root = createRootWithScanner('add');
+    initializeBarcodeTagInput(root, 'add');
+
+    const appendSpy = vi.spyOn(document.body, 'appendChild').mockImplementation((el) => el);
+    const removeSpy = vi.spyOn(document.body, 'removeChild').mockImplementation((el) => el);
+
+    const scanBtn = (root as unknown as HTMLElement).querySelector(
+      '#add-barcode-scan-btn',
+    ) as HTMLButtonElement;
+    scanBtn.click();
+
+    expect(appendSpy).toHaveBeenCalledOnce();
+    const fileInput = appendSpy.mock.calls[0][0] as HTMLInputElement;
+    expect(fileInput.type).toBe('file');
+    expect(fileInput.accept).toBe('image/*');
+
+    appendSpy.mockRestore();
+    removeSpy.mockRestore();
+  });
+
+  it('adds barcode chip when decodeFromFile succeeds', async () => {
+    vi.mocked(decodeFromFile).mockImplementation(async (_file, onDetected) => {
+      onDetected('9780201379624');
+      return null;
+    });
+
+    const root = createRootWithScanner('add');
+    const callback = vi.fn();
+    initializeBarcodeTagInput(root, 'add', callback);
+
+    let capturedInput: HTMLInputElement | null = null;
+    const appendSpy = vi.spyOn(document.body, 'appendChild').mockImplementation((el) => {
+      capturedInput = el as HTMLInputElement;
+      return el;
+    });
+    const removeSpy = vi.spyOn(document.body, 'removeChild').mockImplementation((el) => el);
+
+    const scanBtn = (root as unknown as HTMLElement).querySelector(
+      '#add-barcode-scan-btn',
+    ) as HTMLButtonElement;
+    scanBtn.click();
+
+    const file = new File(['data'], 'photo.jpg', { type: 'image/jpeg' });
+    Object.defineProperty(capturedInput!, 'files', { value: [file], configurable: true });
+    capturedInput!.dispatchEvent(new Event('change'));
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(decodeFromFile).toHaveBeenCalledWith(file, expect.any(Function));
+    const hiddenInput = (root as unknown as HTMLElement).querySelector(
+      '#add-barcode',
+    ) as HTMLInputElement;
+    expect(hiddenInput.value).toBe('9780201379624');
+    expect(callback).toHaveBeenCalledWith('9780201379624');
+
+    appendSpy.mockRestore();
+    removeSpy.mockRestore();
+  });
+
+  it('shows an error when decodeFromFile returns not_found', async () => {
+    vi.mocked(decodeFromFile).mockResolvedValue('not_found');
+
+    const root = createRootWithScanner('add');
+    initializeBarcodeTagInput(root, 'add');
+
+    let capturedInput: HTMLInputElement | null = null;
+    const appendSpy = vi.spyOn(document.body, 'appendChild').mockImplementation((el) => {
+      capturedInput = el as HTMLInputElement;
+      return el;
+    });
+    const removeSpy = vi.spyOn(document.body, 'removeChild').mockImplementation((el) => el);
+
+    const scanBtn = (root as unknown as HTMLElement).querySelector(
+      '#add-barcode-scan-btn',
+    ) as HTMLButtonElement;
+    scanBtn.click();
+
+    const file = new File(['data'], 'photo.jpg', { type: 'image/jpeg' });
+    Object.defineProperty(capturedInput!, 'files', { value: [file], configurable: true });
+    capturedInput!.dispatchEvent(new Event('change'));
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    const container = root as unknown as HTMLElement;
+    const errorEl = container.querySelector('.barcode-scanner-error');
+    expect(errorEl).not.toBeNull();
+
+    appendSpy.mockRestore();
+    removeSpy.mockRestore();
   });
 });

@@ -377,6 +377,7 @@ describe('Services', () => {
         [PARAMS.TODO_LIST]: itemData.todoList,
         [PARAMS.TODO_QUANTITY_PLACEMENT]: DEFAULTS.TODO_QUANTITY_PLACEMENT,
         [PARAMS.UNIT]: itemData.unit,
+        [PARAMS.BARCODE]: DEFAULTS.BARCODE,
       });
     });
 
@@ -417,6 +418,7 @@ describe('Services', () => {
         [PARAMS.TODO_LIST]: DEFAULTS.TODO_LIST,
         [PARAMS.TODO_QUANTITY_PLACEMENT]: DEFAULTS.TODO_QUANTITY_PLACEMENT,
         [PARAMS.UNIT]: DEFAULTS.UNIT,
+        [PARAMS.BARCODE]: DEFAULTS.BARCODE,
       });
     });
 
@@ -457,6 +459,7 @@ describe('Services', () => {
         [PARAMS.TODO_LIST]: '',
         [PARAMS.TODO_QUANTITY_PLACEMENT]: DEFAULTS.TODO_QUANTITY_PLACEMENT,
         [PARAMS.UNIT]: DEFAULTS.UNIT, // empty string should use default
+        [PARAMS.BARCODE]: DEFAULTS.BARCODE,
       });
     });
 

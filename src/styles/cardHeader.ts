@@ -263,6 +263,12 @@ export const cardHeaderStyles: CSSResult = css`
     display: inline-block;
   }
 
+  .scan-item-quantity {
+    font-size: 0.8em;
+    color: var(--secondary-text-color);
+    display: inline-block;
+  }
+
   .scan-existing-controls {
     display: inline-flex;
     align-items: center;

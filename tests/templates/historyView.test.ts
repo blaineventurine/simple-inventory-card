@@ -45,7 +45,7 @@ function makeEvent(overrides: Partial<HistoryEvent> = {}): HistoryEvent {
     item_id: 'item-1',
     inventory_id: 'inv-1',
     event_type: 'decrement',
-    amount: -1,
+    amount: 1,
     quantity_before: 3,
     quantity_after: 2,
     source: 'manual',
@@ -149,13 +149,52 @@ describe('historyView', () => {
     });
 
     it('renders events in timeline', () => {
-      const events = [makeEvent(), makeEvent({ id: '2', event_type: 'increment', amount: 1 })];
+      const events = [
+        makeEvent(),
+        makeEvent({
+          id: '2',
+          event_type: 'increment',
+          amount: 1,
+          quantity_before: 2,
+          quantity_after: 3,
+        }),
+      ];
       const html = createHistoryContent(events);
 
       expect(html).toContain('history-timeline');
       expect(html).toContain('history-event');
       expect(html).toContain('decrement');
       expect(html).toContain('increment');
+    });
+
+    it('shows negative sign when quantity_before > quantity_after (decrement)', () => {
+      const event = makeEvent({ amount: 2, quantity_before: 5, quantity_after: 3 });
+      const html = createHistoryContent([event]);
+      expect(html).toContain('(-2)');
+    });
+
+    it('shows positive sign when quantity_before < quantity_after (increment)', () => {
+      const event = makeEvent({
+        event_type: 'increment',
+        amount: 2,
+        quantity_before: 3,
+        quantity_after: 5,
+      });
+      const html = createHistoryContent([event]);
+      expect(html).toContain('(+2)');
+    });
+
+    it('shows no sign when quantity_before equals quantity_after (transfer/update)', () => {
+      const event = makeEvent({
+        event_type: 'transfer',
+        amount: 2,
+        quantity_before: 5,
+        quantity_after: 5,
+      });
+      const html = createHistoryContent([event]);
+      expect(html).toContain('(2)');
+      expect(html).not.toContain('(-2)');
+      expect(html).not.toContain('(+2)');
     });
   });
 

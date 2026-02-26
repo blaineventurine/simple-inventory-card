@@ -46,6 +46,8 @@
     "cancel": "Cancelar",
     "starting_camera": "Iniciando cámara...",
     "barcode_not_found": "No se encontró artículo para este código de barras",
+    "no_barcode_found": "No se encontró ningún código de barras en la foto",
+    "in_stock": "En stock: {quantity}",
     "scan_success": "Actualizado {name}",
     "add_new_item": "Agregar"
   },
