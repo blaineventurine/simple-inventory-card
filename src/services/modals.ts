@@ -34,7 +34,11 @@ export class Modals {
     private readonly services: InventoryServices,
     private readonly getInventoryId: (entityId: string) => string,
     private readonly onDataChanged?: () => void,
-    private getFreshState?: () => { hass: HomeAssistant; config: InventoryConfig },
+    private getFreshState?: () => {
+      hass: HomeAssistant;
+      config: InventoryConfig;
+      items: InventoryItem[];
+    },
   ) {
     this.formManager = new ModalFormManager(shadowRoot);
     this.validationManager = new ModalValidationManager(shadowRoot);
@@ -58,7 +62,7 @@ export class Modals {
 
   public openEditModal(
     itemName: string,
-    getFreshData: () => { hass: HomeAssistant; config: InventoryConfig },
+    getFreshData: () => { hass: HomeAssistant; config: InventoryConfig; items: InventoryItem[] },
     translations: TranslationData,
     locations: string[] = [],
     categories: string[] = [],
@@ -218,7 +222,7 @@ export class Modals {
   }
 
   public setFreshState(
-    getFreshState: () => { hass: HomeAssistant; config: InventoryConfig },
+    getFreshState: () => { hass: HomeAssistant; config: InventoryConfig; items: InventoryItem[] },
   ): void {
     this.getFreshState = getFreshState;
   }
@@ -228,13 +232,7 @@ export class Modals {
       return false;
     }
 
-    const { hass, config } = this.getFreshState();
-    const state = hass.states[config.entity];
-    if (!state?.attributes?.items) {
-      return false;
-    }
-
-    const items: readonly InventoryItem[] = state.attributes.items;
+    const { items } = this.getFreshState();
     return items.some((item) => item.name.toLowerCase() === name.toLowerCase());
   }
 

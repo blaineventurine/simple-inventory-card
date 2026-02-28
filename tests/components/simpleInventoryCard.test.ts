@@ -123,8 +123,12 @@ describe('SimpleInventoryCard', () => {
           userInteracting: false,
           debouncedRender: vi.fn(),
         },
+        services: {
+          getItems: vi.fn().mockResolvedValue([]),
+        },
       };
       mockLifecycleManager.getServices.mockReturnValue(mockServices);
+      vi.mocked(Utilities.getInventoryId).mockReturnValue('test-inventory-id');
     });
 
     it('should render on first hass assignment', async () => {
@@ -141,6 +145,7 @@ describe('SimpleInventoryCard', () => {
       card.hass = mockHass;
       await vi.waitFor(() => expect(TranslationManager.loadTranslations).toHaveBeenCalled());
       vi.clearAllMocks();
+      vi.mocked(Utilities.getInventoryId).mockReturnValue('test-inventory-id');
 
       const mockState = mockLifecycleManager.getServices().state;
       mockState.hasRealEntityChange.mockReturnValue(true);
@@ -152,7 +157,7 @@ describe('SimpleInventoryCard', () => {
       card.hass = updatedHass;
 
       expect(mockLifecycleManager.updateDependencies).toHaveBeenCalledWith(updatedHass, config);
-      expect(renderSpy).toHaveBeenCalled();
+      await vi.waitFor(() => expect(renderSpy).toHaveBeenCalled());
     });
 
     it('should use debounced render when user is interacting', async () => {
@@ -239,6 +244,7 @@ describe('SimpleInventoryCard', () => {
         (card as any)._hass,
         (card as any)._todoLists,
         mockTranslations,
+        (card as any)._items, // cached items array
         expect.any(Function), // validateInventoryItems callback
       );
     });
@@ -247,7 +253,7 @@ describe('SimpleInventoryCard', () => {
       card.render();
 
       const renderCall = mockRenderingCoordinator.render.mock.calls[0];
-      const validateCallback = renderCall[4];
+      const validateCallback = renderCall[5]; // callback is now at index 5 (items is at index 4)
 
       // Test the callback delegates to Utilities
       const testItems = [{ name: 'test' }];

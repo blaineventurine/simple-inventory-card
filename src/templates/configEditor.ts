@@ -39,7 +39,7 @@ export function createEntityInfo(
 ): TemplateResult {
   const state = hass.states[entityId];
   const friendlyName = state?.attributes?.friendly_name || entityId;
-  const itemCount = state?.attributes?.items?.length || 0;
+  const itemCount = state?.attributes?.total_items || 0;
 
   return html`
     <div class="entity-info">

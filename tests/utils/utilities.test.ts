@@ -774,10 +774,10 @@ describe('Utilities', () => {
       it('should find inventory sensor entities', () => {
         mockHass.states = {
           'sensor.kitchen_inventory': createMockHassEntity('sensor.kitchen_inventory', {
-            attributes: { items: [] },
+            attributes: { inventory_id: 'kitchen_id' },
           }),
           'sensor.garage_inventory': createMockHassEntity('sensor.garage_inventory', {
-            attributes: { items: [] },
+            attributes: { inventory_id: 'garage_id' },
           }),
           'sensor.garage_inventory_items_expiring_soon': createMockHassEntity(
             'sensor.garage_inventory_items_expiring_soon',
@@ -1325,18 +1325,18 @@ describe('Utilities', () => {
       it('should test conditional expression mutations in findInventoryEntities', () => {
         mockHass.states = {
           'sensor.inventory_test': createMockHassEntity('sensor.inventory_test', {
-            attributes: { items: [] },
+            attributes: { inventory_id: 'test_id' },
           }),
           'sensor.inventory_items': createMockHassEntity('sensor.inventory_items', {
-            attributes: { items: ['test'] },
+            attributes: { inventory_id: 'items_id' },
           }),
           'sensor.no_match': createMockHassEntity('sensor.no_match'),
           'sensor.inventory_items_expiring_soon': createMockHassEntity(
             'sensor.inventory_items_expiring_soon',
           ),
-          'sensor.has_items_only': createMockHassEntity('sensor.has_items_only', {
-            // Has items but no inventory in name
-            attributes: { items: [] },
+          'sensor.pantry_sensor': createMockHassEntity('sensor.pantry_sensor', {
+            // Has inventory_id but no 'inventory' in name
+            attributes: { inventory_id: 'some_id' },
           }),
         };
 
@@ -1345,7 +1345,7 @@ describe('Utilities', () => {
         expect(result).toContain('sensor.inventory_test');
         expect(result).not.toContain('sensor.no_match');
         expect(result).not.toContain('sensor.inventory_no_items');
-        expect(result).not.toContain('sensor.has_items_only');
+        expect(result).not.toContain('sensor.pantry_sensor');
       });
     });
 

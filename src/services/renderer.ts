@@ -22,7 +22,7 @@ export class Renderer {
   ): void {
     const inventoryName = Utilities.getInventoryName(state, entityId);
     const description = Utilities.getInventoryDescription(state);
-    const allItems: readonly InventoryItem[] = state?.attributes?.items || [];
+    const allItems = items;
     const categorySet = new Set<string>();
     allItems.forEach((item) => {
       if (Array.isArray(item.categories) && item.categories.length > 0) {

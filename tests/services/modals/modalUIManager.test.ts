@@ -219,6 +219,7 @@ describe('ModalUIManager', () => {
         () => ({
           hass: mockHass,
           config: mockConfig,
+          items: mockInventoryItems,
         }),
         mockTranslations,
       );
@@ -245,6 +246,7 @@ describe('ModalUIManager', () => {
         () => ({
           hass: mockHass,
           config: configWithMissingEntity,
+          items: [],
         }),
         mockTranslations,
       );
@@ -265,6 +267,7 @@ describe('ModalUIManager', () => {
         () => ({
           hass: mockHass,
           config: mockConfig,
+          items: mockInventoryItems,
         }),
         mockTranslations,
       );
@@ -289,6 +292,7 @@ describe('ModalUIManager', () => {
         () => ({
           hass: emptyHass,
           config: mockConfig,
+          items: [],
         }),
         mockTranslations,
       );
@@ -309,6 +313,7 @@ describe('ModalUIManager', () => {
         () => ({
           hass: hassWithoutItems,
           config: mockConfig,
+          items: [],
         }),
         mockTranslations,
       );
@@ -726,6 +731,7 @@ describe('ModalUIManager', () => {
         () => ({
           hass: mockHass,
           config: mockConfig,
+          items: mockInventoryItems,
         }),
         mockTranslations,
       );

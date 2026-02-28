@@ -32,7 +32,7 @@ export class LifecycleManager {
     renderCallback: () => void,
     refreshCallback: () => void,
     updateItemsCallback: (items: InventoryItem[], sortMethod: string) => void,
-    getFreshState: () => { hass: HomeAssistant; config: InventoryConfig },
+    getFreshState: () => { hass: HomeAssistant; config: InventoryConfig; items: InventoryItem[] },
     translations: TranslationData,
   ): InitializedServices | undefined {
     if (this.isInitialized && this.services) {

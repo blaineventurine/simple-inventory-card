@@ -140,6 +140,7 @@ describe('RenderingCoordinator', () => {
         mockHass,
         mockTodoLists,
         mockTranslations,
+        [],
         mockValidateItemsCallback,
       );
 
@@ -152,6 +153,7 @@ describe('RenderingCoordinator', () => {
         undefined as any,
         mockTodoLists,
         mockTranslations,
+        [],
         mockValidateItemsCallback,
       );
 
@@ -169,6 +171,7 @@ describe('RenderingCoordinator', () => {
         mockHass,
         mockTodoLists,
         mockTranslations,
+        [],
         mockValidateItemsCallback,
       );
 
@@ -188,6 +191,7 @@ describe('RenderingCoordinator', () => {
         mockHass,
         mockTodoLists,
         mockTranslations,
+        [],
         mockValidateItemsCallback,
       );
 
@@ -205,6 +209,7 @@ describe('RenderingCoordinator', () => {
         mockHass,
         mockTodoLists,
         mockTranslations,
+        [],
         mockValidateItemsCallback,
       );
 
@@ -217,6 +222,7 @@ describe('RenderingCoordinator', () => {
         mockHass,
         mockTodoLists,
         mockTranslations,
+        mockInventoryItems,
         mockValidateItemsCallback,
       );
 
@@ -249,6 +255,7 @@ describe('RenderingCoordinator', () => {
         mockHass,
         mockTodoLists,
         mockTranslations,
+        [],
         mockValidateItemsCallback,
       );
 
@@ -275,6 +282,7 @@ describe('RenderingCoordinator', () => {
         mockHass,
         mockTodoLists,
         mockTranslations,
+        [],
         mockValidateItemsCallback,
       );
 
@@ -294,6 +302,7 @@ describe('RenderingCoordinator', () => {
         mockHass,
         mockTodoLists,
         mockTranslations,
+        [],
         mockValidateItemsCallback,
       );
 
@@ -537,6 +546,7 @@ describe('RenderingCoordinator', () => {
         mockHass,
         mockTodoLists,
         mockTranslations,
+        [],
         mockValidateItemsCallback,
       );
 
@@ -556,6 +566,7 @@ describe('RenderingCoordinator', () => {
         mockHass,
         mockTodoLists,
         mockTranslations,
+        [],
         mockValidateItemsCallback,
       );
 
@@ -574,6 +585,7 @@ describe('RenderingCoordinator', () => {
           mockHass,
           malformedTodoLists,
           mockTranslations,
+          [],
           mockValidateItemsCallback,
         );
       }).not.toThrow();

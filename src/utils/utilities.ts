@@ -572,7 +572,7 @@ export const Utilities = {
         }
 
         const hasInventoryInName = entityId.includes('inventory');
-        const hasItemsAttribute = hass?.states[entityId]?.attributes?.items !== undefined;
+        const hasItemsAttribute = hass?.states[entityId]?.attributes?.inventory_id !== undefined;
 
         return hasInventoryInName && hasItemsAttribute;
       })

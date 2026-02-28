@@ -122,10 +122,10 @@ describe('Renderer', () => {
         mockItems,
         mockFilters,
         'name',
-        ['Category A', 'Category B'], // Sorted categories from state.attributes.items
-        ['Location 1', 'Location 2'], // Locations from state.attributes.items
+        ['Test Category'], // Sorted categories from items param (mockItems)
+        ['Test Location'], // Locations from items param (mockItems)
         mockTodoLists,
-        mockState.attributes.items,
+        mockItems, // allItems = items param
         'Test Description',
         mockTranslations,
         undefined,
@@ -299,7 +299,7 @@ describe('Renderer', () => {
       renderer.renderCard(
         mockState,
         'test.entity',
-        [],
+        mockState.attributes.items as InventoryItem[],
         mockFilters,
         'name',
         mockTodoLists,
@@ -308,13 +308,13 @@ describe('Renderer', () => {
 
       expect(generateCardHTML).toHaveBeenCalledWith(
         'Test Inventory',
-        [],
+        mockState.attributes.items,
         mockFilters,
         'name',
         ['Category A', 'Category B'], // Only truthy categories, sorted
         ['Location 1', 'Location 2', 'Location 3', 'Location 4', 'Location 5'],
         mockTodoLists,
-        mockState.attributes.items,
+        mockState.attributes.items, // allItems = items param
         'Test Description',
         mockTranslations,
         undefined,
@@ -382,7 +382,7 @@ describe('Renderer', () => {
       renderer.renderCard(
         mockState,
         'test.entity',
-        [],
+        mockState.attributes.items as InventoryItem[],
         mockFilters,
         'name',
         mockTodoLists,
@@ -391,13 +391,13 @@ describe('Renderer', () => {
 
       expect(generateCardHTML).toHaveBeenCalledWith(
         'Test Inventory',
-        [],
+        mockState.attributes.items,
         mockFilters,
         'name',
         ['Apple', 'Banana', 'Zebra'], // Unique and sorted
         [],
         mockTodoLists,
-        mockState.attributes.items,
+        mockState.attributes.items, // allItems = items param
         'Test Description',
         mockTranslations,
         undefined,
@@ -475,10 +475,10 @@ describe('Renderer', () => {
         mockItems,
         mockFilters,
         'category',
-        [],
-        [],
+        ['Test Category'], // categories from mockItems
+        ['Test Location'], // locations from mockItems
         mockTodoLists,
-        [],
+        mockItems, // allItems = items param
         'Test Description',
         mockTranslations,
         undefined,
@@ -575,7 +575,15 @@ describe('Renderer', () => {
         last_updated: '2023-01-01T00:00:00Z',
       };
 
-      renderer.renderCard(mockState, 'test.entity', [], mockFilters, 'name', [], mockTranslations);
+      renderer.renderCard(
+        mockState,
+        'test.entity',
+        mockState.attributes.items as InventoryItem[],
+        mockFilters,
+        'name',
+        [],
+        mockTranslations,
+      );
 
       expect(generateCardHTML).toHaveBeenCalledWith(
         expect.any(String),
@@ -616,7 +624,15 @@ describe('Renderer', () => {
         last_updated: '2023-01-01T00:00:00Z',
       };
 
-      renderer.renderCard(mockState, 'test.entity', [], mockFilters, 'name', [], mockTranslations);
+      renderer.renderCard(
+        mockState,
+        'test.entity',
+        mockState.attributes.items as InventoryItem[],
+        mockFilters,
+        'name',
+        [],
+        mockTranslations,
+      );
 
       expect(generateCardHTML).toHaveBeenCalledWith(
         expect.any(String),
@@ -673,7 +689,15 @@ describe('Renderer', () => {
         last_updated: '2023-01-01T00:00:00Z',
       };
 
-      renderer.renderCard(mockState, 'test.entity', [], mockFilters, 'name', [], mockTranslations);
+      renderer.renderCard(
+        mockState,
+        'test.entity',
+        mockState.attributes.items as InventoryItem[],
+        mockFilters,
+        'name',
+        [],
+        mockTranslations,
+      );
 
       // Whitespace-only categories should be filtered out after trimming
       expect(generateCardHTML).toHaveBeenCalledWith(

@@ -7,7 +7,7 @@ import { Renderer } from '../../src/services/renderer';
 import { State } from '../../src/services/state';
 import { EventHandler } from '../../src/services/eventHandler';
 import { Utilities } from '../../src/utils/utilities';
-import { HomeAssistant, InventoryConfig } from '../../src/types/homeAssistant';
+import { HomeAssistant, InventoryConfig, InventoryItem } from '../../src/types/homeAssistant';
 import { createMockHomeAssistant } from '../testHelpers';
 import { TranslationData } from '@/types/translatableComponent';
 
@@ -22,7 +22,11 @@ vi.mock('../../src/utils/utilities');
 describe('LifecycleManager', () => {
   let lifecycleManager: LifecycleManager;
   let mockConfig: InventoryConfig;
-  let mockGetFreshStateCallback: () => { hass: HomeAssistant; config: InventoryConfig };
+  let mockGetFreshStateCallback: () => {
+    hass: HomeAssistant;
+    config: InventoryConfig;
+    items: InventoryItem[];
+  };
   let mockHass: HomeAssistant;
   let mockRefreshCallback: () => void;
   let mockRenderCallback: () => void;
@@ -60,7 +64,13 @@ describe('LifecycleManager', () => {
     mockRenderCallback = vi.fn();
     mockRefreshCallback = vi.fn();
     mockUpdateItemsCallback = vi.fn();
-    mockGetFreshStateCallback = vi.fn(() => ({ hass: mockHass, config: mockConfig }));
+    mockGetFreshStateCallback = vi.fn(
+      (): { hass: HomeAssistant; config: InventoryConfig; items: InventoryItem[] } => ({
+        hass: mockHass,
+        config: mockConfig,
+        items: [],
+      }),
+    );
 
     mockServices = {
       callService: vi.fn(),

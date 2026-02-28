@@ -50,10 +50,10 @@ export class ModalUIManager {
    */
   openEditModal(
     itemName: string,
-    getFreshData: () => { hass: HomeAssistant; config: InventoryConfig },
+    getFreshData: () => { hass: HomeAssistant; config: InventoryConfig; items: InventoryItem[] },
     translations: TranslationData,
   ): { item: InventoryItem | undefined; found: boolean } {
-    const { hass, config } = getFreshData();
+    const { hass, config, items } = getFreshData();
     const entityId = config.entity;
     const state = hass.states[entityId];
 
@@ -62,7 +62,6 @@ export class ModalUIManager {
       return { item: undefined, found: false };
     }
 
-    const items: readonly InventoryItem[] = state.attributes?.items || [];
     const item = items.find((index) => index.name === itemName);
 
     if (!item) {

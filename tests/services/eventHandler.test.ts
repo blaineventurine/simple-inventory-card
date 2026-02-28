@@ -130,7 +130,11 @@ describe('EventHandler', () => {
       mockHass,
       mockRenderCallback,
       mockUpdateItemsCallback,
-      () => ({ hass: mockHass, config: mockConfig }),
+      (): { hass: HomeAssistant; config: InventoryConfig; items: InventoryItem[] } => ({
+        hass: mockHass,
+        config: mockConfig,
+        items: mockInventoryItems,
+      }),
       mockTranslations,
     );
   });
@@ -669,7 +673,7 @@ describe('EventHandler', () => {
         expect(typeof calls[1]).toBe('function');
         const getFreshDataCallback = calls[1];
         const result = getFreshDataCallback();
-        expect(result).toEqual({ hass: mockHass, config: mockConfig });
+        expect(result).toEqual({ hass: mockHass, config: mockConfig, items: mockInventoryItems });
       });
 
       it('should handle unknown action', async () => {

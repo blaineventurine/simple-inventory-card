@@ -42,7 +42,11 @@ export class EventHandler {
     hass: HomeAssistant,
     renderCallback: () => void,
     updateItemsCallback: (items: InventoryItem[], sortMethod: string) => void,
-    private getFreshState: () => { hass: HomeAssistant; config: InventoryConfig },
+    private getFreshState: () => {
+      hass: HomeAssistant;
+      config: InventoryConfig;
+      items: InventoryItem[];
+    },
     translations: TranslationData,
   ) {
     this.renderRoot = renderRoot;
@@ -270,14 +274,11 @@ export class EventHandler {
       filters.searchText = target.value;
       this.filters.saveFilters(this.config.entity, filters);
 
-      const state = this.hass.states[this.config.entity];
-      if (state) {
-        const allItems = Utilities.validateInventoryItems(state.attributes?.items || []);
-        const filteredItems = this.filters.filterItems(allItems, filters);
-        const sortedItems = this.filters.sortItems(filteredItems, 'name', this.translations);
-        this.updateItemsCallback(sortedItems, 'name');
-        this.filters.updateFilterIndicators(filters, this.translations);
-      }
+      const allItems = Utilities.validateInventoryItems(this.getFreshState().items);
+      const filteredItems = this.filters.filterItems(allItems, filters);
+      const sortedItems = this.filters.sortItems(filteredItems, 'name', this.translations);
+      this.updateItemsCallback(sortedItems, 'name');
+      this.filters.updateFilterIndicators(filters, this.translations);
       return;
     }
   }
@@ -292,7 +293,7 @@ export class EventHandler {
     ) as HTMLSelectElement | null;
     const sortMethod = sortMethodElement?.value || DEFAULTS.SORT_METHOD;
 
-    const allItems = Utilities.validateInventoryItems(state.attributes?.items || []);
+    const allItems = Utilities.validateInventoryItems(this.getFreshState().items);
     const filteredItems = this.filters.filterItems(allItems, filters);
     const sortedItems = this.filters.sortItems(filteredItems, sortMethod, this.translations);
 
@@ -434,11 +435,9 @@ export class EventHandler {
   }
 
   private getUniqueLocations(): string[] {
-    const state = this.hass.states[this.config.entity];
-    if (!state?.attributes?.items) return [];
-
+    const items = this.getFreshState().items;
     const locations = new Set<string>();
-    Object.values(state.attributes.items).forEach((item: any) => {
+    items.forEach((item) => {
       if (Array.isArray(item.locations)) {
         item.locations.forEach((loc: string) => {
           const name = loc?.trim();
@@ -454,11 +453,9 @@ export class EventHandler {
   }
 
   private getUniqueCategories(): string[] {
-    const state = this.hass.states[this.config.entity];
-    if (!state?.attributes?.items) return [];
-
+    const items = this.getFreshState().items;
     const categories = new Set<string>();
-    Object.values(state.attributes.items).forEach((item: any) => {
+    items.forEach((item) => {
       if (Array.isArray(item.categories)) {
         item.categories.forEach((cat: string) => {
           const trimmed = cat?.trim();
@@ -597,16 +594,13 @@ export class EventHandler {
   }
 
   private applyFiltersWithoutRender(): void {
-    const state = this.hass.states[this.config.entity];
-    if (!state) return;
-
     const filters = this.filters.getCurrentFilters(this.config.entity);
     const sortMethodElement = this.renderRoot.querySelector(
       `#${ELEMENTS.SORT_METHOD}`,
     ) as HTMLSelectElement | null;
     const sortMethod = sortMethodElement?.value || filters.sortMethod || DEFAULTS.SORT_METHOD;
 
-    const allItems = Utilities.validateInventoryItems(state.attributes?.items || []);
+    const allItems = Utilities.validateInventoryItems(this.getFreshState().items);
     const filteredItems = this.filters.filterItems(allItems, filters);
     const sortedItems = this.filters.sortItems(filteredItems, sortMethod, this.translations);
 

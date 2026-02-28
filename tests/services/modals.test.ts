@@ -4,7 +4,7 @@ import { ModalFormManager } from '../../src/services/modals/modalFormManager';
 import { ModalValidationManager } from '../../src/services/modals/modalValidationManager';
 import { ModalUIManager } from '../../src/services/modals/modalUIManager';
 import { Utilities } from '../../src/utils/utilities';
-import { HomeAssistant, InventoryConfig } from '../../src/types/homeAssistant';
+import { HomeAssistant, InventoryConfig, InventoryItem } from '../../src/types/homeAssistant';
 import { RawFormData, SanitizedItemData, ItemData } from '../../src/types/inventoryItem';
 import { ValidationError } from '../../src/types/validationError';
 
@@ -28,7 +28,11 @@ describe('Modals (Integration)', () => {
   let modals: Modals;
 
   let mockFormManager: any;
-  let mockGetFreshStateCallback: () => { hass: HomeAssistant; config: InventoryConfig };
+  let mockGetFreshStateCallback: () => {
+    hass: HomeAssistant;
+    config: InventoryConfig;
+    items: InventoryItem[];
+  };
   let mockGetInventoryId: (entityId: string) => string;
   let mockOnDataChanged: () => void;
   let mockUIManager: any;
@@ -62,7 +66,13 @@ describe('Modals (Integration)', () => {
 
     mockGetInventoryId = vi.fn((entityId: string) => `inventory_${entityId}`);
     mockOnDataChanged = vi.fn();
-    mockGetFreshStateCallback = vi.fn(() => ({ hass: mockHass, config: mockConfig }));
+    mockGetFreshStateCallback = vi.fn(
+      (): { hass: HomeAssistant; config: InventoryConfig; items: InventoryItem[] } => ({
+        hass: mockHass,
+        config: mockConfig,
+        items: [],
+      }),
+    );
 
     mockFormManager = {
       getRawAddModalData: vi.fn(),

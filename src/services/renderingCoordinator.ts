@@ -20,6 +20,7 @@ export class RenderingCoordinator {
     hass: HomeAssistant,
     todoLists: Array<{ id: string; name: string }>,
     translations: TranslationData,
+    items: InventoryItem[],
     validateItemsCallback: (items: InventoryItem[]) => InventoryItem[],
   ): void {
     if (!config || !hass || !this.renderRoot) {
@@ -58,7 +59,7 @@ export class RenderingCoordinator {
 
       const currentFilters = filters.getCurrentFilters(entityId);
       const sortMethod = currentFilters.sortMethod || DEFAULTS.SORT_METHOD;
-      const allItems = validateItemsCallback(state.attributes?.items || []);
+      const allItems = validateItemsCallback(items);
       const filteredItems = filters.filterItems(allItems, currentFilters);
       const sortedItems = filters.sortItems(filteredItems, sortMethod, translations);
 
