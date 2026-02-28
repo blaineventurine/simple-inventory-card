@@ -22,9 +22,8 @@ export class Renderer {
   ): void {
     const inventoryName = Utilities.getInventoryName(state, entityId);
     const description = Utilities.getInventoryDescription(state);
-    const allItems = items;
     const categorySet = new Set<string>();
-    allItems.forEach((item) => {
+    items.forEach((item) => {
       if (Array.isArray(item.categories) && item.categories.length > 0) {
         item.categories.forEach((c) => {
           if (c?.trim()) categorySet.add(c.trim());
@@ -36,7 +35,7 @@ export class Renderer {
     const categories = [...categorySet].sort();
 
     const locationSet = new Set<string>();
-    allItems.forEach((item) => {
+    items.forEach((item) => {
       if (Array.isArray(item.locations) && item.locations.length > 0) {
         item.locations.forEach((loc) => {
           if (loc?.trim()) locationSet.add(loc.trim());
@@ -55,7 +54,7 @@ export class Renderer {
       categories,
       locations,
       todoLists,
-      allItems,
+      items,
       description,
       translations,
       config,
