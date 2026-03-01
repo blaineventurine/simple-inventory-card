@@ -1,5 +1,5 @@
 import { html, TemplateResult } from 'lit-element';
-import { HomeAssistant, InventoryConfig } from '../types/homeAssistant';
+import { HomeAssistant, InventoryConfig } from '@/types/homeAssistant';
 import { TranslationManager } from '@/services/translationManager';
 import { TranslationData } from '@/types/translatableComponent';
 
@@ -39,7 +39,7 @@ export function createEntityInfo(
 ): TemplateResult {
   const state = hass.states[entityId];
   const friendlyName = state?.attributes?.friendly_name || entityId;
-  const itemCount = state?.attributes?.items?.length || 0;
+  const itemCount = state?.attributes?.total_items || 0;
 
   return html`
     <div class="entity-info">

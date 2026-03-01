@@ -1,5 +1,5 @@
 import { ELEMENTS } from '../../utils/constants';
-import { ValidationError } from '../../types/validationError';
+import { ValidationError } from '@/types/validationError';
 
 export class ModalValidationManager {
   constructor(private readonly shadowRoot: ShadowRoot) {}

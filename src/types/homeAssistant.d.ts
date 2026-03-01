@@ -88,13 +88,13 @@ export interface HassServiceTarget {
 
 export interface ServiceCallResponse {
   context?: Context;
-  response?: any;
+  response?: unknown;
 }
 
 export interface MessageBase {
   id?: number;
   type: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface Context {
@@ -134,7 +134,7 @@ export interface LovelaceCard extends HTMLElement {
 
 export interface LovelaceCardConfig {
   type: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface LovelaceCardEditor extends HTMLElement {
@@ -177,4 +177,16 @@ export interface InventoryConfig extends LovelaceCardConfig {
   show_expiry?: boolean;
   show_auto_add_info?: boolean;
   show_price?: boolean;
+}
+
+declare global {
+  interface Window {
+    customCards: Array<{
+      type: string;
+      name: string;
+      description: string;
+      preview?: boolean;
+      documentationURL?: string;
+    }>;
+  }
 }

@@ -176,13 +176,11 @@ describe('State', () => {
       expect(state.hasRealEntityChange(mockHass, entityId)).toBe(false);
     });
 
-    it('should return true when items have changed', () => {
-      const initialItems = [{ name: 'Test Item', quantity: 5 }] as InventoryItem[];
-
+    it('should return true when total_quantity has changed', () => {
       const mockEntity: HassEntity = {
         entity_id: entityId,
         state: 'on',
-        attributes: { items: initialItems },
+        attributes: { total_items: 1, total_quantity: 5 },
         context: { id: 'test', user_id: '' },
         last_changed: '2023-01-01T00:00:00Z',
         last_updated: '2023-01-01T00:00:00Z',
@@ -193,15 +191,14 @@ describe('State', () => {
       // First call
       state.hasRealEntityChange(mockHass, entityId);
 
-      // Create new entity with different items (new object reference)
-      const changedItems = [{ name: 'Test Item', quantity: 10 }] as InventoryItem[];
+      // Create new entity with different total_quantity
       const newMockEntity: HassEntity = {
         ...mockEntity,
-        attributes: { items: changedItems },
+        attributes: { total_items: 1, total_quantity: 10 },
       };
       mockHass.states[entityId] = newMockEntity;
 
-      // Should detect change
+      // Should detect change via total_quantity
       expect(state.hasRealEntityChange(mockHass, entityId)).toBe(true);
     });
 
@@ -221,7 +218,7 @@ describe('State', () => {
       expect(state.hasRealEntityChange(mockHass, entityId)).toBe(false);
     });
 
-    it('should handle transition from undefined to defined items', () => {
+    it('should handle transition detected via last_changed', () => {
       const mockEntity: HassEntity = {
         entity_id: entityId,
         state: 'on',
@@ -233,13 +230,14 @@ describe('State', () => {
 
       mockHass.states[entityId] = mockEntity;
 
-      // First call with undefined items
+      // First call
       state.hasRealEntityChange(mockHass, entityId);
 
-      // Create new entity with items (new object reference)
+      // Create new entity with different last_changed and total_items
       const newMockEntity: HassEntity = {
         ...mockEntity,
-        attributes: { items: [{ name: 'New Item', quantity: 1 }] as InventoryItem[] },
+        attributes: { total_items: 1 },
+        last_changed: '2023-01-02T00:00:00Z',
       };
       mockHass.states[entityId] = newMockEntity;
 
@@ -505,10 +503,11 @@ describe('State', () => {
       // Same check - should be false
       expect(state.hasRealEntityChange(mockHass, entityId)).toBe(false);
 
-      // Create new entity with different items
+      // Create new entity with different last_changed and total_items
       const newMockEntity: HassEntity = {
         ...mockEntity,
-        attributes: { items: [{ name: 'New Item', quantity: 1 }] as InventoryItem[] },
+        attributes: { total_items: 1, total_quantity: 1 },
+        last_changed: '2023-01-02T00:00:00Z',
       };
       mockHass.states[entityId] = newMockEntity;
 
@@ -591,14 +590,13 @@ describe('State - Additional mutation killing tests', () => {
   });
 
   // Kill ConditionalExpression and LogicalOperator mutants
-  it('should only update lastEntityState when both changed and newItems are truthy', () => {
+  it('should detect change when any of last_changed, total_items, or total_quantity differs', () => {
     const entityId = 'sensor.test';
 
-    // Start with entity that has items
     const mockEntity1: HassEntity = {
       entity_id: entityId,
       state: 'on',
-      attributes: { items: [{ name: 'Item1', quantity: 1 }] as InventoryItem[] },
+      attributes: { total_items: 2, total_quantity: 5 },
       context: { id: 'test', user_id: '' },
       last_changed: '2023-01-01T00:00:00Z',
       last_updated: '2023-01-01T00:00:00Z',
@@ -607,31 +605,26 @@ describe('State - Additional mutation killing tests', () => {
     mockHass.states[entityId] = mockEntity1;
     state.hasRealEntityChange(mockHass, entityId); // First call - stores initial state
 
-    // Change to entity with undefined items (changed=true, newItems=undefined)
+    // Change only total_items (last_changed and total_quantity same)
     const mockEntity2: HassEntity = {
       ...mockEntity1,
-      attributes: {}, // No items property
+      attributes: { total_items: 3, total_quantity: 5 },
     };
     mockHass.states[entityId] = mockEntity2;
-
-    // Should detect change but NOT update stored state (because newItems is falsy)
     expect(state.hasRealEntityChange(mockHass, entityId)).toBe(true);
 
-    // Call again with same undefined items - should still return true
-    // because stored state wasn't updated (still has old items)
-    expect(state.hasRealEntityChange(mockHass, entityId)).toBe(true);
+    // Same entity again - no change
+    expect(state.hasRealEntityChange(mockHass, entityId)).toBe(false);
   });
 
-  it('should properly update lastEntityState when items change', () => {
+  it('should properly update lastEntityState after detecting a change', () => {
     const entityId = 'sensor.test';
-    const initialItems = [{ name: 'Item1', quantity: 1 }] as InventoryItem[];
-    const changedItems = [{ name: 'Item1', quantity: 2 }] as InventoryItem[];
 
     // Initial state
     const mockEntity1: HassEntity = {
       entity_id: entityId,
       state: 'on',
-      attributes: { items: initialItems },
+      attributes: { total_items: 1, total_quantity: 1 },
       context: { id: 'test', user_id: '' },
       last_changed: '2023-01-01T00:00:00Z',
       last_updated: '2023-01-01T00:00:00Z',
@@ -640,33 +633,35 @@ describe('State - Additional mutation killing tests', () => {
     mockHass.states[entityId] = mockEntity1;
     state.hasRealEntityChange(mockHass, entityId); // First call
 
-    // Changed state
+    // Changed state with higher total_quantity
     const mockEntity2: HassEntity = {
       ...mockEntity1,
-      attributes: { items: changedItems },
+      attributes: { total_items: 1, total_quantity: 2 },
     };
     mockHass.states[entityId] = mockEntity2;
 
     // Should detect change
     expect(state.hasRealEntityChange(mockHass, entityId)).toBe(true);
 
-    // Change back to original - should detect as change because state was updated
+    // Same entity again - state was updated, so no change
+    expect(state.hasRealEntityChange(mockHass, entityId)).toBe(false);
+
+    // Change back to original values - should detect as change again
     mockHass.states[entityId] = {
       ...mockEntity1,
-      attributes: { items: [...initialItems] }, // New array reference
+      attributes: { total_items: 1, total_quantity: 1 },
     };
     expect(state.hasRealEntityChange(mockHass, entityId)).toBe(true);
   });
 
   // Kill BlockStatement, ObjectLiteral, and ArrayDeclaration mutants
-  it('should properly clone items array in state update', () => {
+  it('should return false on repeated calls with same entity state', () => {
     const entityId = 'sensor.test';
-    const originalItems = [{ name: 'Item1', quantity: 1 }] as InventoryItem[];
 
     const mockEntity: HassEntity = {
       entity_id: entityId,
       state: 'on',
-      attributes: { items: originalItems },
+      attributes: { total_items: 2, total_quantity: 3 },
       context: { id: 'test', user_id: '' },
       last_changed: '2023-01-01T00:00:00Z',
       last_updated: '2023-01-01T00:00:00Z',
@@ -675,22 +670,18 @@ describe('State - Additional mutation killing tests', () => {
     mockHass.states[entityId] = mockEntity;
     state.hasRealEntityChange(mockHass, entityId); // First call - stores state
 
-    // Create completely new items array with different content
-    const newItems = [
-      { name: 'Item1', quantity: 1 },
-      { name: 'Item2', quantity: 2 },
-    ] as InventoryItem[];
-
+    // Change to new entity with more items/quantity
     const newMockEntity: HassEntity = {
       ...mockEntity,
-      attributes: { items: newItems },
+      attributes: { total_items: 3, total_quantity: 5 },
+      last_changed: '2023-01-02T00:00:00Z',
     };
     mockHass.states[entityId] = newMockEntity;
 
-    // Should detect change (different JSON content)
+    // Should detect change
     expect(state.hasRealEntityChange(mockHass, entityId)).toBe(true);
 
-    // Second call with same new items should return false (state was updated)
+    // Second call with same new entity should return false (state was updated)
     expect(state.hasRealEntityChange(mockHass, entityId)).toBe(false);
   });
 

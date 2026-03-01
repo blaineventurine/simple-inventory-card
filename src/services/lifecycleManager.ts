@@ -5,7 +5,7 @@ import { Renderer } from './renderer';
 import { State } from './state';
 import { EventHandler } from './eventHandler';
 import { HomeAssistant, InventoryConfig, InventoryItem } from '../types/homeAssistant';
-import { Utilities } from '../utils/utilities';
+import { InventoryResolver } from '../utils/inventoryResolver';
 import { TranslationData } from '@/types/translatableComponent';
 
 interface InitializedServices {
@@ -32,7 +32,7 @@ export class LifecycleManager {
     renderCallback: () => void,
     refreshCallback: () => void,
     updateItemsCallback: (items: InventoryItem[], sortMethod: string) => void,
-    getFreshState: () => { hass: HomeAssistant; config: InventoryConfig },
+    getFreshState: () => { hass: HomeAssistant; config: InventoryConfig; items: InventoryItem[] },
     translations: TranslationData,
   ): InitializedServices | undefined {
     if (this.isInitialized && this.services) {
@@ -51,7 +51,7 @@ export class LifecycleManager {
 
       state.setRenderCallback(renderCallback);
 
-      const getInventoryId = (entityId: string) => Utilities.getInventoryId(hass, entityId);
+      const getInventoryId = (entityId: string) => InventoryResolver.getInventoryId(hass, entityId);
       const modals = new Modals(
         this.renderRoot,
         services,

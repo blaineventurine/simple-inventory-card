@@ -1,14 +1,13 @@
 import { DOMAIN, SERVICES, PARAMS, WS_COMMANDS } from '../utils/constants';
-import { HomeAssistant, InventoryItem } from '../types/homeAssistant';
-import { ItemData } from '../types/inventoryItem';
-import { HistoryEvent } from '../types/historyEvent';
-import { ItemConsumptionRates } from '../types/consumptionRates';
-import { Utilities } from '../utils/utilities';
-
-export interface ServiceResult {
-  success: boolean;
-  error?: string;
-}
+import { HomeAssistant, InventoryItem } from '@/types/homeAssistant';
+import { ItemData } from '@/types/inventoryItem';
+import { HistoryEvent } from '@/types/historyEvent';
+import { ItemConsumptionRates } from '@/types/consumptionRates';
+import { FormUtils } from '../utils/formUtils';
+import { ServiceResult, ImportResult } from '@/types/serviceResult';
+import { BarcodeProductLookupResult, BarcodeItemLookupResult } from '@/types/barcodeResult';
+import { HistoryQueryOptions } from '@/types/historyQuery';
+import { WSRequest } from '@/types/wsRequest';
 
 function extractErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
@@ -33,8 +32,8 @@ export class Services {
    */
   async addItem(inventoryId: string, itemData: ItemData): Promise<ServiceResult> {
     try {
-      const sanitizedItemData = Utilities.sanitizeItemData(itemData);
-      const sanitizedInventoryId = Utilities.sanitizeString(inventoryId, 100);
+      const sanitizedItemData = FormUtils.sanitizeItemData(itemData);
+      const sanitizedInventoryId = FormUtils.sanitizeString(inventoryId, 100);
       if (!sanitizedInventoryId) {
         return {
           success: false,
@@ -49,7 +48,7 @@ export class Services {
         };
       }
 
-      const serviceData: Record<string, any> = {
+      const serviceData: Record<string, unknown> = {
         [PARAMS.AUTO_ADD_ENABLED]: sanitizedItemData.autoAddEnabled,
         [PARAMS.AUTO_ADD_ID_TO_DESCRIPTION_ENABLED]:
           sanitizedItemData.autoAddIdToDescriptionEnabled,
@@ -167,8 +166,8 @@ export class Services {
     itemData: ItemData,
   ): Promise<ServiceResult> {
     try {
-      const sanitizedItemData = Utilities.sanitizeItemData(itemData);
-      const sanitizedInventoryId = Utilities.sanitizeString(inventoryId, 100);
+      const sanitizedItemData = FormUtils.sanitizeItemData(itemData);
+      const sanitizedInventoryId = FormUtils.sanitizeString(inventoryId, 100);
 
       if (!sanitizedInventoryId) {
         return {
@@ -177,7 +176,7 @@ export class Services {
         };
       }
 
-      const parameters: Record<string, any> = {
+      const parameters: Record<string, unknown> = {
         [PARAMS.AUTO_ADD_ENABLED]: sanitizedItemData.autoAddEnabled,
         [PARAMS.AUTO_ADD_ID_TO_DESCRIPTION_ENABLED]:
           sanitizedItemData.autoAddIdToDescriptionEnabled,
@@ -234,23 +233,9 @@ export class Services {
     }
   }
 
-  async lookupBarcodeProduct(barcode: string): Promise<{
-    barcode: string;
-    results: Array<{
-      provider: string;
-      found: boolean;
-      product?: Record<string, string>;
-    }>;
-  }> {
+  async lookupBarcodeProduct(barcode: string): Promise<BarcodeProductLookupResult> {
     try {
-      return await this.hass.callWS<{
-        barcode: string;
-        results: Array<{
-          provider: string;
-          found: boolean;
-          product?: Record<string, string>;
-        }>;
-      }>({
+      return await this.hass.callWS<BarcodeProductLookupResult>({
         type: WS_COMMANDS.LOOKUP_BARCODE_PRODUCT,
         barcode,
       });
@@ -259,13 +244,9 @@ export class Services {
     }
   }
 
-  async lookupByBarcode(
-    barcode: string,
-  ): Promise<{ items: Array<{ name: string; inventory_id: string; [key: string]: any }> }> {
+  async lookupByBarcode(barcode: string): Promise<BarcodeItemLookupResult> {
     try {
-      return await this.hass.callWS<{
-        items: Array<{ name: string; inventory_id: string; [key: string]: any }>;
-      }>({
+      return await this.hass.callWS<BarcodeItemLookupResult>({
         type: WS_COMMANDS.LOOKUP_BY_BARCODE,
         barcode,
       });
@@ -295,11 +276,8 @@ export class Services {
     }
   }
 
-  async getHistory(
-    inventoryId: string,
-    options?: { itemName?: string; eventType?: string; limit?: number },
-  ): Promise<HistoryEvent[]> {
-    const msg: { type: string; inventory_id: string; [key: string]: any } = {
+  async getHistory(inventoryId: string, options?: HistoryQueryOptions): Promise<HistoryEvent[]> {
+    const msg: WSRequest = {
       type: WS_COMMANDS.GET_HISTORY,
       inventory_id: inventoryId,
     };
@@ -315,7 +293,7 @@ export class Services {
     itemName: string,
     windowDays?: number | null,
   ): Promise<ItemConsumptionRates> {
-    const msg: { type: string; inventory_id: string; item_name: string; [key: string]: any } = {
+    const msg: WSRequest = {
       type: WS_COMMANDS.GET_ITEM_CONSUMPTION_RATES,
       inventory_id: inventoryId,
       item_name: itemName,
@@ -327,8 +305,8 @@ export class Services {
   async exportInventory(
     inventoryId: string,
     format: 'json' | 'csv' = 'json',
-  ): Promise<{ data: any }> {
-    return this.hass.callWS<{ data: any }>({
+  ): Promise<{ data: unknown }> {
+    return this.hass.callWS<{ data: unknown }>({
       type: WS_COMMANDS.EXPORT,
       inventory_id: inventoryId,
       format,
@@ -337,16 +315,11 @@ export class Services {
 
   async importInventory(
     inventoryId: string,
-    data: any,
+    data: unknown,
     format: 'json' | 'csv' = 'json',
     mergeStrategy: 'skip' | 'overwrite' | 'merge_quantities' = 'skip',
-  ): Promise<{ added: number; updated: number; skipped: number; errors: string[] }> {
-    return this.hass.callWS<{
-      added: number;
-      updated: number;
-      skipped: number;
-      errors: string[];
-    }>({
+  ): Promise<ImportResult> {
+    return this.hass.callWS<ImportResult>({
       type: WS_COMMANDS.IMPORT,
       inventory_id: inventoryId,
       data,

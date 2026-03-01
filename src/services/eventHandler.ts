@@ -1,20 +1,17 @@
-import { ELEMENTS, ACTIONS, DEFAULTS, CSS_CLASSES } from '../utils/constants';
-import { HomeAssistant, InventoryConfig, InventoryItem } from '../types/homeAssistant';
+import { ELEMENTS, ACTIONS, DEFAULTS, CSS_CLASSES, FILTER_VALUES } from '../utils/constants';
+import { HomeAssistant, InventoryConfig, InventoryItem } from '@/types/homeAssistant';
 import { Services } from './services';
 import { Modals } from './modals';
 import { Filters } from './filters';
 import { Utilities } from '../utils/utilities';
+import { InventoryResolver } from '../utils/inventoryResolver';
 import { TranslationData } from '@/types/translatableComponent';
 import { TranslationManager } from './translationManager';
 import { initializeMultiSelect } from './multiSelect';
-import {
-  createHistoryAndConsumptionView,
-  createHistoryContent,
-  createConsumptionView,
-  createConsumptionLoading,
-} from '../templates/historyView';
-import { ItemConsumptionRates } from '../types/consumptionRates';
-import { startScanner, stopScanner, isLiveScanAvailable, decodeFromFile } from './barcodeScanner';
+import { ScanHandler } from './scanHandler';
+import { BarcodeProductHandler } from './barcodeProductHandler';
+import { HistoryHandler } from './historyHandler';
+import { ImportExportHandler } from './importExportHandler';
 
 export class EventHandler {
   private renderRoot: ShadowRoot;
@@ -31,7 +28,11 @@ export class EventHandler {
   private boundChangeHandler: EventListener | undefined = undefined;
 
   private eventListenersSetup = false;
-  private scannedBarcode: string | null = null;
+
+  private scanHandler: ScanHandler;
+  private barcodeProductHandler: BarcodeProductHandler;
+  private historyHandler: HistoryHandler;
+  private importExportHandler: ImportExportHandler;
 
   constructor(
     renderRoot: ShadowRoot,
@@ -42,7 +43,11 @@ export class EventHandler {
     hass: HomeAssistant,
     renderCallback: () => void,
     updateItemsCallback: (items: InventoryItem[], sortMethod: string) => void,
-    private getFreshState: () => { hass: HomeAssistant; config: InventoryConfig },
+    private getFreshState: () => {
+      hass: HomeAssistant;
+      config: InventoryConfig;
+      items: InventoryItem[];
+    },
     translations: TranslationData,
   ) {
     this.renderRoot = renderRoot;
@@ -54,6 +59,37 @@ export class EventHandler {
     this.renderCallback = renderCallback;
     this.updateItemsCallback = updateItemsCallback;
     this.translations = translations;
+
+    this.scanHandler = new ScanHandler(
+      renderRoot,
+      () => this.hass,
+      () => this.config,
+      () => this.translations,
+      services,
+      renderCallback,
+    );
+
+    this.barcodeProductHandler = new BarcodeProductHandler(
+      renderRoot,
+      () => this.translations,
+      services,
+    );
+
+    this.historyHandler = new HistoryHandler(
+      renderRoot,
+      () => this.hass,
+      () => this.config,
+      () => this.translations,
+      services,
+    );
+
+    this.importExportHandler = new ImportExportHandler(
+      () => this.hass,
+      () => this.config,
+      () => this.translations,
+      services,
+      renderCallback,
+    );
   }
 
   setupEventListeners(): void {
@@ -118,8 +154,9 @@ export class EventHandler {
       return; // Don't prevent default - let modals handle it
     }
 
-    const buttonId = target.id;
-    if (buttonId && target.tagName === 'BUTTON') {
+    const button = (target.closest?.('button') ?? target) as HTMLElement;
+    const buttonId = button.id;
+    if (buttonId && button.tagName === 'BUTTON') {
       switch (buttonId) {
         case ELEMENTS.OPEN_ADD_MODAL: {
           event.preventDefault();
@@ -127,7 +164,7 @@ export class EventHandler {
           const locations = this.getUniqueLocations();
           const categories = this.getUniqueCategories();
           this.modals.openAddModal(this.translations, locations, categories, (barcode: string) =>
-            this.handleBarcodeProductLookup(barcode),
+            this.barcodeProductHandler.handleBarcodeProductLookup(barcode),
           );
           break;
         }
@@ -171,32 +208,44 @@ export class EventHandler {
           event.preventDefault();
           event.stopPropagation();
           this.closeOverflowMenu();
-          await this.handleExport();
+          await this.importExportHandler.handleExport();
           break;
         }
         case ELEMENTS.IMPORT_INVENTORY: {
           event.preventDefault();
           event.stopPropagation();
           this.closeOverflowMenu();
-          await this.handleImport();
+          await this.importExportHandler.handleImport();
+          break;
+        }
+        case ELEMENTS.HEADER_EXPIRED_BADGE: {
+          event.preventDefault();
+          event.stopPropagation();
+          this.applyExpiryBadgeFilter(FILTER_VALUES.EXPIRY.EXPIRED);
+          break;
+        }
+        case ELEMENTS.HEADER_EXPIRING_BADGE: {
+          event.preventDefault();
+          event.stopPropagation();
+          this.applyExpiryBadgeFilter(FILTER_VALUES.EXPIRY.SOON);
           break;
         }
         case ELEMENTS.HEADER_SCAN_BTN: {
           event.preventDefault();
           event.stopPropagation();
-          await this.showScanPanel();
+          await this.scanHandler.showScanPanel();
           break;
         }
         case ELEMENTS.SCAN_CLOSE: {
           event.preventDefault();
           event.stopPropagation();
-          this.hideScanPanel();
+          this.scanHandler.hideScanPanel();
           break;
         }
         case ELEMENTS.SCAN_GO_BTN: {
           event.preventDefault();
           event.stopPropagation();
-          await this.handleScanGo();
+          await this.scanHandler.handleScanGo();
           break;
         }
         case ELEMENTS.SCAN_ADD_BTN: {
@@ -208,7 +257,7 @@ export class EventHandler {
         case ELEMENTS.SCAN_CANCEL_BTN: {
           event.preventDefault();
           event.stopPropagation();
-          this.hideScanPanel();
+          this.scanHandler.hideScanPanel();
           break;
         }
         default: {
@@ -270,14 +319,11 @@ export class EventHandler {
       filters.searchText = target.value;
       this.filters.saveFilters(this.config.entity, filters);
 
-      const state = this.hass.states[this.config.entity];
-      if (state) {
-        const allItems = Utilities.validateInventoryItems(state.attributes?.items || []);
-        const filteredItems = this.filters.filterItems(allItems, filters);
-        const sortedItems = this.filters.sortItems(filteredItems, 'name', this.translations);
-        this.updateItemsCallback(sortedItems, 'name');
-        this.filters.updateFilterIndicators(filters, this.translations);
-      }
+      const allItems = Utilities.validateInventoryItems(this.getFreshState().items);
+      const filteredItems = this.filters.filterItems(allItems, filters);
+      const sortedItems = this.filters.sortItems(filteredItems, 'name', this.translations);
+      this.updateItemsCallback(sortedItems, 'name');
+      this.filters.updateFilterIndicators(filters, this.translations);
       return;
     }
   }
@@ -292,7 +338,7 @@ export class EventHandler {
     ) as HTMLSelectElement | null;
     const sortMethod = sortMethodElement?.value || DEFAULTS.SORT_METHOD;
 
-    const allItems = Utilities.validateInventoryItems(state.attributes?.items || []);
+    const allItems = Utilities.validateInventoryItems(this.getFreshState().items);
     const filteredItems = this.filters.filterItems(allItems, filters);
     const sortedItems = this.filters.sortItems(filteredItems, sortMethod, this.translations);
 
@@ -315,7 +361,7 @@ export class EventHandler {
     button.style.pointerEvents = 'none';
 
     try {
-      const inventoryId = Utilities.getInventoryId(this.hass, this.config.entity);
+      const inventoryId = InventoryResolver.getInventoryId(this.hass, this.config.entity);
 
       switch (action) {
         case ACTIONS.INCREMENT: {
@@ -355,7 +401,7 @@ export class EventHandler {
           break;
         }
         case ACTIONS.VIEW_HISTORY: {
-          await this.showItemHistory(itemName);
+          await this.historyHandler.showItemHistory(itemName);
           break;
         }
         default: {
@@ -366,7 +412,7 @@ export class EventHandler {
       console.error(`Error performing ${action} on ${itemName}:`, error);
     } finally {
       setTimeout(() => {
-        button.setAttribute('data-processing', 'true');
+        button.removeAttribute('data-processing');
         button.removeAttribute('disabled');
         button.style.opacity = '1';
         button.style.pointerEvents = 'auto';
@@ -385,6 +431,22 @@ export class EventHandler {
     const success = await this.modals.saveEditModal(this.config);
     if (success) {
       this.modals.closeEditModal();
+    }
+  }
+
+  private applyExpiryBadgeFilter(value: string): void {
+    try {
+      const filters = this.filters.getCurrentFilters(this.config.entity);
+      // Toggle: if this filter is already the sole selection, clear it; otherwise apply it.
+      const alreadyActive = filters.expiry.length === 1 && filters.expiry[0] === value;
+      filters.expiry = alreadyActive ? [] : [value];
+      this.filters.saveFilters(this.config.entity, filters);
+      this.applyFiltersWithoutRender();
+      setTimeout(() => {
+        this.filters.updateFilterIndicators(filters, this.translations);
+      }, 50);
+    } catch (error) {
+      console.error('Error applying expiry badge filter:', error);
     }
   }
 
@@ -434,11 +496,9 @@ export class EventHandler {
   }
 
   private getUniqueLocations(): string[] {
-    const state = this.hass.states[this.config.entity];
-    if (!state?.attributes?.items) return [];
-
+    const items = this.getFreshState().items;
     const locations = new Set<string>();
-    Object.values(state.attributes.items).forEach((item: any) => {
+    items.forEach((item) => {
       if (Array.isArray(item.locations)) {
         item.locations.forEach((loc: string) => {
           const name = loc?.trim();
@@ -454,11 +514,9 @@ export class EventHandler {
   }
 
   private getUniqueCategories(): string[] {
-    const state = this.hass.states[this.config.entity];
-    if (!state?.attributes?.items) return [];
-
+    const items = this.getFreshState().items;
     const categories = new Set<string>();
-    Object.values(state.attributes.items).forEach((item: any) => {
+    items.forEach((item) => {
       if (Array.isArray(item.categories)) {
         item.categories.forEach((cat: string) => {
           const trimmed = cat?.trim();
@@ -597,184 +655,24 @@ export class EventHandler {
   }
 
   private applyFiltersWithoutRender(): void {
-    const state = this.hass.states[this.config.entity];
-    if (!state) return;
-
     const filters = this.filters.getCurrentFilters(this.config.entity);
     const sortMethodElement = this.renderRoot.querySelector(
       `#${ELEMENTS.SORT_METHOD}`,
     ) as HTMLSelectElement | null;
     const sortMethod = sortMethodElement?.value || filters.sortMethod || DEFAULTS.SORT_METHOD;
 
-    const allItems = Utilities.validateInventoryItems(state.attributes?.items || []);
+    const allItems = Utilities.validateInventoryItems(this.getFreshState().items);
     const filteredItems = this.filters.filterItems(allItems, filters);
     const sortedItems = this.filters.sortItems(filteredItems, sortMethod, this.translations);
 
     this.updateItemsCallback(sortedItems, sortMethod);
   }
 
-  private async showItemHistory(itemName: string): Promise<void> {
-    try {
-      const inventoryId = Utilities.getInventoryId(this.hass, this.config.entity);
-      const events = await this.services.getHistory(inventoryId, {
-        itemName,
-        limit: 50,
-      });
-      const html = createHistoryAndConsumptionView(events, itemName, this.translations);
-      this.showHistoryModal(html, events, itemName, inventoryId);
-    } catch (error) {
-      console.error('Error fetching history:', error);
-    }
-  }
-
-  private showHistoryModal(
-    content: string,
-    cachedEvents: import('../types/historyEvent').HistoryEvent[],
-    itemName: string,
-    inventoryId: string,
-  ): void {
-    let modal = this.renderRoot.getElementById(ELEMENTS.HISTORY_MODAL);
-    if (!modal) {
-      modal = document.createElement('div');
-      modal.id = ELEMENTS.HISTORY_MODAL;
-      modal.className = 'modal';
-      this.renderRoot.appendChild(modal);
-    }
-    modal.innerHTML = `
-      <div class="modal-content">
-        ${content}
-        <div class="modal-actions">
-          <button class="cancel-btn" id="close-history-modal">Close</button>
-        </div>
-      </div>
-    `;
-    modal.classList.add(CSS_CLASSES.SHOW);
-
-    const closeBtn = modal.querySelector('#close-history-modal');
-    closeBtn?.addEventListener('click', () => {
-      modal!.classList.remove(CSS_CLASSES.SHOW);
-    });
-
-    const cachedRates = new Map<string, ItemConsumptionRates>();
-    let activeWindow: number | null = null;
-
-    const historyTab = modal.querySelector(`#${ELEMENTS.HISTORY_TAB_HISTORY}`);
-    const consumptionTab = modal.querySelector(`#${ELEMENTS.HISTORY_TAB_CONSUMPTION}`);
-    const tabContent = modal.querySelector(`#${ELEMENTS.HISTORY_TAB_CONTENT}`);
-
-    if (!historyTab || !consumptionTab || !tabContent) return;
-
-    const setActiveTab = (tab: 'history' | 'consumption') => {
-      historyTab.classList.toggle('active', tab === 'history');
-      consumptionTab.classList.toggle('active', tab === 'consumption');
-    };
-
-    historyTab.addEventListener('click', () => {
-      setActiveTab('history');
-      tabContent.innerHTML = createHistoryContent(cachedEvents);
-    });
-
-    consumptionTab.addEventListener('click', () => {
-      setActiveTab('consumption');
-      this.loadConsumptionTab(
-        tabContent as HTMLElement,
-        inventoryId,
-        itemName,
-        activeWindow,
-        cachedRates,
-        (w) => {
-          activeWindow = w;
-        },
-      );
-    });
-  }
-
-  private async loadConsumptionTab(
-    container: HTMLElement,
-    inventoryId: string,
-    itemName: string,
-    activeWindow: number | null,
-    cachedRates: Map<string, ItemConsumptionRates>,
-    setActiveWindow: (w: number | null) => void,
-  ): Promise<void> {
-    const cacheKey = activeWindow !== null ? String(activeWindow) : 'all';
-
-    if (cachedRates.has(cacheKey)) {
-      this.renderConsumptionContent(
-        container,
-        cachedRates.get(cacheKey)!,
-        activeWindow,
-        inventoryId,
-        itemName,
-        cachedRates,
-        setActiveWindow,
-      );
-      return;
-    }
-
-    container.innerHTML = createConsumptionLoading(this.translations);
-
-    try {
-      const rates = await this.services.getItemConsumptionRates(
-        inventoryId,
-        itemName,
-        activeWindow,
-      );
-      cachedRates.set(cacheKey, rates);
-      this.renderConsumptionContent(
-        container,
-        rates,
-        activeWindow,
-        inventoryId,
-        itemName,
-        cachedRates,
-        setActiveWindow,
-      );
-    } catch (error) {
-      console.error('Error fetching consumption rates:', error);
-      const errorMsg = TranslationManager.localize(
-        this.translations,
-        'analytics.load_error',
-        undefined,
-        'Failed to load consumption data.',
-      );
-      container.innerHTML = `<p class="consumption-empty">${Utilities.sanitizeHtml(errorMsg)}</p>`;
-    }
-  }
-
-  private renderConsumptionContent(
-    container: HTMLElement,
-    rates: ItemConsumptionRates,
-    activeWindow: number | null,
-    inventoryId: string,
-    itemName: string,
-    cachedRates: Map<string, ItemConsumptionRates>,
-    setActiveWindow: (w: number | null) => void,
-  ): void {
-    container.innerHTML = createConsumptionView(rates, activeWindow, this.translations);
-
-    container.querySelectorAll('.window-pill').forEach((pill) => {
-      pill.addEventListener('click', () => {
-        const value = (pill as HTMLElement).dataset.window;
-        const newWindow = value === 'all' ? null : Number(value);
-        setActiveWindow(newWindow);
-        this.loadConsumptionTab(
-          container,
-          inventoryId,
-          itemName,
-          newWindow,
-          cachedRates,
-          setActiveWindow,
-        );
-      });
-    });
-  }
-
   private async handleEditModalHistory(): Promise<void> {
     const itemName = this.modals.getCurrentEditingItem();
     if (!itemName) return;
     this.modals.closeEditModal();
-    await this.showItemHistory(itemName);
+    await this.historyHandler.showItemHistory(itemName);
   }
 
   private async handleEditModalDelete(): Promise<void> {
@@ -787,7 +685,7 @@ export class EventHandler {
       `Remove ${itemName} from inventory?`,
     );
     if (confirm(confirmMessage)) {
-      const inventoryId = Utilities.getInventoryId(this.hass, this.config.entity);
+      const inventoryId = InventoryResolver.getInventoryId(this.hass, this.config.entity);
       await this.services.removeItem(inventoryId, itemName);
       this.modals.closeEditModal();
       this.renderCallback();
@@ -820,325 +718,14 @@ export class EventHandler {
     }
   }
 
-  private handleBarcodeProductLookup(barcode: string): void {
-    this.services
-      .lookupBarcodeProduct(barcode)
-      .then((result) => {
-        const foundResults = result.results.filter((r) => r.found && r.product);
-        if (foundResults.length === 0) return;
-
-        if (foundResults.length === 1) {
-          this.selectProduct('add', foundResults[0].product!);
-          return;
-        }
-
-        this.showProductPicker('add', foundResults);
-      })
-      .catch(() => {
-        // Silent failure — user can fill fields manually
-      });
-  }
-
-  private showProductPicker(
-    prefix: string,
-    results: Array<{ provider: string; found: boolean; product?: Record<string, string> }>,
-  ): void {
-    const picker = this.renderRoot.getElementById(`${prefix}-${ELEMENTS.PRODUCT_PICKER}`);
-    const list = this.renderRoot.getElementById(`${prefix}-${ELEMENTS.PRODUCT_PICKER_LIST}`);
-    if (!picker || !list) return;
-
-    list.innerHTML = results
-      .map((r, i) => {
-        const product = r.product!;
-        const providerLabel = TranslationManager.localize(
-          this.translations,
-          `modal.provider_${r.provider}`,
-          undefined,
-          r.provider,
-        );
-        const details: string[] = [];
-        if (product.brand) details.push(product.brand);
-        if (product.category) details.push(product.category);
-
-        return `
-        <div class="product-picker-item" data-product-index="${i}">
-          <span class="product-picker-provider">${Utilities.sanitizeHtml(providerLabel)}</span>
-          <span class="product-picker-name">${Utilities.sanitizeHtml(product.name)}</span>
-          ${details.length > 0 ? `<span class="product-picker-detail">${Utilities.sanitizeHtml(details.join(' — '))}</span>` : ''}
-        </div>
-      `;
-      })
-      .join('');
-
-    picker.style.display = 'block';
-
-    list.querySelectorAll('.product-picker-item').forEach((item) => {
-      item.addEventListener('click', () => {
-        const index = parseInt((item as HTMLElement).dataset.productIndex || '0', 10);
-        const selected = results[index];
-        if (selected?.product) {
-          this.selectProduct(prefix, selected.product);
-          this.hideProductPicker(prefix);
-        }
-      });
-    });
-  }
-
-  private hideProductPicker(prefix: string): void {
-    const picker = this.renderRoot.getElementById(`${prefix}-${ELEMENTS.PRODUCT_PICKER}`);
-    if (picker) picker.style.display = 'none';
-  }
-
-  private selectProduct(prefix: string, product: Record<string, string>): void {
-    this.autoFillIfEmpty(`${prefix}-name`, product.name);
-    const descParts: string[] = [];
-    if (product.brand) descParts.push(product.brand);
-    if (product.description) descParts.push(product.description);
-    if (descParts.length > 0) {
-      this.autoFillIfEmpty(`${prefix}-description`, descParts.join(' - '));
-    }
-    if (product.category) {
-      this.autoFillIfEmpty(`${prefix}-category`, product.category);
-    }
-    if (product.unit) {
-      this.autoFillIfEmpty(`${prefix}-unit`, product.unit);
-    }
-    this.hideProductPicker(prefix);
-  }
-
-  private autoFillIfEmpty(elementId: string, value: string | undefined): void {
-    if (!value) return;
-    const el = this.renderRoot.getElementById(elementId) as HTMLInputElement | null;
-    if (el && !el.value.trim()) {
-      el.value = value;
-      el.dispatchEvent(new Event('input', { bubbles: true }));
-    }
-  }
-
-  async handleExport(): Promise<void> {
-    try {
-      const inventoryId = Utilities.getInventoryId(this.hass, this.config.entity);
-      const result = await this.services.exportInventory(inventoryId, 'json');
-      const blob = new Blob([JSON.stringify(result.data, null, 2)], {
-        type: 'application/json',
-      });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `inventory_${inventoryId}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Error exporting inventory:', error);
-    }
-  }
-
-  private async showScanPanel(): Promise<void> {
-    if (!isLiveScanAvailable()) {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = 'image/*';
-      input.capture = 'environment';
-      // position off-screen instead of display:none — iOS WKWebView may not fire
-      // the change event on a hidden (display:none) file input
-      input.style.position = 'fixed';
-      input.style.top = '-9999px';
-      input.style.left = '-9999px';
-      input.style.width = '0';
-      input.style.height = '0';
-      input.style.opacity = '0';
-      document.body.appendChild(input);
-      input.addEventListener('change', async () => {
-        const file = input.files?.[0];
-        document.body.removeChild(input);
-        if (!file) return;
-        const error = await decodeFromFile(file, (code) => {
-          this.handleScanDetected(code);
-        });
-        if (error) {
-          const panel = this.renderRoot.getElementById(ELEMENTS.SCAN_PANEL);
-          const viewportContainer = this.renderRoot.getElementById(
-            `${ELEMENTS.SCAN_VIEWPORT}-container`,
-          );
-          const errorEl = this.renderRoot.getElementById('scan-panel-error');
-          if (panel && errorEl) {
-            panel.style.display = 'block';
-            if (viewportContainer) viewportContainer.style.display = 'none';
-            errorEl.textContent = TranslationManager.localize(
-              this.translations,
-              'scanner.no_barcode_found',
-              undefined,
-              'No barcode found in photo',
-            );
-            errorEl.style.display = 'block';
-            setTimeout(() => this.hideScanPanel(), 3000);
-          }
-        }
-      });
-      input.click();
-      return;
-    }
-
-    const panel = this.renderRoot.getElementById(ELEMENTS.SCAN_PANEL);
-    if (!panel) return;
-
-    panel.style.display = 'block';
-    const viewportContainer = this.renderRoot.getElementById(`${ELEMENTS.SCAN_VIEWPORT}-container`);
-    const viewport = this.renderRoot.getElementById(ELEMENTS.SCAN_VIEWPORT);
-    const actionBar = this.renderRoot.getElementById(ELEMENTS.SCAN_ACTION_BAR);
-    const errorEl = this.renderRoot.getElementById('scan-panel-error');
-    const loadingEl = this.renderRoot.getElementById('scan-panel-loading');
-
-    if (viewportContainer) viewportContainer.style.display = 'block';
-    if (actionBar) actionBar.style.display = 'none';
-    if (loadingEl) loadingEl.style.display = 'flex';
-    if (errorEl) {
-      errorEl.style.display = 'none';
-      errorEl.textContent = '';
-    }
-
-    if (viewport) {
-      const error = await startScanner(viewport, (code: string) => {
-        this.handleScanDetected(code);
-      });
-      if (loadingEl) loadingEl.style.display = 'none';
-      if (error) {
-        this.hideScanPanel();
-        const msgKey =
-          error === 'permission_denied'
-            ? 'modal.camera_permission_denied'
-            : 'modal.camera_not_available';
-        const fallback =
-          error === 'permission_denied' ? 'Camera access denied' : 'Camera not available';
-        alert(TranslationManager.localize(this.translations, msgKey, undefined, fallback));
-      }
-    }
-  }
-
-  private hideScanPanel(): void {
-    stopScanner();
-    this.scannedBarcode = null;
-    const panel = this.renderRoot.getElementById(ELEMENTS.SCAN_PANEL);
-    if (panel) panel.style.display = 'none';
-  }
-
-  private async handleScanDetected(barcode: string): Promise<void> {
-    stopScanner();
-    this.scannedBarcode = barcode;
-
-    const panel = this.renderRoot.getElementById(ELEMENTS.SCAN_PANEL);
-    if (panel) panel.style.display = 'block';
-
-    const viewportContainer = this.renderRoot.getElementById(`${ELEMENTS.SCAN_VIEWPORT}-container`);
-    const actionBar = this.renderRoot.getElementById(ELEMENTS.SCAN_ACTION_BAR);
-    const label = this.renderRoot.getElementById('scan-barcode-label');
-    const errorEl = this.renderRoot.getElementById('scan-panel-error');
-    const amountInput = this.renderRoot.getElementById(
-      ELEMENTS.SCAN_AMOUNT_INPUT,
-    ) as HTMLInputElement | null;
-    const actionSelect = this.renderRoot.getElementById(
-      ELEMENTS.SCAN_ACTION_SELECT,
-    ) as HTMLSelectElement | null;
-    const itemNameEl = this.renderRoot.getElementById(ELEMENTS.SCAN_ITEM_NAME);
-    const itemQuantityEl = this.renderRoot.getElementById(ELEMENTS.SCAN_ITEM_QUANTITY);
-    const existingControls = this.renderRoot.getElementById(ELEMENTS.SCAN_EXISTING_CONTROLS);
-    const addBtn = this.renderRoot.getElementById(ELEMENTS.SCAN_ADD_BTN);
-    const goBtn = this.renderRoot.getElementById(ELEMENTS.SCAN_GO_BTN);
-
-    if (viewportContainer) viewportContainer.style.display = 'none';
-    if (label) label.textContent = barcode;
-    if (actionBar) actionBar.style.display = 'flex';
-    if (errorEl) {
-      errorEl.style.display = 'none';
-      errorEl.textContent = '';
-    }
-    if (amountInput) amountInput.value = '1';
-    if (actionSelect) actionSelect.value = 'increment';
-
-    const inventoryId = Utilities.getInventoryId(this.hass, this.config.entity);
-    const result = await this.services.lookupByBarcode(barcode);
-    const localItems = result.items.filter((item) => item.inventory_id === inventoryId);
-
-    if (localItems.length > 0) {
-      const item = localItems[0];
-      if (itemNameEl) {
-        itemNameEl.textContent = item.name;
-        itemNameEl.style.display = '';
-      }
-      if (itemQuantityEl) {
-        const qty = item.unit ? `${item.quantity} ${item.unit}` : String(item.quantity ?? 0);
-        itemQuantityEl.textContent = TranslationManager.localize(
-          this.translations,
-          'scanner.in_stock',
-          { quantity: qty },
-          `In stock: ${qty}`,
-        );
-        itemQuantityEl.style.display = '';
-      }
-      if (existingControls) existingControls.style.display = '';
-      if (addBtn) addBtn.style.display = 'none';
-      if (goBtn) goBtn.style.display = '';
-    } else {
-      if (itemNameEl) {
-        itemNameEl.textContent = '';
-        itemNameEl.style.display = 'none';
-      }
-      if (itemQuantityEl) {
-        itemQuantityEl.textContent = '';
-        itemQuantityEl.style.display = 'none';
-      }
-      if (existingControls) existingControls.style.display = 'none';
-      if (addBtn) addBtn.style.display = '';
-      if (goBtn) goBtn.style.display = 'none';
-    }
-  }
-
-  private async handleScanGo(): Promise<void> {
-    if (!this.scannedBarcode) return;
-
-    const actionSelect = this.renderRoot.getElementById(
-      ELEMENTS.SCAN_ACTION_SELECT,
-    ) as HTMLSelectElement | null;
-    const amountInput = this.renderRoot.getElementById(
-      ELEMENTS.SCAN_AMOUNT_INPUT,
-    ) as HTMLInputElement | null;
-
-    const action = (actionSelect?.value || 'increment') as 'increment' | 'decrement';
-    const amount = parseFloat(amountInput?.value || '1') || 1;
-
-    const inventoryId = Utilities.getInventoryId(this.hass, this.config.entity);
-    const result = await this.services.scanBarcode(
-      inventoryId,
-      this.scannedBarcode,
-      action,
-      amount,
-    );
-
-    if (result.success) {
-      this.hideScanPanel();
-      this.renderCallback();
-    } else {
-      const errorEl = this.renderRoot.getElementById('scan-panel-error');
-      if (errorEl) {
-        errorEl.textContent = TranslationManager.localize(
-          this.translations,
-          'scanner.barcode_not_found',
-          undefined,
-          'No item found for this barcode',
-        );
-        errorEl.style.display = 'block';
-      }
-    }
-  }
-
   private async handleScanAddItem(): Promise<void> {
-    const barcode = this.scannedBarcode;
-    this.hideScanPanel();
+    const barcode = this.scanHandler.getScannedBarcode();
+    this.scanHandler.hideScanPanel();
 
     const locations = this.getUniqueLocations();
     const categories = this.getUniqueCategories();
     this.modals.openAddModal(this.translations, locations, categories, (bc: string) =>
-      this.handleBarcodeProductLookup(bc),
+      this.barcodeProductHandler.handleBarcodeProductLookup(bc),
     );
 
     if (barcode) {
@@ -1161,41 +748,9 @@ export class EventHandler {
             chipsContainer.appendChild(chip);
           }
 
-          this.handleBarcodeProductLookup(barcode);
+          this.barcodeProductHandler.handleBarcodeProductLookup(barcode);
         }
       }, 0);
     }
-  }
-
-  async handleImport(): Promise<void> {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json,.csv';
-    input.addEventListener('change', async () => {
-      const file = input.files?.[0];
-      if (!file) return;
-
-      try {
-        const text = await file.text();
-        const inventoryId = Utilities.getInventoryId(this.hass, this.config.entity);
-        const isCSV = file.name.endsWith('.csv');
-        const format = isCSV ? 'csv' : 'json';
-        const data = isCSV ? text : JSON.parse(text);
-        const result = await this.services.importInventory(inventoryId, data, format, 'skip');
-
-        const message = TranslationManager.localize(
-          this.translations,
-          'actions.import_result',
-          { added: result.added, updated: result.updated, skipped: result.skipped },
-          `Import complete: ${result.added} added, ${result.updated} updated, ${result.skipped} skipped`,
-        );
-        alert(message);
-        this.renderCallback();
-      } catch (error) {
-        console.error('Error importing inventory:', error);
-        alert('Import failed. Please check the file format.');
-      }
-    });
-    input.click();
   }
 }

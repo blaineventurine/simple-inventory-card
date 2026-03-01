@@ -3,6 +3,7 @@ import { EventHandler } from '../../src/services/eventHandler';
 import { Services } from '../../src/services/services';
 import { Modals } from '../../src/services/modals';
 import { Utilities } from '../../src/utils/utilities';
+import { InventoryResolver } from '../../src/utils/inventoryResolver';
 import { ELEMENTS, ACTIONS, DEFAULTS, CSS_CLASSES, SORT_METHODS } from '../../src/utils/constants';
 import { HomeAssistant, InventoryConfig, InventoryItem } from '../../src/types/homeAssistant';
 import { createMockHomeAssistant, createMockHassEntity } from '../testHelpers';
@@ -17,6 +18,7 @@ vi.mock('../../src/services/barcodeScanner', () => ({
   isScannerActive: vi.fn().mockReturnValue(false),
 }));
 vi.mock('../../src/utils/utilities');
+vi.mock('../../src/utils/inventoryResolver');
 vi.mock('../../src/templates/autoCompleteInput', () => ({
   initializeAutocomplete: vi.fn(),
   createAutocompleteInput: vi.fn(() => '<div></div>'),
@@ -115,7 +117,7 @@ describe('EventHandler', () => {
     mockRenderCallback = vi.fn();
     mockUpdateItemsCallback = vi.fn();
 
-    vi.mocked(Utilities.getInventoryId).mockReturnValue('test-inventory-id');
+    vi.mocked(InventoryResolver.getInventoryId).mockReturnValue('test-inventory-id');
     vi.mocked(Utilities.validateInventoryItems).mockReturnValue(mockInventoryItems);
 
     globalThis.confirm = vi.fn();
@@ -130,7 +132,11 @@ describe('EventHandler', () => {
       mockHass,
       mockRenderCallback,
       mockUpdateItemsCallback,
-      () => ({ hass: mockHass, config: mockConfig }),
+      (): { hass: HomeAssistant; config: InventoryConfig; items: InventoryItem[] } => ({
+        hass: mockHass,
+        config: mockConfig,
+        items: mockInventoryItems,
+      }),
       mockTranslations,
     );
   });
@@ -669,7 +675,7 @@ describe('EventHandler', () => {
         expect(typeof calls[1]).toBe('function');
         const getFreshDataCallback = calls[1];
         const result = getFreshDataCallback();
-        expect(result).toEqual({ hass: mockHass, config: mockConfig });
+        expect(result).toEqual({ hass: mockHass, config: mockConfig, items: mockInventoryItems });
       });
 
       it('should handle unknown action', async () => {
@@ -842,7 +848,7 @@ describe('EventHandler', () => {
 
       vi.mocked(mockModals.handleModalClick).mockReturnValue(false);
       const showScanPanelSpy = vi
-        .spyOn(eventHandler as any, 'showScanPanel')
+        .spyOn((eventHandler as any).scanHandler, 'showScanPanel')
         .mockResolvedValue(undefined);
 
       await eventHandler['handleClick'](mockEvent);
@@ -867,7 +873,7 @@ describe('EventHandler', () => {
 
       vi.mocked(mockModals.handleModalClick).mockReturnValue(false);
       const hideScanPanelSpy = vi
-        .spyOn(eventHandler as any, 'hideScanPanel')
+        .spyOn((eventHandler as any).scanHandler, 'hideScanPanel')
         .mockImplementation(() => {});
 
       await eventHandler['handleClick'](mockEvent);
@@ -890,7 +896,7 @@ describe('EventHandler', () => {
       } as unknown as Event;
 
       vi.mocked(mockModals.handleModalClick).mockReturnValue(false);
-      const handleScanGoSpy = vi.spyOn(eventHandler as any, 'handleScanGo');
+      const handleScanGoSpy = vi.spyOn((eventHandler as any).scanHandler, 'handleScanGo');
 
       await eventHandler['handleClick'](mockEvent);
 
@@ -913,7 +919,7 @@ describe('EventHandler', () => {
 
       vi.mocked(mockModals.handleModalClick).mockReturnValue(false);
       const hideScanPanelSpy = vi
-        .spyOn(eventHandler as any, 'hideScanPanel')
+        .spyOn((eventHandler as any).scanHandler, 'hideScanPanel')
         .mockImplementation(() => {});
 
       await eventHandler['handleClick'](mockEvent);
@@ -922,7 +928,7 @@ describe('EventHandler', () => {
     });
 
     it('should call scanBarcode service when handleScanGo fires with a barcode', async () => {
-      eventHandler['scannedBarcode'] = '1234567890';
+      (eventHandler as any).scanHandler.scannedBarcode = '1234567890';
 
       const mockActionSelect = { value: 'increment' } as HTMLSelectElement;
       const mockAmountInput = { value: '2' } as HTMLInputElement;
@@ -935,7 +941,7 @@ describe('EventHandler', () => {
 
       (mockServices as any).scanBarcode = vi.fn().mockResolvedValue({ success: true });
 
-      await eventHandler['handleScanGo']();
+      await (eventHandler as any).scanHandler.handleScanGo();
 
       expect((mockServices as any).scanBarcode).toHaveBeenCalledWith(
         'test-inventory-id',
@@ -968,7 +974,7 @@ describe('EventHandler', () => {
         items: [{ name: 'Milk', inventory_id: 'test-inventory-id' }],
       });
 
-      await eventHandler['handleScanDetected']('1234567890');
+      await (eventHandler as any).scanHandler.handleScanDetected('1234567890');
 
       expect(mockItemNameEl.textContent).toBe('Milk');
       expect(mockItemNameEl.style.display).toBe('');
@@ -998,7 +1004,7 @@ describe('EventHandler', () => {
         items: [],
       });
 
-      await eventHandler['handleScanDetected']('9999999999');
+      await (eventHandler as any).scanHandler.handleScanDetected('9999999999');
 
       expect(mockItemNameEl.style.display).toBe('none');
       expect(mockExistingControls.style.display).toBe('none');
@@ -1006,10 +1012,10 @@ describe('EventHandler', () => {
     });
 
     it('should handle scan add button click — hides panel and opens add modal', async () => {
-      eventHandler['scannedBarcode'] = '5551234567';
+      (eventHandler as any).scanHandler.scannedBarcode = '5551234567';
 
       const hideScanPanelSpy = vi
-        .spyOn(eventHandler as any, 'hideScanPanel')
+        .spyOn((eventHandler as any).scanHandler, 'hideScanPanel')
         .mockImplementation(() => {});
 
       mockTarget = {
@@ -1034,7 +1040,7 @@ describe('EventHandler', () => {
     });
 
     it('should show error when scanBarcode fails', async () => {
-      eventHandler['scannedBarcode'] = '1234567890';
+      (eventHandler as any).scanHandler.scannedBarcode = '1234567890';
 
       const mockErrorEl = { textContent: '', style: { display: 'none' } };
       (mockRenderRoot as any).getElementById = vi.fn((id: string) => {
@@ -1048,7 +1054,7 @@ describe('EventHandler', () => {
         .fn()
         .mockResolvedValue({ success: false, error: 'not found' });
 
-      await eventHandler['handleScanGo']();
+      await (eventHandler as any).scanHandler.handleScanGo();
 
       expect(mockErrorEl.style.display).toBe('block');
       expect(mockErrorEl.textContent).toBe('No item found for this barcode');
@@ -1082,7 +1088,7 @@ describe('EventHandler', () => {
         ],
       });
 
-      await eventHandler['handleBarcodeProductLookup']('123');
+      (eventHandler as any).barcodeProductHandler.handleBarcodeProductLookup('123');
       await vi.runAllTimersAsync();
 
       expect(mockNameEl.value).toBe('Soup');
@@ -1111,7 +1117,7 @@ describe('EventHandler', () => {
         ],
       });
 
-      await eventHandler['handleBarcodeProductLookup']('123');
+      (eventHandler as any).barcodeProductHandler.handleBarcodeProductLookup('123');
       await vi.runAllTimersAsync();
 
       expect(mockPicker.style.display).toBe('block');
@@ -1131,7 +1137,7 @@ describe('EventHandler', () => {
       const getById = vi.fn().mockReturnValue(null);
       (mockRenderRoot as any).getElementById = getById;
 
-      await eventHandler['handleBarcodeProductLookup']('123');
+      (eventHandler as any).barcodeProductHandler.handleBarcodeProductLookup('123');
       await vi.runAllTimersAsync();
 
       // Should not have tried to get any form fields
@@ -1156,7 +1162,7 @@ describe('EventHandler', () => {
         return null;
       });
 
-      eventHandler['selectProduct']('add', {
+      (eventHandler as any).barcodeProductHandler.selectProduct('add', {
         name: 'Cheerios',
         brand: 'General Mills',
         description: 'Cereal',
@@ -1180,7 +1186,7 @@ describe('EventHandler', () => {
         return null;
       });
 
-      eventHandler['hideProductPicker']('add');
+      (eventHandler as any).barcodeProductHandler.hideProductPicker('add');
 
       expect(mockPicker.style.display).toBe('none');
     });

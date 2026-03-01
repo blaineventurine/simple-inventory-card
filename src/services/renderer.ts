@@ -1,8 +1,9 @@
 import { Utilities } from '../utils/utilities';
+import { InventoryResolver } from '../utils/inventoryResolver';
 import { styles } from '../styles/styles';
-import { HassEntity, InventoryConfig, InventoryItem } from '../types/homeAssistant';
-import { FilterState } from '../types/filterState';
-import { TodoList } from '../types/todoList';
+import { HassEntity, InventoryConfig, InventoryItem } from '@/types/homeAssistant';
+import { FilterState } from '@/types/filterState';
+import { TodoList } from '@/types/todoList';
 import { generateCardHTML } from '../templates/inventoryCard';
 import { TranslationData } from '@/types/translatableComponent';
 import { TranslationManager } from './translationManager';
@@ -20,11 +21,10 @@ export class Renderer {
     translations: TranslationData,
     config?: InventoryConfig,
   ): void {
-    const inventoryName = Utilities.getInventoryName(state, entityId);
-    const description = Utilities.getInventoryDescription(state);
-    const allItems: readonly InventoryItem[] = state?.attributes?.items || [];
+    const inventoryName = InventoryResolver.getInventoryName(state, entityId);
+    const description = InventoryResolver.getInventoryDescription(state);
     const categorySet = new Set<string>();
-    allItems.forEach((item) => {
+    items.forEach((item) => {
       if (Array.isArray(item.categories) && item.categories.length > 0) {
         item.categories.forEach((c) => {
           if (c?.trim()) categorySet.add(c.trim());
@@ -36,7 +36,7 @@ export class Renderer {
     const categories = [...categorySet].sort();
 
     const locationSet = new Set<string>();
-    allItems.forEach((item) => {
+    items.forEach((item) => {
       if (Array.isArray(item.locations) && item.locations.length > 0) {
         item.locations.forEach((loc) => {
           if (loc?.trim()) locationSet.add(loc.trim());
@@ -55,7 +55,7 @@ export class Renderer {
       categories,
       locations,
       todoLists,
-      allItems,
+      items,
       description,
       translations,
       config,

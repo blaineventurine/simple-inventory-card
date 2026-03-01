@@ -1,5 +1,5 @@
-import { HistoryEvent } from '../types/historyEvent';
-import { ItemConsumptionRates } from '../types/consumptionRates';
+import { HistoryEvent } from '@/types/historyEvent';
+import { ItemConsumptionRates } from '@/types/consumptionRates';
 import { TranslationData } from '@/types/translatableComponent';
 import { TranslationManager } from '@/services/translationManager';
 import { Utilities } from '../utils/utilities';

@@ -94,6 +94,8 @@ export const ELEMENTS = {
   BARCODE_VIEWPORT: 'barcode-viewport',
   BARCODE_SCANNER_CLOSE: 'barcode-scanner-close',
 
+  HEADER_EXPIRED_BADGE: 'header-expired-badge',
+  HEADER_EXPIRING_BADGE: 'header-expiring-badge',
   HEADER_SCAN_BTN: 'header-scan-btn',
   SCAN_PANEL: 'scan-panel',
   SCAN_VIEWPORT: 'scan-viewport',

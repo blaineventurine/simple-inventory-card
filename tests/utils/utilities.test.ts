@@ -1,5 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Utilities } from '../../src/utils/utilities';
+import { InventoryResolver } from '../../src/utils/inventoryResolver';
+import { DateUtils } from '../../src/utils/dateUtils';
+import { FormUtils } from '../../src/utils/formUtils';
 import { HomeAssistant, InventoryItem } from '../../src/types/homeAssistant';
 import { RawFormData, ItemData } from '../../src/types/inventoryItem';
 import { createMockHassEntity, createMockHomeAssistant } from '../testHelpers';
@@ -32,7 +35,7 @@ describe('Utilities', () => {
           attributes: { friendly_name: 'Kitchen Inventory' },
         });
 
-        const result = Utilities.getInventoryName(state, 'sensor.test');
+        const result = InventoryResolver.getInventoryName(state, 'sensor.test');
         expect(result).toBe('Kitchen Inventory');
       });
 
@@ -43,7 +46,7 @@ describe('Utilities', () => {
             attributes: { friendly_name },
           });
 
-          const result = Utilities.getInventoryName(state, 'sensor.kitchen_inventory');
+          const result = InventoryResolver.getInventoryName(state, 'sensor.kitchen_inventory');
           expect(result).toBe('Kitchen');
         },
       );
@@ -62,14 +65,14 @@ describe('Utilities', () => {
         { input: 'sensor.kitchen_1_inventory', expected: 'Kitchen 1' },
         { input: 'sensor.storage_room_2_inventory', expected: 'Storage Room 2' },
       ])('should format entity ID correctly: $input → $expected', ({ input, expected }) => {
-        const result = Utilities.getInventoryName(undefined, input);
+        const result = InventoryResolver.getInventoryName(undefined, input);
         expect(result).toBe(expected);
       });
 
       it.each(['sensor._kitchen_', 'sensor._pantry_storage_', 'sensor.__middle_kitchen__'])(
         'should handle leading/trailing underscores: %s',
         (input) => {
-          const result = Utilities.getInventoryName(undefined, input);
+          const result = InventoryResolver.getInventoryName(undefined, input);
           expect(result.startsWith(' ')).toBe(false);
           expect(result.endsWith(' ')).toBe(false);
         },
@@ -78,26 +81,26 @@ describe('Utilities', () => {
       it.each(['invalid', 'sensor.', '', 'sensor', 'sensor.kitchen.'])(
         'should return default name for invalid entity IDs: %s',
         (invalidId) => {
-          const result = Utilities.getInventoryName(undefined, invalidId);
+          const result = InventoryResolver.getInventoryName(undefined, invalidId);
           expect(result).toBe('Inventory');
         },
       );
 
       it('should handle entity IDs with empty parts in the middle', () => {
-        expect(Utilities.getInventoryName(undefined, 'sensor..kitchen')).toBe('Kitchen');
-        expect(Utilities.getInventoryName(undefined, 'domain...entity')).toBe('Entity');
+        expect(InventoryResolver.getInventoryName(undefined, 'sensor..kitchen')).toBe('Kitchen');
+        expect(InventoryResolver.getInventoryName(undefined, 'domain...entity')).toBe('Entity');
       });
     });
 
     describe('edge cases', () => {
       it('should handle undefined state gracefully', () => {
-        const result = Utilities.getInventoryName(undefined, 'sensor.kitchen_inventory');
+        const result = InventoryResolver.getInventoryName(undefined, 'sensor.kitchen_inventory');
         expect(result).toBe('Kitchen');
       });
 
       it('should handle state with undefined attributes', () => {
         const state = createMockHassEntity('sensor.test', { attributes: undefined as any });
-        const result = Utilities.getInventoryName(state, 'sensor.kitchen_inventory');
+        const result = InventoryResolver.getInventoryName(state, 'sensor.kitchen_inventory');
         expect(result).toBe('Kitchen');
       });
     });
@@ -109,14 +112,14 @@ describe('Utilities', () => {
         attributes: { description: 'Main kitchen storage' },
       });
 
-      const result = Utilities.getInventoryDescription(state);
+      const result = InventoryResolver.getInventoryDescription(state);
       expect(result).toBe('Main kitchen storage');
     });
 
     it.each([undefined, { attributes: undefined }, { attributes: undefined }, { attributes: {} }])(
       'should return undefined for missing description',
       (state) => {
-        const result = Utilities.getInventoryDescription(state as any);
+        const result = InventoryResolver.getInventoryDescription(state as any);
         expect(result).toBeUndefined();
       },
     );
@@ -134,7 +137,7 @@ describe('Utilities', () => {
         attributes: { inventory_id: 'custom_inventory_123' },
       });
 
-      const result = Utilities.getInventoryId(mockHass, 'sensor.test');
+      const result = InventoryResolver.getInventoryId(mockHass, 'sensor.test');
       expect(result).toBe('custom_inventory_123');
     });
 
@@ -143,7 +146,7 @@ describe('Utilities', () => {
         attributes: { unique_id: 'inventory_kitchen_main' },
       });
 
-      const result = Utilities.getInventoryId(mockHass, 'sensor.test');
+      const result = InventoryResolver.getInventoryId(mockHass, 'sensor.test');
       expect(result).toBe('kitchen_main');
     });
 
@@ -152,7 +155,7 @@ describe('Utilities', () => {
         'sensor.kitchen_inventory',
       );
 
-      const result = Utilities.getInventoryId(mockHass, 'sensor.kitchen_inventory');
+      const result = InventoryResolver.getInventoryId(mockHass, 'sensor.kitchen_inventory');
       expect(result).toBe('kitchen_inventory');
     });
 
@@ -164,7 +167,7 @@ describe('Utilities', () => {
     ])('should handle missing or invalid attributes', (entityData) => {
       mockHass.states['sensor.test'] = createMockHassEntity('sensor.test', entityData as any);
 
-      const result = Utilities.getInventoryId(mockHass, 'sensor.test');
+      const result = InventoryResolver.getInventoryId(mockHass, 'sensor.test');
       expect(result).toBe('test');
     });
   });
@@ -220,7 +223,7 @@ describe('Utilities', () => {
       '2023-12-25T15:30:00Z',
       '2023-12-25T00:00:00.000Z',
     ])('should format valid date strings: %s', (dateString) => {
-      const result = Utilities.formatDate(dateString);
+      const result = DateUtils.formatDate(dateString);
       expect(result).toBeTruthy();
       expect(result).not.toBe(dateString);
     });
@@ -228,14 +231,14 @@ describe('Utilities', () => {
     it.each([undefined, '', undefined])(
       'should return empty string for falsy inputs: %s',
       (input) => {
-        expect(Utilities.formatDate(input as any)).toBe('');
+        expect(DateUtils.formatDate(input as any)).toBe('');
       },
     );
 
     it.each(['invalid-date', 'not-a-date', 'abc123', '####', 'completely-invalid'])(
       'should return original string for invalid dates: %s',
       (invalidDate) => {
-        const result = Utilities.formatDate(invalidDate);
+        const result = DateUtils.formatDate(invalidDate);
         expect(result).toBe(invalidDate);
       },
     );
@@ -245,7 +248,7 @@ describe('Utilities', () => {
       '\t2023-12-25\n',
       '  1640995200000  ', // Timestamp with whitespace
     ])('should handle whitespace correctly: %s', (paddedDate) => {
-      const result = Utilities.formatDate(paddedDate);
+      const result = DateUtils.formatDate(paddedDate);
       expect(result).toBeTruthy();
       expect(result).not.toBe(paddedDate);
     });
@@ -267,13 +270,13 @@ describe('Utilities', () => {
         { date: '2023-06-15', expected: false, description: 'today' },
         { date: '2023-06-16', expected: false, description: 'future date' },
       ])('should correctly identify expired dates: $description', ({ date, expected }) => {
-        expect(Utilities.isExpired(date)).toBe(expected);
+        expect(DateUtils.isExpired(date)).toBe(expected);
       });
 
       it.each([undefined, '', 'invalid-date', 'not a date', '2023-13-45'])(
         'should return false for invalid inputs: %s',
         (input) => {
-          expect(Utilities.isExpired(input as any)).toBe(false);
+          expect(DateUtils.isExpired(input as any)).toBe(false);
         },
       );
     });
@@ -286,16 +289,16 @@ describe('Utilities', () => {
       ])(
         'should detect expiring dates: $date with threshold $threshold → $expected',
         ({ date, threshold, expected }) => {
-          expect(Utilities.isExpiringSoon(date, threshold)).toBe(expected);
+          expect(DateUtils.isExpiringSoon(date, threshold)).toBe(expected);
         },
       );
 
       it('should use default threshold of 7 days', () => {
-        expect(Utilities.isExpiringSoon('2023-06-20')).toBe(true);
+        expect(DateUtils.isExpiringSoon('2023-06-20')).toBe(true);
       });
 
       it('should return false for empty string', () => {
-        expect(Utilities.isExpiringSoon('')).toBe(false);
+        expect(DateUtils.isExpiringSoon('')).toBe(false);
       });
     });
   });
@@ -337,7 +340,7 @@ describe('Utilities', () => {
     describe('validateRawFormData', () => {
       it('should pass validation for valid data', () => {
         const formData = createValidFormData();
-        const result = Utilities.validateRawFormData(formData);
+        const result = FormUtils.validateRawFormData(formData);
 
         expect(result.isValid).toBe(true);
         expect(result.errors).toHaveLength(0);
@@ -351,7 +354,7 @@ describe('Utilities', () => {
           { name: null, description: 'null' },
         ])('should fail for invalid name: $description', ({ name }) => {
           const formData = createValidFormData({ name: name as any });
-          const result = Utilities.validateRawFormData(formData);
+          const result = FormUtils.validateRawFormData(formData);
 
           expect(result.isValid).toBe(false);
           expect(result.errors).toContainEqual({ field: 'name', message: 'Item name is required' });
@@ -367,7 +370,7 @@ describe('Utilities', () => {
           { quantity: '', shouldError: false },
         ])('should validate quantity: $quantity', ({ quantity, errorType, shouldError }) => {
           const formData = createValidFormData({ quantity });
-          const result = Utilities.validateRawFormData(formData);
+          const result = FormUtils.validateRawFormData(formData);
 
           if (shouldError === false) {
             expect(result.errors.some((e) => e.field === 'quantity')).toBe(false);
@@ -386,7 +389,7 @@ describe('Utilities', () => {
             autoAddToListQuantity: '',
             todoList: '',
           });
-          const result = Utilities.validateRawFormData(formData);
+          const result = FormUtils.validateRawFormData(formData);
 
           expect(result.isValid).toBe(false);
           expect(result.errors).toHaveLength(2);
@@ -399,7 +402,7 @@ describe('Utilities', () => {
             autoAddEnabled: false,
             todoList: undefined as any,
           });
-          const result = Utilities.validateRawFormData(formData);
+          const result = FormUtils.validateRawFormData(formData);
 
           expect(result.errors.some((e) => e.field === 'todoList')).toBe(false);
           expect(result.isValid).toBe(true);
@@ -413,7 +416,7 @@ describe('Utilities', () => {
           { expiryDate: '', shouldError: false },
         ])('should validate expiry date format: $expiryDate', ({ expiryDate, shouldError }) => {
           const formData = createValidFormData({ expiryDate });
-          const result = Utilities.validateRawFormData(formData);
+          const result = FormUtils.validateRawFormData(formData);
 
           expect(result.errors.some((e) => e.field === 'expiryDate')).toBe(shouldError);
         });
@@ -423,7 +426,7 @@ describe('Utilities', () => {
             expiryDate: '',
             expiryAlertDays: '5',
           });
-          const result = Utilities.validateRawFormData(formData);
+          const result = FormUtils.validateRawFormData(formData);
 
           expect(
             result.errors.some(
@@ -455,7 +458,7 @@ describe('Utilities', () => {
           unit: 'kg',
         };
 
-        const result = Utilities.convertRawFormDataToItemData(formData);
+        const result = FormUtils.convertRawFormDataToItemData(formData);
 
         expect(result).toEqual({
           autoAddEnabled: true,
@@ -483,7 +486,7 @@ describe('Utilities', () => {
         { field: 'expiryAlertDays', input: 'invalid', defaultValue: 1 },
       ])('should handle invalid numeric values: $field', ({ field, input, defaultValue }) => {
         const formData = createValidFormData({ [field]: input });
-        const result = Utilities.convertRawFormDataToItemData(formData);
+        const result = FormUtils.convertRawFormDataToItemData(formData);
 
         expect(result[field as keyof typeof result]).toBe(defaultValue);
       });
@@ -495,7 +498,7 @@ describe('Utilities', () => {
           expiryAlertDays: '-1',
         });
 
-        const result = Utilities.convertRawFormDataToItemData(formData);
+        const result = FormUtils.convertRawFormDataToItemData(formData);
 
         expect(result.quantity).toBe(0);
         expect(result.autoAddToListQuantity).toBe(0);
@@ -522,7 +525,7 @@ describe('Utilities', () => {
           unit: undefined as any,
         };
 
-        const result = Utilities.convertRawFormDataToItemData(formData);
+        const result = FormUtils.convertRawFormDataToItemData(formData);
 
         expect(result).toEqual({
           autoAddEnabled: false,
@@ -554,7 +557,7 @@ describe('Utilities', () => {
         { input: 'invalid-date', expected: false },
         { input: '', expected: false },
       ])('should validate dates correctly: $input → $expected', ({ input, expected }) => {
-        expect(Utilities.isValidDate(input)).toBe(expected);
+        expect(DateUtils.isValidDate(input)).toBe(expected);
       });
     });
 
@@ -582,7 +585,7 @@ describe('Utilities', () => {
         { input: 123, maxLength: 10, expected: '' },
         { input: 'short', maxLength: 10, expected: 'short' },
       ])('should sanitize strings: $input → $expected', ({ input, maxLength, expected }) => {
-        const result = Utilities.sanitizeString(input as any, maxLength);
+        const result = FormUtils.sanitizeString(input as any, maxLength);
         expect(result).toBe(expected);
       });
     });
@@ -696,7 +699,7 @@ describe('Utilities', () => {
           unit: 'a very long unit name that should also be truncated',
         };
 
-        const result = Utilities.sanitizeItemData(itemData);
+        const result = FormUtils.sanitizeItemData(itemData);
 
         expect(result.name).toBe('Test Item');
         expect(result.quantity).toBe(0);
@@ -762,7 +765,7 @@ describe('Utilities', () => {
           'sensor.not_todo': createMockHassEntity('sensor.not_todo'),
         };
 
-        const result = Utilities.extractTodoLists(mockHass);
+        const result = InventoryResolver.extractTodoLists(mockHass);
 
         expect(result).toHaveLength(2);
         expect(result[0]).toEqual({ id: 'todo.shopping', name: 'Shopping List' });
@@ -774,10 +777,10 @@ describe('Utilities', () => {
       it('should find inventory sensor entities', () => {
         mockHass.states = {
           'sensor.kitchen_inventory': createMockHassEntity('sensor.kitchen_inventory', {
-            attributes: { items: [] },
+            attributes: { inventory_id: 'kitchen_id' },
           }),
           'sensor.garage_inventory': createMockHassEntity('sensor.garage_inventory', {
-            attributes: { items: [] },
+            attributes: { inventory_id: 'garage_id' },
           }),
           'sensor.garage_inventory_items_expiring_soon': createMockHassEntity(
             'sensor.garage_inventory_items_expiring_soon',
@@ -785,7 +788,7 @@ describe('Utilities', () => {
           'switch.not_inventory': createMockHassEntity('switch.not_inventory'),
         };
 
-        const result = Utilities.findInventoryEntities(mockHass);
+        const result = InventoryResolver.findInventoryEntities(mockHass);
 
         expect(result).toEqual(['sensor.garage_inventory', 'sensor.kitchen_inventory']);
       });
@@ -800,7 +803,10 @@ describe('Utilities', () => {
           'sensor.test2': createMockHassEntity('sensor.test2'),
         };
 
-        const result = Utilities.createEntityOptions(mockHass, ['sensor.test1', 'sensor.test2']);
+        const result = InventoryResolver.createEntityOptions(mockHass, [
+          'sensor.test1',
+          'sensor.test2',
+        ]);
 
         expect(result).toEqual([
           { value: 'sensor.test1', label: 'Test 1' },
@@ -820,7 +826,7 @@ describe('Utilities', () => {
 
       it('should handle null state gracefully', () => {
         mockHass.states['sensor.test'] = null as any;
-        const result = Utilities.getInventoryId(mockHass, 'sensor.test');
+        const result = InventoryResolver.getInventoryId(mockHass, 'sensor.test');
         expect(result).toBe('test');
       });
 
@@ -828,7 +834,7 @@ describe('Utilities', () => {
         mockHass.states['sensor.test'] = createMockHassEntity('sensor.test', {
           attributes: null as any,
         });
-        const result = Utilities.getInventoryId(mockHass, 'sensor.test');
+        const result = InventoryResolver.getInventoryId(mockHass, 'sensor.test');
         expect(result).toBe('test');
       });
 
@@ -836,7 +842,7 @@ describe('Utilities', () => {
         mockHass.states['sensor.test'] = createMockHassEntity('sensor.test', {
           attributes: { unique_id: 123 as any },
         });
-        const result = Utilities.getInventoryId(mockHass, 'sensor.test');
+        const result = InventoryResolver.getInventoryId(mockHass, 'sensor.test');
         expect(result).toBe('test');
       });
 
@@ -844,29 +850,29 @@ describe('Utilities', () => {
         mockHass.states['sensor.test'] = createMockHassEntity('sensor.test', {
           attributes: { unique_id: 'some_other_prefix_test' },
         });
-        const result = Utilities.getInventoryId(mockHass, 'sensor.test');
+        const result = InventoryResolver.getInventoryId(mockHass, 'sensor.test');
         expect(result).toBe('test');
       });
 
       it('should handle entity ID with no domain separator', () => {
-        const result = Utilities.getInventoryId(mockHass, 'invalid_entity_id');
+        const result = InventoryResolver.getInventoryId(mockHass, 'invalid_entity_id');
         expect(result).toBe('invalid_entity_id');
       });
 
       it('should handle entity ID with only domain', () => {
-        const result = Utilities.getInventoryId(mockHass, 'sensor.');
+        const result = InventoryResolver.getInventoryId(mockHass, 'sensor.');
         expect(result).toBe('');
       });
     });
 
     describe('formatDate - Regex and Edge Case Coverage', () => {
       it('should handle numeric strings that are not pure digits', () => {
-        const result = Utilities.formatDate('123abc');
+        const result = DateUtils.formatDate('123abc');
         expect(result).toBe('123abc'); // Should return original for invalid format
       });
 
       it('should handle partial numeric strings', () => {
-        const result = Utilities.formatDate('123');
+        const result = DateUtils.formatDate('123');
         expect(result).not.toBe('123'); // Should be formatted as timestamp
       });
 
@@ -880,7 +886,7 @@ describe('Utilities', () => {
         ];
 
         for (const dateString of testCases) {
-          const result = Utilities.formatDate(dateString);
+          const result = DateUtils.formatDate(dateString);
           // These should NOT be parsed as timestamps or YYYY-MM-DD format
           // They should go through the general Date() constructor path
           expect(result).toBeTruthy(); // Just verify it returns something
@@ -889,13 +895,13 @@ describe('Utilities', () => {
 
       it('should handle date strings without trimming', () => {
         // Test the specific mutant that removes .trim()
-        const result = Utilities.formatDate('2023-12-25');
+        const result = DateUtils.formatDate('2023-12-25');
         expect(result).toBeTruthy();
         expect(result).not.toBe('2023-12-25');
       });
 
       it('should handle arithmetic mutation in month calculation', () => {
-        const result = Utilities.formatDate('2023-12-25');
+        const result = DateUtils.formatDate('2023-12-25');
         // Verify the month is correct (not off by 2 due to +1 instead of -1)
         expect(result).toContain('12'); // Should contain December representation
       });
@@ -923,14 +929,14 @@ describe('Utilities', () => {
           }
         } as any;
 
-        const result = Utilities.isExpired('throw-error');
+        const result = DateUtils.isExpired('throw-error');
         expect(result).toBe(false);
 
         globalThis.Date = originalDate;
       });
 
       it('should handle invalid date objects that return NaN', () => {
-        const result = Utilities.isExpired('invalid-date-that-creates-nan');
+        const result = DateUtils.isExpired('invalid-date-that-creates-nan');
         expect(result).toBe(false);
       });
     });
@@ -946,22 +952,22 @@ describe('Utilities', () => {
       });
 
       it('should handle exactly 0 days difference', () => {
-        const result = Utilities.isExpiringSoon('2023-06-15', 7);
+        const result = DateUtils.isExpiringSoon('2023-06-15', 7);
         expect(result).toBe(true); // Day 0 should be included (>= 0)
       });
 
       it('should handle exactly threshold days difference', () => {
-        const result = Utilities.isExpiringSoon('2023-06-22', 7);
+        const result = DateUtils.isExpiringSoon('2023-06-22', 7);
         expect(result).toBe(true); // Day 7 should be included (<= threshold)
       });
 
       it('should handle threshold + 1 days difference', () => {
-        const result = Utilities.isExpiringSoon('2023-06-23', 7);
+        const result = DateUtils.isExpiringSoon('2023-06-23', 7);
         expect(result).toBe(false); // Day 8 should be excluded
       });
 
       it('should handle negative days (past dates)', () => {
-        const result = Utilities.isExpiringSoon('2023-06-14', 7);
+        const result = DateUtils.isExpiringSoon('2023-06-14', 7);
         expect(result).toBe(false); // Past dates should be excluded (< 0)
       });
     });
@@ -996,7 +1002,7 @@ describe('Utilities', () => {
         const formData = createValidFormData();
         delete (formData as any).quantity; // Remove quantity entirely
 
-        const result = Utilities.validateRawFormData(formData);
+        const result = FormUtils.validateRawFormData(formData);
         expect(result.errors.some((e) => e.field === 'quantity')).toBe(false);
       });
 
@@ -1007,7 +1013,7 @@ describe('Utilities', () => {
           todoList: 'todo.test',
         });
 
-        const result = Utilities.validateRawFormData(formData);
+        const result = FormUtils.validateRawFormData(formData);
         expect(result.errors.some((e) => e.field === 'autoAddToListQuantity')).toBe(true);
       });
 
@@ -1018,7 +1024,7 @@ describe('Utilities', () => {
           todoList: null as any,
         });
 
-        const result = Utilities.validateRawFormData(formData);
+        const result = FormUtils.validateRawFormData(formData);
         expect(result.errors.some((e) => e.field === 'todoList')).toBe(true);
       });
 
@@ -1027,7 +1033,7 @@ describe('Utilities', () => {
           expiryDate: null as any,
         });
 
-        const result = Utilities.validateRawFormData(formData);
+        const result = FormUtils.validateRawFormData(formData);
         expect(result.errors.some((e) => e.field === 'expiryDate')).toBe(false);
       });
 
@@ -1035,7 +1041,7 @@ describe('Utilities', () => {
         const formData = createValidFormData();
         delete (formData as any).expiryAlertDays;
 
-        const result = Utilities.validateRawFormData(formData);
+        const result = FormUtils.validateRawFormData(formData);
         expect(result.errors.some((e) => e.field === 'expiryAlertDays')).toBe(false);
       });
 
@@ -1046,7 +1052,7 @@ describe('Utilities', () => {
           todoList: 'todo.test',
         });
 
-        const result = Utilities.validateRawFormData(formData);
+        const result = FormUtils.validateRawFormData(formData);
         expect(
           result.errors.some(
             (e) => e.field === 'autoAddToListQuantity' && e.message.includes('valid number'),
@@ -1061,7 +1067,7 @@ describe('Utilities', () => {
           todoList: 'todo.test',
         });
 
-        const result = Utilities.validateRawFormData(formData);
+        const result = FormUtils.validateRawFormData(formData);
         expect(
           result.errors.some(
             (e) => e.field === 'autoAddToListQuantity' && e.message.includes('cannot be negative'),
@@ -1075,7 +1081,7 @@ describe('Utilities', () => {
           expiryAlertDays: 'invalid-number',
         });
 
-        const result = Utilities.validateRawFormData(formData);
+        const result = FormUtils.validateRawFormData(formData);
         expect(
           result.errors.some(
             (e) => e.field === 'expiryAlertDays' && e.message.includes('valid number'),
@@ -1089,7 +1095,7 @@ describe('Utilities', () => {
           expiryAlertDays: '-3',
         });
 
-        const result = Utilities.validateRawFormData(formData);
+        const result = FormUtils.validateRawFormData(formData);
         expect(
           result.errors.some(
             (e) => e.field === 'expiryAlertDays' && e.message.includes('cannot be negative'),
@@ -1105,7 +1111,7 @@ describe('Utilities', () => {
           autoAddToListQuantity: '-Infinity',
         });
 
-        const result = Utilities.convertRawFormDataToItemData(formData);
+        const result = FormUtils.convertRawFormDataToItemData(formData);
         expect(result.quantity).toBe(1);
         expect(result.autoAddToListQuantity).toBe(0);
       });
@@ -1116,7 +1122,7 @@ describe('Utilities', () => {
           autoAddToListQuantity: 'not-a-number',
         });
 
-        const result = Utilities.convertRawFormDataToItemData(formData);
+        const result = FormUtils.convertRawFormDataToItemData(formData);
         expect(result.quantity).toBe(1);
         expect(result.autoAddToListQuantity).toBe(0);
       });
@@ -1130,7 +1136,7 @@ describe('Utilities', () => {
         (formData as any).todoList = null;
         (formData as any).unit = undefined;
 
-        const result = Utilities.convertRawFormDataToItemData(formData);
+        const result = FormUtils.convertRawFormDataToItemData(formData);
 
         expect(result.category).toBe('');
         expect(result.expiryDate).toBe('');
@@ -1154,7 +1160,7 @@ describe('Utilities', () => {
           unit: 'test',
         };
 
-        const result = Utilities.sanitizeItemData(itemData);
+        const result = FormUtils.sanitizeItemData(itemData);
         expect(result.autoAddToListQuantity).toBe(0); // Should be 0, not negative
       });
 
@@ -1171,7 +1177,7 @@ describe('Utilities', () => {
           expiryAlertDays: 7,
         };
 
-        const result = Utilities.sanitizeItemData(itemData);
+        const result = FormUtils.sanitizeItemData(itemData);
         expect(result.quantity).toBe(0);
         expect(result.autoAddToListQuantity).toBe(0);
       });
@@ -1288,19 +1294,19 @@ describe('Utilities', () => {
           'todo.test': createMockHassEntity('todo.test', { attributes: null as any }),
         };
 
-        const result = Utilities.extractTodoLists(mockHass);
+        const result = InventoryResolver.extractTodoLists(mockHass);
         expect(result).toHaveLength(1);
         expect(result[0].name).toBe('test'); // Should fallback to entity name
       });
 
       it('should handle findInventoryEntities with null hass', () => {
-        const result = Utilities.findInventoryEntities(null as any);
+        const result = InventoryResolver.findInventoryEntities(null as any);
         expect(result).toEqual([]);
       });
 
       it('should handle findInventoryEntities with missing states', () => {
         const hassWithoutStates = { ...mockHass, states: undefined as any };
-        const result = Utilities.findInventoryEntities(hassWithoutStates);
+        const result = InventoryResolver.findInventoryEntities(hassWithoutStates);
         expect(result).toEqual([]);
       });
 
@@ -1309,7 +1315,7 @@ describe('Utilities', () => {
           'sensor.test': undefined as any,
         };
 
-        const result = Utilities.findInventoryEntities(mockHass);
+        const result = InventoryResolver.findInventoryEntities(mockHass);
         expect(result).toEqual([]);
       });
 
@@ -1318,40 +1324,40 @@ describe('Utilities', () => {
           'sensor.test': createMockHassEntity('sensor.test', { attributes: undefined as any }),
         };
 
-        const result = Utilities.createEntityOptions(mockHass, ['sensor.test']);
+        const result = InventoryResolver.createEntityOptions(mockHass, ['sensor.test']);
         expect(result).toEqual([{ value: 'sensor.test', label: 'sensor.test' }]);
       });
 
       it('should test conditional expression mutations in findInventoryEntities', () => {
         mockHass.states = {
           'sensor.inventory_test': createMockHassEntity('sensor.inventory_test', {
-            attributes: { items: [] },
+            attributes: { inventory_id: 'test_id' },
           }),
           'sensor.inventory_items': createMockHassEntity('sensor.inventory_items', {
-            attributes: { items: ['test'] },
+            attributes: { inventory_id: 'items_id' },
           }),
           'sensor.no_match': createMockHassEntity('sensor.no_match'),
           'sensor.inventory_items_expiring_soon': createMockHassEntity(
             'sensor.inventory_items_expiring_soon',
           ),
-          'sensor.has_items_only': createMockHassEntity('sensor.has_items_only', {
-            // Has items but no inventory in name
-            attributes: { items: [] },
+          'sensor.pantry_sensor': createMockHassEntity('sensor.pantry_sensor', {
+            // Has inventory_id but no 'inventory' in name
+            attributes: { inventory_id: 'some_id' },
           }),
         };
 
-        const result = Utilities.findInventoryEntities(mockHass);
+        const result = InventoryResolver.findInventoryEntities(mockHass);
         expect(result).toContain('sensor.inventory_items');
         expect(result).toContain('sensor.inventory_test');
         expect(result).not.toContain('sensor.no_match');
         expect(result).not.toContain('sensor.inventory_no_items');
-        expect(result).not.toContain('sensor.has_items_only');
+        expect(result).not.toContain('sensor.pantry_sensor');
       });
     });
 
     describe('formatDate - Timezone and Options Coverage', () => {
       it('should handle date formatting without timezone option', () => {
-        const result = Utilities.formatDate('2023-12-25');
+        const result = DateUtils.formatDate('2023-12-25');
         expect(result).toBeTruthy();
         // The mutant removes the timeZone option, but result should still be valid
         expect(result).toMatch(/\d{1,2}\/\d{1,2}\/\d{4}/); // Should match MM/DD/YYYY format

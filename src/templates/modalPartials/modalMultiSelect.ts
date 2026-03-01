@@ -1,8 +1,4 @@
-export interface ModalMultiSelectConfig {
-  id: string;
-  placeholder: string;
-  options: string[];
-}
+import { ModalMultiSelectConfig } from '@/types/modalMultiSelect';
 
 export function createModalMultiSelect(config: ModalMultiSelectConfig): string {
   return `
