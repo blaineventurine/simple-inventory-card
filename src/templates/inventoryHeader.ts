@@ -31,7 +31,7 @@ export function createInventoryHeader(
               ${
                 expiredCount > 0
                   ? `
-                  <span class="expired-badge" title="${TranslationManager.localize(
+                  <button id="${ELEMENTS.HEADER_EXPIRED_BADGE}" class="expired-badge" title="${TranslationManager.localize(
                     translations,
                     'header.items_expired',
                     { count: expiredCount },
@@ -39,14 +39,14 @@ export function createInventoryHeader(
                   )}">
                   <ha-icon icon="mdi:calendar-remove"></ha-icon>
                   ${expiredCount}
-                </span>
+                </button>
               `
                   : ''
               }
               ${
                 expiringCount > 0
                   ? `
-                  <span class="expiring-badge" title="${TranslationManager.localize(
+                  <button id="${ELEMENTS.HEADER_EXPIRING_BADGE}" class="expiring-badge" title="${TranslationManager.localize(
                     translations,
                     'header.items_expiring_soon',
                     { count: expiringCount },
@@ -54,7 +54,7 @@ export function createInventoryHeader(
                   )}">
                   <ha-icon icon="mdi:calendar-alert"></ha-icon>
                   ${expiringCount}
-                </span>
+                </button>
               `
                   : ''
               }
@@ -82,7 +82,7 @@ function getExpiringItemsCount(items: InventoryItem[]): number {
     if (!item.expiry_date || (item.quantity ?? 0) <= 0) {
       return false;
     }
-    const threshold = item.expiry_alert_days || DEFAULTS.EXPIRY_ALERT_DAYS;
+    const threshold = item.expiry_alert_days ?? DEFAULTS.EXPIRY_ALERT_DAYS;
     return Utilities.isExpiringSoon(item.expiry_date, threshold);
   }).length;
 }

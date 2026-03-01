@@ -191,7 +191,7 @@ export class Filters {
             return false;
           }
 
-          const itemThreshold = item.expiry_alert_days || 7;
+          const itemThreshold = item.expiry_alert_days ?? DEFAULTS.EXPIRY_ALERT_DAYS;
           return Utilities.isExpiringSoon(item.expiry_date, itemThreshold);
         }
 
@@ -201,7 +201,7 @@ export class Filters {
           }
 
           const futureDate = new Date(item.expiry_date);
-          const itemThreshold2 = item.expiry_alert_days || 7;
+          const itemThreshold2 = item.expiry_alert_days ?? DEFAULTS.EXPIRY_ALERT_DAYS;
           const thresholdDate = new Date(today);
           thresholdDate.setDate(today.getDate() + itemThreshold2);
 

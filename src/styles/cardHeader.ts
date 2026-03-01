@@ -113,6 +113,16 @@ export const cardHeaderStyles: CSSResult = css`
     font-size: 0.75em;
     font-weight: 500;
     white-space: nowrap;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    line-height: inherit;
+    transition: opacity 0.15s ease;
+  }
+
+  .expiring-badge:hover,
+  .expired-badge:hover {
+    opacity: 0.75;
   }
 
   .expiring-badge {

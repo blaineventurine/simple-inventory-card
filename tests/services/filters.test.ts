@@ -604,7 +604,7 @@ describe('Filters', () => {
       it('should handle expiry_alert_days of 0 in soon filter', () => {
         vi.mocked(Utilities.isExpiringSoon).mockImplementation(
           (expiryDate: string, threshold?: number) =>
-            expiryDate === '2024-06-05' && threshold === 7, // 0 becomes 7 due to || operator
+            expiryDate === '2024-06-05' && threshold === 0, // 0 stays 0 via ?? operator
         );
 
         const items: InventoryItem[] = [
@@ -617,7 +617,7 @@ describe('Filters', () => {
         });
 
         expect(result).toHaveLength(1);
-        expect(Utilities.isExpiringSoon).toHaveBeenCalledWith('2024-06-05', 7); // 0 || 7 = 7
+        expect(Utilities.isExpiringSoon).toHaveBeenCalledWith('2024-06-05', 0); // 0 ?? 1 = 0
       });
 
       it('should exclude items at exact threshold boundary (tests > vs >= mutation)', () => {

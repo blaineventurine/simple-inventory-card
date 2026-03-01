@@ -1,4 +1,4 @@
-import { ELEMENTS, ACTIONS, DEFAULTS, CSS_CLASSES } from '../utils/constants';
+import { ELEMENTS, ACTIONS, DEFAULTS, CSS_CLASSES, FILTER_VALUES } from '../utils/constants';
 import { HomeAssistant, InventoryConfig, InventoryItem } from '../types/homeAssistant';
 import { Services } from './services';
 import { Modals } from './modals';
@@ -122,8 +122,9 @@ export class EventHandler {
       return; // Don't prevent default - let modals handle it
     }
 
-    const buttonId = target.id;
-    if (buttonId && target.tagName === 'BUTTON') {
+    const button = (target.closest?.('button') ?? target) as HTMLElement;
+    const buttonId = button.id;
+    if (buttonId && button.tagName === 'BUTTON') {
       switch (buttonId) {
         case ELEMENTS.OPEN_ADD_MODAL: {
           event.preventDefault();
@@ -183,6 +184,18 @@ export class EventHandler {
           event.stopPropagation();
           this.closeOverflowMenu();
           await this.handleImport();
+          break;
+        }
+        case ELEMENTS.HEADER_EXPIRED_BADGE: {
+          event.preventDefault();
+          event.stopPropagation();
+          this.applyExpiryBadgeFilter(FILTER_VALUES.EXPIRY.EXPIRED);
+          break;
+        }
+        case ELEMENTS.HEADER_EXPIRING_BADGE: {
+          event.preventDefault();
+          event.stopPropagation();
+          this.applyExpiryBadgeFilter(FILTER_VALUES.EXPIRY.SOON);
           break;
         }
         case ELEMENTS.HEADER_SCAN_BTN: {
@@ -386,6 +399,22 @@ export class EventHandler {
     const success = await this.modals.saveEditModal(this.config);
     if (success) {
       this.modals.closeEditModal();
+    }
+  }
+
+  private applyExpiryBadgeFilter(value: string): void {
+    try {
+      const filters = this.filters.getCurrentFilters(this.config.entity);
+      // Toggle: if this filter is already the sole selection, clear it; otherwise apply it.
+      const alreadyActive = filters.expiry.length === 1 && filters.expiry[0] === value;
+      filters.expiry = alreadyActive ? [] : [value];
+      this.filters.saveFilters(this.config.entity, filters);
+      this.applyFiltersWithoutRender();
+      setTimeout(() => {
+        this.filters.updateFilterIndicators(filters, this.translations);
+      }, 50);
+    } catch (error) {
+      console.error('Error applying expiry badge filter:', error);
     }
   }
 

@@ -210,7 +210,7 @@ describe('createInventoryHeader', () => {
       expect(result).toContain('class="expired-badge"');
       expect(result).toContain('1 items expired');
       expect(result).toContain('mdi:calendar-remove');
-      expect(result).toMatch(/<span class="expired-badge"[^>]*>[\s\S]*?1[\s\S]*?<\/span>/);
+      expect(result).toMatch(/<button[^>]*class="expired-badge"[^>]*>[\s\S]*?1[\s\S]*?<\/button>/);
     });
 
     it('should show expiring badge when items are expiring soon', () => {
@@ -226,7 +226,7 @@ describe('createInventoryHeader', () => {
       expect(result).toContain('class="expiring-badge"');
       expect(result).toContain('1 items expiring soon');
       expect(result).toContain('mdi:calendar-alert');
-      expect(result).toMatch(/<span class="expiring-badge"[^>]*>[\s\S]*?1[\s\S]*?<\/span>/);
+      expect(result).toMatch(/<button[^>]*class="expiring-badge"[^>]*>[\s\S]*?1[\s\S]*?<\/button>/);
     });
 
     it('should show both badges when both expired and expiring items exist', () => {
@@ -274,7 +274,7 @@ describe('createInventoryHeader', () => {
       const result = createInventoryHeader('Test', multipleExpiredItems, mockTranslations);
 
       expect(result).toContain('2 items expired');
-      expect(result).toMatch(/<span class="expired-badge"[^>]*>[\s\S]*?2[\s\S]*?<\/span>/);
+      expect(result).toMatch(/<button[^>]*class="expired-badge"[^>]*>[\s\S]*?2[\s\S]*?<\/button>/);
     });
   });
 
@@ -488,7 +488,9 @@ describe('createInventoryHeader', () => {
       const result = createInventoryHeader('Test', manyItems, mockTranslations);
 
       expect(result).toContain('999 items expired');
-      expect(result).toMatch(/<span class="expired-badge"[^>]*>[\s\S]*?999[\s\S]*?<\/span>/);
+      expect(result).toMatch(
+        /<button[^>]*class="expired-badge"[^>]*>[\s\S]*?999[\s\S]*?<\/button>/,
+      );
     });
   });
 
