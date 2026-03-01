@@ -88,13 +88,13 @@ export interface HassServiceTarget {
 
 export interface ServiceCallResponse {
   context?: Context;
-  response?: any;
+  response?: unknown;
 }
 
 export interface MessageBase {
   id?: number;
   type: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface Context {
@@ -134,7 +134,7 @@ export interface LovelaceCard extends HTMLElement {
 
 export interface LovelaceCardConfig {
   type: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface LovelaceCardEditor extends HTMLElement {

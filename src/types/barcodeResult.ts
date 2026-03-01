@@ -12,7 +12,7 @@ export interface BarcodeProductLookupResult {
 export interface BarcodeItemResult {
   name: string;
   inventory_id: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface BarcodeItemLookupResult {

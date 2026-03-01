@@ -7,6 +7,7 @@ import { FormUtils } from '../utils/formUtils';
 import { ServiceResult, ImportResult } from '@/types/serviceResult';
 import { BarcodeProductLookupResult, BarcodeItemLookupResult } from '@/types/barcodeResult';
 import { HistoryQueryOptions } from '@/types/historyQuery';
+import { WSRequest } from '@/types/wsRequest';
 
 function extractErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
@@ -47,7 +48,7 @@ export class Services {
         };
       }
 
-      const serviceData: Record<string, any> = {
+      const serviceData: Record<string, unknown> = {
         [PARAMS.AUTO_ADD_ENABLED]: sanitizedItemData.autoAddEnabled,
         [PARAMS.AUTO_ADD_ID_TO_DESCRIPTION_ENABLED]:
           sanitizedItemData.autoAddIdToDescriptionEnabled,
@@ -175,7 +176,7 @@ export class Services {
         };
       }
 
-      const parameters: Record<string, any> = {
+      const parameters: Record<string, unknown> = {
         [PARAMS.AUTO_ADD_ENABLED]: sanitizedItemData.autoAddEnabled,
         [PARAMS.AUTO_ADD_ID_TO_DESCRIPTION_ENABLED]:
           sanitizedItemData.autoAddIdToDescriptionEnabled,
@@ -276,7 +277,7 @@ export class Services {
   }
 
   async getHistory(inventoryId: string, options?: HistoryQueryOptions): Promise<HistoryEvent[]> {
-    const msg: { type: string; inventory_id: string; [key: string]: any } = {
+    const msg: WSRequest = {
       type: WS_COMMANDS.GET_HISTORY,
       inventory_id: inventoryId,
     };
@@ -292,7 +293,7 @@ export class Services {
     itemName: string,
     windowDays?: number | null,
   ): Promise<ItemConsumptionRates> {
-    const msg: { type: string; inventory_id: string; item_name: string; [key: string]: any } = {
+    const msg: WSRequest = {
       type: WS_COMMANDS.GET_ITEM_CONSUMPTION_RATES,
       inventory_id: inventoryId,
       item_name: itemName,
@@ -304,8 +305,8 @@ export class Services {
   async exportInventory(
     inventoryId: string,
     format: 'json' | 'csv' = 'json',
-  ): Promise<{ data: any }> {
-    return this.hass.callWS<{ data: any }>({
+  ): Promise<{ data: unknown }> {
+    return this.hass.callWS<{ data: unknown }>({
       type: WS_COMMANDS.EXPORT,
       inventory_id: inventoryId,
       format,
@@ -314,7 +315,7 @@ export class Services {
 
   async importInventory(
     inventoryId: string,
-    data: any,
+    data: unknown,
     format: 'json' | 'csv' = 'json',
     mergeStrategy: 'skip' | 'overwrite' | 'merge_quantities' = 'skip',
   ): Promise<ImportResult> {
