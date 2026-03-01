@@ -154,7 +154,7 @@ class ConfigEditor extends LitElement {
 
     const value = event_.detail?.value;
 
-    if (this._entity === value) {
+    if (!value || this._entity === value) {
       return;
     }
 

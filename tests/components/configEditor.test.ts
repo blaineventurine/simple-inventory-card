@@ -353,6 +353,47 @@ describe('ConfigEditor', () => {
       expect(vi.mocked(configEditor.dispatchEvent)).not.toHaveBeenCalled();
     });
 
+    it('should return early when value is empty string (spurious combo-box event)', () => {
+      // ha-combo-box (Vaadin) fires value-changed with '' when its items list changes.
+      // Without this guard the entity would be cleared on every hass state update.
+      configEditor['_config'] = {
+        type: 'custom:simple-inventory-card',
+        entity: 'sensor.kitchen_inventory',
+      };
+
+      const mockEvent = { detail: { value: '' } } as CustomEvent;
+      configEditor['_valueChanged'](mockEvent);
+
+      expect(configEditor['_config'].entity).toBe('sensor.kitchen_inventory');
+      expect(vi.mocked(configEditor.dispatchEvent)).not.toHaveBeenCalled();
+    });
+
+    it('should return early when value is null', () => {
+      configEditor['_config'] = {
+        type: 'custom:simple-inventory-card',
+        entity: 'sensor.kitchen_inventory',
+      };
+
+      const mockEvent = { detail: { value: null } } as unknown as CustomEvent;
+      configEditor['_valueChanged'](mockEvent);
+
+      expect(configEditor['_config'].entity).toBe('sensor.kitchen_inventory');
+      expect(vi.mocked(configEditor.dispatchEvent)).not.toHaveBeenCalled();
+    });
+
+    it('should return early when value is undefined', () => {
+      configEditor['_config'] = {
+        type: 'custom:simple-inventory-card',
+        entity: 'sensor.kitchen_inventory',
+      };
+
+      const mockEvent = { detail: { value: undefined } } as unknown as CustomEvent;
+      configEditor['_valueChanged'](mockEvent);
+
+      expect(configEditor['_config'].entity).toBe('sensor.kitchen_inventory');
+      expect(vi.mocked(configEditor.dispatchEvent)).not.toHaveBeenCalled();
+    });
+
     it('should dispatch config-changed event when value changes', () => {
       const mockEvent = {
         detail: { value: 'sensor.new_entity' },
@@ -405,6 +446,109 @@ describe('ConfigEditor', () => {
       const mockEvent = { detail: undefined } as any;
 
       expect(() => configEditor['_valueChanged'](mockEvent)).not.toThrow();
+    });
+  });
+
+  describe('Toggle Change Handling', () => {
+    beforeEach(() => {
+      configEditor['_config'] = {
+        type: 'custom:simple-inventory-card',
+        entity: 'sensor.kitchen_inventory',
+        show_header: true,
+        show_search: true,
+      };
+    });
+
+    it('should update config and dispatch config-changed when a toggle changes', () => {
+      configEditor['_toggleChanged']('show_header', false);
+
+      expect(configEditor['_config']!['show_header']).toBe(false);
+      expect(vi.mocked(configEditor.dispatchEvent)).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'config-changed',
+          detail: {
+            config: expect.objectContaining({
+              entity: 'sensor.kitchen_inventory',
+              show_header: false,
+            }),
+          },
+          bubbles: true,
+          composed: true,
+        }),
+      );
+    });
+
+    it('should call requestUpdate after a toggle changes', () => {
+      configEditor['_toggleChanged']('show_search', false);
+
+      expect(vi.mocked(configEditor.requestUpdate)).toHaveBeenCalled();
+    });
+
+    it('should preserve other config properties when toggling', () => {
+      configEditor['_toggleChanged']('show_header', false);
+
+      expect(configEditor['_config']!.entity).toBe('sensor.kitchen_inventory');
+      expect(configEditor['_config']!['show_search']).toBe(true);
+    });
+
+    it('should return early when config is null', () => {
+      configEditor['_config'] = undefined as any;
+
+      expect(() => configEditor['_toggleChanged']('show_header', false)).not.toThrow();
+      expect(vi.mocked(configEditor.dispatchEvent)).not.toHaveBeenCalled();
+    });
+
+    it('should handle toggling a key to true', () => {
+      configEditor['_config'] = {
+        type: 'custom:simple-inventory-card',
+        entity: 'sensor.kitchen_inventory',
+        show_header: false,
+      };
+
+      configEditor['_toggleChanged']('show_header', true);
+
+      expect(configEditor['_config']['show_header']).toBe(true);
+    });
+  });
+
+  describe('Language Change Handling', () => {
+    it('should reload translations when hass language changes', async () => {
+      const oldHass = { ...mockHass, language: 'en' };
+      const newHass = { ...mockHass, language: 'fr' };
+      configEditor.hass = newHass;
+
+      const loadSpy = vi
+        .spyOn(configEditor as any, '_loadTranslations')
+        .mockResolvedValue(undefined);
+
+      await configEditor['updated'](new Map([['hass', oldHass]]));
+
+      expect(loadSpy).toHaveBeenCalled();
+    });
+
+    it('should not reload translations when hass language is unchanged', async () => {
+      const oldHass = { ...mockHass, language: 'en' };
+      configEditor.hass = { ...mockHass, language: 'en' };
+
+      const loadSpy = vi
+        .spyOn(configEditor as any, '_loadTranslations')
+        .mockResolvedValue(undefined);
+
+      await configEditor['updated'](new Map([['hass', oldHass]]));
+
+      expect(loadSpy).not.toHaveBeenCalled();
+    });
+
+    it('should reload translations when hass is first set (no previous hass)', async () => {
+      configEditor.hass = mockHass;
+
+      const loadSpy = vi
+        .spyOn(configEditor as any, '_loadTranslations')
+        .mockResolvedValue(undefined);
+
+      await configEditor['updated'](new Map([['hass', undefined]]));
+
+      expect(loadSpy).toHaveBeenCalled();
     });
   });
 
