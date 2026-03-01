@@ -4,6 +4,7 @@ import { LifecycleManager } from '../../src/services/lifecycleManager';
 import { RenderingCoordinator } from '../../src/services/renderingCoordinator';
 import { TranslationManager } from '../../src/services/translationManager';
 import { Utilities } from '../../src/utils/utilities';
+import { InventoryResolver } from '../../src/utils/inventoryResolver';
 import { HomeAssistant, InventoryConfig } from '../../src/types/homeAssistant';
 import { createMockHomeAssistant, createMockHassEntity } from '../testHelpers';
 
@@ -11,6 +12,7 @@ vi.mock('../../src/services/lifecycleManager');
 vi.mock('../../src/services/renderingCoordinator');
 vi.mock('../../src/services/translationManager');
 vi.mock('../../src/utils/utilities');
+vi.mock('../../src/utils/inventoryResolver');
 vi.mock('lit-element', () => ({
   LitElement: class MockLitElement {
     shadowRoot: any;
@@ -59,7 +61,7 @@ describe('SimpleInventoryCard', () => {
     vi.mocked(LifecycleManager).mockImplementation(() => mockLifecycleManager);
     vi.mocked(RenderingCoordinator).mockImplementation(() => mockRenderingCoordinator);
     vi.mocked(TranslationManager.loadTranslations).mockResolvedValue(mockTranslations);
-    vi.mocked(Utilities.extractTodoLists).mockReturnValue([
+    vi.mocked(InventoryResolver.extractTodoLists).mockReturnValue([
       { id: 'todo.shopping', name: 'Shopping List' },
     ]);
     vi.mocked(Utilities.validateInventoryItems).mockReturnValue([]);
@@ -128,7 +130,7 @@ describe('SimpleInventoryCard', () => {
         },
       };
       mockLifecycleManager.getServices.mockReturnValue(mockServices);
-      vi.mocked(Utilities.getInventoryId).mockReturnValue('test-inventory-id');
+      vi.mocked(InventoryResolver.getInventoryId).mockReturnValue('test-inventory-id');
     });
 
     it('should render on first hass assignment', async () => {
@@ -145,7 +147,7 @@ describe('SimpleInventoryCard', () => {
       card.hass = mockHass;
       await vi.waitFor(() => expect(TranslationManager.loadTranslations).toHaveBeenCalled());
       vi.clearAllMocks();
-      vi.mocked(Utilities.getInventoryId).mockReturnValue('test-inventory-id');
+      vi.mocked(InventoryResolver.getInventoryId).mockReturnValue('test-inventory-id');
 
       const mockState = mockLifecycleManager.getServices().state;
       mockState.hasRealEntityChange.mockReturnValue(true);
@@ -180,7 +182,7 @@ describe('SimpleInventoryCard', () => {
 
     it('should extract todo lists from hass states', async () => {
       // Set up extractTodoLists to be called and return value
-      vi.mocked(Utilities.extractTodoLists).mockReturnValue([
+      vi.mocked(InventoryResolver.extractTodoLists).mockReturnValue([
         { id: 'todo.shopping', name: 'Shopping List' },
       ]);
 
@@ -191,7 +193,7 @@ describe('SimpleInventoryCard', () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       // Check if extractTodoLists was called during the hass setter
-      expect(Utilities.extractTodoLists).toHaveBeenCalledWith(mockHass);
+      expect(InventoryResolver.extractTodoLists).toHaveBeenCalledWith(mockHass);
       expect((card as any)._todoLists).toEqual([{ id: 'todo.shopping', name: 'Shopping List' }]);
     });
 

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ConfigEditor } from '../../src/components/configEditor';
-import { Utilities } from '../../src/utils/utilities';
+import { InventoryResolver } from '../../src/utils/inventoryResolver';
 import {
   createEntitySelector,
   createEntityInfo,
@@ -9,7 +9,7 @@ import {
 import { HomeAssistant, InventoryConfig } from '../../src/types/homeAssistant';
 import { createMockHomeAssistant, createMockHassEntity } from '../testHelpers';
 
-vi.mock('../../src/utils/utilities');
+vi.mock('../../src/utils/inventoryResolver');
 vi.mock('../../src/templates/configEditor');
 
 vi.mock('lit-element', () => ({
@@ -127,13 +127,13 @@ describe('ConfigEditor', () => {
         entity: '',
       };
 
-      vi.mocked(Utilities.findInventoryEntities).mockReturnValue([]);
-      vi.mocked(Utilities.createEntityOptions).mockReturnValue([]);
+      vi.mocked(InventoryResolver.findInventoryEntities).mockReturnValue([]);
+      vi.mocked(InventoryResolver.createEntityOptions).mockReturnValue([]);
     });
 
     it('should set default entity and dispatch event when no entity selected', async () => {
       const mockEntities = ['sensor.inventory1', 'sensor.inventory2'];
-      vi.mocked(Utilities.findInventoryEntities).mockReturnValue(mockEntities);
+      vi.mocked(InventoryResolver.findInventoryEntities).mockReturnValue(mockEntities);
 
       configEditor['_config'] = {
         type: 'custom:simple-inventory-card',
@@ -159,7 +159,7 @@ describe('ConfigEditor', () => {
 
     it('should not set default entity when entity already selected', async () => {
       const mockEntities = ['sensor.inventory1', 'sensor.inventory2'];
-      vi.mocked(Utilities.findInventoryEntities).mockReturnValue(mockEntities);
+      vi.mocked(InventoryResolver.findInventoryEntities).mockReturnValue(mockEntities);
 
       configEditor['_config'] = {
         type: 'custom:simple-inventory-card',
@@ -175,7 +175,7 @@ describe('ConfigEditor', () => {
 
     it('should not auto-select entity before setConfig is called', async () => {
       const mockEntities = ['sensor.inventory1', 'sensor.inventory2'];
-      vi.mocked(Utilities.findInventoryEntities).mockReturnValue(mockEntities);
+      vi.mocked(InventoryResolver.findInventoryEntities).mockReturnValue(mockEntities);
 
       // _configSetExternally is false (setConfig not yet called)
       configEditor['_config'] = { type: '', entity: '' };
@@ -210,13 +210,13 @@ describe('ConfigEditor', () => {
         { value: 'sensor.inventory2', label: 'Inventory 2' },
       ];
 
-      vi.mocked(Utilities.findInventoryEntities).mockReturnValue(mockEntities);
-      vi.mocked(Utilities.createEntityOptions).mockReturnValue(mockOptions);
+      vi.mocked(InventoryResolver.findInventoryEntities).mockReturnValue(mockEntities);
+      vi.mocked(InventoryResolver.createEntityOptions).mockReturnValue(mockOptions);
 
       configEditor.render();
 
-      expect(Utilities.findInventoryEntities).toHaveBeenCalledWith(mockHass);
-      expect(Utilities.createEntityOptions).toHaveBeenCalledWith(mockHass, mockEntities);
+      expect(InventoryResolver.findInventoryEntities).toHaveBeenCalledWith(mockHass);
+      expect(InventoryResolver.createEntityOptions).toHaveBeenCalledWith(mockHass, mockEntities);
     });
 
     it('should delegate to template functions', () => {
@@ -226,8 +226,8 @@ describe('ConfigEditor', () => {
       };
       const mockOptions = [{ value: 'sensor.inventory1', label: 'Inventory 1' }];
 
-      vi.mocked(Utilities.findInventoryEntities).mockReturnValue(['sensor.inventory1']);
-      vi.mocked(Utilities.createEntityOptions).mockReturnValue(mockOptions);
+      vi.mocked(InventoryResolver.findInventoryEntities).mockReturnValue(['sensor.inventory1']);
+      vi.mocked(InventoryResolver.createEntityOptions).mockReturnValue(mockOptions);
 
       configEditor.render();
 

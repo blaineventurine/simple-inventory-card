@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Renderer } from '../../src/services/renderer';
 import { Utilities } from '../../src/utils/utilities';
+import { InventoryResolver } from '../../src/utils/inventoryResolver';
 import { styles } from '../../src/styles/styles';
 import { generateCardHTML } from '../../src/templates/inventoryCard';
 import { HassEntity, InventoryItem } from '../../src/types/homeAssistant';
@@ -9,6 +10,7 @@ import { TodoList } from '../../src/types/todoList';
 import { TranslationData } from '@/types/translatableComponent';
 
 vi.mock('../../src/utils/utilities');
+vi.mock('../../src/utils/inventoryResolver');
 vi.mock('../../src/utils/constants');
 vi.mock('../../src/templates/inventoryCard');
 
@@ -56,8 +58,8 @@ describe('Renderer', () => {
 
     vi.clearAllMocks();
 
-    vi.mocked(Utilities.getInventoryName).mockReturnValue('Test Inventory');
-    vi.mocked(Utilities.getInventoryDescription).mockReturnValue('Test Description');
+    vi.mocked(InventoryResolver.getInventoryName).mockReturnValue('Test Inventory');
+    vi.mocked(InventoryResolver.getInventoryDescription).mockReturnValue('Test Description');
     vi.mocked(Utilities.sanitizeHtml).mockImplementation((input) => input);
     vi.mocked(generateCardHTML).mockReturnValue('<div>Generated Card HTML</div>');
   });
@@ -115,8 +117,8 @@ describe('Renderer', () => {
         mockTranslations,
       );
 
-      expect(Utilities.getInventoryName).toHaveBeenCalledWith(mockState, 'test.entity');
-      expect(Utilities.getInventoryDescription).toHaveBeenCalledWith(mockState);
+      expect(InventoryResolver.getInventoryName).toHaveBeenCalledWith(mockState, 'test.entity');
+      expect(InventoryResolver.getInventoryDescription).toHaveBeenCalledWith(mockState);
       expect(generateCardHTML).toHaveBeenCalledWith(
         'Test Inventory',
         mockItems,

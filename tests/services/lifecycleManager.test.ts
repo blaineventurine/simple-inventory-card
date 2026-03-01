@@ -6,7 +6,7 @@ import { Filters } from '../../src/services/filters';
 import { Renderer } from '../../src/services/renderer';
 import { State } from '../../src/services/state';
 import { EventHandler } from '../../src/services/eventHandler';
-import { Utilities } from '../../src/utils/utilities';
+import { InventoryResolver } from '../../src/utils/inventoryResolver';
 import { HomeAssistant, InventoryConfig, InventoryItem } from '../../src/types/homeAssistant';
 import { createMockHomeAssistant } from '../testHelpers';
 import { TranslationData } from '@/types/translatableComponent';
@@ -17,7 +17,7 @@ vi.mock('../../src/services/filters');
 vi.mock('../../src/services/renderer');
 vi.mock('../../src/services/state');
 vi.mock('../../src/services/eventHandler');
-vi.mock('../../src/utils/utilities');
+vi.mock('../../src/utils/inventoryResolver');
 
 describe('LifecycleManager', () => {
   let lifecycleManager: LifecycleManager;
@@ -99,7 +99,7 @@ describe('LifecycleManager', () => {
     vi.mocked(Renderer).mockImplementation(() => mockRenderer);
     vi.mocked(Services).mockImplementation(() => mockServices);
     vi.mocked(State).mockImplementation(() => mockState);
-    vi.mocked(Utilities.getInventoryId).mockReturnValue('test-inventory-id');
+    vi.mocked(InventoryResolver.getInventoryId).mockReturnValue('test-inventory-id');
 
     vi.clearAllMocks();
   });
@@ -243,7 +243,7 @@ describe('LifecycleManager', () => {
       const getInventoryIdFunction = vi.mocked(Modals).mock.calls[0][2];
       const testEntityId = 'sensor.test';
       getInventoryIdFunction(testEntityId);
-      expect(Utilities.getInventoryId).toHaveBeenCalledWith(mockHass, testEntityId);
+      expect(InventoryResolver.getInventoryId).toHaveBeenCalledWith(mockHass, testEntityId);
     });
 
     it('should create event handler with correct parameters', () => {

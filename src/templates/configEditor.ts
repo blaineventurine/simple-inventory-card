@@ -1,5 +1,5 @@
 import { html, TemplateResult } from 'lit-element';
-import { HomeAssistant, InventoryConfig } from '../types/homeAssistant';
+import { HomeAssistant, InventoryConfig } from '@/types/homeAssistant';
 import { TranslationManager } from '@/services/translationManager';
 import { TranslationData } from '@/types/translatableComponent';
 

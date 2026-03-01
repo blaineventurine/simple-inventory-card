@@ -1,4 +1,4 @@
-import { HomeAssistant, HassEntity } from '../types/homeAssistant';
+import { HomeAssistant, HassEntity } from '@/types/homeAssistant';
 import { Utilities } from '../utils/utilities';
 
 export class State {

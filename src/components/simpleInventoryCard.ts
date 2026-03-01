@@ -1,28 +1,17 @@
 import packageJson from '../../package.json';
 
 import { ConfigEditor } from './configEditor';
-import { HomeAssistant, InventoryConfig, InventoryItem } from '../types/homeAssistant';
+import { HomeAssistant, InventoryConfig, InventoryItem } from '@/types/homeAssistant';
 import { LifecycleManager } from '../services/lifecycleManager';
 import { Services } from '../services/services';
 import { LitElement } from 'lit-element';
 import { RenderingCoordinator } from '../services/renderingCoordinator';
 import { Utilities } from '../utils/utilities';
+import { InventoryResolver } from '../utils/inventoryResolver';
 import { TranslationData } from '@/types/translatableComponent';
 import { TranslationManager } from '@/services/translationManager';
 
 let cardDescription = 'A card to manage your inventories';
-
-declare global {
-  interface Window {
-    customCards: Array<{
-      type: string;
-      name: string;
-      description: string;
-      preview?: boolean;
-      documentationURL?: string;
-    }>;
-  }
-}
 
 class SimpleInventoryCard extends LitElement {
   private _config: InventoryConfig | undefined = undefined;
@@ -166,7 +155,7 @@ class SimpleInventoryCard extends LitElement {
 
   private async _fetchItems(): Promise<void> {
     if (!this._hass || !this._config) return;
-    const inventoryId = Utilities.getInventoryId(this._hass, this._config.entity);
+    const inventoryId = InventoryResolver.getInventoryId(this._hass, this._config.entity);
     if (!inventoryId) return;
     try {
       const svc = this.lifecycleManager.getServices()?.services ?? new Services(this._hass);
@@ -191,7 +180,7 @@ class SimpleInventoryCard extends LitElement {
     if (!this._hass) {
       return;
     }
-    this._todoLists = Utilities.extractTodoLists(this._hass);
+    this._todoLists = InventoryResolver.extractTodoLists(this._hass);
   }
 
   getCardSize(): number {

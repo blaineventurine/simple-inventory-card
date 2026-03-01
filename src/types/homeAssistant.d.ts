@@ -178,3 +178,15 @@ export interface InventoryConfig extends LovelaceCardConfig {
   show_auto_add_info?: boolean;
   show_price?: boolean;
 }
+
+declare global {
+  interface Window {
+    customCards: Array<{
+      type: string;
+      name: string;
+      description: string;
+      preview?: boolean;
+      documentationURL?: string;
+    }>;
+  }
+}

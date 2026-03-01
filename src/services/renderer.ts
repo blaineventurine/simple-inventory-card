@@ -1,8 +1,9 @@
 import { Utilities } from '../utils/utilities';
+import { InventoryResolver } from '../utils/inventoryResolver';
 import { styles } from '../styles/styles';
-import { HassEntity, InventoryConfig, InventoryItem } from '../types/homeAssistant';
-import { FilterState } from '../types/filterState';
-import { TodoList } from '../types/todoList';
+import { HassEntity, InventoryConfig, InventoryItem } from '@/types/homeAssistant';
+import { FilterState } from '@/types/filterState';
+import { TodoList } from '@/types/todoList';
 import { generateCardHTML } from '../templates/inventoryCard';
 import { TranslationData } from '@/types/translatableComponent';
 import { TranslationManager } from './translationManager';
@@ -20,8 +21,8 @@ export class Renderer {
     translations: TranslationData,
     config?: InventoryConfig,
   ): void {
-    const inventoryName = Utilities.getInventoryName(state, entityId);
-    const description = Utilities.getInventoryDescription(state);
+    const inventoryName = InventoryResolver.getInventoryName(state, entityId);
+    const description = InventoryResolver.getInventoryDescription(state);
     const categorySet = new Set<string>();
     items.forEach((item) => {
       if (Array.isArray(item.categories) && item.categories.length > 0) {

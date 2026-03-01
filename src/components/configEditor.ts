@@ -1,6 +1,6 @@
 import { TemplateResult, CSSResult, LitElement, html } from 'lit-element';
-import { HomeAssistant, InventoryConfig } from '../types/homeAssistant';
-import { Utilities } from '../utils/utilities';
+import { HomeAssistant, InventoryConfig } from '@/types/homeAssistant';
+import { InventoryResolver } from '../utils/inventoryResolver';
 import {
   createEntitySelector,
   createEntityInfo,
@@ -49,7 +49,7 @@ class ConfigEditor extends LitElement {
     // Guarded by _configSetExternally so this never fires before setConfig is called,
     // which prevents stripping saved show_* toggle values on editor open.
     if (this._configSetExternally && this.hass && this._config && !this._config.entity) {
-      const inventoryEntities = Utilities.findInventoryEntities(this.hass);
+      const inventoryEntities = InventoryResolver.findInventoryEntities(this.hass);
       if (inventoryEntities.length > 0) {
         const config: InventoryConfig = {
           ...this._config,
@@ -99,8 +99,8 @@ class ConfigEditor extends LitElement {
         )}
       </div>`;
     }
-    const inventoryEntities = Utilities.findInventoryEntities(this.hass);
-    const entityOptions = Utilities.createEntityOptions(this.hass, inventoryEntities);
+    const inventoryEntities = InventoryResolver.findInventoryEntities(this.hass);
+    const entityOptions = InventoryResolver.createEntityOptions(this.hass, inventoryEntities);
 
     return html`
       <div class="card-config">

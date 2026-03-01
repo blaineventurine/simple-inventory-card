@@ -1,26 +1,14 @@
-import { HomeAssistant, InventoryConfig, InventoryItem } from '../types/homeAssistant';
-import { ItemData } from '../types/inventoryItem';
+import { HomeAssistant, InventoryConfig, InventoryItem } from '@/types/homeAssistant';
+import { ItemData } from '@/types/inventoryItem';
 import { ModalFormManager } from './modals/modalFormManager';
 import { ModalUIManager } from './modals/modalUIManager';
 import { ModalValidationManager } from './modals/modalValidationManager';
-import { Utilities } from '../utils/utilities';
+import { FormUtils } from '../utils/formUtils';
 import { TranslationData } from '@/types/translatableComponent';
 import { initializeModalMultiSelect } from './modalMultiSelect';
 import { ELEMENTS } from '@/utils/constants';
-
-export interface InventoryServiceResult {
-  success: boolean;
-  error?: string;
-}
-
-export interface InventoryServices {
-  addItem(inventoryId: string, itemData: ItemData): Promise<InventoryServiceResult>;
-  updateItem(
-    inventoryId: string,
-    oldName: string,
-    itemData: ItemData,
-  ): Promise<InventoryServiceResult>;
-}
+import { ServiceResult } from '@/types/serviceResult';
+import { InventoryServices } from '@/types/inventoryServices';
 
 export class Modals {
   private formManager: ModalFormManager;
@@ -177,7 +165,7 @@ export class Modals {
       ? this.formManager.getRawAddModalData()
       : this.formManager.getRawEditModalData();
 
-    const validation = Utilities.validateRawFormData(rawFormData);
+    const validation = FormUtils.validateRawFormData(rawFormData);
 
     if (!validation.isValid) {
       this.validationManager.highlightInvalidFields(validation.errors, isAddModal);
@@ -185,10 +173,10 @@ export class Modals {
       return undefined;
     }
 
-    return Utilities.convertRawFormDataToItemData(rawFormData);
+    return FormUtils.convertRawFormDataToItemData(rawFormData);
   }
 
-  private handleAddResult(result: InventoryServiceResult): boolean {
+  private handleAddResult(result: ServiceResult): boolean {
     if (result.success) {
       this.clearAddModalForm();
       this.triggerDataChanged();
@@ -199,7 +187,7 @@ export class Modals {
     }
   }
 
-  private handleEditResult(result: InventoryServiceResult): boolean {
+  private handleEditResult(result: ServiceResult): boolean {
     if (result.success) {
       this.triggerDataChanged();
       return true;

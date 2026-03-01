@@ -1,5 +1,5 @@
 import { ELEMENTS, CSS_CLASSES, TIMING, ACTIONS } from '../../utils/constants';
-import { HomeAssistant, InventoryItem, InventoryConfig } from '../../types/homeAssistant';
+import { HomeAssistant, InventoryItem, InventoryConfig } from '@/types/homeAssistant';
 import { ModalFormManager } from './modalFormManager';
 import { ModalValidationManager } from './modalValidationManager';
 import { TranslationData } from '@/types/translatableComponent';

@@ -1,8 +1,4 @@
-export interface ModalMultiSelectInitConfig {
-  id: string;
-  options: string[];
-  shadowRoot?: ShadowRoot;
-}
+import { ModalMultiSelectInitConfig } from '@/types/modalMultiSelect';
 
 export function initializeModalMultiSelect(config: ModalMultiSelectInitConfig): void {
   const root = config.shadowRoot || document;

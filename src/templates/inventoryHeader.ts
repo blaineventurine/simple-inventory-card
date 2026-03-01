@@ -1,4 +1,5 @@
 import { Utilities } from '../utils/utilities';
+import { DateUtils } from '../utils/dateUtils';
 import { InventoryItem } from '../types/homeAssistant';
 import { DEFAULTS, ELEMENTS } from '../utils/constants';
 import { TranslationData } from '@/types/translatableComponent';
@@ -83,7 +84,7 @@ function getExpiringItemsCount(items: InventoryItem[]): number {
       return false;
     }
     const threshold = item.expiry_alert_days ?? DEFAULTS.EXPIRY_ALERT_DAYS;
-    return Utilities.isExpiringSoon(item.expiry_date, threshold);
+    return DateUtils.isExpiringSoon(item.expiry_date, threshold);
   }).length;
 }
 
@@ -92,6 +93,6 @@ function getExpiredItemsCount(items: InventoryItem[]): number {
     if (!item.expiry_date || (item.quantity ?? 0) <= 0) {
       return false;
     }
-    return Utilities.isExpired(item.expiry_date);
+    return DateUtils.isExpired(item.expiry_date);
   }).length;
 }

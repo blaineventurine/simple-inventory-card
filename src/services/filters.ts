@@ -1,8 +1,9 @@
 import { FILTER_VALUES, STORAGE_KEYS, ELEMENTS, SORT_METHODS } from '../utils/constants';
-import { InventoryItem } from '../types/homeAssistant';
+import { InventoryItem } from '@/types/homeAssistant';
 import { Utilities } from '../utils/utilities';
+import { DateUtils } from '../utils/dateUtils';
 import { DEFAULTS } from '../utils/constants';
-import { FilterState } from '../types/filterState';
+import { FilterState } from '@/types/filterState';
 import { TranslationData } from '@/types/translatableComponent';
 import { TranslationManager } from './translationManager';
 import { createFilterBadges } from '@/templates/filters';
@@ -183,7 +184,7 @@ export class Filters {
             return false;
           }
 
-          return Utilities.isExpired(item.expiry_date);
+          return DateUtils.isExpired(item.expiry_date);
         }
 
         case FILTER_VALUES.EXPIRY.SOON: {
@@ -192,7 +193,7 @@ export class Filters {
           }
 
           const itemThreshold = item.expiry_alert_days ?? DEFAULTS.EXPIRY_ALERT_DAYS;
-          return Utilities.isExpiringSoon(item.expiry_date, itemThreshold);
+          return DateUtils.isExpiringSoon(item.expiry_date, itemThreshold);
         }
 
         case FILTER_VALUES.EXPIRY.FUTURE: {

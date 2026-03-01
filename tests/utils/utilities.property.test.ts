@@ -1,6 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
 import { Utilities } from '../../src/utils/utilities';
+import { DateUtils } from '../../src/utils/dateUtils';
+import { FormUtils } from '../../src/utils/formUtils';
+import { InventoryResolver } from '../../src/utils/inventoryResolver';
 import { createMockHassEntity } from '../testHelpers';
 import type { RawFormData, ItemData } from '../../src/types/inventoryItem';
 import type { InventoryItem } from '../../src/types/homeAssistant';
@@ -12,7 +15,7 @@ describe('Utilities - Property-Based Tests', () => {
         fc.property(
           fc.string({ maxLength: 100 }), // Reasonable max length
           (dateString) => {
-            expect(() => Utilities.formatDate(dateString)).not.toThrow();
+            expect(() => DateUtils.formatDate(dateString)).not.toThrow();
           },
         ),
       );
@@ -21,7 +24,7 @@ describe('Utilities - Property-Based Tests', () => {
     it('should always return a string', () => {
       fc.assert(
         fc.property(fc.oneof(fc.string(), fc.constant(undefined), fc.constant('')), (input) => {
-          const result = Utilities.formatDate(input);
+          const result = DateUtils.formatDate(input);
           expect(typeof result).toBe('string');
         }),
       );
@@ -32,7 +35,7 @@ describe('Utilities - Property-Based Tests', () => {
         fc.property(
           fc.oneof(fc.constant(undefined), fc.constant(''), fc.constant(null)),
           (input) => {
-            const result = Utilities.formatDate(input as any);
+            const result = DateUtils.formatDate(input as any);
             expect(result).toBe('');
           },
         ),
@@ -47,7 +50,7 @@ describe('Utilities - Property-Based Tests', () => {
             .filter((date) => !isNaN(date.getTime())), // Add this filter
           (date) => {
             const isoString = date.toISOString().split('T')[0]; // YYYY-MM-DD
-            const result = Utilities.formatDate(isoString);
+            const result = DateUtils.formatDate(isoString);
 
             expect(result).toBeTruthy();
             expect(result).not.toBe(isoString); // Should be formatted
@@ -70,7 +73,7 @@ describe('Utilities - Property-Based Tests', () => {
                 !/^\d{4}-\d{2}-\d{2}$/.test(s.trim()),
             ),
           (invalidDate) => {
-            const result = Utilities.formatDate(invalidDate);
+            const result = DateUtils.formatDate(invalidDate);
             expect(result).toBe(invalidDate);
           },
         ),
@@ -85,7 +88,7 @@ describe('Utilities - Property-Based Tests', () => {
           fc.string({ maxLength: 200 }),
           fc.integer({ min: 0, max: 100 }),
           (str, maxLength) => {
-            const result = Utilities.sanitizeString(str, maxLength);
+            const result = FormUtils.sanitizeString(str, maxLength);
             expect(result.length).toBeLessThanOrEqual(maxLength);
           },
         ),
@@ -98,7 +101,7 @@ describe('Utilities - Property-Based Tests', () => {
           fc.string({ maxLength: 100 }),
           fc.integer({ min: 1, max: 50 }),
           (str, maxLength) => {
-            const result = Utilities.sanitizeString(str, maxLength);
+            const result = FormUtils.sanitizeString(str, maxLength);
             if (result.length > 0) {
               expect(result).toBe(result.trim());
             }
@@ -113,7 +116,7 @@ describe('Utilities - Property-Based Tests', () => {
           fc.oneof(fc.constant(null), fc.constant(undefined), fc.integer(), fc.boolean()),
           fc.integer({ min: 1, max: 50 }),
           (input, maxLength) => {
-            const result = Utilities.sanitizeString(input as any, maxLength);
+            const result = FormUtils.sanitizeString(input as any, maxLength);
             expect(result).toBe('');
           },
         ),
@@ -126,8 +129,8 @@ describe('Utilities - Property-Based Tests', () => {
           fc.string({ maxLength: 30 }).map((s) => s.trim()),
           fc.integer({ min: 50, max: 100 }),
           (str, maxLength) => {
-            const result1 = Utilities.sanitizeString(str, maxLength);
-            const result2 = Utilities.sanitizeString(result1, maxLength);
+            const result1 = FormUtils.sanitizeString(str, maxLength);
+            const result2 = FormUtils.sanitizeString(result1, maxLength);
             expect(result1).toBe(result2);
           },
         ),
@@ -139,7 +142,7 @@ describe('Utilities - Property-Based Tests', () => {
     it('should always return a non-empty string', () => {
       fc.assert(
         fc.property(fc.string({ minLength: 1, maxLength: 50 }), (entityId) => {
-          const result = Utilities.getInventoryName(undefined, entityId);
+          const result = InventoryResolver.getInventoryName(undefined, entityId);
           expect(typeof result).toBe('string');
           expect(result.length).toBeGreaterThan(0);
         }),
@@ -156,7 +159,7 @@ describe('Utilities - Property-Based Tests', () => {
               attributes: { friendly_name: friendlyName },
             });
 
-            const result = Utilities.getInventoryName(state, entityId);
+            const result = InventoryResolver.getInventoryName(state, entityId);
             expect(result).toBe(friendlyName);
           },
         ),
@@ -173,7 +176,7 @@ describe('Utilities - Property-Based Tests', () => {
               attributes: { friendly_name: emptyName },
             });
 
-            const result = Utilities.getInventoryName(state, entityId);
+            const result = InventoryResolver.getInventoryName(state, entityId);
             expect(result).not.toBe(emptyName.trim());
             expect(result.length).toBeGreaterThan(0);
           },
@@ -187,7 +190,7 @@ describe('Utilities - Property-Based Tests', () => {
           fc.array(fc.string({ minLength: 1, maxLength: 20 }), { minLength: 1, maxLength: 5 }),
           (parts) => {
             const entityId = parts.join('.');
-            const result = Utilities.getInventoryName(undefined, entityId);
+            const result = InventoryResolver.getInventoryName(undefined, entityId);
 
             expect(typeof result).toBe('string');
             expect(result.length).toBeGreaterThan(0);
@@ -200,7 +203,7 @@ describe('Utilities - Property-Based Tests', () => {
       fc.assert(
         fc.property(fc.string({ minLength: 1, maxLength: 50 }), (entityId) => {
           const state = createMockHassEntity(entityId, { attributes: null as any });
-          const result = Utilities.getInventoryName(state, entityId);
+          const result = InventoryResolver.getInventoryName(state, entityId);
 
           expect(typeof result).toBe('string');
           expect(result.length).toBeGreaterThan(0);
@@ -303,7 +306,7 @@ describe('Utilities - Property-Based Tests', () => {
     it('should always produce non-negative numeric values', () => {
       fc.assert(
         fc.property(arbitraryRawFormData, (formData) => {
-          const result = Utilities.convertRawFormDataToItemData(formData as RawFormData);
+          const result = FormUtils.convertRawFormDataToItemData(formData as RawFormData);
           expect(result.quantity).toBeGreaterThanOrEqual(0);
           expect(result.autoAddToListQuantity).toBeGreaterThanOrEqual(0);
           expect(result.expiryAlertDays).toBeGreaterThanOrEqual(0);
@@ -314,7 +317,7 @@ describe('Utilities - Property-Based Tests', () => {
     it('should always produce valid string fields', () => {
       fc.assert(
         fc.property(arbitraryRawFormData, (formData) => {
-          const result = Utilities.convertRawFormDataToItemData(formData as RawFormData);
+          const result = FormUtils.convertRawFormDataToItemData(formData as RawFormData);
           expect(typeof result.name).toBe('string');
           expect(typeof result.todoList).toBe('string');
           expect(typeof result.expiryDate).toBe('string');
@@ -327,7 +330,7 @@ describe('Utilities - Property-Based Tests', () => {
     it('should preserve boolean autoAddEnabled correctly', () => {
       fc.assert(
         fc.property(arbitraryRawFormData, (formData) => {
-          const result = Utilities.convertRawFormDataToItemData(formData as RawFormData);
+          const result = FormUtils.convertRawFormDataToItemData(formData as RawFormData);
           expect(typeof result.autoAddEnabled).toBe('boolean');
         }),
       );
@@ -352,7 +355,7 @@ describe('Utilities - Property-Based Tests', () => {
             unit: fc.constant(''),
           }),
           (formData) => {
-            const result = Utilities.convertRawFormDataToItemData(formData as RawFormData);
+            const result = FormUtils.convertRawFormDataToItemData(formData as RawFormData);
             expect(Number.isFinite(result.quantity)).toBe(true);
             expect(Number.isFinite(result.autoAddToListQuantity)).toBe(true);
             expect(Number.isFinite(result.expiryAlertDays)).toBe(true);
@@ -378,7 +381,7 @@ describe('Utilities - Property-Based Tests', () => {
     it('should enforce field length limits', () => {
       fc.assert(
         fc.property(arbitraryItemData, (itemData) => {
-          const result = Utilities.sanitizeItemData(itemData as ItemData);
+          const result = FormUtils.sanitizeItemData(itemData as ItemData);
           expect(result.name.length).toBeLessThanOrEqual(100);
           expect(result.category.length).toBeLessThanOrEqual(50);
           expect(result.unit.length).toBeLessThanOrEqual(20);
@@ -390,7 +393,7 @@ describe('Utilities - Property-Based Tests', () => {
     it('should enforce numeric constraints', () => {
       fc.assert(
         fc.property(arbitraryItemData, (itemData) => {
-          const result = Utilities.sanitizeItemData(itemData as ItemData);
+          const result = FormUtils.sanitizeItemData(itemData as ItemData);
           expect(result.quantity).toBeGreaterThanOrEqual(0);
           expect(result.quantity).toBeLessThanOrEqual(999_999);
           expect(result.autoAddToListQuantity).toBeGreaterThanOrEqual(0);
@@ -402,7 +405,7 @@ describe('Utilities - Property-Based Tests', () => {
     it('should ensure boolean type for autoAddEnabled', () => {
       fc.assert(
         fc.property(arbitraryItemData, (itemData) => {
-          const result = Utilities.sanitizeItemData(itemData as ItemData);
+          const result = FormUtils.sanitizeItemData(itemData as ItemData);
           expect(typeof result.autoAddEnabled).toBe('boolean');
         }),
       );
