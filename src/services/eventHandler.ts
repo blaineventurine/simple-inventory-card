@@ -380,7 +380,7 @@ export class EventHandler {
       console.error(`Error performing ${action} on ${itemName}:`, error);
     } finally {
       setTimeout(() => {
-        button.setAttribute('data-processing', 'true');
+        button.removeAttribute('data-processing');
         button.removeAttribute('disabled');
         button.style.opacity = '1';
         button.style.pointerEvents = 'auto';

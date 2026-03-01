@@ -9,6 +9,7 @@ export class RenderingCoordinator {
   private lifecycleManager: LifecycleManager;
   private renderRoot: ShadowRoot;
   private updateTimeout: ReturnType<typeof setTimeout> | undefined = undefined;
+  private saveTimeout: ReturnType<typeof setTimeout> | undefined = undefined;
 
   constructor(lifecycleManager: LifecycleManager, renderRoot: ShadowRoot) {
     this.lifecycleManager = lifecycleManager;
@@ -108,7 +109,11 @@ export class RenderingCoordinator {
 
     import('../templates/itemList')
       .then(({ createItemsList }) => {
-        itemsContainer.innerHTML = createItemsList(
+        const container = this.renderRoot.querySelector('.items-container');
+        if (!container) {
+          return;
+        }
+        container.innerHTML = createItemsList(
           items,
           sortMethod,
           todoLists,
@@ -129,7 +134,13 @@ export class RenderingCoordinator {
   }
 
   refreshAfterSave(renderCallback: () => void): void {
-    setTimeout(() => renderCallback(), 50);
+    if (this.saveTimeout) {
+      clearTimeout(this.saveTimeout);
+    }
+    this.saveTimeout = setTimeout(() => {
+      this.saveTimeout = undefined;
+      renderCallback();
+    }, 50);
   }
 
   renderError(message: string, translations?: TranslationData): void {
@@ -160,6 +171,10 @@ export class RenderingCoordinator {
     if (this.updateTimeout) {
       clearTimeout(this.updateTimeout);
       this.updateTimeout = undefined;
+    }
+    if (this.saveTimeout) {
+      clearTimeout(this.saveTimeout);
+      this.saveTimeout = undefined;
     }
   }
 }
