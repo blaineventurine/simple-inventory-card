@@ -1,5 +1,5 @@
 import { ELEMENTS } from '../utils/constants';
-import { FilterState } from '../types/filterState';
+import { FilterState } from '@/types/filterState';
 import { Utilities } from '../utils/utilities';
 import { TranslationData } from '@/types/translatableComponent';
 import { TranslationManager } from '@/services/translationManager';

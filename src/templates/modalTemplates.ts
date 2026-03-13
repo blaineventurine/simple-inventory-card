@@ -1,6 +1,6 @@
 import { ELEMENTS, ACTIONS, CSS_CLASSES } from '../utils/constants';
-import { TodoList } from '../types/todoList';
-import { ModalConfig } from '../types/modalConfig';
+import { TodoList } from '@/types/todoList';
+import { ModalConfig } from '@/types/modalConfig';
 import { TranslationData } from '@/types/translatableComponent';
 import { TranslationManager } from '@/services/translationManager';
 import { autoAddCheckbox } from './modalPartials/autoAddCheckbox';

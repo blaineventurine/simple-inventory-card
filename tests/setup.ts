@@ -26,6 +26,7 @@ global.window.customCards = [];
 // Mock console to reduce noise in tests
 global.console = {
   ...console,
+  debug: vi.fn(),
   info: vi.fn(),
   warn: vi.fn(),
   error: vi.fn(),

@@ -128,10 +128,6 @@ describe('RenderingCoordinator', () => {
       vi.mocked(mockServices.filters.getCurrentFilters).mockReturnValue(mockFilters);
       vi.mocked(mockServices.filters.filterItems).mockReturnValue(mockInventoryItems);
       vi.mocked(mockServices.filters.sortItems).mockReturnValue(mockInventoryItems);
-
-      const mockSortSelect = document.createElement('select');
-      mockSortSelect.value = 'name';
-      vi.mocked(mockRenderRoot.querySelector).mockReturnValue(mockSortSelect);
     });
 
     it('should return early if config is missing', () => {
@@ -140,6 +136,7 @@ describe('RenderingCoordinator', () => {
         mockHass,
         mockTodoLists,
         mockTranslations,
+        [],
         mockValidateItemsCallback,
       );
 
@@ -152,6 +149,7 @@ describe('RenderingCoordinator', () => {
         undefined as any,
         mockTodoLists,
         mockTranslations,
+        [],
         mockValidateItemsCallback,
       );
 
@@ -169,6 +167,7 @@ describe('RenderingCoordinator', () => {
         mockHass,
         mockTodoLists,
         mockTranslations,
+        [],
         mockValidateItemsCallback,
       );
 
@@ -188,6 +187,7 @@ describe('RenderingCoordinator', () => {
         mockHass,
         mockTodoLists,
         mockTranslations,
+        [],
         mockValidateItemsCallback,
       );
 
@@ -205,6 +205,7 @@ describe('RenderingCoordinator', () => {
         mockHass,
         mockTodoLists,
         mockTranslations,
+        [],
         mockValidateItemsCallback,
       );
 
@@ -217,6 +218,7 @@ describe('RenderingCoordinator', () => {
         mockHass,
         mockTodoLists,
         mockTranslations,
+        mockInventoryItems,
         mockValidateItemsCallback,
       );
 
@@ -241,14 +243,14 @@ describe('RenderingCoordinator', () => {
       expect(mockServices.state.trackUserInteraction).toHaveBeenCalledWith(mockRenderRoot);
     });
 
-    it('should use default sort method when element not found', () => {
-      vi.mocked(mockRenderRoot.querySelector).mockReturnValue(null);
-
+    it('should use default sort method when filters have no sortMethod', () => {
+      // sortMethod comes from currentFilters.sortMethod; if absent, falls back to DEFAULTS.SORT_METHOD
       renderingCoordinator.render(
         mockConfig,
         mockHass,
         mockTodoLists,
         mockTranslations,
+        [],
         mockValidateItemsCallback,
       );
 
@@ -275,6 +277,7 @@ describe('RenderingCoordinator', () => {
         mockHass,
         mockTodoLists,
         mockTranslations,
+        [],
         mockValidateItemsCallback,
       );
 
@@ -294,6 +297,7 @@ describe('RenderingCoordinator', () => {
         mockHass,
         mockTodoLists,
         mockTranslations,
+        [],
         mockValidateItemsCallback,
       );
 
@@ -356,6 +360,46 @@ describe('RenderingCoordinator', () => {
       });
 
       expect(mockContainer.innerHTML).toBe('<div>mocked items list</div>');
+    });
+
+    it('should re-query the container after the async import resolves', async () => {
+      // If the DOM changes between the initial querySelector and the import resolving,
+      // updateItemsOnly should use the fresh reference, not a potentially stale one.
+      const freshContainer = document.createElement('div');
+      vi.mocked(mockRenderRoot.querySelector)
+        .mockReturnValueOnce(document.createElement('div')) // initial guard check passes
+        .mockReturnValueOnce(freshContainer); // re-query after import
+
+      renderingCoordinator.updateItemsOnly(
+        mockInventoryItems,
+        'name',
+        mockTodoLists,
+        mockTranslations,
+      );
+
+      await vi.waitFor(() => {
+        expect(freshContainer.innerHTML).toBe('<div>mocked items list</div>');
+      });
+    });
+
+    it('should do nothing if container is gone by the time the import resolves', async () => {
+      vi.mocked(mockRenderRoot.querySelector)
+        .mockReturnValueOnce(document.createElement('div')) // initial guard check passes
+        .mockReturnValueOnce(null); // container removed before import resolved
+
+      expect(() =>
+        renderingCoordinator.updateItemsOnly(
+          mockInventoryItems,
+          'name',
+          mockTodoLists,
+          mockTranslations,
+        ),
+      ).not.toThrow();
+
+      // No error should surface
+      await vi.waitFor(() => {
+        expect(mockRenderRoot.querySelector).toHaveBeenCalledTimes(2);
+      });
     });
 
     it('should handle dynamic import errors gracefully', async () => {
@@ -426,6 +470,31 @@ describe('RenderingCoordinator', () => {
       vi.advanceTimersByTime(50);
 
       expect(mockCallback).toHaveBeenCalled();
+    });
+
+    it('should not fire if cleanup is called before 50ms elapses', () => {
+      const mockCallback = vi.fn();
+
+      renderingCoordinator.refreshAfterSave(mockCallback);
+      renderingCoordinator.cleanup();
+
+      vi.advanceTimersByTime(50);
+
+      expect(mockCallback).not.toHaveBeenCalled();
+      expect(renderingCoordinator['saveTimeout']).toBe(undefined);
+    });
+
+    it('should debounce multiple rapid calls, only firing the last', () => {
+      const cb1 = vi.fn();
+      const cb2 = vi.fn();
+
+      renderingCoordinator.refreshAfterSave(cb1);
+      renderingCoordinator.refreshAfterSave(cb2);
+
+      vi.advanceTimersByTime(50);
+
+      expect(cb1).not.toHaveBeenCalled();
+      expect(cb2).toHaveBeenCalledOnce();
     });
   });
 
@@ -537,6 +606,7 @@ describe('RenderingCoordinator', () => {
         mockHass,
         mockTodoLists,
         mockTranslations,
+        [],
         mockValidateItemsCallback,
       );
 
@@ -556,6 +626,7 @@ describe('RenderingCoordinator', () => {
         mockHass,
         mockTodoLists,
         mockTranslations,
+        [],
         mockValidateItemsCallback,
       );
 
@@ -574,6 +645,7 @@ describe('RenderingCoordinator', () => {
           mockHass,
           malformedTodoLists,
           mockTranslations,
+          [],
           mockValidateItemsCallback,
         );
       }).not.toThrow();

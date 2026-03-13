@@ -1,4 +1,4 @@
-import { HomeAssistant, HassEntity, InventoryItem } from '../types/homeAssistant';
+import { HomeAssistant, HassEntity } from '@/types/homeAssistant';
 import { Utilities } from '../utils/utilities';
 
 export class State {
@@ -30,37 +30,15 @@ export class State {
       return false;
     }
 
-    if (!this._lastEntityState) {
-      this._lastEntityState = currentState;
-      return true;
-    }
+    const prev = this._lastEntityState;
+    this._lastEntityState = currentState;
+    if (!prev) return true;
 
-    return this.hasItemsChanged(
-      this._lastEntityState.attributes?.items,
-      currentState.attributes?.items,
+    return (
+      prev.last_changed !== currentState.last_changed ||
+      prev.attributes?.total_items !== currentState.attributes?.total_items ||
+      prev.attributes?.total_quantity !== currentState.attributes?.total_quantity
     );
-  }
-
-  private hasItemsChanged(
-    oldItems: readonly InventoryItem[] | undefined,
-    newItems: readonly InventoryItem[] | undefined,
-  ): boolean {
-    const oldItemsArray = oldItems || [];
-    const newItemsArray = newItems || [];
-
-    const changed = JSON.stringify(oldItemsArray) !== JSON.stringify(newItemsArray);
-
-    if (changed && newItems) {
-      this._lastEntityState = {
-        ...(this._lastEntityState as HassEntity),
-        attributes: {
-          ...this._lastEntityState?.attributes,
-          items: [...newItemsArray],
-        },
-      };
-    }
-
-    return changed;
   }
 
   public debouncedRender(renderFunction?: () => void, delay = 100): void {

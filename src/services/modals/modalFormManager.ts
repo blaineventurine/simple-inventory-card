@@ -1,6 +1,6 @@
 import { ELEMENTS, DEFAULTS } from '../../utils/constants';
-import { InventoryItem } from '../../types/homeAssistant';
-import { RawFormData } from '../../types/inventoryItem';
+import { InventoryItem } from '@/types/homeAssistant';
+import { RawFormData } from '@/types/inventoryItem';
 
 type ModalField = {
   id: string;

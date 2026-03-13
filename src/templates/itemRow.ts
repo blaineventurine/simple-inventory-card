@@ -1,6 +1,6 @@
 import { DEFAULTS } from '@/utils/constants';
-import { InventoryConfig, InventoryItem } from '../types/homeAssistant';
-import { TodoList } from '../types/todoList';
+import { InventoryConfig, InventoryItem } from '@/types/homeAssistant';
+import { TodoList } from '@/types/todoList';
 import { TranslationData } from '@/types/translatableComponent';
 import { TranslationManager } from '@/services/translationManager';
 

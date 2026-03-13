@@ -145,6 +145,7 @@ describe('Config Editor Templates', () => {
         attributes: {
           friendly_name: 'Test Inventory',
           items: [{ name: 'Item 1' }, { name: 'Item 2' }, { name: 'Item 3' }],
+          total_items: 3,
         },
       });
 
@@ -168,6 +169,7 @@ describe('Config Editor Templates', () => {
       const mockEntity = createMockHassEntity(entityId, {
         attributes: {
           items: [{ name: 'Item 1' }],
+          total_items: 1,
         },
       });
 
@@ -281,6 +283,7 @@ describe('Config Editor Templates', () => {
         attributes: {
           friendly_name: 'Large Inventory',
           items: largeItemsArray,
+          total_items: 1000,
         },
       });
 

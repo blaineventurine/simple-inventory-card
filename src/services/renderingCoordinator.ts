@@ -9,6 +9,7 @@ export class RenderingCoordinator {
   private lifecycleManager: LifecycleManager;
   private renderRoot: ShadowRoot;
   private updateTimeout: ReturnType<typeof setTimeout> | undefined = undefined;
+  private saveTimeout: ReturnType<typeof setTimeout> | undefined = undefined;
 
   constructor(lifecycleManager: LifecycleManager, renderRoot: ShadowRoot) {
     this.lifecycleManager = lifecycleManager;
@@ -20,6 +21,7 @@ export class RenderingCoordinator {
     hass: HomeAssistant,
     todoLists: Array<{ id: string; name: string }>,
     translations: TranslationData,
+    items: InventoryItem[],
     validateItemsCallback: (items: InventoryItem[]) => InventoryItem[],
   ): void {
     if (!config || !hass || !this.renderRoot) {
@@ -58,7 +60,7 @@ export class RenderingCoordinator {
 
       const currentFilters = filters.getCurrentFilters(entityId);
       const sortMethod = currentFilters.sortMethod || DEFAULTS.SORT_METHOD;
-      const allItems = validateItemsCallback(state.attributes?.items || []);
+      const allItems = validateItemsCallback(items);
       const filteredItems = filters.filterItems(allItems, currentFilters);
       const sortedItems = filters.sortItems(filteredItems, sortMethod, translations);
 
@@ -107,7 +109,11 @@ export class RenderingCoordinator {
 
     import('../templates/itemList')
       .then(({ createItemsList }) => {
-        itemsContainer.innerHTML = createItemsList(
+        const container = this.renderRoot.querySelector('.items-container');
+        if (!container) {
+          return;
+        }
+        container.innerHTML = createItemsList(
           items,
           sortMethod,
           todoLists,
@@ -128,7 +134,13 @@ export class RenderingCoordinator {
   }
 
   refreshAfterSave(renderCallback: () => void): void {
-    setTimeout(() => renderCallback(), 50);
+    if (this.saveTimeout) {
+      clearTimeout(this.saveTimeout);
+    }
+    this.saveTimeout = setTimeout(() => {
+      this.saveTimeout = undefined;
+      renderCallback();
+    }, 50);
   }
 
   renderError(message: string, translations?: TranslationData): void {
@@ -159,6 +171,10 @@ export class RenderingCoordinator {
     if (this.updateTimeout) {
       clearTimeout(this.updateTimeout);
       this.updateTimeout = undefined;
+    }
+    if (this.saveTimeout) {
+      clearTimeout(this.saveTimeout);
+      this.saveTimeout = undefined;
     }
   }
 }
