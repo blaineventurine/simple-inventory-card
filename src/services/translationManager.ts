@@ -3,7 +3,7 @@ import { TranslationData } from '@/types/translatableComponent';
 export class TranslationManager {
   private static _cache: Map<string, TranslationData> = new Map();
   private static _loadingPromises: Map<string, Promise<TranslationData>> = new Map();
-  private static _cardName = 'simple-inventory-card';
+  private static _cardName = 'simple-inventory-card-mobile';
 
   static async loadTranslations(language: string): Promise<TranslationData> {
     const cacheKey = `${this._cardName}-${language}`;

@@ -17,7 +17,7 @@ export function createInventoryHeader(
   return `
       <div class="card-header">
         <div class="header-content">
-          <h2 class="inventory-title">${Utilities.sanitizeHtml(inventoryName)}</h2>
+          <h2 class="inventory-title">${Utilities.sanitizeHtml(inventoryName.replace(' Inventory', ''))}</h2> 
           ${
             description && description.trim()
               ? `<p class="inventory-description">${Utilities.sanitizeHtml(description)}</p>`

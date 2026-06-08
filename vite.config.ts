@@ -10,16 +10,16 @@ export default defineConfig({
       targets: [
         {
           src: 'src/translations/*.json',
-          dest: 'translations'
-        }
-      ]
-    })
+          dest: 'translations',
+        },
+      ],
+    }),
   ],
   build: {
     lib: {
       entry: resolve(__dirname, 'src/main.ts'),
-      name: 'SimpleInventoryCard',
-      fileName: 'simple-inventory-card',
+      name: 'SimpleInventoryCardMobile',
+      fileName: 'simple-inventory-card-mobile',
       formats: ['es'],
     },
     rollupOptions: {
@@ -29,11 +29,15 @@ export default defineConfig({
         globals: {
           lit: 'Lit',
         },
-        entryFileNames: 'simple-inventory-card.js',
+        entryFileNames: 'simple-inventory-card-mobile.js',
+        assetFileNames: 'simple-inventory-card-mobile.[ext]',
+        chunkFileNames: '[name].js',
       },
     },
-    minify: 'terser',
-    sourcemap: false,
+    outDir: './../config/www/community/simple-inventory-card-mobile',
+    emptyOutDir: true,
+    minify: false, //'terser',
+    sourcemap: true,
     copyPublicDir: false,
   },
   publicDir: false,

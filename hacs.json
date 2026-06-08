@@ -1,6 +1,6 @@
 {
-  "name": "Simple Inventory Card",
+  "name": "Simple Inventory Card Mobile",
   "render_readme": true,
-  "filename": "simple-inventory-card.js",
+  "filename": "simple-inventory-card-mobile.js",
   "content_in_root": false
 }

@@ -53,7 +53,7 @@ class ConfigEditor extends LitElement {
       if (inventoryEntities.length > 0) {
         const config: InventoryConfig = {
           ...this._config,
-          type: this._config.type || 'custom:simple-inventory-card',
+          type: this._config.type || 'custom:simple-inventory-card-mobile',
           entity: inventoryEntities[0],
         };
         this._config = config;
@@ -161,7 +161,7 @@ class ConfigEditor extends LitElement {
     const config: InventoryConfig = {
       ...this._config,
       entity: value,
-      type: this._config.type || 'custom:simple-inventory-card',
+      type: this._config.type || 'custom:simple-inventory-card-mobile',
     };
 
     this._config = config;

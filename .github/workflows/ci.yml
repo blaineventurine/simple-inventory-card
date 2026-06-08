@@ -61,11 +61,11 @@ jobs:
 
       - name: Verify build output
         run: |
-          if [ ! -f "dist/simple-inventory-card.js" ]; then
+          if [ ! -f "dist/simple-inventory-card-mobile.js" ]; then
             echo "Build output not found!"
             exit 1
           fi
-          echo "Build successful - output size: $(wc -c < dist/simple-inventory-card.js) bytes"
+          echo "Build successful - output size: $(wc -c < dist/simple-inventory-card-mobile.js) bytes"
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4

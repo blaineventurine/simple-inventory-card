@@ -369,7 +369,7 @@ describe('Config Editor Templates', () => {
 
   describe('createVisibilityToggles', () => {
     const defaultConfig: InventoryConfig = {
-      type: 'custom:simple-inventory-card',
+      type: 'custom:simple-inventory-card-mobile',
       entity: 'sensor.test',
     };
 

@@ -136,7 +136,7 @@ describe('ConfigEditor', () => {
       vi.mocked(InventoryResolver.findInventoryEntities).mockReturnValue(mockEntities);
 
       configEditor['_config'] = {
-        type: 'custom:simple-inventory-card',
+        type: 'custom:simple-inventory-card-mobile',
         entity: '',
       };
       configEditor['_configSetExternally'] = true;
@@ -149,7 +149,7 @@ describe('ConfigEditor', () => {
           type: 'config-changed',
           detail: {
             config: {
-              type: 'custom:simple-inventory-card',
+              type: 'custom:simple-inventory-card-mobile',
               entity: 'sensor.inventory1',
             },
           },
@@ -162,7 +162,7 @@ describe('ConfigEditor', () => {
       vi.mocked(InventoryResolver.findInventoryEntities).mockReturnValue(mockEntities);
 
       configEditor['_config'] = {
-        type: 'custom:simple-inventory-card',
+        type: 'custom:simple-inventory-card-mobile',
         entity: 'sensor.existing',
       };
       configEditor['_configSetExternally'] = true;
@@ -283,7 +283,7 @@ describe('ConfigEditor', () => {
 
     it('should update internal config and call requestUpdate when value changes', () => {
       configEditor['_config'] = {
-        type: 'custom:simple-inventory-card',
+        type: 'custom:simple-inventory-card-mobile',
         entity: 'sensor.old_entity',
       };
 
@@ -300,7 +300,7 @@ describe('ConfigEditor', () => {
           type: 'config-changed',
           detail: {
             config: {
-              type: 'custom:simple-inventory-card',
+              type: 'custom:simple-inventory-card-mobile',
               entity: 'sensor.new_entity',
             },
           },
@@ -324,7 +324,7 @@ describe('ConfigEditor', () => {
         expect.objectContaining({
           detail: {
             config: expect.objectContaining({
-              type: 'custom:simple-inventory-card',
+              type: 'custom:simple-inventory-card-mobile',
               entity: 'sensor.new_entity',
             }),
           },
@@ -357,7 +357,7 @@ describe('ConfigEditor', () => {
       // ha-combo-box (Vaadin) fires value-changed with '' when its items list changes.
       // Without this guard the entity would be cleared on every hass state update.
       configEditor['_config'] = {
-        type: 'custom:simple-inventory-card',
+        type: 'custom:simple-inventory-card-mobile',
         entity: 'sensor.kitchen_inventory',
       };
 
@@ -370,7 +370,7 @@ describe('ConfigEditor', () => {
 
     it('should return early when value is null', () => {
       configEditor['_config'] = {
-        type: 'custom:simple-inventory-card',
+        type: 'custom:simple-inventory-card-mobile',
         entity: 'sensor.kitchen_inventory',
       };
 
@@ -383,7 +383,7 @@ describe('ConfigEditor', () => {
 
     it('should return early when value is undefined', () => {
       configEditor['_config'] = {
-        type: 'custom:simple-inventory-card',
+        type: 'custom:simple-inventory-card-mobile',
         entity: 'sensor.kitchen_inventory',
       };
 
@@ -452,7 +452,7 @@ describe('ConfigEditor', () => {
   describe('Toggle Change Handling', () => {
     beforeEach(() => {
       configEditor['_config'] = {
-        type: 'custom:simple-inventory-card',
+        type: 'custom:simple-inventory-card-mobile',
         entity: 'sensor.kitchen_inventory',
         show_header: true,
         show_search: true,
@@ -500,7 +500,7 @@ describe('ConfigEditor', () => {
 
     it('should handle toggling a key to true', () => {
       configEditor['_config'] = {
-        type: 'custom:simple-inventory-card',
+        type: 'custom:simple-inventory-card-mobile',
         entity: 'sensor.kitchen_inventory',
         show_header: false,
       };

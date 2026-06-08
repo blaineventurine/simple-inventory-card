@@ -1,14 +1,13 @@
 {
-  "name": "simple-inventory",
-  "version": "0.4.2b1",
+  "name": "simple-inventory-mobile",
   "description": "Home Assistant Simple Inventory Integration Card",
-  "author": "Blaine Venturine",
+  "author": "Ciocotab",
   "license": "MIT",
-  "main": "dist/simple-inventory-card.js",
-  "card_type": "simple-inventory-card",
+  "main": "dist/simple-inventory-card-mobile.js",
+  "card_type": "simple-inventory-card-mobile",
   "repository": {
     "type": "git",
-    "url": "https://github.com/blaineventurine/simple-inventory-card.git"
+    "url": "git+https://github.com/ciocotab/simple-inventory-card-mobile.git"
   },
   "keywords": [
     "home-assistant",
@@ -19,7 +18,7 @@
   "scripts": {
     "build": "vite build --config vite.config.ts",
     "check-translations": "node scripts/checkTranslations.js",
-    "dev": "vite",
+    "dev": "vite build --watch",
     "format": "prettier --write ./**/*.ts",
     "format:check": "prettier --check './**/*.{js,ts}'",
     "lint": "eslint ./**/*.ts",
@@ -67,7 +66,7 @@
     "prettier": "^3.5.3",
     "terser": "^5.41.0",
     "typescript": "^5.8.3",
-    "vite": "^7.1.11",
+    "vite": "^7.3.3",
     "vite-plugin-static-copy": "^3.1.2",
     "vitest": "^3.2.3"
   },
@@ -75,5 +74,13 @@
     "@ericblade/quagga2": "^1.12.1",
     "lit": "^3.3.0",
     "tslib": "^2.8.1"
-  }
+  },
+  "version": "1.0.0",
+  "directories": {
+    "test": "tests"
+  },
+  "bugs": {
+    "url": "https://github.com/ciocotab/simple-inventory-card-mobile/issues"
+  },
+  "homepage": "https://github.com/ciocotab/simple-inventory-card-mobile#readme"
 }

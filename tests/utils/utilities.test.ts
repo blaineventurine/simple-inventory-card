@@ -944,7 +944,7 @@ describe('Utilities', () => {
     describe('isExpiringSoon - Boundary Testing', () => {
       beforeEach(() => {
         vi.useFakeTimers();
-        vi.setSystemTime(new Date('2023-06-15T12:00:00Z'));
+        vi.setSystemTime(new Date('2026-05-28T12:00:00Z'));
       });
 
       afterEach(() => {
@@ -952,12 +952,12 @@ describe('Utilities', () => {
       });
 
       it('should handle exactly 0 days difference', () => {
-        const result = DateUtils.isExpiringSoon('2023-06-15', 7);
+        const result = DateUtils.isExpiringSoon('2026-05-27', 7);
         expect(result).toBe(true); // Day 0 should be included (>= 0)
       });
 
       it('should handle exactly threshold days difference', () => {
-        const result = DateUtils.isExpiringSoon('2023-06-22', 7);
+        const result = DateUtils.isExpiringSoon('2026-06-01', 7);
         expect(result).toBe(true); // Day 7 should be included (<= threshold)
       });
 
@@ -967,7 +967,7 @@ describe('Utilities', () => {
       });
 
       it('should handle negative days (past dates)', () => {
-        const result = DateUtils.isExpiringSoon('2023-06-14', 7);
+        const result = DateUtils.isExpiringSoon('2027-06-14', 7);
         expect(result).toBe(false); // Past dates should be excluded (< 0)
       });
     });

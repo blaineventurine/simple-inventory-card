@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { SimpleInventoryCard } from '../../src/components/simpleInventoryCard';
+import { SimpleInventoryCardMobile } from '../../src/components/simpleInventoryCardMobile';
 import { LifecycleManager } from '../../src/services/lifecycleManager';
 import { RenderingCoordinator } from '../../src/services/renderingCoordinator';
 import { TranslationManager } from '../../src/services/translationManager';
@@ -31,8 +31,8 @@ vi.mock('lit-element', () => ({
   })),
 }));
 
-describe('SimpleInventoryCard', () => {
-  let card: SimpleInventoryCard;
+describe('SimpleInventoryCardMobile', () => {
+  let card: SimpleInventoryCardMobile;
   let mockLifecycleManager: any;
   let mockRenderingCoordinator: any;
   let mockShadowRoot: ShadowRoot;
@@ -66,7 +66,7 @@ describe('SimpleInventoryCard', () => {
     ]);
     vi.mocked(Utilities.validateInventoryItems).mockReturnValue([]);
 
-    card = new SimpleInventoryCard();
+    card = new SimpleInventoryCardMobile();
   });
 
   afterEach(() => {
@@ -266,7 +266,7 @@ describe('SimpleInventoryCard', () => {
 
     it('should not render if translations are not loaded', () => {
       // Create a fresh card instance without loading translations
-      const freshCard = new SimpleInventoryCard();
+      const freshCard = new SimpleInventoryCardMobile();
       const config = { entity: 'sensor.inventory' } as InventoryConfig;
       freshCard.setConfig(config);
 
@@ -310,7 +310,7 @@ describe('SimpleInventoryCard', () => {
         new Error('Translation error'),
       );
 
-      const errorCard = new SimpleInventoryCard();
+      const errorCard = new SimpleInventoryCardMobile();
       const config = { entity: 'sensor.inventory' } as InventoryConfig;
       errorCard.setConfig(config);
 
@@ -338,12 +338,12 @@ describe('SimpleInventoryCard', () => {
 
   describe('Static Methods', () => {
     it('should provide config element', () => {
-      const configElement = SimpleInventoryCard.getConfigElement();
+      const configElement = SimpleInventoryCardMobile.getConfigElement();
       expect(configElement.tagName.toLowerCase()).toBe('simple-inventory-config-editor');
     });
 
     it('should provide stub config', () => {
-      const stubConfig = SimpleInventoryCard.getStubConfig();
+      const stubConfig = SimpleInventoryCardMobile.getStubConfig();
       expect(stubConfig).toEqual({});
     });
   });

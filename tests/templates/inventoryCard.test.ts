@@ -588,7 +588,7 @@ describe('generateCardHTML', () => {
 
     it('should omit header when show_header is false', () => {
       const config = {
-        type: 'custom:simple-inventory-card',
+        type: 'custom:simple-inventory-card-mobile',
         entity: 'sensor.test',
         show_header: false,
       } as any;
@@ -614,7 +614,7 @@ describe('generateCardHTML', () => {
 
     it('should omit search controls and active filters when show_search is false', () => {
       const config = {
-        type: 'custom:simple-inventory-card',
+        type: 'custom:simple-inventory-card-mobile',
         entity: 'sensor.test',
         show_search: false,
       } as any;
@@ -641,7 +641,7 @@ describe('generateCardHTML', () => {
 
     it('should omit sort dropdown but keep add button when show_sort is false', () => {
       const config = {
-        type: 'custom:simple-inventory-card',
+        type: 'custom:simple-inventory-card-mobile',
         entity: 'sensor.test',
         show_sort: false,
       } as any;
@@ -666,7 +666,7 @@ describe('generateCardHTML', () => {
 
     it('should omit add button but keep sort when show_add_button is false', () => {
       const config = {
-        type: 'custom:simple-inventory-card',
+        type: 'custom:simple-inventory-card-mobile',
         entity: 'sensor.test',
         show_add_button: false,
       } as any;
@@ -691,7 +691,7 @@ describe('generateCardHTML', () => {
 
     it('should omit entire controls row when both sort and add button are hidden', () => {
       const config = {
-        type: 'custom:simple-inventory-card',
+        type: 'custom:simple-inventory-card-mobile',
         entity: 'sensor.test',
         show_sort: false,
         show_add_button: false,

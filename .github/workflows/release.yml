@@ -72,6 +72,6 @@ jobs:
           name: ${{ steps.version.outputs.is_prerelease == 'true' && format('{0} (Pre-release)', github.ref_name) || github.ref_name }}
           prerelease: ${{ steps.version.outputs.is_prerelease }}
           files: |
-            ./dist/simple-inventory-card.js
+            ./dist/simple-inventory-card-mobile.js
             ${{ steps.translations.outputs.files }}
           token: ${{ secrets.GITHUB_TOKEN }}

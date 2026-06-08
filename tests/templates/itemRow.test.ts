@@ -478,7 +478,7 @@ describe('createItemRowTemplate', () => {
 
   describe('field visibility toggles', () => {
     const defaultConfig: InventoryConfig = {
-      type: 'custom:simple-inventory-card',
+      type: 'custom:simple-inventory-card-mobile',
       entity: 'sensor.test',
     };
 

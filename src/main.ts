@@ -1,5 +1,5 @@
-export { SimpleInventoryCard } from './components/simpleInventoryCard';
+export { SimpleInventoryCardMobile } from './components/simpleInventoryCardMobile';
 export { ConfigEditor } from './components/configEditor';
 
-import './components/simpleInventoryCard';
+import './components/simpleInventoryCardMobile';
 import './components/configEditor';

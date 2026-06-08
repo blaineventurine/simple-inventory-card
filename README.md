@@ -10,14 +10,14 @@ Install the [Simple Inventory](https://github.com/blaineventurine/simple_invento
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=blaineventurine&repository=simple-inventory-card&category=Dashboard)
 
-Or manually: copy `dist/simple-inventory-card.js` to your `www/` directory and add it as a Lovelace resource.
+Or manually: copy `dist/simple-inventory-card-mobile.js` to your `www/` directory and add it as a Lovelace resource.
 
 ## Card Configuration
 
 Add the card via the UI editor or YAML. The only required option is the inventory entity:
 
 ```yaml
-type: custom:simple-inventory-card
+type: custom:simple-inventory-card-mobile
 entity: sensor.kitchen_inventory
 ```
 

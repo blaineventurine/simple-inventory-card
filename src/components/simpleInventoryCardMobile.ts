@@ -13,7 +13,7 @@ import { TranslationManager } from '@/services/translationManager';
 
 let cardDescription = 'A card to manage your inventories';
 
-class SimpleInventoryCard extends LitElement {
+class SimpleInventoryCardMobile extends LitElement {
   private _config: InventoryConfig | undefined = undefined;
   private _hass: HomeAssistant | undefined = undefined;
   private _todoLists: Array<{ id: string; name: string }> = [];
@@ -212,7 +212,7 @@ async function loadCardDescription(): Promise<void> {
       cardDescription = translatedDescription;
 
       const existingCard = window.customCards?.find(
-        (card) => card.type === 'simple-inventory-card',
+        (card) => card.type === 'simple-inventory-card-mobile',
       );
       if (existingCard) {
         existingCard.description = cardDescription;
@@ -225,10 +225,10 @@ async function loadCardDescription(): Promise<void> {
 
 loadCardDescription();
 
-export { SimpleInventoryCard };
+export { SimpleInventoryCardMobile };
 
-if (!customElements.get('simple-inventory-card')) {
-  customElements.define('simple-inventory-card', SimpleInventoryCard);
+if (!customElements.get('simple-inventory-card-mobile')) {
+  customElements.define('simple-inventory-card-mobile', SimpleInventoryCardMobile);
 }
 
 if (!customElements.get('simple-inventory-config-editor')) {
@@ -238,14 +238,17 @@ if (!customElements.get('simple-inventory-config-editor')) {
 
 window.customCards = window.customCards || [];
 const cardConfig = {
-  type: 'simple-inventory-card',
-  name: 'Simple Inventory Card',
+  type: 'simple-inventory-card-mobile',
+  name: 'Simple Inventory Card Mobile',
   description: cardDescription,
   preview: true,
   documentationURL: 'https://github.com/blaineventurine/simple-inventory-card',
 };
 
-const existingCard = window.customCards.find((card) => card.type === 'simple-inventory-card');
+// eslint-disable-next-line prettier/prettier
+const existingCard = window.customCards.find(
+  (card) => card.type === 'simple-inventory-card-mobile',
+);
 if (!existingCard) {
   window.customCards.push(cardConfig);
 }
@@ -259,6 +262,6 @@ globalThis.setTimeout(() => {
 }, 2000);
 
 console.info(
-  `%c Simple Inventory Card %c ${packageJson.version}`,
+  `%c Simple Inventory Card Mobile %c ${packageJson.version}`,
   'color: steelblue; background: black; font-weight: bold;',
 );
