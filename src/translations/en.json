@@ -3,24 +3,11 @@
     "description": "A card to manage your inventories"
   },
   "common": {
+    "error": "Error",
     "loading": "Loading...",
-    "name": "My Custom Card",
-    "off": "Off",
-    "on": "On",
     "uncategorized": "Uncategorized",
     "no_location": "No Location",
     "unknown": "Unknown"
-  },
-  "editor": {
-    "entity": "Entity",
-    "name": "Name (Optional)",
-    "show_icon": "Show Icon",
-    "show_state": "Show State"
-  },
-  "state": {
-    "active": "Active",
-    "inactive": "Inactive",
-    "unavailable": "Unavailable"
   },
   "expiry": {
     "expired_day_ago": "Expired {days} day ago",
@@ -36,13 +23,16 @@
   "header": {
     "items_expired": "{count} item{count, plural, one {} other {s}} expired",
     "items_expiring_soon": "{count} item{count, plural, one {} other {s}} expiring soon",
-    "scan_barcode": "Scan Barcode"
+    "scan_barcode": "Scan Barcode",
+    "export": "Export Inventory",
+    "import": "Import Inventory",
+    "more_options": "More Options"
   },
   "scanner": {
     "increment": "Increment",
     "decrement": "Decrement",
     "amount": "Amount",
-    "go": "Go",
+    "go": "Confirm",
     "cancel": "Cancel",
     "starting_camera": "Starting camera...",
     "barcode_not_found": "No item found for this barcode",
@@ -97,8 +87,9 @@
     "multiple_products_found": "Multiple products found — select one:",
     "provider_openfoodfacts": "Open Food Facts",
     "provider_openbeautyfacts": "Open Beauty Facts",
-    "provider_inventory": "Existing Item",
-    "provider_openpetfoodfacts": "Open Pet Food Facts"
+    "provider_openpetfoodfacts": "Open Pet Food Facts",
+    "provider_upcitemdb": "UPC Item DB",
+    "provider_inventory": "Existing Item"
   },
   "filters": {
     "all_categories": "All Categories",
@@ -106,7 +97,6 @@
     "all_quantities": "All Quantities",
     "all_locations": "All Locations",
     "category": "Category",
-    "location": "Location",
     "clear_all_filters": "Clear All Filters",
     "expired": "Expired",
     "expiring_soon": "Expiring Soon",
@@ -114,6 +104,7 @@
     "filters": "Filters",
     "future": "Future",
     "hide_filters": "Hide Filters",
+    "location": "Location",
     "no_expiry": "No Expiry",
     "non_zero": "Non-zero",
     "quantity": "Quantity",
@@ -161,12 +152,12 @@
   "analytics": {
     "tab_history": "History",
     "tab_consumption": "Consumption",
-    "daily_rate": "Daily",
-    "weekly_rate": "Weekly",
+    "daily_rate": "Daily Rate",
+    "weekly_rate": "Weekly Rate",
     "days_until_depletion": "Days Left",
     "avg_restock_days": "Avg Restock",
     "total_consumed": "Total Used",
-    "events_tracked": "Events",
+    "events_tracked": "Consumption Events",
     "insufficient_data": "Not enough data yet",
     "insufficient_data_detail": "Need at least 2 consumption events to calculate rates.",
     "per_day": "/day",
@@ -184,6 +175,9 @@
   "errors": {
     "clear_filters_error": "Error clearing filters. Please try again.",
     "duplicate_name": "An item named \"{name}\" already exists in this inventory.",
+    "entity_not_found": "Entity {entity} not found",
+    "initialization_failed": "Failed to initialize card",
+    "render_error": "Error rendering card",
     "update_failed": "Failed to update item. Please try again."
   }
 }

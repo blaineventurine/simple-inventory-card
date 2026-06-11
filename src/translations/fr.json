@@ -3,24 +3,11 @@
     "description": "Une carte pour gérer vos stocks"
   },
   "common": {
+    "error": "Erreur",
     "loading": "Chargement...",
-    "name": "Ma carte personnalisée",
     "no_location": "Pas d'emplacement",
-    "off": "Off",
-    "on": "On",
     "uncategorized": "Sans catégorie",
     "unknown": "Inconnu"
-  },
-  "editor": {
-    "entity": "Entité",
-    "name": "Nom (Optionnel)",
-    "show_icon": "Montrer l'icône",
-    "show_state": "Montrer l'état"
-  },
-  "state": {
-    "active": "Actif",
-    "inactive": "Inactif",
-    "unavailable": "Non disponible"
   },
   "expiry": {
     "expired_day_ago": "Expiré depuis {days} jour",
@@ -36,13 +23,16 @@
   "header": {
     "items_expired": "{count} article{count, plural, one {} other {s}} expiré(s)",
     "items_expiring_soon": "{count} article{count, plural, one {} other {s}} expirant bientôt",
-    "scan_barcode": "Scanner code-barres"
+    "scan_barcode": "Scanner code-barres",
+    "export": "Exporter l'inventaire",
+    "import": "Importer l'inventaire",
+    "more_options": "Plus d'options"
   },
   "scanner": {
     "increment": "Incrémenter",
     "decrement": "Décrémenter",
     "amount": "Quantité",
-    "go": "Go",
+    "go": "Confirmer",
     "cancel": "Annuler",
     "starting_camera": "Démarrage de la caméra...",
     "barcode_not_found": "Aucun article trouvé pour ce code-barres",
@@ -53,22 +43,27 @@
   },
   "modal": {
     "add_item": "Ajouter un article",
-    "auto_add_id_to_description": "Ajouter l’identifiant de l’inventaire à la description de l’article",
+    "auto_add_id_to_description": "Ajouter l'identifiant de l'inventaire à la description de l'article",
     "auto_add_settings": "Paramètres d'ajout automatique",
     "auto_add_when_low": "Ajout automatique à la liste de tâches quand faible",
+    "barcode": "Code-barres",
+    "barcode_input_placeholder": "Saisissez le code-barres et appuyez sur Entrée",
+    "barcode_placeholder": "UPC, EAN, etc.",
     "cancel": "Annuler",
+    "description": "Description",
+    "description_placeholder": "Description de l'article",
     "category": "Catégorie",
     "category_placeholder": "Alimentation, Ménage, etc.",
+    "location": "Emplacement",
+    "location_placeholder": "Cellier, Garage, Étagère, etc.",
+    "desired_quantity": "Quantité souhaitée",
+    "desired_quantity_placeholder": "Niveau de stock souhaité (vide = utiliser le seuil)",
     "days_before_expiry": "(jours avant expiration)",
-    "description": "Description",
-    "description_placeholder": "Description de l’article",
     "edit_item": "Modifier l'article",
     "expiry_alert_threshold": "Seuil d'alerte d'expiration",
     "expiry_date": "Date d'expiration",
     "expiry_help_text": "Combien de jours avant expiration pour afficher les alertes",
     "expiry_threshold_placeholder": "Jours avant expiration pour alerter (défaut : 0)",
-    "location": "Emplacement",
-    "location_placeholder": "Cellier, Garage, Étagère, etc.",
     "minimum_quantity": "Quantité minimale",
     "name_required": "Nom *",
     "quantity": "Quantité",
@@ -81,11 +76,6 @@
     "todo_quantity_placement_name": "Dans le nom (ex. Lait (x4))",
     "todo_quantity_placement_description": "Dans la description",
     "todo_quantity_placement_none": "Ne pas afficher",
-    "barcode": "Code-barres",
-    "barcode_input_placeholder": "Saisissez le code-barres et appuyez sur Entrée",
-    "barcode_placeholder": "UPC, EAN, etc.",
-    "desired_quantity": "Quantité souhaitée",
-    "desired_quantity_placeholder": "Niveau de stock souhaité (vide = utiliser le seuil)",
     "unit": "Unité",
     "unit_placeholder": "kg, pcs, etc.",
     "price": "Prix unitaire",
@@ -97,8 +87,9 @@
     "multiple_products_found": "Plusieurs produits trouvés — sélectionnez-en un :",
     "provider_openfoodfacts": "Open Food Facts",
     "provider_openbeautyfacts": "Open Beauty Facts",
-    "provider_inventory": "Article existant",
-    "provider_openpetfoodfacts": "Open Pet Food Facts"
+    "provider_openpetfoodfacts": "Open Pet Food Facts",
+    "provider_upcitemdb": "UPC Item DB",
+    "provider_inventory": "Article existant"
   },
   "filters": {
     "all_categories": "Toutes les catégories",
@@ -122,8 +113,8 @@
   },
   "sort": {
     "category": "Catégorie",
-    "expiry_date": "Date d'expiration",
     "location": "Emplacement",
+    "expiry_date": "Date d'expiration",
     "name": "Nom",
     "quantity_high": "Quantité (décroissante)",
     "quantity_low": "Quantité (croissante)",
@@ -132,9 +123,9 @@
   },
   "active_filters": {
     "category": "Catégorie",
+    "location": "Emplacement",
     "expiry": "Expiration",
     "label": "Filtres actifs :",
-    "location": "Emplacement",
     "quantity": "Quantité",
     "search": "Recherche"
   },
@@ -161,12 +152,12 @@
   "analytics": {
     "tab_history": "Historique",
     "tab_consumption": "Consommation",
-    "daily_rate": "Quotidien",
-    "weekly_rate": "Hebdomadaire",
+    "daily_rate": "Taux quotidien",
+    "weekly_rate": "Taux hebdomadaire",
     "days_until_depletion": "Jours Restants",
     "avg_restock_days": "Réappro. Moy.",
     "total_consumed": "Total Utilisé",
-    "events_tracked": "Événements",
+    "events_tracked": "Événements de consommation",
     "insufficient_data": "Pas assez de données",
     "insufficient_data_detail": "Il faut au moins 2 événements de consommation pour calculer les taux.",
     "per_day": "/jour",
@@ -184,6 +175,9 @@
   "errors": {
     "clear_filters_error": "Erreur lors de l'effacement des filtres. Veuillez réessayer.",
     "duplicate_name": "Un article nommé \"{name}\" existe déjà dans cet inventaire.",
+    "entity_not_found": "Entité {entity} introuvable",
+    "initialization_failed": "Échec de l'initialisation de la carte",
+    "render_error": "Erreur lors du rendu de la carte",
     "update_failed": "Échec de la mise à jour de l'article. Veuillez réessayer."
   }
 }

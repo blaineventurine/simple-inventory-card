@@ -3,24 +3,11 @@
     "description": "Kartica za upravljanje zalog"
   },
   "common": {
+    "error": "Napaka",
     "loading": "Nalaganje ...",
-    "name": "Moja prilagojena kartica",
-    "off": "Izklopljeno",
-    "on": "Vklopljeno",
     "uncategorized": "Brez kategorije",
     "no_location": "Brez lokacije",
     "unknown": "Neznano"
-  },
-  "editor": {
-    "entity": "Entiteta",
-    "name": "Ime (neobvezno)",
-    "show_icon": "Prikaži ikono",
-    "show_state": "Prikaži stanje"
-  },
-  "state": {
-    "active": "Aktivno",
-    "inactive": "Neaktivno",
-    "unavailable": "Nedosegljivo"
   },
   "expiry": {
     "expired_day_ago": "Poteklo pred {days} dnevom",
@@ -34,9 +21,12 @@
     "no_items": "V zalogi ni predmetov"
   },
   "header": {
-    "items_expired": "{count} item{count, plural, one {} other {s}} expired",
-    "items_expiring_soon": "{count} item{count, plural, one {} other {s}} expiring soon",
-    "scan_barcode": "Skeniraj črtno kodo"
+    "items_expired": "{count} predmet{count, plural, one {} other {i}} s poteklim rokom",
+    "items_expiring_soon": "{count} predmet{count, plural, one {} other {i}} kmalu poteče",
+    "scan_barcode": "Skeniraj črtno kodo",
+    "export": "Izvozi zalogo",
+    "import": "Uvozi zalogo",
+    "more_options": "Več možnosti"
   },
   "scanner": {
     "increment": "Povečaj",
@@ -94,19 +84,19 @@
     "close_scanner": "Zapri skener",
     "camera_permission_denied": "Dostop do kamere je zavrnjen",
     "camera_not_available": "Kamera ni na voljo",
-	"multiple_products_found": "Najdenih je več predmetov — izberite enega:",
-    "provider_inventory": "Obstoječi predmet",
-    "provider_openbeautyfacts": "Open Beauty Facts",
+    "multiple_products_found": "Najdenih je več predmetov — izberite enega:",
     "provider_openfoodfacts": "Open Food Facts",
-    "provider_openpetfoodfacts": "Open Pet Food Facts"
+    "provider_openbeautyfacts": "Open Beauty Facts",
+    "provider_openpetfoodfacts": "Open Pet Food Facts",
+    "provider_upcitemdb": "UPC Item DB",
+    "provider_inventory": "Obstoječi predmet"
   },
   "filters": {
     "all_categories": "Vse kategorije",
     "all_items": "Vsi predmeti",
-    "all_quantities": "Vse količine",
     "all_locations": "Vse lokacije",
+    "all_quantities": "Vse količine",
     "category": "Kategorija",
-    "location": "Lokacija",
     "clear_all_filters": "Počisti vse filtre",
     "expired": "S poteklim rokom",
     "expiring_soon": "Kmalu poteče",
@@ -114,6 +104,7 @@
     "filters": "Filtri",
     "future": "V prihodnosti",
     "hide_filters": "Skrij filtre",
+    "location": "Lokacija",
     "no_expiry": "Brez roka poteka",
     "non_zero": "Več kot 0",
     "quantity": "Količina",
@@ -161,12 +152,12 @@
   "analytics": {
     "tab_history": "Zgodovina",
     "tab_consumption": "Poraba",
-    "daily_rate": "Dnevno",
-    "weekly_rate": "Tedensko",
+    "daily_rate": "Dnevna stopnja",
+    "weekly_rate": "Tedenska stopnja",
     "days_until_depletion": "Preostali dnevi",
     "avg_restock_days": "Povp. čas do ponovne nabave",
     "total_consumed": "Skupno porabljeno",
-    "events_tracked": "Dogodki",
+    "events_tracked": "Dogodki porabe",
     "insufficient_data": "Ni dovolj podatkov",
     "insufficient_data_detail": "Za izračun sta potrebna vsaj 2 dogodka porabe.",
     "per_day": "/dan",
@@ -184,6 +175,9 @@
   "errors": {
     "clear_filters_error": "Napaka pri brisanju filtrov. Poskusite znova.",
     "duplicate_name": "Predmet z imenom \"{name}\" že obstaja v tej zalogi.",
+    "entity_not_found": "Entiteta {entity} ni najdena",
+    "initialization_failed": "Inicializacija kartice ni uspela",
+    "render_error": "Napaka pri prikazu kartice",
     "update_failed": "Posodobitev predmeta ni uspela. Poskusite znova."
   }
 }

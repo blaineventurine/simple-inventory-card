@@ -3,24 +3,11 @@
     "description": "Una tarjeta para gestionar tus inventarios"
   },
   "common": {
+    "error": "Error",
     "loading": "Cargando...",
-    "name": "Mi Tarjeta Personalizada",
-    "off": "Apagado",
-    "on": "Encendido",
     "uncategorized": "Sin categoría",
     "no_location": "Sin Ubicación",
     "unknown": "Desconocido"
-  },
-  "editor": {
-    "entity": "Entidad",
-    "name": "Nombre (Opcional)",
-    "show_icon": "Mostrar Icono",
-    "show_state": "Mostrar Estado"
-  },
-  "state": {
-    "active": "Activo",
-    "inactive": "Inactivo",
-    "unavailable": "No disponible"
   },
   "expiry": {
     "expired_day_ago": "Expiró hace {days} día",
@@ -36,13 +23,16 @@
   "header": {
     "items_expired": "{count} artículo{count, plural, one {} other {s}} expirado{count, plural, one {} other {s}}",
     "items_expiring_soon": "{count} artículo{count, plural, one {} other {s}} expirando pronto",
-    "scan_barcode": "Escanear código"
+    "scan_barcode": "Escanear código",
+    "export": "Exportar inventario",
+    "import": "Importar inventario",
+    "more_options": "Más opciones"
   },
   "scanner": {
     "increment": "Incrementar",
     "decrement": "Decrementar",
     "amount": "Cantidad",
-    "go": "Ir",
+    "go": "Confirmar",
     "cancel": "Cancelar",
     "starting_camera": "Iniciando cámara...",
     "barcode_not_found": "No se encontró artículo para este código de barras",
@@ -56,19 +46,24 @@
     "auto_add_id_to_description": "Agregar el ID del inventario a la descripción del artículo",
     "auto_add_settings": "Configuración de Auto-agregar",
     "auto_add_when_low": "Auto-agregar a lista de tareas cuando esté bajo",
+    "barcode": "Código de Barras",
+    "barcode_input_placeholder": "Escriba el código de barras y presione Enter",
+    "barcode_placeholder": "UPC, EAN, etc.",
     "cancel": "Cancelar",
-    "category": "Categoría",
-    "category_placeholder": "Comida, Limpieza, etc.",
-    "days_before_expiry": "(días antes del vencimiento)",
     "description": "Descripción",
     "description_placeholder": "Descripción del artículo",
+    "category": "Categoría",
+    "category_placeholder": "Comida, Limpieza, etc.",
+    "location": "Ubicación",
+    "location_placeholder": "Despensa, Garaje, etc.",
+    "desired_quantity": "Cantidad Deseada",
+    "desired_quantity_placeholder": "Nivel de stock deseado (vacío = usar umbral)",
+    "days_before_expiry": "(días antes del vencimiento)",
     "edit_item": "Editar Artículo",
     "expiry_alert_threshold": "Umbral de Alerta de Vencimiento",
     "expiry_date": "Fecha de Vencimiento",
     "expiry_help_text": "Cuántos días antes del vencimiento mostrar alertas",
     "expiry_threshold_placeholder": "Días antes del vencimiento para alertar (por defecto: 0)",
-    "location": "Ubicación",
-    "location_placeholder": "Despensa, Garaje, etc.",
     "minimum_quantity": "Cantidad mínima",
     "name_required": "Nombre *",
     "quantity": "Cantidad",
@@ -81,11 +76,6 @@
     "todo_quantity_placement_name": "En el nombre (ej. Leche (x4))",
     "todo_quantity_placement_description": "En la descripción",
     "todo_quantity_placement_none": "No mostrar",
-    "barcode": "Código de Barras",
-    "barcode_input_placeholder": "Escriba el código de barras y presione Enter",
-    "barcode_placeholder": "UPC, EAN, etc.",
-    "desired_quantity": "Cantidad Deseada",
-    "desired_quantity_placeholder": "Nivel de stock deseado (vacío = usar umbral)",
     "unit": "Unidad",
     "unit_placeholder": "kg, pzs, etc.",
     "price": "Precio Unitario",
@@ -97,8 +87,9 @@
     "multiple_products_found": "Se encontraron múltiples productos — seleccione uno:",
     "provider_openfoodfacts": "Open Food Facts",
     "provider_openbeautyfacts": "Open Beauty Facts",
-    "provider_inventory": "Artículo existente",
-    "provider_openpetfoodfacts": "Open Pet Food Facts"
+    "provider_openpetfoodfacts": "Open Pet Food Facts",
+    "provider_upcitemdb": "UPC Item DB",
+    "provider_inventory": "Artículo existente"
   },
   "filters": {
     "all_categories": "Todas las Categorías",
@@ -122,8 +113,8 @@
   },
   "sort": {
     "category": "Categoría",
-    "expiry_date": "Fecha de Vencimiento",
     "location": "Ubicación",
+    "expiry_date": "Fecha de Vencimiento",
     "name": "Nombre",
     "quantity_high": "Cantidad (Alto)",
     "quantity_low": "Cantidad (Bajo)",
@@ -132,9 +123,9 @@
   },
   "active_filters": {
     "category": "Categoría",
+    "location": "Ubicación",
     "expiry": "Vencimiento",
     "label": "Filtros activos:",
-    "location": "Ubicación",
     "quantity": "Cantidad",
     "search": "Búsqueda"
   },
@@ -161,12 +152,12 @@
   "analytics": {
     "tab_history": "Historial",
     "tab_consumption": "Consumo",
-    "daily_rate": "Diario",
-    "weekly_rate": "Semanal",
+    "daily_rate": "Tasa diaria",
+    "weekly_rate": "Tasa semanal",
     "days_until_depletion": "Días Restantes",
     "avg_restock_days": "Reposición Prom.",
     "total_consumed": "Total Usado",
-    "events_tracked": "Eventos",
+    "events_tracked": "Eventos de consumo",
     "insufficient_data": "No hay suficientes datos aún",
     "insufficient_data_detail": "Se necesitan al menos 2 eventos de consumo para calcular tasas.",
     "per_day": "/día",
@@ -184,6 +175,9 @@
   "errors": {
     "clear_filters_error": "Error al limpiar filtros. Por favor inténtalo de nuevo.",
     "duplicate_name": "Ya existe un artículo llamado \"{name}\" en este inventario.",
+    "entity_not_found": "Entidad {entity} no encontrada",
+    "initialization_failed": "Error al inicializar la tarjeta",
+    "render_error": "Error al renderizar la tarjeta",
     "update_failed": "Error al actualizar el artículo. Por favor inténtalo de nuevo."
   }
 }

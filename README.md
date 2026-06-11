@@ -94,13 +94,13 @@ Items can have multiple locations and categories. The add/edit modals use a mult
 
 ### Barcodes
 
-Each item can have one or more barcodes associated with it. Enter barcodes manually in the add/edit modal, or use the camera scan button to scan UPC/EAN barcodes with your device camera. When a barcode is scanned or entered, the card automatically looks up the product name from Open Food Facts and pre-fills the item name if found.
+Each item can have one or more barcodes associated with it. Enter barcodes manually in the add/edit modal, or use the camera scan button to scan UPC/EAN barcodes with your device camera. On HTTPS connections the card uses live camera scanning; on HTTP or in environments where camera access is unavailable (e.g. iOS WKWebView), tapping the scan button opens a photo picker instead — take a photo of the barcode and it is decoded automatically. When a barcode is scanned or entered, the card automatically looks up the product name and pre-fills the item name if found.
 
 Barcodes can also be used to identify items in automations (e.g. scan-to-increment).
 
 #### Quick Scan from Header
 
-The card header includes a scan button (barcode icon) for quickly incrementing or decrementing an existing item without opening any modal. Tap the scan button to open the camera, scan a barcode, then choose increment/decrement and an amount before confirming. The scanned barcode is resolved across all inventories automatically via the `scan_barcode` service.
+The card header includes a scan button (barcode icon) for quickly incrementing or decrementing an existing item without opening any modal. Tap the scan button to scan a barcode — live camera on HTTPS, photo picker on HTTP — then choose increment/decrement and an amount before confirming. The scanned barcode is resolved across all inventories automatically via the `scan_barcode` service.
 
 ### Auto-Add to Todo List
 
@@ -142,7 +142,7 @@ Access import/export from the overflow menu (three-dot button) in the card heade
 
 ### Translations
 
-The card supports localization. Translation files are loaded from the integration and the card adapts to the user's Home Assistant language setting.
+The card supports localization. Translation files are bundled with the card release and loaded automatically. The card adapts to the user's Home Assistant language setting.
 
 ## Notes
 
