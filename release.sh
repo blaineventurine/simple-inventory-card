@@ -60,7 +60,7 @@ require_clean_tree() {
 }
 
 fetch_all() {
-    git fetch "$REMOTE" --tags --prune
+    git fetch "$REMOTE" --tags --prune --force
 }
 
 ensure_on_branch_up_to_date() {
