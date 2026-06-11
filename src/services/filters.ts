@@ -252,6 +252,10 @@ export class Filters {
         return this.sortZeroLast(sortedItems);
       }
 
+      case SORT_METHODS.EXPIRY_ZERO_LAST: {
+        return this.sortByExpiryZeroLast(sortedItems);
+      }
+
       default: {
         return sortedItems;
       }
@@ -353,6 +357,32 @@ export class Filters {
       }
 
       // If both have same quantity status, sort alphabetically
+      return this.compareNames(a.name, b.name);
+    });
+  }
+
+  private sortByExpiryZeroLast(items: InventoryItem[]): InventoryItem[] {
+    return items.sort((a, b) => {
+      const aHasQuantity = (a.quantity ?? 0) > 0;
+      const bHasQuantity = (b.quantity ?? 0) > 0;
+
+      if (aHasQuantity && !bHasQuantity) {
+        return -1; // a comes first
+      }
+      if (!aHasQuantity && bHasQuantity) {
+        return 1; // b comes first
+      }
+
+      // If both have same quantity status, sort alphabetically
+      // Se entrambi hanno quantità > 0 o entrambi sono a 0, ordina per data di scadenza
+      const dateA = a.expiry_date ?? '9999-12-31';
+      const dateB = b.expiry_date ?? '9999-12-31';
+      const dateCompare = dateA.localeCompare(dateB);
+      if (dateCompare !== 0) {
+        return dateCompare;
+      }
+
+      // Se hanno anche la stessa data (o nessuna data), usa l'ordine alfabetico
       return this.compareNames(a.name, b.name);
     });
   }

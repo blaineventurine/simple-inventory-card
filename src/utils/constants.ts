@@ -173,7 +173,8 @@ export const SORT_METHODS = {
   NAME: 'name',
   QUANTITY: 'quantity',
   QUANTITY_LOW: 'quantity-low',
-  ZERO_LAST: 'zero-last',
+  ZERO_LAST: 'zero_last',
+  EXPIRY_ZERO_LAST: 'expiry_zero_last',
 };
 
 export const FILTERS = {

@@ -128,7 +128,8 @@
     "quantity_high": "Quantità (Alta)",
     "quantity_low": "Quantità (Bassa)",
     "sort_by": "Ordina per:",
-    "zero_last": "Zero per ultimo"
+    "zero_last": "Zero per ultimo",
+    "expiry_zero_last": "Scadenza (Zero per ultimo)"
   },
   "active_filters": {
     "category": "Categoria",

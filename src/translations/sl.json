@@ -128,7 +128,8 @@
     "quantity_high": "Količina (veliko)",
     "quantity_low": "Količina (malo)",
     "sort_by": "Razvrsti po:",
-    "zero_last": "Brez zaloge na koncu"
+    "zero_last": "Brez zaloge na koncu",
+    "expiry_zero_last": "Datum poteka (bez zaloge na koncu)"
   },
   "active_filters": {
     "category": "Kategorija",

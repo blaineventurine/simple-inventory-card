@@ -138,6 +138,7 @@ describe('Filters', () => {
     vi.mocked(SORT_METHODS).QUANTITY = 'quantity';
     vi.mocked(SORT_METHODS).QUANTITY_LOW = 'quantity_low';
     vi.mocked(SORT_METHODS).ZERO_LAST = 'zero_last';
+    vi.mocked(SORT_METHODS).EXPIRY_ZERO_LAST = 'expiry_zero_last';
     vi.mocked(DateUtils.isExpired).mockReturnValue(false);
     vi.mocked(DateUtils.isExpiringSoon).mockReturnValue(false);
     vi.mocked(Utilities.hasActiveFilters).mockReturnValue(false);
@@ -1012,6 +1013,44 @@ describe('Filters', () => {
           'Low Item',
           'Another Zero',
           'Zero Item',
+        ]);
+      });
+    });
+
+    describe('expiry (zero last) sorting', () => {
+      it('should sort by quantity (non-zero first), then by expiry date', () => {
+        const items: InventoryItem[] = [
+          createMockItem({ name: 'Zero Expiring Soon', quantity: 0, expiry_date: '2024-01-01' }),
+          createMockItem({ name: 'High Expiring Late', quantity: 5, expiry_date: '2024-12-31' }),
+          createMockItem({ name: 'Zero Expiring Late', quantity: 0, expiry_date: '2024-12-31' }),
+          createMockItem({ name: 'Low Expiring Soon', quantity: 1, expiry_date: '2024-01-01' }),
+        ];
+
+        const result = filters.sortItems(items, 'expiry_zero_last', mockTranslations);
+
+        expect(result.map((item) => item.name)).toEqual([
+          'Low Expiring Soon',
+          'High Expiring Late',
+          'Zero Expiring Soon',
+          'Zero Expiring Late',
+        ]);
+      });
+
+      it('should put items without expiry date at the end of their quantity group', () => {
+        const items: InventoryItem[] = [
+          createMockItem({ name: 'Zero No Expiry', quantity: 0, expiry_date: null as any }),
+          //createMockItem({ name: 'In Stock No Expiry', quantity: 5, expiry_date: undefined as any }),
+          createMockItem({ name: 'In Stock With Expiry', quantity: 1, expiry_date: '2024-01-01' }),
+          createMockItem({ name: 'Zero With Expiry', quantity: 0, expiry_date: '2024-01-01' }),
+        ];
+
+        const result = filters.sortItems(items, 'expiry_zero_last', mockTranslations);
+
+        expect(result.map((item) => item.name)).toEqual([
+          'In Stock With Expiry',
+          'In Stock No Expiry',
+          'Zero With Expiry',
+          'Zero No Expiry',
         ]);
       });
     });

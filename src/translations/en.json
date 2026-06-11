@@ -128,7 +128,8 @@
     "quantity_high": "Quantity (High)",
     "quantity_low": "Quantity (Low)",
     "sort_by": "Sort by:",
-    "zero_last": "Zero Last"
+    "zero_last": "Zero Last",
+    "expiry_zero_last": "Expiry Date (Zero Last)"
   },
   "active_filters": {
     "category": "Category",

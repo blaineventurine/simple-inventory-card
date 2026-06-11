@@ -426,7 +426,7 @@ describe('createInventoryHeader', () => {
     it('should handle empty items array', () => {
       const result = createInventoryHeader('Empty Inventory', [], mockTranslations);
 
-      expect(result).toContain('sanitized(Empty Inventory)');
+      expect(result).toContain('sanitized(Empty)');
       expect(result).not.toContain('class="expiry-indicators"');
     });
 

@@ -25,6 +25,7 @@ describe('createSortOptions', () => {
         quantity_low: 'Quantity (Low)',
         sort_by: 'Sort by:',
         zero_last: 'Zero Last',
+        expiry_zero_last: 'Expiry Date (Zero Last)',
       },
     };
     vi.clearAllMocks();
@@ -54,8 +55,10 @@ describe('createSortOptions', () => {
       expect(result).toContain('Quantity (Low)');
       expect(result).toContain('value="expiry"');
       expect(result).toContain('Expiry Date');
-      expect(result).toContain('value="zero-last"');
+      expect(result).toContain('value="zero_last"');
       expect(result).toContain('Zero Last');
+      expect(result).toContain('value="expiry_zero_last"');
+      expect(result).toContain('Expiry Date (Zero Last)');
       expect(result).toContain('value="location"');
       expect(result).toContain('Location');
     });
@@ -126,11 +129,20 @@ describe('createSortOptions', () => {
       expect(result).not.toContain('value="name" selected');
     });
 
-    it('should select zero-last option when sortMethod is zero-last', () => {
-      const result = createSortOptions('zero-last', mockTranslations);
+    it('should select zero_last option when sortMethod is zero_last', () => {
+      const result = createSortOptions('zero_last', mockTranslations);
 
-      expect(result).toContain('value="zero-last" selected');
+      expect(result).toContain('value="zero_last" selected');
       expect(result).toContain('Zero Last');
+      expect(result).toContain('value="name"');
+      expect(result).not.toContain('value="name" selected');
+    });
+
+    it('should select expiry_zero_last option when sortMethod is expiry_zero_last', () => {
+      const result = createSortOptions('expiry_zero_last', mockTranslations);
+
+      expect(result).toContain('value="expiry_zero_last" selected');
+      expect(result).toContain('Expiry Date (Zero Last)');
       expect(result).toContain('value="name"');
       expect(result).not.toContain('value="name" selected');
     });
@@ -222,7 +234,7 @@ describe('createSortOptions', () => {
 
       const optionMatches = result.match(/<option/g);
       expect(optionMatches).toBeTruthy();
-      expect(optionMatches?.length).toBe(7);
+      expect(optionMatches?.length).toBe(8);
     });
 
     it('should have valid option values', () => {
@@ -234,7 +246,8 @@ describe('createSortOptions', () => {
       expect(result).toContain('value="quantity"');
       expect(result).toContain('value="quantity-low"');
       expect(result).toContain('value="expiry"');
-      expect(result).toContain('value="zero-last"');
+      expect(result).toContain('value="zero_last"');
+      expect(result).toContain('value="expiry_zero_last"');
     });
 
     it('should have descriptive option text', () => {
@@ -247,6 +260,7 @@ describe('createSortOptions', () => {
       expect(result).toContain('Quantity (Low)');
       expect(result).toContain('Expiry Date');
       expect(result).toContain('Zero Last');
+      expect(result).toContain('Expiry Date (Zero Last)');
     });
 
     it('should have consistent whitespace and formatting', () => {
@@ -274,7 +288,7 @@ describe('createSortOptions', () => {
         'value="quantity"',
         'value="quantity-low"',
         'value="expiry"',
-        'value="zero-last"',
+        'value="zero_last"',
       ];
 
       let lastIndex = -1;
@@ -305,7 +319,8 @@ describe('createSortOptions', () => {
         'quantity',
         'quantity-low',
         'expiry',
-        'zero-last',
+        'zero_last',
+        'expiry_zero_last',
       ]);
     });
   });
