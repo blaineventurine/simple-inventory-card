@@ -34,8 +34,10 @@
     "no_items": "No hay artículos en el inventario"
   },
   "header": {
-    "items_expired": "{count} artículo{count, plural, one {} other {s}} expirado{count, plural, one {} other {s}}",
-    "items_expiring_soon": "{count} artículo{count, plural, one {} other {s}} expirando pronto",
+    "items_expired_one": "{count} artículo expirado",
+    "items_expired_other": "{count} artículos expirados",
+    "items_expiring_soon_one": "{count} artículo expirando pronto",
+    "items_expiring_soon_other": "{count} artículos expirando pronto",
     "scan_barcode": "Escanear código"
   },
   "scanner": {

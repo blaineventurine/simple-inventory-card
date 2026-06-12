@@ -34,8 +34,10 @@
     "no_items": "V zalogi ni predmetov"
   },
   "header": {
-    "items_expired": "{count} item{count, plural, one {} other {s}} expired",
-    "items_expiring_soon": "{count} item{count, plural, one {} other {s}} expiring soon",
+    "items_expired_one": "{count} item expired",
+    "items_expired_other": "{count} items expired",
+    "items_expiring_soon_one": "{count} item expiring soon",
+    "items_expiring_soon_other": "{count} items expiring soon",
     "scan_barcode": "Skeniraj črtno kodo"
   },
   "scanner": {

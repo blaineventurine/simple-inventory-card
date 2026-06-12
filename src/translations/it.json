@@ -34,8 +34,10 @@
     "no_items": "Nessun oggetto in inventario"
   },
   "header": {
-    "items_expired": "{count} oggett{count, plural, one {o} other {i}} scadut{count, plural, one {o} other {i}}",
-    "items_expiring_soon": "{count} oggett{count, plural, one {o} other {i}} in scadenza a breve",
+    "items_expired_one": "{count} oggetto scaduto",
+    "items_expired_other": "{count} oggetti scaduti",
+    "items_expiring_soon_one": "{count} oggetto in scadenza a breve",
+    "items_expiring_soon_other": "{count} oggetti in scadenza a breve",
     "scan_barcode": "Scansiona codice"
   },
   "scanner": {

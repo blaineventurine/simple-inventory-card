@@ -34,8 +34,10 @@
     "no_items": "Aucun article en stock"
   },
   "header": {
-    "items_expired": "{count} article{count, plural, one {} other {s}} expiré(s)",
-    "items_expiring_soon": "{count} article{count, plural, one {} other {s}} expirant bientôt",
+    "items_expired_one": "{count} article expiré",
+    "items_expired_other": "{count} articles expirés",
+    "items_expiring_soon_one": "{count} article expirant bientôt",
+    "items_expiring_soon_other": "{count} articles expirant bientôt",
     "scan_barcode": "Scanner code-barres"
   },
   "scanner": {

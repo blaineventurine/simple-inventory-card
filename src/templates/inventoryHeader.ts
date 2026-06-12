@@ -13,6 +13,9 @@ export function createInventoryHeader(
 ): string {
   const expiringCount = getExpiringItemsCount(allItems);
   const expiredCount = getExpiredItemsCount(allItems);
+  const expiredKey = expiredCount === 1 ? 'header.items_expired_one' : 'header.items_expired_other';
+  const expiringKey =
+    expiringCount === 1 ? 'header.items_expiring_soon_one' : 'header.items_expiring_soon_other';
 
   return `
       <div class="card-header">
@@ -34,7 +37,7 @@ export function createInventoryHeader(
                   ? `
                   <button id="${ELEMENTS.HEADER_EXPIRED_BADGE}" class="expired-badge" title="${TranslationManager.localize(
                     translations,
-                    'header.items_expired',
+                    expiredKey,
                     { count: expiredCount },
                     `${expiredCount} items expired`,
                   )}">
@@ -49,7 +52,7 @@ export function createInventoryHeader(
                   ? `
                   <button id="${ELEMENTS.HEADER_EXPIRING_BADGE}" class="expiring-badge" title="${TranslationManager.localize(
                     translations,
-                    'header.items_expiring_soon',
+                    expiringKey,
                     { count: expiringCount },
                     `${expiringCount} items expiring soon`,
                   )}">
