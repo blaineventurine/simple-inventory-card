@@ -34,7 +34,9 @@ export function createInventoryHeader(
                   ? `
                   <button id="${ELEMENTS.HEADER_EXPIRED_BADGE}" class="expired-badge" title="${TranslationManager.localize(
                     translations,
-                    'header.items_expired',
+                    expiredCount === 1
+                      ? 'header.items_expired_singular'
+                      : 'header.items_expired_plural',
                     { count: expiredCount },
                     `${expiredCount} items expired`,
                   )}">
@@ -49,7 +51,9 @@ export function createInventoryHeader(
                   ? `
                   <button id="${ELEMENTS.HEADER_EXPIRING_BADGE}" class="expiring-badge" title="${TranslationManager.localize(
                     translations,
-                    'header.items_expiring_soon',
+                    expiringCount === 1
+                      ? 'header.items_expiring_soon_singular'
+                      : 'header.items_expiring_soon_plural',
                     { count: expiringCount },
                     `${expiringCount} items expiring soon`,
                   )}">

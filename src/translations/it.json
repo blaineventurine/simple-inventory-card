@@ -34,8 +34,10 @@
     "no_items": "Nessun oggetto in inventario"
   },
   "header": {
-    "items_expired": "{count} oggett{count, plural, one {o} other {i}} scadut{count, plural, one {o} other {i}}",
-    "items_expiring_soon": "{count} oggett{count, plural, one {o} other {i}} in scadenza a breve",
+    "items_expired_singular": "{count} oggetto scaduto",
+    "items_expired_plural": "{count} oggetti scaduti",
+    "items_expiring_soon_singular": "{count} oggetto in scadenza a breve",
+    "items_expiring_soon_plural": "{count} oggetti in scadenza a breve",
     "scan_barcode": "Scansiona codice"
   },
   "scanner": {
@@ -52,7 +54,7 @@
     "add_new_item": "Aggiungi"
   },
   "modal": {
-    "add_item": "Aggiungi oggetto",
+    "add_item": "Aggiungi",
     "auto_add_id_to_description": "Aggiungi l’ID dell’inventario alla descrizione dell’articolo",
     "auto_add_settings": "Impostazioni auto-aggiunta",
     "auto_add_when_low": "Aggiungi alla lista attività quando la quantità è bassa",

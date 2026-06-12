@@ -34,8 +34,10 @@
     "no_items": "No items in inventory"
   },
   "header": {
-    "items_expired": "{count} item{count, plural, one {} other {s}} expired",
-    "items_expiring_soon": "{count} item{count, plural, one {} other {s}} expiring soon",
+    "items_expired_singular": "{count} item expired",
+    "items_expired_plural": "{count} items expired",
+    "items_expiring_soon_singular": "{count} item expiring soon",
+    "items_expiring_soon_plural": "{count} items expiring soon",
     "scan_barcode": "Scan Barcode"
   },
   "scanner": {
