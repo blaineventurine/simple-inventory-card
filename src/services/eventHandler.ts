@@ -7,11 +7,17 @@ import { Utilities } from '../utils/utilities';
 import { InventoryResolver } from '../utils/inventoryResolver';
 import { TranslationData } from '@/types/translatableComponent';
 import { TranslationManager } from './translationManager';
-import { initializeMultiSelect } from './multiSelect';
 import { ScanHandler } from './scanHandler';
 import { BarcodeProductHandler } from './barcodeProductHandler';
 import { HistoryHandler } from './historyHandler';
 import { ImportExportHandler } from './importExportHandler';
+
+const MULTI_SELECT_FILTER_KEYS: Record<string, 'category' | 'location' | 'expiry' | 'quantity'> = {
+  [`${ELEMENTS.FILTER_CATEGORY}-dropdown`]: 'category',
+  [`${ELEMENTS.FILTER_LOCATION}-dropdown`]: 'location',
+  [`${ELEMENTS.FILTER_EXPIRY}-dropdown`]: 'expiry',
+  [`${ELEMENTS.FILTER_QUANTITY}-dropdown`]: 'quantity',
+};
 
 export class EventHandler {
   private renderRoot: ShadowRoot;
@@ -112,11 +118,6 @@ export class EventHandler {
 
     this.filters.setupSearchInput(this.config.entity, () => this.handleSearchChange());
     this.eventListenersSetup = true;
-
-    const filters = this.filters.getCurrentFilters(this.config.entity);
-    if (filters.showAdvanced) {
-      this.initializeMultiSelects();
-    }
   }
 
   cleanupEventListeners(): void {
@@ -153,6 +154,18 @@ export class EventHandler {
     if (this.modals.handleModalClick(event as MouseEvent)) {
       return; // Don't prevent default - let modals handle it
     }
+
+    // Filter multi-select dropdowns (event delegation, survives re-renders)
+    const multiSelectTrigger = target.closest?.('.multi-select-trigger') as HTMLElement | null;
+    if (multiSelectTrigger) {
+      this.toggleMultiSelectDropdown(multiSelectTrigger);
+      return;
+    }
+    if (target.closest?.('.multi-select-dropdown')) {
+      // Clicks inside a dropdown are handled through the change event; keep it open.
+      return;
+    }
+    this.closeAllMultiSelectDropdowns();
 
     const button = (target.closest?.('button') ?? target) as HTMLElement;
     const buttonId = button.id;
@@ -292,6 +305,14 @@ export class EventHandler {
 
   private handleChange(event: Event): void {
     const target = event.target as HTMLElement;
+
+    if (target instanceof HTMLInputElement && target.type === 'checkbox') {
+      const dropdown = target.closest?.('.multi-select-dropdown') as HTMLElement | null;
+      if (dropdown) {
+        this.handleFilterMultiSelectChange(dropdown);
+        return;
+      }
+    }
 
     if (target.id === ELEMENTS.SORT_METHOD) {
       const filters = this.filters.getCurrentFilters(this.config.entity);
@@ -456,9 +477,6 @@ export class EventHandler {
       filters.showAdvanced = !filters.showAdvanced;
       this.filters.saveFilters(this.config.entity, filters);
       this.renderCallback();
-      if (filters.showAdvanced) {
-        this.initializeMultiSelects();
-      }
     } catch (error) {
       console.error('Error toggling advanced filters:', error);
     }
@@ -479,9 +497,6 @@ export class EventHandler {
       const filters = this.filters.getCurrentFilters(this.config.entity);
       setTimeout(() => {
         this.filters.updateFilterIndicators(filters, this.translations);
-        if (filters.showAdvanced) {
-          this.initializeMultiSelects();
-        }
       }, 50);
     } catch (error) {
       console.error('Error clearing filters:', error);
@@ -531,127 +546,49 @@ export class EventHandler {
     );
   }
 
-  private initializeMultiSelects(): void {
+  private toggleMultiSelectDropdown(trigger: HTMLElement): void {
+    const dropdown = trigger.parentElement?.querySelector(
+      '.multi-select-dropdown',
+    ) as HTMLElement | null;
+    if (!dropdown) {
+      return;
+    }
+    const isOpen = dropdown.style.display === 'block';
+    this.closeAllMultiSelectDropdowns();
+    dropdown.style.display = isOpen ? 'none' : 'block';
+  }
+
+  private closeAllMultiSelectDropdowns(): void {
+    this.renderRoot.querySelectorAll('.multi-select-dropdown').forEach((dropdown) => {
+      (dropdown as HTMLElement).style.display = 'none';
+    });
+  }
+
+  private handleFilterMultiSelectChange(dropdown: HTMLElement): void {
+    const filterKey = MULTI_SELECT_FILTER_KEYS[dropdown.id];
+    if (!filterKey) {
+      return;
+    }
+    const selected = Array.from(
+      dropdown.querySelectorAll<HTMLInputElement>('input[type="checkbox"]:checked'),
+    ).map((checkbox) => checkbox.value);
     const filters = this.filters.getCurrentFilters(this.config.entity);
-    const categories = this.getUniqueCategories();
-    const locations = this.getUniqueLocations();
+    filters[filterKey] = selected;
+    this.filters.saveFilters(this.config.entity, filters);
+    this.updateMultiSelectTriggerLabel(dropdown, selected.length);
+    this.filters.updateFilterIndicators(filters, this.translations);
+    this.applyFiltersWithoutRender();
+  }
 
-    setTimeout(() => {
-      initializeMultiSelect({
-        id: ELEMENTS.FILTER_CATEGORY,
-        options: categories,
-        selected: filters.category,
-        placeholder: TranslationManager.localize(
-          this.translations,
-          'filters.all_categories',
-          undefined,
-          'All Categories',
-        ),
-        shadowRoot: this.renderRoot,
-        onChange: (selected) => {
-          const filters = this.filters.getCurrentFilters(this.config.entity);
-          filters.category = selected;
-          this.filters.saveFilters(this.config.entity, filters);
-          this.filters.updateFilterIndicators(filters, this.translations);
-          this.applyFiltersWithoutRender();
-        },
-      });
-
-      initializeMultiSelect({
-        id: ELEMENTS.FILTER_LOCATION,
-        options: locations,
-        selected: filters.location,
-        placeholder: TranslationManager.localize(
-          this.translations,
-          'filters.all_locations',
-          undefined,
-          'All Locations',
-        ),
-        shadowRoot: this.renderRoot,
-        onChange: (selected) => {
-          const filters = this.filters.getCurrentFilters(this.config.entity);
-          filters.location = selected;
-          this.filters.saveFilters(this.config.entity, filters);
-          this.filters.updateFilterIndicators(filters, this.translations);
-          this.applyFiltersWithoutRender();
-        },
-      });
-
-      initializeMultiSelect({
-        id: ELEMENTS.FILTER_EXPIRY,
-        options: ['none', 'expired', 'soon', 'future'],
-        selected: filters.expiry,
-        placeholder: TranslationManager.localize(
-          this.translations,
-          'filters.all_items',
-          undefined,
-          'All Items',
-        ),
-        labels: {
-          none: TranslationManager.localize(
-            this.translations,
-            'filters.no_expiry',
-            undefined,
-            'No Expiry',
-          ),
-          expired: TranslationManager.localize(
-            this.translations,
-            'filters.expired',
-            undefined,
-            'Expired',
-          ),
-          soon: TranslationManager.localize(
-            this.translations,
-            'filters.expiring_soon',
-            undefined,
-            'Expiring Soon',
-          ),
-          future: TranslationManager.localize(
-            this.translations,
-            'filters.future',
-            undefined,
-            'Future',
-          ),
-        },
-        shadowRoot: this.renderRoot,
-        onChange: (selected) => {
-          const filters = this.filters.getCurrentFilters(this.config.entity);
-          filters.expiry = selected;
-          this.filters.saveFilters(this.config.entity, filters);
-          this.filters.updateFilterIndicators(filters, this.translations);
-          this.applyFiltersWithoutRender();
-        },
-      });
-
-      initializeMultiSelect({
-        id: ELEMENTS.FILTER_QUANTITY,
-        options: ['zero', 'nonzero'],
-        selected: filters.quantity,
-        placeholder: TranslationManager.localize(
-          this.translations,
-          'filters.all_quantities',
-          undefined,
-          'All Quantities',
-        ),
-        labels: {
-          zero: TranslationManager.localize(this.translations, 'filters.zero', undefined, 'Zero'),
-          nonzero: TranslationManager.localize(
-            this.translations,
-            'filters.non_zero',
-            undefined,
-            'Non-zero',
-          ),
-        },
-        shadowRoot: this.renderRoot,
-        onChange: (selected) => {
-          const filters = this.filters.getCurrentFilters(this.config.entity);
-          filters.quantity = selected;
-          this.filters.saveFilters(this.config.entity, filters);
-          this.filters.updateFilterIndicators(filters, this.translations);
-          this.applyFiltersWithoutRender();
-        },
-      });
-    }, 0);
+  private updateMultiSelectTriggerLabel(dropdown: HTMLElement, selectedCount: number): void {
+    const label = dropdown.parentElement?.querySelector(
+      '.multi-select-trigger .multi-select-label',
+    ) as HTMLElement | null;
+    if (!label) {
+      return;
+    }
+    label.textContent =
+      selectedCount > 0 ? `${selectedCount} selected` : (label.dataset.placeholder ?? '');
   }
 
   private applyFiltersWithoutRender(): void {
