@@ -23,10 +23,6 @@ vi.mock('../../src/templates/autoCompleteInput', () => ({
   initializeAutocomplete: vi.fn(),
   createAutocompleteInput: vi.fn(() => '<div></div>'),
 }));
-vi.mock('../../src/services/multiSelect.ts', () => ({
-  createMultiSelect: vi.fn(() => '<div></div>'),
-  initializeMultiSelect: vi.fn(),
-}));
 
 describe('EventHandler', () => {
   let eventHandler: EventHandler;
@@ -61,7 +57,7 @@ describe('EventHandler', () => {
       addEventListener: vi.fn(),
       removeEventListener: vi.fn(),
       querySelector: vi.fn(),
-      querySelectorAll: vi.fn(),
+      querySelectorAll: vi.fn().mockReturnValue([]),
     } as unknown as ShadowRoot;
 
     mockTranslations = {
@@ -410,7 +406,11 @@ describe('EventHandler', () => {
           classList: {
             contains: vi.fn().mockImplementation((className) => className === CSS_CLASSES.SAVE_BTN),
           },
-          closest: vi.fn().mockReturnValue(mockModal),
+          closest: vi
+            .fn()
+            .mockImplementation((selector: string) =>
+              selector.startsWith('#') ? mockModal : null,
+            ),
           hasAttribute: vi.fn().mockReturnValue(false),
           dataset: {},
         } as unknown as HTMLElement;
@@ -441,7 +441,11 @@ describe('EventHandler', () => {
               .fn()
               .mockImplementation((className) => className === CSS_CLASSES.CANCEL_BTN),
           },
-          closest: vi.fn().mockReturnValue(mockModal),
+          closest: vi
+            .fn()
+            .mockImplementation((selector: string) =>
+              selector.startsWith('#') ? mockModal : null,
+            ),
           hasAttribute: vi.fn().mockReturnValue(false),
           dataset: {},
         } as unknown as HTMLElement;
@@ -749,6 +753,127 @@ describe('EventHandler', () => {
 
         expect(mockModals.saveEditModal).toHaveBeenCalledWith(mockConfig);
         expect(mockModals.closeEditModal).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('multi-select filter delegation', () => {
+      function buildMultiSelect(id: string, values: [string, boolean][]) {
+        const container = document.createElement('div');
+        container.className = 'multi-select-container';
+        const trigger = document.createElement('div');
+        trigger.className = 'multi-select-trigger';
+        trigger.id = `${id}-trigger`;
+        const label = document.createElement('span');
+        label.className = 'multi-select-label';
+        label.dataset.placeholder = 'All Categories';
+        label.textContent = 'All Categories';
+        trigger.appendChild(label);
+        const dropdown = document.createElement('div');
+        dropdown.className = 'multi-select-dropdown';
+        dropdown.id = `${id}-dropdown`;
+        dropdown.style.display = 'none';
+        for (const [value, checked] of values) {
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.value = value;
+          checkbox.checked = checked;
+          dropdown.appendChild(checkbox);
+        }
+        container.appendChild(trigger);
+        container.appendChild(dropdown);
+        return { container, trigger, dropdown, label };
+      }
+
+      it('should apply checked values to the category filter on change', () => {
+        const { dropdown, label } = buildMultiSelect('filter-category', [
+          ['Food', true],
+          ['Cleaning', false],
+        ]);
+        const filterData = {
+          category: [],
+          expiry: [],
+          location: [],
+          quantity: [],
+          searchText: '',
+          showAdvanced: true,
+        };
+        vi.mocked(mockFilters.getCurrentFilters).mockReturnValue(filterData);
+
+        const event = { target: dropdown.querySelector('input') } as unknown as Event;
+        eventHandler['handleChange'](event);
+
+        expect(filterData.category).toEqual(['Food']);
+        expect(mockFilters.saveFilters).toHaveBeenCalledWith(mockConfig.entity, filterData);
+        expect(mockFilters.updateFilterIndicators).toHaveBeenCalled();
+        expect(label.textContent).toBe('1 selected');
+      });
+
+      it('should reset trigger label to placeholder when nothing is selected', () => {
+        const { dropdown, label } = buildMultiSelect('filter-location', [['Pantry', false]]);
+        label.textContent = '1 selected';
+        const filterData = {
+          category: [],
+          expiry: [],
+          location: ['Pantry'],
+          quantity: [],
+          searchText: '',
+          showAdvanced: true,
+        };
+        vi.mocked(mockFilters.getCurrentFilters).mockReturnValue(filterData);
+
+        const event = { target: dropdown.querySelector('input') } as unknown as Event;
+        eventHandler['handleChange'](event);
+
+        expect(filterData.location).toEqual([]);
+        expect(label.textContent).toBe('All Categories');
+      });
+
+      it('should ignore checkboxes from unknown dropdowns', () => {
+        const { dropdown } = buildMultiSelect('not-a-filter', [['x', true]]);
+
+        const event = { target: dropdown.querySelector('input') } as unknown as Event;
+        eventHandler['handleChange'](event);
+
+        expect(mockFilters.saveFilters).not.toHaveBeenCalled();
+      });
+
+      it('should toggle the dropdown on trigger click', async () => {
+        const { trigger, dropdown } = buildMultiSelect('filter-category', [['Food', false]]);
+        vi.mocked(mockRenderRoot.querySelectorAll).mockReturnValue([
+          dropdown,
+        ] as unknown as NodeListOf<Element>);
+        vi.mocked(mockModals.handleModalClick).mockReturnValue(false);
+
+        const event = {
+          target: trigger,
+          preventDefault: vi.fn(),
+          stopPropagation: vi.fn(),
+        } as unknown as Event;
+
+        await eventHandler['handleClick'](event);
+        expect(dropdown.style.display).toBe('block');
+
+        await eventHandler['handleClick'](event);
+        expect(dropdown.style.display).toBe('none');
+      });
+
+      it('should close open dropdowns when clicking outside', async () => {
+        const { dropdown } = buildMultiSelect('filter-category', [['Food', false]]);
+        dropdown.style.display = 'block';
+        vi.mocked(mockRenderRoot.querySelectorAll).mockReturnValue([
+          dropdown,
+        ] as unknown as NodeListOf<Element>);
+        vi.mocked(mockModals.handleModalClick).mockReturnValue(false);
+
+        const outside = document.createElement('div');
+        const event = {
+          target: outside,
+          preventDefault: vi.fn(),
+          stopPropagation: vi.fn(),
+        } as unknown as Event;
+
+        await eventHandler['handleClick'](event);
+        expect(dropdown.style.display).toBe('none');
       });
     });
 
