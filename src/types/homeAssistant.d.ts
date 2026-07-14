@@ -188,5 +188,8 @@ declare global {
       preview?: boolean;
       documentationURL?: string;
     }>;
+    loadCardHelpers?: () => Promise<{
+      createCardElement: (config: Record<string, unknown>) => HTMLElement | Promise<HTMLElement>;
+    }>;
   }
 }

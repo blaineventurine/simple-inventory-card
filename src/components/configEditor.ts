@@ -12,8 +12,11 @@ import { TranslationData } from '@/types/translatableComponent';
 import { TranslationManager } from '@/services/translationManager';
 
 class ConfigEditor extends LitElement {
-  public hass?: HomeAssistant;
-  private _config?: InventoryConfig;
+  // `declare` prevents TS (useDefineForClassFields: true) from emitting real class
+  // fields, which would shadow the reactive accessors Lit creates from
+  // `static get properties()` and silently disable all re-renders on assignment.
+  declare public hass?: HomeAssistant;
+  declare private _config?: InventoryConfig;
   private _translations: TranslationData = {};
   private _configSetExternally = false;
 
@@ -29,25 +32,56 @@ class ConfigEditor extends LitElement {
     };
   }
 
+  connectedCallback(): void {
+    super.connectedCallback();
+    void ConfigEditor._ensureHaComponents().then(() => this.requestUpdate());
+  }
+
+  private static _haComponentsPromise?: Promise<void>;
+
+  /**
+   * ha-combo-box / ha-formfield / ha-switch are lazily registered by the HA
+   * frontend; in a fresh session nothing has loaded them before this editor
+   * renders, so they'd stay as undefined custom elements and display nothing.
+   * Instantiating the entities-card editor via the card helpers forces HA to
+   * import and register them (standard custom-card workaround).
+   */
+  private static _ensureHaComponents(): Promise<void> {
+    if (
+      customElements.get('ha-combo-box') &&
+      customElements.get('ha-formfield') &&
+      customElements.get('ha-switch')
+    ) {
+      return Promise.resolve();
+    }
+    this._haComponentsPromise ??= (async () => {
+      try {
+        const helpers = await window.loadCardHelpers?.();
+        if (!helpers) {
+          return;
+        }
+        const card = await helpers.createCardElement({ type: 'entities', entities: [] });
+        // getConfigElement is a static whose dynamic import registers the ha-* elements
+        const ctor = card?.constructor as
+          | { getConfigElement?: () => HTMLElement | Promise<HTMLElement> }
+          | undefined;
+        await ctor?.getConfigElement?.();
+      } catch (error) {
+        console.debug('Failed to preload HA editor components:', error);
+      }
+    })();
+    return this._haComponentsPromise;
+  }
+
   async firstUpdated() {
     await this._loadTranslations();
   }
 
   async updated(changedProps: Map<string | number | symbol, unknown>) {
-    if (changedProps.has('hass') && this.hass) {
-      const oldHass = changedProps.get('hass') as HomeAssistant | undefined;
-      if (
-        !oldHass ||
-        oldHass.language !== this.hass.language ||
-        oldHass.selectedLanguage !== this.hass.selectedLanguage
-      ) {
-        await this._loadTranslations();
-      }
-    }
-
     // Auto-select the first available inventory entity for new cards.
     // Guarded by _configSetExternally so this never fires before setConfig is called,
     // which prevents stripping saved show_* toggle values on editor open.
+    // Runs before any await so the selection is never delayed behind translation fetches.
     if (this._configSetExternally && this.hass && this._config && !this._config.entity) {
       const inventoryEntities = InventoryResolver.findInventoryEntities(this.hass);
       if (inventoryEntities.length > 0) {
@@ -64,6 +98,17 @@ class ConfigEditor extends LitElement {
             composed: true,
           }),
         );
+      }
+    }
+
+    if (changedProps.has('hass') && this.hass) {
+      const oldHass = changedProps.get('hass') as HomeAssistant | undefined;
+      if (
+        !oldHass ||
+        oldHass.language !== this.hass.language ||
+        oldHass.selectedLanguage !== this.hass.selectedLanguage
+      ) {
+        await this._loadTranslations();
       }
     }
   }
