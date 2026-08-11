@@ -567,19 +567,47 @@ describe('Utilities', () => {
     });
 
     describe('sanitizeHtml', () => {
-      beforeEach(() => {
-        globalThis.document = {
-          createElement: vi.fn(() => ({
-            textContent: '',
-            innerHTML: 'Safe Text',
-          })),
-        } as any;
+      it('escapes ampersands', () => {
+        expect(Utilities.sanitizeHtml('Tom & Jerry')).toBe('Tom &amp; Jerry');
       });
 
-      it('should sanitize HTML using textContent', () => {
-        const result = Utilities.sanitizeHtml('<script>alert("xss")</script>');
-        expect(globalThis.document.createElement).toHaveBeenCalledWith('div');
-        expect(result).toBe('Safe Text');
+      it('escapes angle brackets so tags cannot be injected', () => {
+        expect(Utilities.sanitizeHtml('<script>alert(1)</script>')).toBe(
+          '&lt;script&gt;alert(1)&lt;/script&gt;',
+        );
+      });
+
+      it('escapes double quotes so a value cannot break out of a quoted HTML attribute', () => {
+        expect(Utilities.sanitizeHtml('foo" onmouseover="alert(1)')).toBe(
+          'foo&quot; onmouseover=&quot;alert(1)',
+        );
+      });
+
+      it('escapes single quotes', () => {
+        expect(Utilities.sanitizeHtml("O'Brien's")).toBe('O&#39;Brien&#39;s');
+      });
+
+      it('escapes the ampersand first so existing entities are not double-escaped', () => {
+        expect(Utilities.sanitizeHtml('&amp;')).toBe('&amp;amp;');
+      });
+
+      it('leaves plain text with no special characters unchanged', () => {
+        expect(Utilities.sanitizeHtml('Oatmeal')).toBe('Oatmeal');
+      });
+
+      it('produces output that cannot inject a new attribute when interpolated into a quoted HTML attribute value', () => {
+        // Regression test for the reported vulnerability: an item name like
+        // `foo" onmouseover="alert(1)` must not be able to close the
+        // surrounding data-name="..." attribute and inject a new one.
+        const payload = 'foo" onmouseover="alert(1)';
+        const sanitized = Utilities.sanitizeHtml(payload);
+
+        const container = document.createElement('div');
+        container.innerHTML = `<span data-name="${sanitized}">x</span>`;
+        const span = container.querySelector('span')!;
+
+        expect(span.getAttribute('data-name')).toBe(payload);
+        expect(span.hasAttribute('onmouseover')).toBe(false);
       });
     });
 

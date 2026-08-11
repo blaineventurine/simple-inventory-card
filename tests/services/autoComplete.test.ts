@@ -439,4 +439,42 @@ describe('autoComplete', () => {
       expect(dropdown.style.display).toBe('none');
     });
   });
+
+  describe('XSS protection', () => {
+    it('escapes a malicious option so it cannot inject a tag or break out of the data-value attribute, while still selecting the correct original value on click', () => {
+      const onSelect = vi.fn();
+      const maliciousOption = '"><img src=x onerror=alert(1)>';
+      const shadowRoot = createMockShadowRoot('xss-option');
+      initializeAutoComplete({
+        id: 'xss-option',
+        options: [maliciousOption, 'Safe Option'],
+        shadowRoot,
+        onSelect,
+      });
+
+      const dropdown = getDropdown(shadowRoot, 'xss-option');
+
+      // The raw payload must never appear verbatim in the rendered markup
+      // (as a bare string, i.e. not properly quoted/escaped).
+      expect(dropdown.innerHTML).not.toContain('"><img src=x onerror=alert(1)>');
+
+      const optionEls = dropdown.querySelectorAll('.autocomplete-option');
+      expect(optionEls.length).toBe(2);
+      const maliciousEl = optionEls[0] as HTMLElement;
+
+      // The real security property: no stray <img> element was ever parsed
+      // into the DOM. (jsdom's innerHTML getter re-serializes a safely-quoted
+      // attribute value without re-escaping `<`/`>` inside it, since they are
+      // not ambiguous there — that's an inert string-serialization detail,
+      // not evidence of an actual injected element, which is why this DOM
+      // structural check is the assertion that matters.)
+      expect(maliciousEl.querySelector('img')).toBeNull();
+      expect(dropdown.querySelectorAll('img').length).toBe(0);
+
+      // Clicking it still resolves to the correct, faithful original value
+      // (browsers decode HTML entities in attribute values on parse).
+      maliciousEl.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+      expect(onSelect).toHaveBeenCalledWith(maliciousOption);
+    });
+  });
 });

@@ -3,12 +3,19 @@ import { createItemRowTemplate } from '../../src/templates/itemRow';
 import { InventoryConfig, InventoryItem } from '../../src/types/homeAssistant';
 import { TodoList } from '../../src/types/todoList';
 import { TranslationData } from '@/types/translatableComponent';
+import { Utilities } from '../../src/utils/utilities';
 
 vi.mock('../../src/services/translationManager', () => ({
   TranslationManager: {
     localize: vi.fn((_translations: any, _key: string, _params: any, fallback: string) => {
       return fallback;
     }),
+  },
+}));
+
+vi.mock('../../src/utils/utilities', () => ({
+  Utilities: {
+    sanitizeHtml: vi.fn((str: string) => str),
   },
 }));
 
@@ -638,6 +645,75 @@ describe('createItemRowTemplate', () => {
       expect(result).not.toContain('class="location');
       expect(result).not.toContain('class="category"');
       expect(result).not.toContain('class="location-category"');
+    });
+  });
+
+  describe('XSS protection', () => {
+    it('sanitizes the item name', () => {
+      createItemRowTemplate(baseItem, mockTodoLists, mockTranslations);
+
+      expect(Utilities.sanitizeHtml).toHaveBeenCalledWith('Apple');
+    });
+
+    it('escapes a malicious item name so it cannot inject a tag or break out of the data-name attribute at any of the 4 interpolation sites (name span text, name span attribute, decrement button, increment button)', () => {
+      vi.mocked(Utilities.sanitizeHtml).mockImplementation((value: string) =>
+        value
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;'),
+      );
+      const maliciousItem: InventoryItem = { ...baseItem, name: '"><script>alert(1)</script>' };
+      const escaped = '&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;';
+
+      const result = createItemRowTemplate(maliciousItem, mockTodoLists, mockTranslations);
+
+      expect(result).not.toContain('"><script>alert(1)</script>');
+      expect(result).toContain(`data-name="${escaped}" role="button"`); // name span attribute
+      expect(result).toContain(`role="button" tabindex="0">${escaped}</span>`); // name span text
+      expect(result).toContain(`data-action="decrement" data-name="${escaped}"`); // decrement button
+      expect(result).toContain(`data-action="increment" data-name="${escaped}"`); // increment button
+    });
+
+    it('sanitizes the item description', () => {
+      createItemRowTemplate(baseItem, mockTodoLists, mockTranslations);
+
+      expect(Utilities.sanitizeHtml).toHaveBeenCalledWith('Fresh red apples');
+    });
+
+    it('sanitizes the item unit', () => {
+      createItemRowTemplate(baseItem, mockTodoLists, mockTranslations);
+
+      expect(Utilities.sanitizeHtml).toHaveBeenCalledWith('pieces');
+    });
+
+    it('sanitizes location and category text', () => {
+      baseItem.location = 'Fridge';
+      createItemRowTemplate(baseItem, mockTodoLists, mockTranslations);
+
+      expect(Utilities.sanitizeHtml).toHaveBeenCalledWith('Fridge');
+      expect(Utilities.sanitizeHtml).toHaveBeenCalledWith('Fruit');
+    });
+
+    it('escapes a malicious item description so it does not break out of its element', () => {
+      vi.mocked(Utilities.sanitizeHtml).mockImplementation((value: string) =>
+        value
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;'),
+      );
+      const maliciousItem: InventoryItem = {
+        ...baseItem,
+        description: 'foo" onmouseover="alert(1)',
+      };
+
+      const result = createItemRowTemplate(maliciousItem, mockTodoLists, mockTranslations);
+
+      expect(result).not.toContain('foo" onmouseover="alert(1)');
+      expect(result).toContain('foo&quot; onmouseover=&quot;alert(1)');
     });
   });
 });

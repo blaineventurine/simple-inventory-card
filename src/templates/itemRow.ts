@@ -3,6 +3,7 @@ import { InventoryConfig, InventoryItem } from '@/types/homeAssistant';
 import { TodoList } from '@/types/todoList';
 import { TranslationData } from '@/types/translatableComponent';
 import { TranslationManager } from '@/services/translationManager';
+import { Utilities } from '@/utils/utilities';
 
 export function createItemRowTemplate(
   item: InventoryItem,
@@ -87,40 +88,47 @@ export function createItemRowTemplate(
           ? item.category
           : '';
 
+    const safeLocation = Utilities.sanitizeHtml(locationText || '');
+    const safeCategory = Utilities.sanitizeHtml(categoryText || '');
+
     if (locationText && categoryText) {
-      return `<span class="location-category">${locationText} | ${categoryText}</span>`;
+      return `<span class="location-category">${safeLocation} | ${safeCategory}</span>`;
     } else if (locationText) {
-      return `<span class="location">${locationText}</span>`;
+      return `<span class="location">${safeLocation}</span>`;
     } else if (categoryText) {
-      return `<span class="category">${categoryText}</span>`;
+      return `<span class="category">${safeCategory}</span>`;
     } else {
       return '';
     }
   };
 
+  const safeName = Utilities.sanitizeHtml(item.name);
+  const safeDescription = Utilities.sanitizeHtml(item.description || '');
+  const safeUnit = Utilities.sanitizeHtml(item.unit || '');
+
   return `
     <div class="item-row ${item.quantity === 0 ? 'zero-quantity' : ''} ${item.auto_add_enabled ? 'auto-add-enabled' : ''}">
       <div class="item-header">
-        <span class="item-name" data-action="open_edit" data-name="${item.name}" role="button" tabindex="0">${item.name}</span>
+        <span class="item-name" data-action="open_edit" data-name="${safeName}" role="button" tabindex="0">${safeName}</span>
         ${renderLocationAndCategory()}
       </div>
       ${
         config?.show_description !== false
           ? `<div class="item-description">
-        <span>${item.description || ''}</span>
+        <span>${safeDescription}</span>
       </div>`
           : ''
       }
       <div class="item-footer">
         <div class="item-footer-row">
           <div class="item-details">
-            <span class="quantity">${item.quantity} ${item.unit || ''}</span>
+            <span class="quantity">${item.quantity} ${safeUnit}</span>
             ${config?.show_price !== false && item.price && item.price > 0 ? `<span class="item-price">$${(item.price * item.quantity).toFixed(2)}</span>` : ''}
             ${config?.show_expiry !== false && expiryInfo ? `<span class="expiry ${expiryInfo.class}">${expiryInfo.label}</span>` : ''}
           </div>
           <div class="item-controls">
-            <button class="control-btn" data-action="decrement" data-name="${item.name}" ${item.quantity === 0 ? 'disabled' : ''}>➖</button>
-            <button class="control-btn" data-action="increment" data-name="${item.name}">➕</button>
+            <button class="control-btn" data-action="decrement" data-name="${safeName}" ${item.quantity === 0 ? 'disabled' : ''}>➖</button>
+            <button class="control-btn" data-action="increment" data-name="${safeName}">➕</button>
           </div>
         </div>
         ${
