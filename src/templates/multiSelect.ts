@@ -1,4 +1,5 @@
 import { MultiSelectConfig } from '@/types/multiSelectConfig';
+import { Utilities } from '@/utils/utilities';
 
 export function createMultiSelect(config: MultiSelectConfig): string {
   return `
@@ -11,14 +12,16 @@ export function createMultiSelect(config: MultiSelectConfig): string {
       </div>
       <div class="multi-select-dropdown" id="${config.id}-dropdown" style="display: none;">
         ${config.options
-          .map(
-            (option) => `
+          .map((option) => {
+            const safeOption = Utilities.sanitizeHtml(option);
+            const safeLabel = Utilities.sanitizeHtml(config.labels?.[option] || option);
+            return `
               <label class="multi-select-option">
-                <input type="checkbox" value="${option}" ${config.selected && config.selected.includes(option) ? 'checked' : ''}>
-                <span>${config.labels?.[option] || option}</span>
+                <input type="checkbox" value="${safeOption}" ${config.selected && config.selected.includes(option) ? 'checked' : ''}>
+                <span>${safeLabel}</span>
               </label>
-            `,
-          )
+            `;
+          })
           .join('')}
       </div>
     </div>

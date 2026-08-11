@@ -32,6 +32,7 @@ export class EventHandler {
 
   private boundClickHandler: EventListener | undefined = undefined;
   private boundChangeHandler: EventListener | undefined = undefined;
+  private boundKeydownHandler: EventListener | undefined = undefined;
 
   private eventListenersSetup = false;
 
@@ -103,18 +104,25 @@ export class EventHandler {
       return;
     }
 
-    const actualClickHandler = (event: Event) => {
+    this.boundClickHandler = (event: Event) => {
       this.handleClick(event).catch((error) => {
         console.error('Error in handleClick:', error);
       });
     };
 
-    const actualChangeHandler = (event: Event) => {
+    this.boundChangeHandler = (event: Event) => {
       this.handleChange(event);
     };
 
-    this.renderRoot.addEventListener('click', actualClickHandler);
-    this.renderRoot.addEventListener('change', actualChangeHandler);
+    this.boundKeydownHandler = (event: Event) => {
+      this.handleKeydown(event).catch((error) => {
+        console.error('Error in handleKeydown:', error);
+      });
+    };
+
+    this.renderRoot.addEventListener('click', this.boundClickHandler);
+    this.renderRoot.addEventListener('change', this.boundChangeHandler);
+    this.renderRoot.addEventListener('keydown', this.boundKeydownHandler);
 
     this.filters.setupSearchInput(this.config.entity, () => this.handleSearchChange());
     this.eventListenersSetup = true;
@@ -122,10 +130,16 @@ export class EventHandler {
 
   cleanupEventListeners(): void {
     if (this.boundClickHandler) {
-      this.renderRoot.removeEventListener('click', this.boundClickHandler as EventListener);
+      this.renderRoot.removeEventListener('click', this.boundClickHandler);
+      this.boundClickHandler = undefined;
     }
     if (this.boundChangeHandler) {
-      this.renderRoot.removeEventListener('change', this.boundChangeHandler as EventListener);
+      this.renderRoot.removeEventListener('change', this.boundChangeHandler);
+      this.boundChangeHandler = undefined;
+    }
+    if (this.boundKeydownHandler) {
+      this.renderRoot.removeEventListener('keydown', this.boundKeydownHandler);
+      this.boundKeydownHandler = undefined;
     }
     this.eventListenersSetup = false;
   }
@@ -184,7 +198,20 @@ export class EventHandler {
         case ELEMENTS.ADD_ITEM_BTN: {
           event.preventDefault();
           event.stopPropagation();
-          await this.handleAddItem();
+          button.setAttribute('data-processing', 'true');
+          button.setAttribute('disabled', 'true');
+          button.style.opacity = '0.6';
+          button.style.pointerEvents = 'none';
+          try {
+            await this.handleAddItem();
+          } finally {
+            setTimeout(() => {
+              button.removeAttribute('data-processing');
+              button.removeAttribute('disabled');
+              button.style.opacity = '1';
+              button.style.pointerEvents = 'auto';
+            }, 200);
+          }
           break;
         }
         case ELEMENTS.ADVANCED_SEARCH_TOGGLE: {
@@ -285,7 +312,20 @@ export class EventHandler {
         event.preventDefault();
         event.stopPropagation();
         if (target.closest(`#${ELEMENTS.EDIT_MODAL}`)) {
-          await this.handleSaveEdits();
+          target.setAttribute('data-processing', 'true');
+          target.setAttribute('disabled', 'true');
+          target.style.opacity = '0.6';
+          target.style.pointerEvents = 'none';
+          try {
+            await this.handleSaveEdits();
+          } finally {
+            setTimeout(() => {
+              target.removeAttribute('data-processing');
+              target.removeAttribute('disabled');
+              target.style.opacity = '1';
+              target.style.pointerEvents = 'auto';
+            }, 200);
+          }
         }
         return;
       }
@@ -347,6 +387,25 @@ export class EventHandler {
       this.filters.updateFilterIndicators(filters, this.translations);
       return;
     }
+  }
+
+  private async handleKeydown(event: Event): Promise<void> {
+    const keyboardEvent = event as KeyboardEvent;
+    const target = keyboardEvent.target as HTMLElement;
+
+    if (keyboardEvent.key !== 'Enter' && keyboardEvent.key !== ' ') {
+      return;
+    }
+    if (
+      target.getAttribute('role') !== 'button' ||
+      !target.dataset.action ||
+      !target.dataset.name
+    ) {
+      return;
+    }
+
+    keyboardEvent.preventDefault();
+    await this.handleItemAction(target, target.dataset.action, target.dataset.name);
   }
 
   private handleSearchChange(): void {

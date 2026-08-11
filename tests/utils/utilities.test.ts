@@ -8,6 +8,7 @@ import { RawFormData, ItemData } from '../../src/types/inventoryItem';
 import { createMockHassEntity, createMockHomeAssistant } from '../testHelpers';
 
 const createValidFormData = (overrides: Partial<RawFormData> = {}): RawFormData => ({
+  aliases: '',
   autoAddEnabled: false,
   autoAddIdToDescriptionEnabled: false,
   autoAddToListQuantity: '',
@@ -303,6 +304,50 @@ describe('Utilities', () => {
     });
   });
 
+  describe('formatDate and isExpiringSoon - timezone correctness', () => {
+    const originalTz = process.env.TZ;
+
+    afterEach(() => {
+      if (originalTz === undefined) {
+        delete process.env.TZ;
+      } else {
+        process.env.TZ = originalTz;
+      }
+      vi.useRealTimers();
+    });
+
+    it('formatDate should represent the correct UTC calendar day in a timezone ahead of UTC (Asia/Tokyo, UTC+9)', () => {
+      process.env.TZ = 'Asia/Tokyo';
+      // Bare YYYY-MM-DD must always render as its own calendar date, never the
+      // previous day, regardless of the host's local timezone offset.
+      expect(DateUtils.formatDate('2026-08-11')).toBe('8/11/2026');
+    });
+
+    it('formatDate should represent the correct UTC calendar day in a timezone behind UTC (America/Los_Angeles, UTC-8)', () => {
+      process.env.TZ = 'America/Los_Angeles';
+      expect(DateUtils.formatDate('2026-08-11')).toBe('8/11/2026');
+    });
+
+    it('isExpiringSoon should treat the threshold boundary consistently in a timezone ahead of UTC (Asia/Tokyo, UTC+9)', () => {
+      process.env.TZ = 'Asia/Tokyo';
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2023-06-15T12:00:00Z'));
+
+      // Exactly 7 days after "today" (anchored to the current UTC calendar
+      // date) should still fall within a 7-day threshold, independent of the
+      // host's local timezone offset from UTC.
+      expect(DateUtils.isExpiringSoon('2023-06-22', 7)).toBe(true);
+    });
+
+    it('isExpiringSoon should treat the threshold boundary consistently in a timezone behind UTC (America/Los_Angeles, UTC-8)', () => {
+      process.env.TZ = 'America/Los_Angeles';
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2023-06-15T12:00:00Z'));
+
+      expect(DateUtils.isExpiringSoon('2023-06-22', 7)).toBe(true);
+    });
+  });
+
   describe('debounce', () => {
     beforeEach(() => {
       vi.useFakeTimers();
@@ -440,6 +485,7 @@ describe('Utilities', () => {
     describe('convertRawFormDataToItemData', () => {
       it('should convert valid form data correctly', () => {
         const formData: RawFormData = {
+          aliases: '  oats, hot cereal  ',
           autoAddEnabled: true,
           autoAddIdToDescriptionEnabled: true,
           autoAddToListQuantity: '2',
@@ -461,6 +507,7 @@ describe('Utilities', () => {
         const result = FormUtils.convertRawFormDataToItemData(formData);
 
         expect(result).toEqual({
+          aliases: 'oats, hot cereal',
           autoAddEnabled: true,
           autoAddIdToDescriptionEnabled: true,
           autoAddToListQuantity: 2,
@@ -507,6 +554,7 @@ describe('Utilities', () => {
 
       it('should handle undefined/null values gracefully', () => {
         const formData: RawFormData = {
+          aliases: undefined as any,
           autoAddEnabled: false,
           autoAddIdToDescriptionEnabled: false,
           autoAddToListQuantity: null as any,
@@ -528,6 +576,7 @@ describe('Utilities', () => {
         const result = FormUtils.convertRawFormDataToItemData(formData);
 
         expect(result).toEqual({
+          aliases: '',
           autoAddEnabled: false,
           autoAddIdToDescriptionEnabled: false,
           autoAddToListQuantity: 0,
@@ -562,19 +611,47 @@ describe('Utilities', () => {
     });
 
     describe('sanitizeHtml', () => {
-      beforeEach(() => {
-        globalThis.document = {
-          createElement: vi.fn(() => ({
-            textContent: '',
-            innerHTML: 'Safe Text',
-          })),
-        } as any;
+      it('escapes ampersands', () => {
+        expect(Utilities.sanitizeHtml('Tom & Jerry')).toBe('Tom &amp; Jerry');
       });
 
-      it('should sanitize HTML using textContent', () => {
-        const result = Utilities.sanitizeHtml('<script>alert("xss")</script>');
-        expect(globalThis.document.createElement).toHaveBeenCalledWith('div');
-        expect(result).toBe('Safe Text');
+      it('escapes angle brackets so tags cannot be injected', () => {
+        expect(Utilities.sanitizeHtml('<script>alert(1)</script>')).toBe(
+          '&lt;script&gt;alert(1)&lt;/script&gt;',
+        );
+      });
+
+      it('escapes double quotes so a value cannot break out of a quoted HTML attribute', () => {
+        expect(Utilities.sanitizeHtml('foo" onmouseover="alert(1)')).toBe(
+          'foo&quot; onmouseover=&quot;alert(1)',
+        );
+      });
+
+      it('escapes single quotes', () => {
+        expect(Utilities.sanitizeHtml("O'Brien's")).toBe('O&#39;Brien&#39;s');
+      });
+
+      it('escapes the ampersand first so existing entities are not double-escaped', () => {
+        expect(Utilities.sanitizeHtml('&amp;')).toBe('&amp;amp;');
+      });
+
+      it('leaves plain text with no special characters unchanged', () => {
+        expect(Utilities.sanitizeHtml('Oatmeal')).toBe('Oatmeal');
+      });
+
+      it('produces output that cannot inject a new attribute when interpolated into a quoted HTML attribute value', () => {
+        // Regression test for the reported vulnerability: an item name like
+        // `foo" onmouseover="alert(1)` must not be able to close the
+        // surrounding data-name="..." attribute and inject a new one.
+        const payload = 'foo" onmouseover="alert(1)';
+        const sanitized = Utilities.sanitizeHtml(payload);
+
+        const container = document.createElement('div');
+        container.innerHTML = `<span data-name="${sanitized}">x</span>`;
+        const span = container.querySelector('span')!;
+
+        expect(span.getAttribute('data-name')).toBe(payload);
+        expect(span.hasAttribute('onmouseover')).toBe(false);
       });
     });
 
@@ -686,6 +763,7 @@ describe('Utilities', () => {
     describe('sanitizeItemData', () => {
       it('should sanitize and enforce limits', () => {
         const itemData: ItemData = {
+          aliases: `  ${'a'.repeat(310)}  `,
           autoAddEnabled: 'true' as any,
           autoAddToListQuantity: 1_000_000,
           category:
@@ -709,6 +787,13 @@ describe('Utilities', () => {
         expect(result.category).toHaveLength(50);
         expect(result.unit).toHaveLength(20);
         expect(result.expiryAlertDays).toBe(0);
+        expect(result.aliases).toHaveLength(300);
+      });
+
+      it('should default aliases to empty string when absent', () => {
+        const itemData: ItemData = { name: 'Test Item' };
+        const result = FormUtils.sanitizeItemData(itemData);
+        expect(result.aliases).toBe('');
       });
     });
   });

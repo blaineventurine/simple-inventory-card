@@ -31,6 +31,7 @@ export const WS_COMMANDS = {
 };
 
 export const PARAMS = {
+  ALIASES: 'aliases',
   AMOUNT: 'amount',
   AUTO_ADD_ENABLED: 'auto_add_enabled',
   AUTO_ADD_ID_TO_DESCRIPTION_ENABLED: 'auto_add_id_to_description_enabled',
@@ -56,6 +57,7 @@ export const ELEMENTS = {
   ADD_MODAL: 'add-modal',
   EDIT_MODAL: 'edit-modal',
 
+  ALIASES: 'aliases',
   AUTO_ADD_ENABLED: 'auto-add-enabled',
   AUTO_ADD_ID_TO_DESCRIPTION_ENABLED: 'auto-add-id-to-description-enabled',
   AUTO_ADD_TO_LIST_QUANTITY: 'auto-add-to-list-quantity',
@@ -148,6 +150,7 @@ export const ACTIONS = {
 };
 
 export const DEFAULTS = {
+  ALIASES: '',
   AUTO_ADD_ENABLED: false,
   AUTO_ADD_ID_TO_DESCRIPTION_ENABLED: false,
   AUTO_ADD_TO_LIST_QUANTITY: 0,

@@ -54,6 +54,8 @@
   "modal": {
     "add_item": "Agregar Artículo",
     "auto_add_id_to_description": "Agregar el ID del inventario a la descripción del artículo",
+    "aliases": "Alias",
+    "aliases_input_placeholder": "Escriba un alias y presione Enter",
     "auto_add_settings": "Configuración de Auto-agregar",
     "auto_add_when_low": "Auto-agregar a lista de tareas cuando esté bajo",
     "cancel": "Cancelar",

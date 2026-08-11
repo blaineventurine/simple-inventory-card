@@ -44,14 +44,15 @@ export function createItemsByCategory(
   const sortedCategories = Object.keys(grouped).sort();
 
   return sortedCategories
-    .map(
-      (category) => `
+    .map((category) => {
+      const safeCategory = Utilities.sanitizeHtml(category);
+      return `
         <div class="${CSS_CLASSES.CATEGORY_GROUP}">
-          <div class="${CSS_CLASSES.CATEGORY_HEADER}">${category}</div>
+          <div class="${CSS_CLASSES.CATEGORY_HEADER}">${safeCategory}</div>
           ${grouped[category].map((item) => createItemRowTemplate(item, todoLists, translations, config)).join('')}
         </div>
-      `,
-    )
+      `;
+    })
     .join('');
 }
 
@@ -64,13 +65,14 @@ export function createItemsByLocation(
   const grouped = Utilities.groupItemsByLocation(items);
   const sortedLocations = Object.keys(grouped).sort();
   return sortedLocations
-    .map(
-      (location) => `
+    .map((location) => {
+      const safeLocation = Utilities.sanitizeHtml(location);
+      return `
         <div class="${CSS_CLASSES.LOCATION_GROUP}">
-          <div class="${CSS_CLASSES.LOCATION_HEADER}">${location}</div>
+          <div class="${CSS_CLASSES.LOCATION_HEADER}">${safeLocation}</div>
           ${grouped[location].map((item) => createItemRowTemplate(item, todoLists, translations, config)).join('')}
         </div>
-`,
-    )
+`;
+    })
     .join('');
 }

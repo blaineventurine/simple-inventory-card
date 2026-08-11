@@ -112,6 +112,7 @@ export const FormUtils = {
 
   convertRawFormDataToItemData(formData: RawFormData): ItemData {
     return {
+      aliases: formData.aliases?.trim() || DEFAULTS.ALIASES,
       name: formData.name?.trim() || '',
       quantity: Math.max(0, FormUtils.parseNumber(formData.quantity, DEFAULTS.QUANTITY)),
       autoAddEnabled: Boolean(formData.autoAddEnabled),
@@ -143,6 +144,7 @@ export const FormUtils = {
 
   sanitizeItemData(itemData: ItemData): SanitizedItemData {
     return {
+      aliases: FormUtils.sanitizeString(itemData.aliases, 300),
       autoAddEnabled: Boolean(itemData.autoAddEnabled),
       autoAddIdToDescriptionEnabled: Boolean(itemData.autoAddIdToDescriptionEnabled),
       autoAddToListQuantity: Math.max(

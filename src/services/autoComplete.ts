@@ -1,4 +1,5 @@
 import { AutoCompleteConfig } from '@/types/autoCompleteConfig';
+import { Utilities } from '@/utils/utilities';
 
 export function initializeAutoComplete(
   config: AutoCompleteConfig & { shadowRoot?: ShadowRoot },
@@ -31,10 +32,10 @@ export function initializeAutoComplete(
     selectedIndex = -1;
 
     const optionsHTML = filteredOptions
-      .map(
-        (option, index) =>
-          `<div class="autocomplete-option ${index === selectedIndex ? 'selected' : ''}" data-value="${option}">${option}</div>`,
-      )
+      .map((option, index) => {
+        const safeOption = Utilities.sanitizeHtml(option);
+        return `<div class="autocomplete-option ${index === selectedIndex ? 'selected' : ''}" data-value="${safeOption}">${safeOption}</div>`;
+      })
       .join('');
 
     dropdown.innerHTML = optionsHTML;

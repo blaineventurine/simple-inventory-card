@@ -292,6 +292,7 @@ describe('Utilities - Property-Based Tests', () => {
 
   describe('convertRawFormDataToItemData properties', () => {
     const arbitraryRawFormData = fc.record({
+      aliases: fc.oneof(fc.string(), fc.constant(null), fc.constant(undefined)),
       name: fc.oneof(fc.string(), fc.constant(null), fc.constant(undefined)),
       quantity: fc.oneof(fc.string(), fc.constant(null), fc.constant(undefined)),
       autoAddEnabled: fc.oneof(fc.boolean(), fc.string(), fc.integer()),
@@ -319,6 +320,7 @@ describe('Utilities - Property-Based Tests', () => {
         fc.property(arbitraryRawFormData, (formData) => {
           const result = FormUtils.convertRawFormDataToItemData(formData as RawFormData);
           expect(typeof result.name).toBe('string');
+          expect(typeof result.aliases).toBe('string');
           expect(typeof result.todoList).toBe('string');
           expect(typeof result.expiryDate).toBe('string');
           expect(typeof result.category).toBe('string');

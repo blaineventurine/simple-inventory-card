@@ -58,8 +58,12 @@ describe('SimpleInventoryCard', () => {
       },
     };
 
-    vi.mocked(LifecycleManager).mockImplementation(() => mockLifecycleManager);
-    vi.mocked(RenderingCoordinator).mockImplementation(() => mockRenderingCoordinator);
+    vi.mocked(LifecycleManager).mockImplementation(function () {
+      return mockLifecycleManager;
+    });
+    vi.mocked(RenderingCoordinator).mockImplementation(function () {
+      return mockRenderingCoordinator;
+    });
     vi.mocked(TranslationManager.loadTranslations).mockResolvedValue(mockTranslations);
     vi.mocked(InventoryResolver.extractTodoLists).mockReturnValue([
       { id: 'todo.shopping', name: 'Shopping List' },

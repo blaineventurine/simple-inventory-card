@@ -2,6 +2,7 @@ import { TranslationManager } from '@/services/translationManager';
 import { TodoList } from '@/types/todoList';
 import { TranslationData } from '@/types/translatableComponent';
 import { ELEMENTS } from '@/utils/constants';
+import { Utilities } from '@/utils/utilities';
 
 export function autoAddControls(
   prefix: string,
@@ -56,7 +57,7 @@ export function autoAddControls(
               undefined,
               'Select list...',
             )}</option>
-            ${todoLists.map((list) => `<option value="${list.id}">${list.name}</option>`).join('')}
+            ${todoLists.map((list) => `<option value="${list.id}">${Utilities.sanitizeHtml(list.name)}</option>`).join('')}
           </select>
         </div>
 

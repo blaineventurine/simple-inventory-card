@@ -36,6 +36,7 @@ export const itemRowStyles: CSSResult = css`
   .item-name {
     font-weight: bold;
     font-size: 1.1em;
+    cursor: pointer;
   }
 
   .category {

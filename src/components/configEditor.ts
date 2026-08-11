@@ -63,8 +63,7 @@ class ConfigEditor extends LitElement {
         const card = await helpers.createCardElement({ type: 'entities', entities: [] });
         // getConfigElement is a static whose dynamic import registers the ha-* elements
         const ctor = card?.constructor as
-          | { getConfigElement?: () => HTMLElement | Promise<HTMLElement> }
-          | undefined;
+          { getConfigElement?: () => HTMLElement | Promise<HTMLElement> } | undefined;
         await ctor?.getConfigElement?.();
       } catch (error) {
         console.debug('Failed to preload HA editor components:', error);
@@ -156,16 +155,20 @@ class ConfigEditor extends LitElement {
           this._valueChanged.bind(this),
           this._translations,
         )}
-        ${this._entity
-          ? createEntityInfo(this.hass, this._entity, this._translations)
-          : createNoEntityMessage(this._translations)}
-        ${this._entity
-          ? createVisibilityToggles(
-              this._config,
-              this._toggleChanged.bind(this),
-              this._translations,
-            )
-          : ''}
+        ${
+          this._entity
+            ? createEntityInfo(this.hass, this._entity, this._translations)
+            : createNoEntityMessage(this._translations)
+        }
+        ${
+          this._entity
+            ? createVisibilityToggles(
+                this._config,
+                this._toggleChanged.bind(this),
+                this._translations,
+              )
+            : ''
+        }
       </div>
     `;
   }

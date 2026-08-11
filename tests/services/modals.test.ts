@@ -98,9 +98,15 @@ describe('Modals (Integration)', () => {
       destroy: vi.fn(),
     };
 
-    vi.mocked(ModalFormManager).mockImplementation(() => mockFormManager);
-    vi.mocked(ModalValidationManager).mockImplementation(() => mockValidationManager);
-    vi.mocked(ModalUIManager).mockImplementation(() => mockUIManager);
+    vi.mocked(ModalFormManager).mockImplementation(function () {
+      return mockFormManager;
+    });
+    vi.mocked(ModalValidationManager).mockImplementation(function () {
+      return mockValidationManager;
+    });
+    vi.mocked(ModalUIManager).mockImplementation(function () {
+      return mockUIManager;
+    });
 
     modals = new Modals(mockShadowRoot, mockServices, mockGetInventoryId, mockOnDataChanged);
   });
@@ -175,6 +181,7 @@ describe('Modals (Integration)', () => {
     };
 
     const mockRawFormData: RawFormData = {
+      aliases: '',
       autoAddEnabled: false,
       autoAddIdToDescriptionEnabled: false,
       autoAddToListQuantity: '0',
@@ -201,6 +208,7 @@ describe('Modals (Integration)', () => {
       const mockValidation = { isValid: true, errors: [] };
       const mockItemData: ItemData = { name: 'Test Item', quantity: 5 };
       const mockSanitizedData: SanitizedItemData = {
+        aliases: '',
         autoAddEnabled: false,
         autoAddIdToDescriptionEnabled: false,
         autoAddToListQuantity: 0,
@@ -303,6 +311,7 @@ describe('Modals (Integration)', () => {
     };
 
     const mockRawFormData: RawFormData = {
+      aliases: '',
       autoAddEnabled: true,
       autoAddIdToDescriptionEnabled: false,
       autoAddToListQuantity: '2',
@@ -338,6 +347,7 @@ describe('Modals (Integration)', () => {
       const mockValidation = { isValid: true, errors: [] };
       const mockItemData: ItemData = { name: 'Updated Item', quantity: 10 };
       const mockSanitizedData: SanitizedItemData = {
+        aliases: '',
         autoAddEnabled: true,
         autoAddIdToDescriptionEnabled: false,
         autoAddToListQuantity: 2,

@@ -11,9 +11,12 @@ export const Utilities = {
    * Sanitizes HTML string to prevent XSS
    */
   sanitizeHtml(string_: string): string {
-    const div = document.createElement('div');
-    div.textContent = string_;
-    return div.innerHTML;
+    return string_
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   },
 
   /**

@@ -3,12 +3,19 @@ import { createItemRowTemplate } from '../../src/templates/itemRow';
 import { InventoryConfig, InventoryItem } from '../../src/types/homeAssistant';
 import { TodoList } from '../../src/types/todoList';
 import { TranslationData } from '@/types/translatableComponent';
+import { Utilities } from '../../src/utils/utilities';
 
 vi.mock('../../src/services/translationManager', () => ({
   TranslationManager: {
     localize: vi.fn((_translations: any, _key: string, _params: any, fallback: string) => {
       return fallback;
     }),
+  },
+}));
+
+vi.mock('../../src/utils/utilities', () => ({
+  Utilities: {
+    sanitizeHtml: vi.fn((str: string) => str),
   },
 }));
 
@@ -103,12 +110,10 @@ describe('createItemRowTemplate', () => {
       expect(result).toContain('5 pieces');
     });
 
-    it('should include all control buttons', () => {
+    it('should include control buttons', () => {
       const result = createItemRowTemplate(baseItem, mockTodoLists, mockTranslations);
 
-      expect(result).toContain('class="edit-btn"');
       expect(result).toContain('class="control-btn"');
-      expect(result).toContain('data-action="open_edit"');
       expect(result).toContain('data-action="decrement"');
       expect(result).toContain('data-action="increment"');
     });
@@ -333,13 +338,21 @@ describe('createItemRowTemplate', () => {
   });
 
   describe('control buttons', () => {
-    it('should include edit button with correct attributes', () => {
+    it('should include the item name as the edit trigger', () => {
       const result = createItemRowTemplate(baseItem, mockTodoLists, mockTranslations);
 
-      expect(result).toContain('class="edit-btn"');
+      expect(result).toContain('class="item-name"');
       expect(result).toContain('data-action="open_edit"');
       expect(result).toContain('data-name="Apple"');
-      expect(result).toContain('⚙️');
+      expect(result).toContain('role="button"');
+      expect(result).toContain('tabindex="0"');
+    });
+
+    it('should not include a separate gear edit button', () => {
+      const result = createItemRowTemplate(baseItem, mockTodoLists, mockTranslations);
+
+      expect(result).not.toContain('class="edit-btn"');
+      expect(result).not.toContain('⚙️');
     });
 
     it('should include enabled decrement button when quantity > 0', () => {
@@ -360,12 +373,12 @@ describe('createItemRowTemplate', () => {
       expect(result).toContain('➖');
     });
 
-    it('should include data-name attribute for all buttons', () => {
+    it('should include data-name attribute for name and both control buttons', () => {
       const result = createItemRowTemplate(baseItem, mockTodoLists, mockTranslations);
 
       // Count occurrences of data-name="Apple"
       const matches = result.match(/data-name="Apple"/g);
-      expect(matches).toHaveLength(3); // Edit, decrement, increment
+      expect(matches).toHaveLength(3); // item-name, decrement, increment
     });
   });
 
@@ -632,6 +645,75 @@ describe('createItemRowTemplate', () => {
       expect(result).not.toContain('class="location');
       expect(result).not.toContain('class="category"');
       expect(result).not.toContain('class="location-category"');
+    });
+  });
+
+  describe('XSS protection', () => {
+    it('sanitizes the item name', () => {
+      createItemRowTemplate(baseItem, mockTodoLists, mockTranslations);
+
+      expect(Utilities.sanitizeHtml).toHaveBeenCalledWith('Apple');
+    });
+
+    it('escapes a malicious item name so it cannot inject a tag or break out of the data-name attribute at any of the 4 interpolation sites (name span text, name span attribute, decrement button, increment button)', () => {
+      vi.mocked(Utilities.sanitizeHtml).mockImplementation((value: string) =>
+        value
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;'),
+      );
+      const maliciousItem: InventoryItem = { ...baseItem, name: '"><script>alert(1)</script>' };
+      const escaped = '&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;';
+
+      const result = createItemRowTemplate(maliciousItem, mockTodoLists, mockTranslations);
+
+      expect(result).not.toContain('"><script>alert(1)</script>');
+      expect(result).toContain(`data-name="${escaped}" role="button"`); // name span attribute
+      expect(result).toContain(`role="button" tabindex="0">${escaped}</span>`); // name span text
+      expect(result).toContain(`data-action="decrement" data-name="${escaped}"`); // decrement button
+      expect(result).toContain(`data-action="increment" data-name="${escaped}"`); // increment button
+    });
+
+    it('sanitizes the item description', () => {
+      createItemRowTemplate(baseItem, mockTodoLists, mockTranslations);
+
+      expect(Utilities.sanitizeHtml).toHaveBeenCalledWith('Fresh red apples');
+    });
+
+    it('sanitizes the item unit', () => {
+      createItemRowTemplate(baseItem, mockTodoLists, mockTranslations);
+
+      expect(Utilities.sanitizeHtml).toHaveBeenCalledWith('pieces');
+    });
+
+    it('sanitizes location and category text', () => {
+      baseItem.location = 'Fridge';
+      createItemRowTemplate(baseItem, mockTodoLists, mockTranslations);
+
+      expect(Utilities.sanitizeHtml).toHaveBeenCalledWith('Fridge');
+      expect(Utilities.sanitizeHtml).toHaveBeenCalledWith('Fruit');
+    });
+
+    it('escapes a malicious item description so it does not break out of its element', () => {
+      vi.mocked(Utilities.sanitizeHtml).mockImplementation((value: string) =>
+        value
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;'),
+      );
+      const maliciousItem: InventoryItem = {
+        ...baseItem,
+        description: 'foo" onmouseover="alert(1)',
+      };
+
+      const result = createItemRowTemplate(maliciousItem, mockTodoLists, mockTranslations);
+
+      expect(result).not.toContain('foo" onmouseover="alert(1)');
+      expect(result).toContain('foo&quot; onmouseover=&quot;alert(1)');
     });
   });
 });

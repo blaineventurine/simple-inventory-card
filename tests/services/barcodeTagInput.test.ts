@@ -4,7 +4,11 @@ import {
   initializeBarcodeTagInput,
   stopAllBarcodeScanners,
 } from '../../src/services/barcodeTagInput';
-import { isLiveScanAvailable, decodeFromFile } from '../../src/services/barcodeScanner';
+import {
+  isLiveScanAvailable,
+  decodeFromFile,
+  startScanner,
+} from '../../src/services/barcodeScanner';
 
 // quagga2 is globally mocked in tests/setup.ts
 
@@ -217,6 +221,90 @@ describe('barcodeTagInput', () => {
 
   it('should allow stopAllBarcodeScanners to be called without error when no scanner is active', () => {
     expect(() => stopAllBarcodeScanners()).not.toThrow();
+  });
+
+  describe('duplicate initialization safety (modal reopen)', () => {
+    it('registers the Enter keydown handler only once across repeated initializations, so dispatching Enter fires it exactly once', () => {
+      const root = createMockShadowRoot('add');
+      const visibleInput = (root as unknown as HTMLElement).querySelector(
+        '#add-barcode-input',
+      ) as HTMLInputElement;
+      const addEventListenerSpy = vi.spyOn(visibleInput, 'addEventListener');
+
+      initializeBarcodeTagInput(root, 'add');
+      initializeBarcodeTagInput(root, 'add'); // simulate modal reopen
+
+      const keydownRegistrations = addEventListenerSpy.mock.calls.filter(
+        (call) => call[0] === 'keydown',
+      );
+      expect(keydownRegistrations).toHaveLength(1);
+
+      // A single dispatch therefore invokes the surviving handler exactly once.
+      visibleInput.value = '12345';
+      visibleInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+
+      const hiddenInput = (root as unknown as HTMLElement).querySelector(
+        '#add-barcode',
+      ) as HTMLInputElement;
+      expect(hiddenInput.value).toBe('12345');
+    });
+
+    it('registers the scan button click handler only once across repeated initializations', () => {
+      const root = createMockShadowRoot('add');
+      const container = root as unknown as HTMLElement;
+      const scanBtn = document.createElement('button');
+      scanBtn.id = 'add-barcode-scan-btn';
+      container.appendChild(scanBtn);
+      const scannerContainer = document.createElement('div');
+      scannerContainer.id = 'add-barcode-scanner';
+      container.appendChild(scannerContainer);
+      const viewport = document.createElement('div');
+      viewport.id = 'add-barcode-viewport';
+      container.appendChild(viewport);
+      const closeBtn = document.createElement('button');
+      closeBtn.id = 'add-barcode-scanner-close';
+      container.appendChild(closeBtn);
+
+      const scanBtnSpy = vi.spyOn(scanBtn, 'addEventListener');
+      const closeBtnSpy = vi.spyOn(closeBtn, 'addEventListener');
+
+      initializeBarcodeTagInput(root, 'add');
+      initializeBarcodeTagInput(root, 'add'); // simulate modal reopen
+
+      expect(scanBtnSpy.mock.calls.filter((call) => call[0] === 'click')).toHaveLength(1);
+      expect(closeBtnSpy.mock.calls.filter((call) => call[0] === 'click')).toHaveLength(1);
+
+      scanBtn.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      expect(startScanner).toHaveBeenCalledTimes(1);
+    });
+
+    it('still renders freshly populated chips on a second call (e.g. editing a different item)', () => {
+      const root = createMockShadowRoot('edit', 'FIRST123');
+      initializeBarcodeTagInput(root, 'edit');
+
+      const hiddenInput = (root as unknown as HTMLElement).querySelector(
+        '#edit-barcode',
+      ) as HTMLInputElement;
+      const chips = (root as unknown as HTMLElement).querySelector('#edit-barcode-chips')!;
+
+      // Simulate populateEditModal writing a different item's barcodes before reopening.
+      hiddenInput.value = 'SECOND456';
+      initializeBarcodeTagInput(root, 'edit');
+
+      const chipElements = chips.querySelectorAll('.barcode-chip');
+      expect(chipElements).toHaveLength(1);
+      expect(chipElements[0].textContent).toContain('SECOND456');
+    });
+
+    it('marks the visible input as bound after the first call', () => {
+      const root = createMockShadowRoot('add');
+      initializeBarcodeTagInput(root, 'add');
+
+      const visibleInput = (root as unknown as HTMLElement).querySelector(
+        '#add-barcode-input',
+      ) as HTMLInputElement;
+      expect(visibleInput.hasAttribute('data-listeners-bound')).toBe(true);
+    });
   });
 });
 

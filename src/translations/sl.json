@@ -54,6 +54,8 @@
   "modal": {
     "add_item": "Dodaj predmet",
     "auto_add_id_to_description": "Dodaj ID zaloge v opis predmeta",
+    "aliases": "Vzdevki",
+    "aliases_input_placeholder": "Vnesite vzdevek in pritisnite Enter",
     "auto_add_settings": "Nastavitve samodejnega dodajanja",
     "auto_add_when_low": "Samodejno dodaj na seznam opravil ob nizki zalogi",
     "barcode": "Črtna koda",
@@ -94,7 +96,7 @@
     "close_scanner": "Zapri skener",
     "camera_permission_denied": "Dostop do kamere je zavrnjen",
     "camera_not_available": "Kamera ni na voljo",
-	"multiple_products_found": "Najdenih je več predmetov — izberite enega:",
+    "multiple_products_found": "Najdenih je več predmetov — izberite enega:",
     "provider_inventory": "Obstoječi predmet",
     "provider_openbeautyfacts": "Open Beauty Facts",
     "provider_openfoodfacts": "Open Food Facts",

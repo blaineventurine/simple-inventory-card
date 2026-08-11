@@ -16,6 +16,7 @@ export class ModalFormManager {
    */
   getRawAddModalData(): RawFormData {
     return {
+      aliases: this.getInputValue(`add-${ELEMENTS.ALIASES}`),
       autoAddEnabled: this.getInputChecked(`add-${ELEMENTS.AUTO_ADD_ENABLED}`),
       autoAddIdToDescriptionEnabled: this.getInputChecked(
         `add-${ELEMENTS.AUTO_ADD_ID_TO_DESCRIPTION_ENABLED}`,
@@ -42,6 +43,7 @@ export class ModalFormManager {
    */
   getRawEditModalData(): RawFormData {
     return {
+      aliases: this.getInputValue(`edit-${ELEMENTS.ALIASES}`),
       autoAddEnabled: this.getInputChecked(`edit-${ELEMENTS.AUTO_ADD_ENABLED}`),
       autoAddIdToDescriptionEnabled: this.getInputChecked(
         `edit-${ELEMENTS.AUTO_ADD_ID_TO_DESCRIPTION_ENABLED}`,
@@ -73,6 +75,10 @@ export class ModalFormManager {
         value: (item.auto_add_to_list_quantity ?? DEFAULTS.AUTO_ADD_TO_LIST_QUANTITY).toString(),
       },
 
+      {
+        id: `edit-${ELEMENTS.ALIASES}`,
+        value: item.aliases?.length ? item.aliases.join(', ') : DEFAULTS.ALIASES,
+      },
       {
         id: `edit-${ELEMENTS.BARCODE}`,
         value: item.barcodes?.length ? item.barcodes.join(', ') : DEFAULTS.BARCODE,
@@ -143,6 +149,7 @@ export class ModalFormManager {
         value: DEFAULTS.AUTO_ADD_TO_LIST_QUANTITY.toString(),
       },
 
+      { id: `add-${ELEMENTS.ALIASES}`, value: DEFAULTS.ALIASES },
       { id: `add-${ELEMENTS.BARCODE}`, value: DEFAULTS.BARCODE },
       { id: `add-${ELEMENTS.CATEGORY}`, value: DEFAULTS.CATEGORY },
       { id: `add-${ELEMENTS.DESCRIPTION}`, value: DEFAULTS.DESCRIPTION },

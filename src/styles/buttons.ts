@@ -81,21 +81,6 @@ export const buttonStyles: CSSResult = css`
     font-weight: bold;
   }
 
-  .edit-btn {
-    padding: 6px 8px;
-    font-size: 12px;
-    min-width: auto;
-    min-height: auto;
-    background: var(--secondary-color, #f0f0f0);
-    color: var(--primary-text-color);
-    border: 1px solid var(--divider-color);
-  }
-
-  .edit-btn:hover {
-    background: var(--primary-color);
-    color: var(--text-primary-color);
-  }
-
   .toggle-btn {
     padding: 12px 16px;
     background: var(--primary-color);
