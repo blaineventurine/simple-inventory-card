@@ -144,6 +144,7 @@ export interface LovelaceCardEditor extends HTMLElement {
 }
 
 export interface InventoryItem {
+  aliases?: string[];
   auto_add_enabled: boolean;
   auto_add_id_to_description_enabled: boolean;
   auto_add_to_list_quantity?: number;

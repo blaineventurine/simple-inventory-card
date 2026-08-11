@@ -674,6 +674,73 @@ export const formStyles: CSSResult = css`
     padding: 0 4px;
   }
 
+  .alias-tag-container {
+    border: 2px solid var(--divider-color);
+    border-radius: 8px;
+    padding: 8px;
+    background: var(--card-background-color);
+    transition: all 0.3s ease;
+  }
+
+  .alias-tag-container:focus-within {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(var(--rgb-primary-color), 0.1);
+  }
+
+  .alias-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .alias-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--primary-color);
+    color: var(--text-primary-color, white);
+    border-radius: 16px;
+    padding: 2px 8px;
+    font-size: 0.85em;
+    line-height: 1.4;
+    white-space: nowrap;
+  }
+
+  .alias-chip-remove {
+    cursor: pointer;
+    opacity: 0.8;
+    font-size: 1.1em;
+    line-height: 1;
+    padding: 0 2px;
+    transition: opacity 0.2s ease;
+  }
+
+  .alias-chip-remove:hover {
+    opacity: 1;
+  }
+
+  .alias-input-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 4px;
+  }
+
+  .alias-input-row input {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 8px !important;
+    font-size: 14px !important;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .alias-input-row input:focus {
+    border: none !important;
+    box-shadow: none !important;
+    transform: none !important;
+  }
+
   .product-picker {
     margin-top: 8px;
     background: var(--secondary-background-color, rgba(var(--rgb-primary-color), 0.05));

@@ -54,6 +54,8 @@
   "modal": {
     "add_item": "Aggiungi oggetto",
     "auto_add_id_to_description": "Aggiungi l’ID dell’inventario alla descrizione dell’articolo",
+    "aliases": "Alias",
+    "aliases_input_placeholder": "Digita un alias e premi Invio",
     "auto_add_settings": "Impostazioni auto-aggiunta",
     "auto_add_when_low": "Aggiungi alla lista attività quando la quantità è bassa",
     "cancel": "Annulla",

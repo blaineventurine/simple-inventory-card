@@ -13,6 +13,7 @@ import { itemLocation } from './modalPartials/itemLocation';
 import { itemUnit } from './modalPartials/itemUnit';
 import { modalHeader } from './modalPartials/modalHeader';
 import { autoAddControls } from './modalPartials/autoAddControls';
+import { itemAlias } from './modalPartials/itemAlias';
 import { itemBarcode } from './modalPartials/itemBarcode';
 import { itemDescription } from './modalPartials/itemDescription';
 import { autoAddIdCheckbox } from './modalPartials/autoAddIdCheckbox';
@@ -42,6 +43,7 @@ export function createUnifiedModal(
           ${itemName(prefix, translations)}
           ${itemDescription(prefix, translations)}
           ${itemBarcode(prefix, translations)}
+          ${itemAlias(prefix, translations)}
           ${productPicker(prefix, translations)}
           ${autoAddIdCheckbox(prefix, translations)}
 

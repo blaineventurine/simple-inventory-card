@@ -103,12 +103,10 @@ describe('createItemRowTemplate', () => {
       expect(result).toContain('5 pieces');
     });
 
-    it('should include all control buttons', () => {
+    it('should include control buttons', () => {
       const result = createItemRowTemplate(baseItem, mockTodoLists, mockTranslations);
 
-      expect(result).toContain('class="edit-btn"');
       expect(result).toContain('class="control-btn"');
-      expect(result).toContain('data-action="open_edit"');
       expect(result).toContain('data-action="decrement"');
       expect(result).toContain('data-action="increment"');
     });
@@ -333,13 +331,21 @@ describe('createItemRowTemplate', () => {
   });
 
   describe('control buttons', () => {
-    it('should include edit button with correct attributes', () => {
+    it('should include the item name as the edit trigger', () => {
       const result = createItemRowTemplate(baseItem, mockTodoLists, mockTranslations);
 
-      expect(result).toContain('class="edit-btn"');
+      expect(result).toContain('class="item-name"');
       expect(result).toContain('data-action="open_edit"');
       expect(result).toContain('data-name="Apple"');
-      expect(result).toContain('⚙️');
+      expect(result).toContain('role="button"');
+      expect(result).toContain('tabindex="0"');
+    });
+
+    it('should not include a separate gear edit button', () => {
+      const result = createItemRowTemplate(baseItem, mockTodoLists, mockTranslations);
+
+      expect(result).not.toContain('class="edit-btn"');
+      expect(result).not.toContain('⚙️');
     });
 
     it('should include enabled decrement button when quantity > 0', () => {
@@ -360,12 +366,12 @@ describe('createItemRowTemplate', () => {
       expect(result).toContain('➖');
     });
 
-    it('should include data-name attribute for all buttons', () => {
+    it('should include data-name attribute for name and both control buttons', () => {
       const result = createItemRowTemplate(baseItem, mockTodoLists, mockTranslations);
 
       // Count occurrences of data-name="Apple"
       const matches = result.match(/data-name="Apple"/g);
-      expect(matches).toHaveLength(3); // Edit, decrement, increment
+      expect(matches).toHaveLength(3); // item-name, decrement, increment
     });
   });
 

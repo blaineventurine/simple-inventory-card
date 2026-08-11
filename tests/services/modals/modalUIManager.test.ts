@@ -6,9 +6,13 @@ import { ELEMENTS, CSS_CLASSES, TIMING } from '../../../src/utils/constants';
 import { HomeAssistant, InventoryItem, InventoryConfig } from '../../../src/types/homeAssistant';
 import { createMockHomeAssistant, createMockHassEntity } from '../../testHelpers';
 import { TranslationData } from '@/types/translatableComponent';
+import { initializeAliasTagInput } from '../../../src/services/aliasTagInput';
 
 vi.mock('../../../src/services/modals/modalFormManager');
 vi.mock('../../../src/services/modals/modalValidationManager');
+vi.mock('../../../src/services/aliasTagInput', () => ({
+  initializeAliasTagInput: vi.fn(),
+}));
 
 describe('ModalUIManager', () => {
   let modalUIManager: ModalUIManager;
@@ -163,6 +167,7 @@ describe('ModalUIManager', () => {
       expect(mockValidationManager.clearError).toHaveBeenCalledWith(true);
       expect(mockModal.classList.add).toHaveBeenCalledWith(CSS_CLASSES.SHOW);
       expect(mockValidationManager.setupValidationListeners).toHaveBeenCalled();
+      expect(initializeAliasTagInput).toHaveBeenCalledWith(mockShadowRoot, 'add');
 
       // Test focus with delay
       vi.advanceTimersByTime(TIMING.MODAL_FOCUS_DELAY);
@@ -230,6 +235,7 @@ describe('ModalUIManager', () => {
       expect(mockValidationManager.clearError).toHaveBeenCalledWith(false);
       expect(mockModal.classList.add).toHaveBeenCalledWith(CSS_CLASSES.SHOW);
       expect(mockValidationManager.setupValidationListeners).toHaveBeenCalled();
+      expect(initializeAliasTagInput).toHaveBeenCalledWith(mockShadowRoot, 'edit');
 
       // Test focus with delay and select all
       vi.advanceTimersByTime(TIMING.MODAL_FOCUS_DELAY);

@@ -101,7 +101,7 @@ export function createItemRowTemplate(
   return `
     <div class="item-row ${item.quantity === 0 ? 'zero-quantity' : ''} ${item.auto_add_enabled ? 'auto-add-enabled' : ''}">
       <div class="item-header">
-        <span class="item-name">${item.name}</span>
+        <span class="item-name" data-action="open_edit" data-name="${item.name}" role="button" tabindex="0">${item.name}</span>
         ${renderLocationAndCategory()}
       </div>
       ${
@@ -119,7 +119,6 @@ export function createItemRowTemplate(
             ${config?.show_expiry !== false && expiryInfo ? `<span class="expiry ${expiryInfo.class}">${expiryInfo.label}</span>` : ''}
           </div>
           <div class="item-controls">
-            <button class="edit-btn" data-action="open_edit" data-name="${item.name}">⚙️</button>
             <button class="control-btn" data-action="decrement" data-name="${item.name}" ${item.quantity === 0 ? 'disabled' : ''}>➖</button>
             <button class="control-btn" data-action="increment" data-name="${item.name}">➕</button>
           </div>

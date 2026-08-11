@@ -3,7 +3,6 @@
     "allowImportingTsExtensions": true,
     "allowSyntheticDefaultImports": true,
     "alwaysStrict": true,
-    "baseUrl": ".",
     "declaration": true,
     "declarationMap": true,
     "esModuleInterop": true,
@@ -34,6 +33,9 @@
     "skipLibCheck": true,
     "strict": true,
     "target": "ES2022",
+    "types": [
+      "node"
+    ],
     "useDefineForClassFields": true
   },
   "include": [

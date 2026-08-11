@@ -138,6 +138,11 @@ export class Filters {
       return true;
     }
 
+    const aliasTexts = Array.isArray(item.aliases) ? item.aliases : [];
+    if (aliasTexts.some((a) => a.toLowerCase().includes(search))) {
+      return true;
+    }
+
     const categoryTexts =
       Array.isArray(item.categories) && item.categories.length > 0
         ? item.categories

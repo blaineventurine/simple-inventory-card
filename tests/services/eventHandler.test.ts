@@ -158,6 +158,7 @@ describe('EventHandler', () => {
     it('should initialize with default state', () => {
       expect(eventHandler['boundClickHandler']).toBe(undefined);
       expect(eventHandler['boundChangeHandler']).toBe(undefined);
+      expect(eventHandler['boundKeydownHandler']).toBe(undefined);
       expect(eventHandler['eventListenersSetup']).toBe(false);
     });
   });
@@ -168,6 +169,7 @@ describe('EventHandler', () => {
 
       expect(mockRenderRoot.addEventListener).toHaveBeenCalledWith('click', expect.any(Function));
       expect(mockRenderRoot.addEventListener).toHaveBeenCalledWith('change', expect.any(Function));
+      expect(mockRenderRoot.addEventListener).toHaveBeenCalledWith('keydown', expect.any(Function));
       expect(mockFilters.setupSearchInput).toHaveBeenCalledWith(
         mockConfig.entity,
         expect.any(Function),
@@ -187,12 +189,29 @@ describe('EventHandler', () => {
   });
 
   describe('cleanupEventListeners', () => {
-    it('should remove event listeners when bound handlers exist', () => {
+    it('should remove the exact click, change, and keydown listeners that were added', () => {
       eventHandler.setupEventListeners();
 
-      // Just verify cleanup doesn't throw errors
-      expect(() => eventHandler.cleanupEventListeners()).not.toThrow();
+      const addCalls = vi.mocked(mockRenderRoot.addEventListener).mock.calls;
+      const clickHandler = addCalls.find((call) => call[0] === 'click')?.[1];
+      const changeHandler = addCalls.find((call) => call[0] === 'change')?.[1];
+      const keydownHandler = addCalls.find((call) => call[0] === 'keydown')?.[1];
+
+      eventHandler.cleanupEventListeners();
+
+      expect(mockRenderRoot.removeEventListener).toHaveBeenCalledWith('click', clickHandler);
+      expect(mockRenderRoot.removeEventListener).toHaveBeenCalledWith('change', changeHandler);
+      expect(mockRenderRoot.removeEventListener).toHaveBeenCalledWith('keydown', keydownHandler);
       expect(eventHandler['eventListenersSetup']).toBe(false);
+    });
+
+    it('should reset bound handler references to undefined after cleanup', () => {
+      eventHandler.setupEventListeners();
+      eventHandler.cleanupEventListeners();
+
+      expect(eventHandler['boundClickHandler']).toBe(undefined);
+      expect(eventHandler['boundChangeHandler']).toBe(undefined);
+      expect(eventHandler['boundKeydownHandler']).toBe(undefined);
     });
 
     it('should handle cleanup when no bound handlers exist', () => {
@@ -486,6 +505,141 @@ describe('EventHandler', () => {
         expect(mockModals.closeEditModal).toHaveBeenCalled();
         expect(mockEvent.preventDefault).toHaveBeenCalled();
       });
+    });
+  });
+
+  describe('handleKeydown', () => {
+    let mockTarget: HTMLElement;
+    let mockEvent: KeyboardEvent;
+
+    beforeEach(() => {
+      eventHandler.setupEventListeners();
+    });
+
+    it('should trigger the item action on Enter for a role="button" element', async () => {
+      mockTarget = {
+        getAttribute: vi.fn().mockReturnValue('button'),
+        hasAttribute: vi.fn().mockReturnValue(false),
+        setAttribute: vi.fn(),
+        removeAttribute: vi.fn(),
+        style: {},
+        dataset: {
+          action: ACTIONS.OPEN_EDIT_MODAL,
+          name: 'Test Item',
+        },
+      } as unknown as HTMLElement;
+
+      mockEvent = {
+        key: 'Enter',
+        target: mockTarget,
+        preventDefault: vi.fn(),
+      } as unknown as KeyboardEvent;
+
+      const handleItemActionSpy = vi.spyOn(eventHandler as any, 'handleItemAction');
+
+      await eventHandler['handleKeydown'](mockEvent);
+
+      expect(mockEvent.preventDefault).toHaveBeenCalled();
+      expect(handleItemActionSpy).toHaveBeenCalledWith(
+        mockTarget,
+        ACTIONS.OPEN_EDIT_MODAL,
+        'Test Item',
+      );
+    });
+
+    it('should trigger the item action on Space for a role="button" element', async () => {
+      mockTarget = {
+        getAttribute: vi.fn().mockReturnValue('button'),
+        hasAttribute: vi.fn().mockReturnValue(false),
+        setAttribute: vi.fn(),
+        removeAttribute: vi.fn(),
+        style: {},
+        dataset: {
+          action: ACTIONS.OPEN_EDIT_MODAL,
+          name: 'Test Item',
+        },
+      } as unknown as HTMLElement;
+
+      mockEvent = {
+        key: ' ',
+        target: mockTarget,
+        preventDefault: vi.fn(),
+      } as unknown as KeyboardEvent;
+
+      const handleItemActionSpy = vi.spyOn(eventHandler as any, 'handleItemAction');
+
+      await eventHandler['handleKeydown'](mockEvent);
+
+      expect(mockEvent.preventDefault).toHaveBeenCalled();
+      expect(handleItemActionSpy).toHaveBeenCalledWith(
+        mockTarget,
+        ACTIONS.OPEN_EDIT_MODAL,
+        'Test Item',
+      );
+    });
+
+    it('should ignore keys other than Enter and Space', async () => {
+      mockTarget = {
+        getAttribute: vi.fn().mockReturnValue('button'),
+        dataset: {
+          action: ACTIONS.OPEN_EDIT_MODAL,
+          name: 'Test Item',
+        },
+      } as unknown as HTMLElement;
+
+      mockEvent = {
+        key: 'Tab',
+        target: mockTarget,
+        preventDefault: vi.fn(),
+      } as unknown as KeyboardEvent;
+
+      const handleItemActionSpy = vi.spyOn(eventHandler as any, 'handleItemAction');
+
+      await eventHandler['handleKeydown'](mockEvent);
+
+      expect(handleItemActionSpy).not.toHaveBeenCalled();
+      expect(mockEvent.preventDefault).not.toHaveBeenCalled();
+    });
+
+    it('should ignore Enter on elements without role="button" (avoids double-firing on real buttons)', async () => {
+      mockTarget = {
+        getAttribute: vi.fn().mockReturnValue(null),
+        dataset: {
+          action: ACTIONS.OPEN_EDIT_MODAL,
+          name: 'Test Item',
+        },
+      } as unknown as HTMLElement;
+
+      mockEvent = {
+        key: 'Enter',
+        target: mockTarget,
+        preventDefault: vi.fn(),
+      } as unknown as KeyboardEvent;
+
+      const handleItemActionSpy = vi.spyOn(eventHandler as any, 'handleItemAction');
+
+      await eventHandler['handleKeydown'](mockEvent);
+
+      expect(handleItemActionSpy).not.toHaveBeenCalled();
+    });
+
+    it('should ignore Enter when data-action or data-name is missing', async () => {
+      mockTarget = {
+        getAttribute: vi.fn().mockReturnValue('button'),
+        dataset: {},
+      } as unknown as HTMLElement;
+
+      mockEvent = {
+        key: 'Enter',
+        target: mockTarget,
+        preventDefault: vi.fn(),
+      } as unknown as KeyboardEvent;
+
+      const handleItemActionSpy = vi.spyOn(eventHandler as any, 'handleItemAction');
+
+      await eventHandler['handleKeydown'](mockEvent);
+
+      expect(handleItemActionSpy).not.toHaveBeenCalled();
     });
   });
 

@@ -339,6 +339,32 @@ describe('Filters', () => {
         expect(result[0].unit).toBe('liters');
       });
 
+      it('should filter by search text - alias match', () => {
+        const items: InventoryItem[] = [
+          createMockItem({ name: 'Oatmeal', aliases: ['oats', 'hot cereal'] }),
+          createMockItem({ name: 'Rice', aliases: [] }),
+        ];
+
+        const result = filters.filterItems(items, {
+          ...testFilters,
+          searchText: 'oats',
+        });
+
+        expect(result).toHaveLength(1);
+        expect(result[0].name).toBe('Oatmeal');
+      });
+
+      it('should not error when an item has no aliases field at all', () => {
+        const items: InventoryItem[] = [createMockItem({ name: 'Rice' })];
+
+        const result = filters.filterItems(items, {
+          ...testFilters,
+          searchText: 'rice',
+        });
+
+        expect(result).toHaveLength(1);
+      });
+
       it('should handle case sensitivity in search', () => {
         const items: InventoryItem[] = [
           createMockItem({ name: 'UPPERCASE' }),

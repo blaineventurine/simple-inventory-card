@@ -54,6 +54,8 @@
   "modal": {
     "add_item": "Add Item",
     "auto_add_id_to_description": "Append inventory ID to item description",
+    "aliases": "Aliases",
+    "aliases_input_placeholder": "Type an alias and press Enter",
     "auto_add_settings": "Auto-add Settings",
     "auto_add_when_low": "Auto-add to todo list when low",
     "barcode": "Barcode",

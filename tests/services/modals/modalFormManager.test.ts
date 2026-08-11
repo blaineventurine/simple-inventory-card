@@ -27,6 +27,7 @@ describe('ModalFormManager', () => {
     }) as HTMLInputElement;
 
   const setupAddModalElements = (values: Partial<Record<string, string | boolean>> = {}) => {
+    mockElements.set(`add-${ELEMENTS.ALIASES}`, createMockInput((values.aliases as string) || ''));
     mockElements.set(`add-${ELEMENTS.NAME}`, createMockInput((values.name as string) || ''));
     mockElements.set(
       `add-${ELEMENTS.QUANTITY}`,
@@ -72,6 +73,7 @@ describe('ModalFormManager', () => {
   };
 
   const setupEditModalElements = (values: Partial<Record<string, string | boolean>> = {}) => {
+    mockElements.set(`edit-${ELEMENTS.ALIASES}`, createMockInput((values.aliases as string) || ''));
     mockElements.set(`edit-${ELEMENTS.NAME}`, createMockInput((values.name as string) || ''));
     mockElements.set(
       `edit-${ELEMENTS.QUANTITY}`,
@@ -146,6 +148,7 @@ describe('ModalFormManager', () => {
       const result = modalFormManager.getRawAddModalData();
 
       const expected: RawFormData = {
+        aliases: '',
         autoAddEnabled: true,
         autoAddIdToDescriptionEnabled: true,
         autoAddToListQuantity: '2',
@@ -173,6 +176,7 @@ describe('ModalFormManager', () => {
       const result = modalFormManager.getRawAddModalData();
 
       const expected: RawFormData = {
+        aliases: '',
         autoAddEnabled: false,
         autoAddIdToDescriptionEnabled: false,
         autoAddToListQuantity: '',
@@ -192,6 +196,14 @@ describe('ModalFormManager', () => {
       };
 
       expect(result).toEqual(expected);
+    });
+
+    it('should read the aliases hidden input', () => {
+      mockElements.set(`add-${ELEMENTS.ALIASES}`, createMockInput('oats, hot cereal'));
+
+      const result = modalFormManager.getRawAddModalData();
+
+      expect(result.aliases).toBe('oats, hot cereal');
     });
 
     it('should trim whitespace from input values', () => {
@@ -243,6 +255,7 @@ describe('ModalFormManager', () => {
       const result = modalFormManager.getRawEditModalData();
 
       const expected: RawFormData = {
+        aliases: '',
         autoAddEnabled: false,
         autoAddIdToDescriptionEnabled: false,
         autoAddToListQuantity: '1',
@@ -268,6 +281,7 @@ describe('ModalFormManager', () => {
       const result = modalFormManager.getRawEditModalData();
 
       const expected: RawFormData = {
+        aliases: '',
         autoAddEnabled: false,
         autoAddIdToDescriptionEnabled: false,
         autoAddToListQuantity: '',
@@ -288,6 +302,14 @@ describe('ModalFormManager', () => {
 
       expect(result).toEqual(expected);
     });
+
+    it('should read the aliases hidden input', () => {
+      mockElements.set(`edit-${ELEMENTS.ALIASES}`, createMockInput('oats, hot cereal'));
+
+      const result = modalFormManager.getRawEditModalData();
+
+      expect(result.aliases).toBe('oats, hot cereal');
+    });
   });
 
   describe('populateEditModal', () => {
@@ -297,6 +319,7 @@ describe('ModalFormManager', () => {
 
     it('should populate all fields with item data', () => {
       const item: InventoryItem = {
+        aliases: ['oats', 'hot cereal'],
         auto_add_enabled: true,
         auto_add_id_to_description_enabled: true,
         auto_add_to_list_quantity: 2,
@@ -313,6 +336,7 @@ describe('ModalFormManager', () => {
 
       modalFormManager.populateEditModal(item);
 
+      expect(mockElements.get(`edit-${ELEMENTS.ALIASES}`)?.value).toBe('oats, hot cereal');
       expect(mockElements.get(`edit-${ELEMENTS.AUTO_ADD_TO_LIST_QUANTITY}`)?.value).toBe('2');
       expect(mockElements.get(`edit-${ELEMENTS.CATEGORY}`)?.value).toBe('Food');
       expect(mockElements.get(`edit-${ELEMENTS.DESCRIPTION}`)?.value).toBe('Test description');
@@ -529,6 +553,7 @@ describe('ModalFormManager', () => {
     it('should clear all form fields to default values', () => {
       modalFormManager.clearAddModalForm();
 
+      expect(mockElements.get(`add-${ELEMENTS.ALIASES}`)?.value).toBe('');
       expect(mockElements.get(`add-${ELEMENTS.AUTO_ADD_TO_LIST_QUANTITY}`)?.value).toBe('0');
       expect(mockElements.get(`add-${ELEMENTS.CATEGORY}`)?.value).toBe('');
       expect(mockElements.get(`add-${ELEMENTS.DESCRIPTION}`)?.value).toBe('');

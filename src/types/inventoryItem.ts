@@ -1,4 +1,5 @@
 export interface SanitizedItemData {
+  aliases: string;
   autoAddEnabled: boolean;
   autoAddIdToDescriptionEnabled: boolean;
   autoAddToListQuantity: number;
@@ -18,6 +19,7 @@ export interface SanitizedItemData {
 }
 
 export interface ItemData {
+  aliases?: string;
   autoAddEnabled?: boolean;
   autoAddIdToDescriptionEnabled?: boolean;
   autoAddToListQuantity?: number;
@@ -38,6 +40,7 @@ export interface ItemData {
 }
 
 export interface RawFormData {
+  aliases: string;
   autoAddEnabled: boolean;
   autoAddIdToDescriptionEnabled: boolean;
   autoAddToListQuantity: string;

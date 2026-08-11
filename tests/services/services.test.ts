@@ -86,6 +86,18 @@ describe('Services', () => {
       });
     });
 
+    it('should include aliases in service data when provided', async () => {
+      const itemDataWithAliases: ItemData = { ...itemData, aliases: 'oats, hot cereal' };
+
+      await services.addItem(inventoryId, itemDataWithAliases);
+
+      expect(mockHass.callService).toHaveBeenCalledWith(
+        DOMAIN,
+        SERVICES.ADD_ITEM,
+        expect.objectContaining({ [PARAMS.ALIASES]: 'oats, hot cereal' }),
+      );
+    });
+
     it('should use default values for undefined properties', async () => {
       const minimalItemData: ItemData = {
         autoAddEnabled: undefined as any,
@@ -378,7 +390,20 @@ describe('Services', () => {
         [PARAMS.TODO_QUANTITY_PLACEMENT]: DEFAULTS.TODO_QUANTITY_PLACEMENT,
         [PARAMS.UNIT]: itemData.unit,
         [PARAMS.BARCODE]: DEFAULTS.BARCODE,
+        [PARAMS.ALIASES]: DEFAULTS.ALIASES,
       });
+    });
+
+    it('should pass through a non-empty aliases value', async () => {
+      const itemDataWithAliases: ItemData = { ...itemData, aliases: 'oats, hot cereal' };
+
+      await services.updateItem(inventoryId, oldName, itemDataWithAliases);
+
+      expect(mockHass.callService).toHaveBeenCalledWith(
+        DOMAIN,
+        SERVICES.UPDATE_ITEM,
+        expect.objectContaining({ [PARAMS.ALIASES]: 'oats, hot cereal' }),
+      );
     });
 
     it('should use default values for undefined properties', async () => {
@@ -419,6 +444,7 @@ describe('Services', () => {
         [PARAMS.TODO_QUANTITY_PLACEMENT]: DEFAULTS.TODO_QUANTITY_PLACEMENT,
         [PARAMS.UNIT]: DEFAULTS.UNIT,
         [PARAMS.BARCODE]: DEFAULTS.BARCODE,
+        [PARAMS.ALIASES]: DEFAULTS.ALIASES,
       });
     });
 
@@ -460,6 +486,7 @@ describe('Services', () => {
         [PARAMS.TODO_QUANTITY_PLACEMENT]: DEFAULTS.TODO_QUANTITY_PLACEMENT,
         [PARAMS.UNIT]: DEFAULTS.UNIT, // empty string should use default
         [PARAMS.BARCODE]: DEFAULTS.BARCODE,
+        [PARAMS.ALIASES]: DEFAULTS.ALIASES,
       });
     });
 

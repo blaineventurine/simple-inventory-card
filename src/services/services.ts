@@ -72,6 +72,10 @@ export class Services {
         serviceData[PARAMS.BARCODE] = sanitizedItemData.barcode;
       }
 
+      if (sanitizedItemData.aliases) {
+        serviceData[PARAMS.ALIASES] = sanitizedItemData.aliases;
+      }
+
       await this.hass.callService(DOMAIN, SERVICES.ADD_ITEM, serviceData);
       return { success: true };
     } catch (error) {
@@ -198,6 +202,7 @@ export class Services {
       };
 
       parameters[PARAMS.BARCODE] = sanitizedItemData.barcode;
+      parameters[PARAMS.ALIASES] = sanitizedItemData.aliases;
 
       await this.hass.callService(DOMAIN, SERVICES.UPDATE_ITEM, parameters);
       return { success: true };

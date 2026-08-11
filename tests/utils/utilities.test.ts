@@ -8,6 +8,7 @@ import { RawFormData, ItemData } from '../../src/types/inventoryItem';
 import { createMockHassEntity, createMockHomeAssistant } from '../testHelpers';
 
 const createValidFormData = (overrides: Partial<RawFormData> = {}): RawFormData => ({
+  aliases: '',
   autoAddEnabled: false,
   autoAddIdToDescriptionEnabled: false,
   autoAddToListQuantity: '',
@@ -440,6 +441,7 @@ describe('Utilities', () => {
     describe('convertRawFormDataToItemData', () => {
       it('should convert valid form data correctly', () => {
         const formData: RawFormData = {
+          aliases: '  oats, hot cereal  ',
           autoAddEnabled: true,
           autoAddIdToDescriptionEnabled: true,
           autoAddToListQuantity: '2',
@@ -461,6 +463,7 @@ describe('Utilities', () => {
         const result = FormUtils.convertRawFormDataToItemData(formData);
 
         expect(result).toEqual({
+          aliases: 'oats, hot cereal',
           autoAddEnabled: true,
           autoAddIdToDescriptionEnabled: true,
           autoAddToListQuantity: 2,
@@ -507,6 +510,7 @@ describe('Utilities', () => {
 
       it('should handle undefined/null values gracefully', () => {
         const formData: RawFormData = {
+          aliases: undefined as any,
           autoAddEnabled: false,
           autoAddIdToDescriptionEnabled: false,
           autoAddToListQuantity: null as any,
@@ -528,6 +532,7 @@ describe('Utilities', () => {
         const result = FormUtils.convertRawFormDataToItemData(formData);
 
         expect(result).toEqual({
+          aliases: '',
           autoAddEnabled: false,
           autoAddIdToDescriptionEnabled: false,
           autoAddToListQuantity: 0,
@@ -686,6 +691,7 @@ describe('Utilities', () => {
     describe('sanitizeItemData', () => {
       it('should sanitize and enforce limits', () => {
         const itemData: ItemData = {
+          aliases: `  ${'a'.repeat(310)}  `,
           autoAddEnabled: 'true' as any,
           autoAddToListQuantity: 1_000_000,
           category:
@@ -709,6 +715,13 @@ describe('Utilities', () => {
         expect(result.category).toHaveLength(50);
         expect(result.unit).toHaveLength(20);
         expect(result.expiryAlertDays).toBe(0);
+        expect(result.aliases).toHaveLength(300);
+      });
+
+      it('should default aliases to empty string when absent', () => {
+        const itemData: ItemData = { name: 'Test Item' };
+        const result = FormUtils.sanitizeItemData(itemData);
+        expect(result.aliases).toBe('');
       });
     });
   });

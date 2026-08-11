@@ -183,7 +183,7 @@ describe('decodeFromFile', () => {
     // Mock Image so resizeToDataUrl resolves without a real browser
     vi.stubGlobal(
       'Image',
-      vi.fn().mockImplementation(() => {
+      vi.fn().mockImplementation(function () {
         const imgMock: any = {
           naturalWidth: 100,
           naturalHeight: 100,
@@ -307,7 +307,9 @@ describe('decodeFromFile', () => {
       mockDetect = vi.fn();
       vi.stubGlobal(
         'BarcodeDetector',
-        vi.fn().mockImplementation(() => ({ detect: mockDetect })),
+        vi.fn().mockImplementation(function () {
+          return { detect: mockDetect };
+        }),
       );
     });
 
