@@ -524,8 +524,8 @@ describe('createSearchAndFilters', () => {
 
       const result = createSearchAndFilters(_filters, categories, locations, mockTranslations);
 
-      expect(result).toContain('<input type="checkbox" value="Food & Drinks" checked>');
-      expect(result).toContain('<input type="checkbox" value="Health & Beauty" >');
+      expect(result).toContain('<input type="checkbox" value="Food &amp; Drinks" checked>');
+      expect(result).toContain('<input type="checkbox" value="Health &amp; Beauty" >');
     });
 
     it('should handle search text with quotes', () => {

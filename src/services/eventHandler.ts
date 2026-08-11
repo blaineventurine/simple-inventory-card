@@ -198,7 +198,20 @@ export class EventHandler {
         case ELEMENTS.ADD_ITEM_BTN: {
           event.preventDefault();
           event.stopPropagation();
-          await this.handleAddItem();
+          button.setAttribute('data-processing', 'true');
+          button.setAttribute('disabled', 'true');
+          button.style.opacity = '0.6';
+          button.style.pointerEvents = 'none';
+          try {
+            await this.handleAddItem();
+          } finally {
+            setTimeout(() => {
+              button.removeAttribute('data-processing');
+              button.removeAttribute('disabled');
+              button.style.opacity = '1';
+              button.style.pointerEvents = 'auto';
+            }, 200);
+          }
           break;
         }
         case ELEMENTS.ADVANCED_SEARCH_TOGGLE: {
@@ -299,7 +312,20 @@ export class EventHandler {
         event.preventDefault();
         event.stopPropagation();
         if (target.closest(`#${ELEMENTS.EDIT_MODAL}`)) {
-          await this.handleSaveEdits();
+          target.setAttribute('data-processing', 'true');
+          target.setAttribute('disabled', 'true');
+          target.style.opacity = '0.6';
+          target.style.pointerEvents = 'none';
+          try {
+            await this.handleSaveEdits();
+          } finally {
+            setTimeout(() => {
+              target.removeAttribute('data-processing');
+              target.removeAttribute('disabled');
+              target.style.opacity = '1';
+              target.style.pointerEvents = 'auto';
+            }, 200);
+          }
         }
         return;
       }

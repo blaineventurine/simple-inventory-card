@@ -79,24 +79,30 @@ export function initializeBarcodeTagInput(
     return;
   }
 
-  // Render initial chips from hidden input value (populated by populateEditModal)
   const initial = getBarcodes(hiddenInput);
   renderChips(chipsContainer, initial, hiddenInput);
 
-  visibleInput.addEventListener('keydown', (e: KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      const value = visibleInput.value.trim();
-      if (!value) return;
+  // The add/edit modal DOM is persistent and reopened without being
+  // recreated, so guard against re-registering listeners on repeat opens.
+  // Each independently-gated listener group below carries its own marker,
+  // since the scanner elements may be absent even when the text input isn't.
+  if (!visibleInput.hasAttribute('data-listeners-bound')) {
+    visibleInput.addEventListener('keydown', (e: KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const value = visibleInput.value.trim();
+        if (!value) return;
 
-      if (addBarcodeChip(value, hiddenInput, chipsContainer, onBarcodeAdded)) {
-        visibleInput.value = '';
-      } else {
-        // Duplicate
-        visibleInput.value = '';
+        if (addBarcodeChip(value, hiddenInput, chipsContainer, onBarcodeAdded)) {
+          visibleInput.value = '';
+        } else {
+          // Duplicate
+          visibleInput.value = '';
+        }
       }
-    }
-  });
+    });
+    visibleInput.setAttribute('data-listeners-bound', 'true');
+  }
 
   // Camera scanner wiring
   const scanBtn = shadowRoot.getElementById(
@@ -113,6 +119,10 @@ export function initializeBarcodeTagInput(
   ) as HTMLButtonElement | null;
 
   if (!scanBtn || !scannerContainer || !viewport || !closeBtn) {
+    return;
+  }
+
+  if (scanBtn.hasAttribute('data-listeners-bound')) {
     return;
   }
 
@@ -190,6 +200,8 @@ export function initializeBarcodeTagInput(
   closeBtn.addEventListener('click', () => {
     hideScanner();
   });
+
+  scanBtn.setAttribute('data-listeners-bound', 'true');
 }
 
 export function stopAllBarcodeScanners(): void {

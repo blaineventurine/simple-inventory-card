@@ -97,6 +97,13 @@ export function initializeModalMultiSelect(config: ModalMultiSelectInitConfig): 
   rebuildOptions();
   renderChips();
 
+  // The add/edit modal DOM is persistent and reopened without being
+  // recreated, so guard against re-registering listeners on repeat opens.
+  if (hiddenInput.hasAttribute('data-listeners-bound')) {
+    return;
+  }
+  hiddenInput.setAttribute('data-listeners-bound', 'true');
+
   // Handle chip removal
   if (chipsContainer) {
     chipsContainer.addEventListener('click', (e) => {

@@ -117,8 +117,16 @@ export class ModalValidationManager {
   private setupClearErrorsForModal(isAddModal: boolean): void {
     const prefix = isAddModal ? 'add' : 'edit';
 
+    const quantityField = this.getElement<HTMLInputElement>(`${prefix}-${ELEMENTS.QUANTITY}`);
+
+    // The add/edit modal DOM is persistent and reopened without being
+    // recreated, so guard against re-registering listeners on repeat opens.
+    if (quantityField?.hasAttribute('data-listeners-bound')) {
+      return;
+    }
+
     const fields = [
-      this.getElement<HTMLInputElement>(`${prefix}-${ELEMENTS.QUANTITY}`),
+      quantityField,
       this.getElement<HTMLInputElement>(`${prefix}-${ELEMENTS.AUTO_ADD_TO_LIST_QUANTITY}`),
       this.getElement<HTMLSelectElement>(`${prefix}-${ELEMENTS.TODO_LIST}`),
       this.getElement<HTMLInputElement>(`${prefix}-${ELEMENTS.NAME}`),
@@ -155,6 +163,10 @@ export class ModalValidationManager {
           this.clearError(isAddModal);
         }
       });
+    }
+
+    if (quantityField) {
+      quantityField.setAttribute('data-listeners-bound', 'true');
     }
   }
 

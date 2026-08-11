@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 
 import { initializeModalMultiSelect } from '../../src/services/modalMultiSelect';
 
@@ -521,6 +521,66 @@ describe('modalMultiSelect', () => {
       optionsContainer.dispatchEvent(new MouseEvent('click', { bubbles: true }));
 
       expect(dropdown.style.display).toBe('block');
+    });
+  });
+
+  describe('duplicate initialization safety (modal reopen)', () => {
+    it('registers each listener only once across repeated initializations, so a trigger click toggles the dropdown exactly once', () => {
+      const { root, container } = createShadowRoot('ms');
+      const trigger = container.querySelector('#ms-trigger') as HTMLElement;
+      const dropdown = container.querySelector('#ms-dropdown') as HTMLElement;
+      const optionsContainer = container.querySelector('#ms-options') as HTMLElement;
+      const addBtn = container.querySelector('#ms-add-btn') as HTMLElement;
+      const newInput = container.querySelector('#ms-new-input') as HTMLInputElement;
+      const chipsContainer = container.querySelector('#ms-chips') as HTMLElement;
+
+      const triggerSpy = vi.spyOn(trigger, 'addEventListener');
+      const optionsSpy = vi.spyOn(optionsContainer, 'addEventListener');
+      const dropdownSpy = vi.spyOn(dropdown, 'addEventListener');
+      const addBtnSpy = vi.spyOn(addBtn, 'addEventListener');
+      const newInputSpy = vi.spyOn(newInput, 'addEventListener');
+      const chipsSpy = vi.spyOn(chipsContainer, 'addEventListener');
+      const rootSpy = vi.spyOn(container, 'addEventListener');
+
+      initializeModalMultiSelect({ id: 'ms', options: ['Alpha'], shadowRoot: root });
+      initializeModalMultiSelect({ id: 'ms', options: ['Alpha'], shadowRoot: root }); // simulate modal reopen
+
+      expect(triggerSpy.mock.calls.filter((c) => c[0] === 'click')).toHaveLength(1);
+      expect(optionsSpy.mock.calls.filter((c) => c[0] === 'change')).toHaveLength(1);
+      expect(dropdownSpy.mock.calls.filter((c) => c[0] === 'click')).toHaveLength(1);
+      expect(addBtnSpy.mock.calls.filter((c) => c[0] === 'click')).toHaveLength(1);
+      expect(newInputSpy.mock.calls.filter((c) => c[0] === 'keydown')).toHaveLength(1);
+      expect(chipsSpy.mock.calls.filter((c) => c[0] === 'click')).toHaveLength(1);
+      expect(rootSpy.mock.calls.filter((c) => c[0] === 'click')).toHaveLength(1);
+
+      // A single dispatch therefore toggles the dropdown exactly once, not twice
+      // (which would cancel back out to closed).
+      trigger.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      expect(dropdown.style.display).toBe('block');
+    });
+
+    it('still resyncs checkboxes and chips on a second call (e.g. editing a different item)', () => {
+      const { root, container } = createShadowRoot('ms', { initialValue: 'Alpha' });
+      initializeModalMultiSelect({ id: 'ms', options: ['Alpha', 'Beta'], shadowRoot: root });
+
+      const hiddenInput = container.querySelector('#ms') as HTMLInputElement;
+      // Simulate populateEditModal writing a different item's selection before reopening.
+      hiddenInput.value = 'Beta';
+      initializeModalMultiSelect({ id: 'ms', options: ['Alpha', 'Beta'], shadowRoot: root });
+
+      expect(checkboxFor(container, 'Beta').checked).toBe(true);
+      expect(checkboxFor(container, 'Alpha').checked).toBe(false);
+      const chips = container.querySelectorAll('#ms-chips .modal-multi-select-chip');
+      expect(chips.length).toBe(1);
+      expect((chips[0] as HTMLElement).dataset.value).toBe('Beta');
+    });
+
+    it('marks the hidden input as bound after the first call', () => {
+      const { root, container } = createShadowRoot('ms');
+      initializeModalMultiSelect({ id: 'ms', options: ['Alpha'], shadowRoot: root });
+
+      const hiddenInput = container.querySelector('#ms') as HTMLInputElement;
+      expect(hiddenInput.hasAttribute('data-listeners-bound')).toBe(true);
     });
   });
 });

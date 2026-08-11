@@ -11,7 +11,7 @@ export const DateUtils = {
         date = new Date(Number.parseInt(dateString.trim()));
       } else if (/^\d{4}-\d{2}-\d{2}$/.test(dateString.trim())) {
         const [year, month, day] = dateString.trim().split('-').map(Number);
-        date = new Date(year, month - 1, day);
+        date = new Date(Date.UTC(year, month - 1, day));
       } else {
         date = new Date(dateString);
       }
@@ -55,8 +55,9 @@ export const DateUtils = {
     }
 
     try {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      const now = new Date();
+      const todayDateString = now.toISOString().split('T')[0];
+      const today = new Date(todayDateString);
 
       const expiry = new Date(expiryDate);
       const diffTime = expiry.getTime() - today.getTime();

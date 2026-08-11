@@ -67,6 +67,13 @@ export function initializeAliasTagInput(shadowRoot: ShadowRoot, prefix: string):
   const initial = getAliases(hiddenInput);
   renderChips(chipsContainer, initial, hiddenInput);
 
+  // The add/edit modal DOM is persistent and reopened without being
+  // recreated, so guard against re-registering listeners on repeat opens.
+  if (visibleInput.hasAttribute('data-listeners-bound')) {
+    return;
+  }
+  visibleInput.setAttribute('data-listeners-bound', 'true');
+
   visibleInput.addEventListener('keydown', (e: KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();

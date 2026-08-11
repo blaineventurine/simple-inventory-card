@@ -1,4 +1,5 @@
 import { ModalMultiSelectConfig } from '@/types/modalMultiSelect';
+import { Utilities } from '@/utils/utilities';
 
 export function createModalMultiSelect(config: ModalMultiSelectConfig): string {
   return `
@@ -11,14 +12,15 @@ export function createModalMultiSelect(config: ModalMultiSelectConfig): string {
       <div class="modal-multi-select-dropdown" id="${config.id}-dropdown" style="display: none;">
         <div class="modal-multi-select-options" id="${config.id}-options">
           ${config.options
-            .map(
-              (option) => `
+            .map((option) => {
+              const safeOption = Utilities.sanitizeHtml(option);
+              return `
                 <label class="modal-multi-select-option">
-                  <input type="checkbox" value="${option}">
-                  <span>${option}</span>
+                  <input type="checkbox" value="${safeOption}">
+                  <span>${safeOption}</span>
                 </label>
-              `,
-            )
+              `;
+            })
             .join('')}
         </div>
         <div class="modal-multi-select-add-new">

@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createItemsList, createItemsByCategory } from '../../src/templates/itemList';
+import {
+  createItemsList,
+  createItemsByCategory,
+  createItemsByLocation,
+} from '../../src/templates/itemList';
 import { InventoryItem } from '../../src/types/homeAssistant';
 import { TodoList } from '../../src/types/todoList';
 import { TranslationData } from '@/types/translatableComponent';
@@ -17,6 +21,7 @@ vi.mock('../../src/utils/utilities', () => ({
   Utilities: {
     groupItemsByCategory: vi.fn(),
     groupItemsByLocation: vi.fn(),
+    sanitizeHtml: vi.fn((str: string) => str),
   },
 }));
 
@@ -492,6 +497,68 @@ describe('itemList', () => {
 
       expect(nonCategoryCalls).toBe(categoryCalls);
       expect(nonCategoryCalls).toBe(mockItems.length);
+    });
+  });
+
+  describe('XSS protection', () => {
+    it('sanitizes the category header text', () => {
+      vi.mocked(Utilities.groupItemsByCategory).mockReturnValue({
+        Fruit: [mockItems[0]],
+      });
+
+      createItemsByCategory(mockItems, mockTodoLists, mockTranslations);
+
+      expect(Utilities.sanitizeHtml).toHaveBeenCalledWith('Fruit');
+    });
+
+    it('sanitizes the location header text', () => {
+      vi.mocked(Utilities.groupItemsByLocation).mockReturnValue({
+        Fridge: [mockItems[0]],
+      });
+
+      createItemsByLocation(mockItems, mockTodoLists, mockTranslations);
+
+      expect(Utilities.sanitizeHtml).toHaveBeenCalledWith('Fridge');
+    });
+
+    it('escapes a malicious category name so it cannot inject a tag or break out of the category-header div', () => {
+      vi.mocked(Utilities.sanitizeHtml).mockImplementation((value: string) =>
+        value
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;'),
+      );
+      const maliciousCategory = '<img src=x onerror=alert(1)>';
+      vi.mocked(Utilities.groupItemsByCategory).mockReturnValue({
+        [maliciousCategory]: [mockItems[0]],
+      });
+
+      const result = createItemsByCategory(mockItems, mockTodoLists, mockTranslations);
+
+      expect(result).not.toContain(maliciousCategory);
+      expect(result).toContain('&lt;img src=x onerror=alert(1)&gt;');
+    });
+
+    it('escapes a malicious location name so it cannot inject a tag or break out of the location-header div', () => {
+      vi.mocked(Utilities.sanitizeHtml).mockImplementation((value: string) =>
+        value
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;'),
+      );
+      const maliciousLocation = '<img src=x onerror=alert(1)>';
+      vi.mocked(Utilities.groupItemsByLocation).mockReturnValue({
+        [maliciousLocation]: [mockItems[0]],
+      });
+
+      const result = createItemsByLocation(mockItems, mockTodoLists, mockTranslations);
+
+      expect(result).not.toContain(maliciousLocation);
+      expect(result).toContain('&lt;img src=x onerror=alert(1)&gt;');
     });
   });
 });

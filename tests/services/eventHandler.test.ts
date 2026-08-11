@@ -350,6 +350,9 @@ describe('EventHandler', () => {
           tagName: 'BUTTON',
           id: ELEMENTS.ADD_ITEM_BTN,
           hasAttribute: vi.fn().mockReturnValue(false),
+          setAttribute: vi.fn(),
+          removeAttribute: vi.fn(),
+          style: {},
           dataset: {},
         } as unknown as HTMLElement;
 
@@ -366,6 +369,48 @@ describe('EventHandler', () => {
 
         expect(handleAddItemSpy).toHaveBeenCalled();
         expect(mockEvent.preventDefault).toHaveBeenCalled();
+      });
+
+      it('should guard against a rapid double-click on the add item button', async () => {
+        const attributes = new Set<string>();
+        mockTarget = {
+          tagName: 'BUTTON',
+          id: ELEMENTS.ADD_ITEM_BTN,
+          hasAttribute: vi.fn((attr: string) => attributes.has(attr)),
+          setAttribute: vi.fn((attr: string) => {
+            attributes.add(attr);
+          }),
+          removeAttribute: vi.fn((attr: string) => {
+            attributes.delete(attr);
+          }),
+          style: {},
+          dataset: {},
+        } as unknown as HTMLElement;
+
+        mockEvent = {
+          target: mockTarget,
+          preventDefault: vi.fn(),
+          stopPropagation: vi.fn(),
+        } as unknown as Event;
+
+        vi.mocked(mockModals.handleModalClick).mockReturnValue(false);
+        let resolveAddItem: (value: boolean) => void = () => {};
+        vi.mocked(mockModals.addItem).mockImplementation(
+          () =>
+            new Promise<boolean>((resolve) => {
+              resolveAddItem = resolve;
+            }),
+        );
+
+        // Fire two overlapping clicks synchronously, as a rapid double-click would.
+        const firstClick = eventHandler['handleClick'](mockEvent);
+        const secondClick = eventHandler['handleClick'](mockEvent);
+
+        resolveAddItem(true);
+        await firstClick;
+        await secondClick;
+
+        expect(mockModals.addItem).toHaveBeenCalledTimes(1);
       });
 
       it('should handle advanced search toggle', async () => {
@@ -431,6 +476,9 @@ describe('EventHandler', () => {
               selector.startsWith('#') ? mockModal : null,
             ),
           hasAttribute: vi.fn().mockReturnValue(false),
+          setAttribute: vi.fn(),
+          removeAttribute: vi.fn(),
+          style: {},
           dataset: {},
         } as unknown as HTMLElement;
 
@@ -447,6 +495,57 @@ describe('EventHandler', () => {
 
         expect(handleSaveEditsSpy).toHaveBeenCalled();
         expect(mockEvent.preventDefault).toHaveBeenCalled();
+      });
+
+      it('should guard against a rapid double-click on the save button', async () => {
+        const mockModal = document.createElement('div');
+        mockModal.id = ELEMENTS.EDIT_MODAL;
+        const attributes = new Set<string>();
+
+        mockTarget = {
+          tagName: 'BUTTON',
+          classList: {
+            contains: vi.fn().mockImplementation((className) => className === CSS_CLASSES.SAVE_BTN),
+          },
+          closest: vi
+            .fn()
+            .mockImplementation((selector: string) =>
+              selector.startsWith('#') ? mockModal : null,
+            ),
+          hasAttribute: vi.fn((attr: string) => attributes.has(attr)),
+          setAttribute: vi.fn((attr: string) => {
+            attributes.add(attr);
+          }),
+          removeAttribute: vi.fn((attr: string) => {
+            attributes.delete(attr);
+          }),
+          style: {},
+          dataset: {},
+        } as unknown as HTMLElement;
+
+        mockEvent = {
+          target: mockTarget,
+          preventDefault: vi.fn(),
+          stopPropagation: vi.fn(),
+        } as unknown as Event;
+
+        vi.mocked(mockModals.handleModalClick).mockReturnValue(false);
+        let resolveSaveEdit: (value: boolean) => void = () => {};
+        vi.mocked(mockModals.saveEditModal).mockImplementation(
+          () =>
+            new Promise<boolean>((resolve) => {
+              resolveSaveEdit = resolve;
+            }),
+        );
+
+        const firstClick = eventHandler['handleClick'](mockEvent);
+        const secondClick = eventHandler['handleClick'](mockEvent);
+
+        resolveSaveEdit(true);
+        await firstClick;
+        await secondClick;
+
+        expect(mockModals.saveEditModal).toHaveBeenCalledTimes(1);
       });
 
       it('should handle cancel button in add modal', async () => {

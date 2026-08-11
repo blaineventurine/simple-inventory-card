@@ -24,8 +24,9 @@ describe('ModalValidationManager', () => {
     vi.useRealTimers();
   });
 
-  const createMockInput = (id: string, type: string = 'text'): HTMLInputElement =>
-    ({
+  const createMockInput = (id: string, type: string = 'text'): HTMLInputElement => {
+    const attributes = new Map<string, string>();
+    return {
       id,
       type,
       value: '',
@@ -36,7 +37,13 @@ describe('ModalValidationManager', () => {
         contains: vi.fn(),
       },
       addEventListener: vi.fn(),
-    }) as unknown as HTMLInputElement;
+      hasAttribute: vi.fn((name: string) => attributes.has(name)),
+      setAttribute: vi.fn((name: string, value: string) => {
+        attributes.set(name, value);
+      }),
+      getAttribute: vi.fn((name: string) => attributes.get(name) ?? null),
+    } as unknown as HTMLInputElement;
+  };
 
   const createMockSelect = (id: string): HTMLSelectElement =>
     ({
@@ -499,6 +506,76 @@ describe('ModalValidationManager', () => {
       // Don't setup any elements
 
       expect(() => modalValidationManager['setupClearErrorsForModal'](true)).not.toThrow();
+    });
+  });
+
+  describe('duplicate initialization safety (modal reopen)', () => {
+    it('does not register duplicate input/change listeners when setupClearErrorsForModal runs twice on the same persistent fields', () => {
+      setupModalElements(true);
+
+      modalValidationManager['setupClearErrorsForModal'](true);
+      modalValidationManager['setupClearErrorsForModal'](true); // simulate modal reopen
+
+      const nameField = mockElements.get(`add-${ELEMENTS.NAME}`) as HTMLInputElement;
+      const inputRegistrations = vi
+        .mocked(nameField.addEventListener)
+        .mock.calls.filter((call) => call[0] === 'input');
+      const changeRegistrations = vi
+        .mocked(nameField.addEventListener)
+        .mock.calls.filter((call) => call[0] === 'change');
+
+      expect(inputRegistrations).toHaveLength(1);
+      expect(changeRegistrations).toHaveLength(1);
+
+      // Dispatching the surviving registered handler(s) must clear errors exactly once,
+      // not twice, proving the second setup call did not attach a second listener.
+      const clearErrorSpy = vi.spyOn(modalValidationManager, 'clearError');
+      for (const call of inputRegistrations) {
+        (call[1] as () => void)();
+      }
+      expect(clearErrorSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not register a duplicate auto-add checkbox change listener when setupClearErrorsForModal runs twice', () => {
+      setupModalElements(true);
+
+      modalValidationManager['setupClearErrorsForModal'](true);
+      modalValidationManager['setupClearErrorsForModal'](true);
+
+      const autoAddCheckbox = mockElements.get(
+        `add-${ELEMENTS.AUTO_ADD_ENABLED}`,
+      ) as HTMLInputElement;
+      const changeRegistrations = vi
+        .mocked(autoAddCheckbox.addEventListener)
+        .mock.calls.filter((call) => call[0] === 'change');
+
+      expect(changeRegistrations).toHaveLength(1);
+    });
+
+    it('marks the modal field as bound after the first call', () => {
+      setupModalElements(true);
+      modalValidationManager['setupClearErrorsForModal'](true);
+
+      const quantityField = mockElements.get(`add-${ELEMENTS.QUANTITY}`) as HTMLInputElement;
+      expect(quantityField.hasAttribute('data-listeners-bound')).toBe(true);
+    });
+
+    it('re-running setupValidationListeners (as happens on every modal open) does not double-register add or edit modal listeners', () => {
+      setupModalElements(true);
+      setupModalElements(false);
+
+      modalValidationManager.setupValidationListeners();
+      modalValidationManager.setupValidationListeners(); // simulate modal reopen
+
+      const addName = mockElements.get(`add-${ELEMENTS.NAME}`) as HTMLInputElement;
+      const editName = mockElements.get(`edit-${ELEMENTS.NAME}`) as HTMLInputElement;
+
+      expect(
+        vi.mocked(addName.addEventListener).mock.calls.filter((call) => call[0] === 'input'),
+      ).toHaveLength(1);
+      expect(
+        vi.mocked(editName.addEventListener).mock.calls.filter((call) => call[0] === 'input'),
+      ).toHaveLength(1);
     });
   });
 
