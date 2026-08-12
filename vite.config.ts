@@ -11,6 +11,7 @@ export default defineConfig({
         {
           src: 'src/translations/*.json',
           dest: 'translations',
+          rename: { stripBase: true },
         },
       ],
     }),
