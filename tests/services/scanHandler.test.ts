@@ -10,14 +10,14 @@ import { createMockHomeAssistant } from '../testHelpers';
 import {
   startScanner,
   stopScanner,
-  isLiveScanAvailable,
+  isScanAvailable,
   decodeFromFile,
 } from '../../src/services/barcodeScanner';
 
 vi.mock('../../src/services/barcodeScanner', () => ({
   startScanner: vi.fn(),
   stopScanner: vi.fn(),
-  isLiveScanAvailable: vi.fn(),
+  isScanAvailable: vi.fn(),
   decodeFromFile: vi.fn(),
 }));
 
@@ -126,7 +126,7 @@ describe('ScanHandler', () => {
   beforeEach(() => {
     vi.mocked(startScanner).mockReset();
     vi.mocked(stopScanner).mockReset();
-    vi.mocked(isLiveScanAvailable).mockReset().mockReturnValue(true);
+    vi.mocked(isScanAvailable).mockReset().mockReturnValue(true);
     vi.mocked(decodeFromFile).mockReset();
 
     mockHass = createMockHomeAssistant();
@@ -154,7 +154,7 @@ describe('ScanHandler', () => {
 
   describe('showScanPanel — live scan unavailable (file input fallback)', () => {
     beforeEach(() => {
-      vi.mocked(isLiveScanAvailable).mockReturnValue(false);
+      vi.mocked(isScanAvailable).mockReturnValue(false);
     });
 
     it('creates a hidden file input, appends it to document.body and clicks it', async () => {
@@ -255,7 +255,7 @@ describe('ScanHandler', () => {
     it('does not schedule hideScanPanel when the panel/error elements are missing on decode failure', async () => {
       vi.useFakeTimers();
       build(['scan-panel-error']);
-      vi.mocked(isLiveScanAvailable).mockReturnValue(false);
+      vi.mocked(isScanAvailable).mockReturnValue(false);
       vi.mocked(decodeFromFile).mockResolvedValue('not_found');
 
       let capturedInput: HTMLInputElement | null = null;
@@ -280,7 +280,7 @@ describe('ScanHandler', () => {
     it('shows the error panel without throwing when the viewport container is missing', async () => {
       vi.useFakeTimers();
       build([`${ELEMENTS.SCAN_VIEWPORT}-container`]);
-      vi.mocked(isLiveScanAvailable).mockReturnValue(false);
+      vi.mocked(isScanAvailable).mockReturnValue(false);
       vi.mocked(decodeFromFile).mockResolvedValue('not_found');
 
       let capturedInput: HTMLInputElement | null = null;
@@ -306,7 +306,7 @@ describe('ScanHandler', () => {
 
   describe('showScanPanel — live scan available', () => {
     beforeEach(() => {
-      vi.mocked(isLiveScanAvailable).mockReturnValue(true);
+      vi.mocked(isScanAvailable).mockReturnValue(true);
     });
 
     it('returns early without starting the scanner when the panel element is missing', async () => {

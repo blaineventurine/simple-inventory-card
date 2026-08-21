@@ -3,7 +3,7 @@ import {
   startScanner,
   stopScanner,
   isScannerActive,
-  isLiveScanAvailable,
+  isScanAvailable,
   decodeFromFile,
 } from './barcodeScanner';
 
@@ -143,7 +143,7 @@ export function initializeBarcodeTagInput(
   };
 
   scanBtn.addEventListener('click', async () => {
-    if (!isLiveScanAvailable()) {
+    if (!isScanAvailable()) {
       const input = document.createElement('input');
       input.type = 'file';
       input.accept = 'image/*';

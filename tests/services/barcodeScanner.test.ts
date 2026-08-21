@@ -4,7 +4,7 @@ import {
   startScanner,
   stopScanner,
   isScannerActive,
-  isLiveScanAvailable,
+  isScanAvailable,
   decodeFromFile,
 } from '../../src/services/barcodeScanner';
 
@@ -140,7 +140,7 @@ describe('barcodeScanner', () => {
   });
 });
 
-describe('isLiveScanAvailable', () => {
+describe('isScanAvailable', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
   });
@@ -151,7 +151,7 @@ describe('isLiveScanAvailable', () => {
       writable: true,
       configurable: true,
     });
-    expect(isLiveScanAvailable()).toBe(true);
+    expect(isScanAvailable()).toBe(true);
   });
 
   it('returns false when navigator.mediaDevices is undefined', () => {
@@ -160,7 +160,7 @@ describe('isLiveScanAvailable', () => {
       writable: true,
       configurable: true,
     });
-    expect(isLiveScanAvailable()).toBe(false);
+    expect(isScanAvailable()).toBe(false);
   });
 });
 

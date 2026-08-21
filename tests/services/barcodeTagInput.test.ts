@@ -4,11 +4,7 @@ import {
   initializeBarcodeTagInput,
   stopAllBarcodeScanners,
 } from '../../src/services/barcodeTagInput';
-import {
-  isLiveScanAvailable,
-  decodeFromFile,
-  startScanner,
-} from '../../src/services/barcodeScanner';
+import { isScanAvailable, decodeFromFile, startScanner } from '../../src/services/barcodeScanner';
 
 // quagga2 is globally mocked in tests/setup.ts
 
@@ -16,7 +12,7 @@ vi.mock('../../src/services/barcodeScanner', () => ({
   startScanner: vi.fn().mockResolvedValue(null),
   stopScanner: vi.fn(),
   isScannerActive: vi.fn().mockReturnValue(false),
-  isLiveScanAvailable: vi.fn().mockReturnValue(true),
+  isScanAvailable: vi.fn().mockReturnValue(true),
   decodeFromFile: vi.fn().mockResolvedValue(null),
 }));
 
@@ -310,12 +306,12 @@ describe('barcodeTagInput', () => {
 
 describe('barcodeTagInput file input fallback', () => {
   beforeEach(() => {
-    vi.mocked(isLiveScanAvailable).mockReturnValue(false);
+    vi.mocked(isScanAvailable).mockReturnValue(false);
     vi.mocked(decodeFromFile).mockResolvedValue(null);
   });
 
   afterEach(() => {
-    vi.mocked(isLiveScanAvailable).mockReturnValue(true);
+    vi.mocked(isScanAvailable).mockReturnValue(true);
   });
 
   function createRootWithScanner(prefix: string): ShadowRoot {

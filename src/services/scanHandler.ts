@@ -4,7 +4,7 @@ import { Services } from './services';
 import { TranslationData } from '@/types/translatableComponent';
 import { TranslationManager } from './translationManager';
 import { InventoryResolver } from '../utils/inventoryResolver';
-import { startScanner, stopScanner, isLiveScanAvailable, decodeFromFile } from './barcodeScanner';
+import { startScanner, stopScanner, isScanAvailable, decodeFromFile } from './barcodeScanner';
 
 export class ScanHandler {
   private renderRoot: ShadowRoot;
@@ -39,7 +39,7 @@ export class ScanHandler {
   async showScanPanel(): Promise<void> {
     const translations = this.getTranslations();
 
-    if (!isLiveScanAvailable()) {
+    if (!isScanAvailable()) {
       const input = document.createElement('input');
       input.type = 'file';
       input.accept = 'image/*';
