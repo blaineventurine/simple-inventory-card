@@ -5,7 +5,11 @@ import { TranslationData } from '@/types/translatableComponent';
 import { TranslationManager } from './translationManager';
 import { InventoryResolver } from '../utils/inventoryResolver';
 import { startScanner, stopScanner, isScanAvailable, decodeFromFile } from './barcodeScanner';
-import { getNativeScannerInfo } from './barcodeNativeScanner';
+import {
+  getNativeScannerInfo,
+  isNativeScannerAvailable,
+  startNativeScanner,
+} from './barcodeNativeScanner';
 
 export class ScanHandler {
   private renderRoot: ShadowRoot;
@@ -83,6 +87,14 @@ export class ScanHandler {
         }
       });
       input.click();
+      return;
+    }
+
+    // Does not need to render the scan panel if the native scanner is available
+    if (isNativeScannerAvailable()) {
+      await startNativeScanner((code: string) => {
+        this.handleScanDetected(code);
+      });
       return;
     }
 
