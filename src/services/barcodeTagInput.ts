@@ -3,9 +3,10 @@ import {
   startScanner,
   stopScanner,
   isScannerActive,
-  isLiveScanAvailable,
+  isScanAvailable,
   decodeFromFile,
 } from './barcodeScanner';
+import { getNativeScannerInfo } from './barcodeNativeScanner';
 
 function getBarcodes(hiddenInput: HTMLInputElement): string[] {
   return hiddenInput.value
@@ -143,7 +144,8 @@ export function initializeBarcodeTagInput(
   };
 
   scanBtn.addEventListener('click', async () => {
-    if (!isLiveScanAvailable()) {
+    await getNativeScannerInfo(); // Check if native scanner is available async to allow future sync checks
+    if (!isScanAvailable()) {
       const input = document.createElement('input');
       input.type = 'file';
       input.accept = 'image/*';

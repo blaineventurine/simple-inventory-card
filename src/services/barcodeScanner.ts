@@ -1,12 +1,29 @@
 import Quagga from '@ericblade/quagga2';
+import {
+  startNativeScanner,
+  isNativeScannerActive,
+  isNativeScannerAvailable,
+  stopNativeScanner,
+} from './barcodeNativeScanner';
 
 let active = false;
 
 export function isScannerActive(): boolean {
-  return active;
+  return isNativeScannerActive() || active;
 }
 
 export function startScanner(
+  targetElement: HTMLElement,
+  onDetected: (code: string) => void,
+): Promise<string | null> {
+  if (isNativeScannerAvailable()) {
+    return startNativeScanner(onDetected);
+  } else {
+    return startQuaggaScanner(targetElement, onDetected);
+  }
+}
+
+function startQuaggaScanner(
   targetElement: HTMLElement,
   onDetected: (code: string) => void,
 ): Promise<string | null> {
@@ -80,7 +97,7 @@ export function startScanner(
   });
 }
 
-export function stopScanner(): void {
+function stopQuaggaScanner(): void {
   if (active) {
     Quagga.stop();
     Quagga.offDetected();
@@ -88,7 +105,16 @@ export function stopScanner(): void {
   }
 }
 
-export function isLiveScanAvailable(): boolean {
+export function stopScanner(): void {
+  stopNativeScanner();
+  stopQuaggaScanner();
+}
+
+export function isScanAvailable(): boolean {
+  return isNativeScannerAvailable() || isLiveScanAvailable();
+}
+
+function isLiveScanAvailable(): boolean {
   return (
     typeof navigator !== 'undefined' &&
     !!navigator.mediaDevices &&

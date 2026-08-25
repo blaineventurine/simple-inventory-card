@@ -4,7 +4,8 @@ import { Services } from './services';
 import { TranslationData } from '@/types/translatableComponent';
 import { TranslationManager } from './translationManager';
 import { InventoryResolver } from '../utils/inventoryResolver';
-import { startScanner, stopScanner, isLiveScanAvailable, decodeFromFile } from './barcodeScanner';
+import { startScanner, stopScanner, isScanAvailable, decodeFromFile } from './barcodeScanner';
+import { getNativeScannerInfo, isNativeScannerAvailable } from './barcodeNativeScanner';
 
 export class ScanHandler {
   private renderRoot: ShadowRoot;
@@ -38,8 +39,9 @@ export class ScanHandler {
 
   async showScanPanel(): Promise<void> {
     const translations = this.getTranslations();
+    await getNativeScannerInfo(); // Check if native scanner is available async to allow future sync checks
 
-    if (!isLiveScanAvailable()) {
+    if (!isScanAvailable()) {
       const input = document.createElement('input');
       input.type = 'file';
       input.accept = 'image/*';
@@ -81,6 +83,14 @@ export class ScanHandler {
         }
       });
       input.click();
+      return;
+    }
+
+    // Does not need to render the scan panel if the native scanner is available
+    if (isNativeScannerAvailable()) {
+      await startScanner(document.createElement('div'), (code: string) => {
+        this.handleScanDetected(code);
+      });
       return;
     }
 
