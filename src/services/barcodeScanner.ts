@@ -17,10 +17,8 @@ export function startScanner(
   onDetected: (code: string) => void,
 ): Promise<string | null> {
   if (isNativeScannerAvailable()) {
-    console.log('Using native scanner');
     return startNativeScanner(onDetected);
   } else {
-    console.log('Using Quagga scanner');
     return startQuaggaScanner(targetElement, onDetected);
   }
 }

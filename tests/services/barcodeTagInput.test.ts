@@ -245,7 +245,7 @@ describe('barcodeTagInput', () => {
       expect(hiddenInput.value).toBe('12345');
     });
 
-    it('registers the scan button click handler only once across repeated initializations', () => {
+    it('registers the scan button click handler only once across repeated initializations', async () => {
       const root = createMockShadowRoot('add');
       const container = root as unknown as HTMLElement;
       const scanBtn = document.createElement('button');
@@ -270,7 +270,10 @@ describe('barcodeTagInput', () => {
       expect(scanBtnSpy.mock.calls.filter((call) => call[0] === 'click')).toHaveLength(1);
       expect(closeBtnSpy.mock.calls.filter((call) => call[0] === 'click')).toHaveLength(1);
 
+      console.log('scanBtnSpy.mock.calls:', scanBtnSpy.mock.calls);
       scanBtn.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      // sleep for 200ms to allow event handler to reach startScanner
+      await new Promise((resolve) => setTimeout(resolve, 100));
       expect(startScanner).toHaveBeenCalledTimes(1);
     });
 
@@ -344,6 +347,8 @@ describe('barcodeTagInput file input fallback', () => {
     ) as HTMLButtonElement;
     scanBtn.click();
 
+    // sleep for 200ms to allow event handler to reach startScanner
+    await new Promise((resolve) => setTimeout(resolve, 200));
     expect(appendSpy).toHaveBeenCalledOnce();
     const fileInput = appendSpy.mock.calls[0][0] as HTMLInputElement;
     expect(fileInput.type).toBe('file');
@@ -374,6 +379,9 @@ describe('barcodeTagInput file input fallback', () => {
       '#add-barcode-scan-btn',
     ) as HTMLButtonElement;
     scanBtn.click();
+
+    // sleep for 200ms to allow event handler to reach startScanner
+    await new Promise((resolve) => setTimeout(resolve, 200));
 
     const file = new File(['data'], 'photo.jpg', { type: 'image/jpeg' });
     Object.defineProperty(capturedInput!, 'files', { value: [file], configurable: true });
@@ -409,6 +417,9 @@ describe('barcodeTagInput file input fallback', () => {
       '#add-barcode-scan-btn',
     ) as HTMLButtonElement;
     scanBtn.click();
+
+    // sleep for 200ms to allow event handler to reach startScanner
+    await new Promise((resolve) => setTimeout(resolve, 200));
 
     const file = new File(['data'], 'photo.jpg', { type: 'image/jpeg' });
     Object.defineProperty(capturedInput!, 'files', { value: [file], configurable: true });

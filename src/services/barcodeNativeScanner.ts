@@ -205,7 +205,7 @@ export function startNativeScanner(onDetected: (code: string) => void): Promise<
           }
           break;
         case 'bar_code/aborted':
-          console.warn('Native scanner aborted or error:', message);
+          console.warn('Native scanner aborted/manually_closed:', message);
           break;
       }
     }

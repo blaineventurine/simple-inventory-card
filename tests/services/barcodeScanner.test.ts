@@ -7,6 +7,7 @@ import {
   isScanAvailable,
   decodeFromFile,
 } from '../../src/services/barcodeScanner';
+import { setNativeScannerConfig, externalMessageId } from '../../src/services/barcodeNativeScanner';
 
 // quagga2 is globally mocked in tests/setup.ts
 const mockDecodeSingle = vi.mocked(Quagga.decodeSingle);
@@ -16,14 +17,24 @@ const mockStop = vi.mocked(Quagga.stop);
 const mockOnDetected = vi.mocked(Quagga.onDetected);
 const mockOffDetected = vi.mocked(Quagga.offDetected);
 
-describe('barcodeScanner', () => {
-  beforeEach(() => {
+const mockExternalBus = vi.fn();
+const mockPostMessage = vi.fn();
+
+describe('barcodeScannerQuagga', () => {
+  beforeEach(async () => {
     vi.clearAllMocks();
     // Reset active state by stopping if active
     if (isScannerActive()) {
       stopScanner();
     }
     vi.clearAllMocks();
+    await setNativeScannerConfig({ hasBarCodeScanner: 0 });
+    vi.stubGlobal('externalBus', mockExternalBus);
+    vi.stubGlobal('externalAppV2', { postMessage: mockPostMessage });
+  });
+  afterEach(() => {
+    vi.clearAllMocks();
+    vi.unstubAllGlobals();
   });
 
   it('should call Quagga.init and Quagga.start on success', async () => {
@@ -40,6 +51,8 @@ describe('barcodeScanner', () => {
     expect(mockInit).toHaveBeenCalledOnce();
     expect(mockStart).toHaveBeenCalledOnce();
     expect(isScannerActive()).toBe(true);
+
+    expect(mockPostMessage).not.toHaveBeenCalled();
   });
 
   it('should call Quagga.stop on stopScanner', async () => {
@@ -57,12 +70,16 @@ describe('barcodeScanner', () => {
     expect(mockStop).toHaveBeenCalledOnce();
     expect(mockOffDetected).toHaveBeenCalledOnce();
     expect(isScannerActive()).toBe(false);
+
+    expect(mockPostMessage).not.toHaveBeenCalled();
   });
 
   it('should be safe to call stopScanner when not running', () => {
     expect(isScannerActive()).toBe(false);
     expect(() => stopScanner()).not.toThrow();
     expect(mockStop).not.toHaveBeenCalled();
+
+    expect(mockPostMessage).not.toHaveBeenCalled();
   });
 
   it('should fire callback for barcode with good confidence', async () => {
@@ -140,8 +157,101 @@ describe('barcodeScanner', () => {
   });
 });
 
-describe('isScanAvailable', () => {
+describe('barcodeScannerNative', async () => {
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    // Reset active state by stopping if active
+    if (isScannerActive()) {
+      stopScanner();
+    }
+    vi.clearAllMocks();
+    await setNativeScannerConfig({ hasBarCodeScanner: 1 });
+    vi.stubGlobal('externalBus', mockExternalBus);
+    vi.stubGlobal('externalAppV2', { postMessage: mockPostMessage });
+  });
   afterEach(() => {
+    vi.clearAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  it('should send external-bus message `bar_code/scan` on startScanner', async () => {
+    const target = document.createElement('div');
+    const onDetected = vi.fn();
+    const result = await startScanner(target, onDetected);
+
+    expect(result).toBeNull();
+    expect(mockInit).not.toHaveBeenCalledOnce();
+    expect(mockStart).not.toHaveBeenCalledOnce();
+    // expect(startNativeScanner).toHaveBeenCalledOnce();
+    expect(isScannerActive()).toBe(true);
+
+    expect(mockPostMessage).toHaveBeenCalledOnce();
+    const [message] = mockPostMessage.mock.calls[0];
+    const data = JSON.parse(message);
+    expect(data.type).toBe('externalBus');
+    expect(data.payload.type).toBe('bar_code/scan');
+  });
+
+  it('should send external-bus message `bar_code/close` on stopScanner', async () => {
+    mockInit.mockImplementation((_config: any, cb: any) => {
+      cb(null);
+      return Promise.resolve();
+    });
+
+    const target = document.createElement('div');
+    await startScanner(target, vi.fn());
+
+    vi.clearAllMocks();
+    stopScanner();
+
+    expect(mockStop).not.toHaveBeenCalledOnce();
+    expect(mockOffDetected).not.toHaveBeenCalledOnce();
+    expect(isScannerActive()).toBe(false);
+
+    expect(mockPostMessage).toHaveBeenCalledOnce();
+    const [message] = mockPostMessage.mock.calls[0];
+    const data = JSON.parse(message);
+    expect(data.type).toBe('externalBus');
+    expect(data.payload.type).toBe('bar_code/close');
+  });
+
+  it('should be safe to call stopScanner when not running', () => {
+    expect(isScannerActive()).toBe(false);
+    expect(() => stopScanner()).not.toThrow();
+    expect(mockPostMessage).not.toHaveBeenCalled();
+  });
+
+  it('should fire callback for barcode found', async () => {
+    const w = window as any;
+    const value = '1234567890128';
+
+    const target = document.createElement('div');
+    const onDetected = vi.fn();
+    await startScanner(target, onDetected);
+
+    // Simulate response from native scanner via externalBus
+    const response = {
+      id: externalMessageId,
+      type: 'command',
+      command: 'bar_code/scan_result',
+      payload: {
+        rawValue: value,
+        format: 'ean_13',
+      },
+    };
+
+    w.externalBus(JSON.stringify(response));
+    expect(onDetected).toHaveBeenCalledWith(value);
+  });
+});
+
+describe('isScanAvailable', () => {
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    await setNativeScannerConfig({ hasBarCodeScanner: 0 });
+  });
+  afterEach(() => {
+    vi.clearAllMocks();
     vi.unstubAllGlobals();
   });
 
@@ -161,6 +271,16 @@ describe('isScanAvailable', () => {
       configurable: true,
     });
     expect(isScanAvailable()).toBe(false);
+  });
+
+  it('returns true when navigator.mediaDevices is undefined but native reader is used', async () => {
+    await setNativeScannerConfig({ hasBarCodeScanner: 1 });
+    Object.defineProperty(navigator, 'mediaDevices', {
+      value: undefined,
+      writable: true,
+      configurable: true,
+    });
+    expect(isScanAvailable()).toBe(true);
   });
 });
 
