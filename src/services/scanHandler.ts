@@ -5,6 +5,7 @@ import { TranslationData } from '@/types/translatableComponent';
 import { TranslationManager } from './translationManager';
 import { InventoryResolver } from '../utils/inventoryResolver';
 import { startScanner, stopScanner, isScanAvailable, decodeFromFile } from './barcodeScanner';
+import { getNativeScannerInfo } from './barcodeNativeScanner';
 
 export class ScanHandler {
   private renderRoot: ShadowRoot;
@@ -38,6 +39,7 @@ export class ScanHandler {
 
   async showScanPanel(): Promise<void> {
     const translations = this.getTranslations();
+    await getNativeScannerInfo(); // Check if native scanner is available async to allow future sync checks
 
     if (!isScanAvailable()) {
       const input = document.createElement('input');

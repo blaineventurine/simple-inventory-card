@@ -1,7 +1,7 @@
-import { ExternalBusMessage, Bridge } from '@/types/externalBusMessages';
+import { ExternalBusMessage, Bridge, ConfigGetResult } from '@/types/externalBusMessages';
 
 let active = false;
-let nativeScannerAvailable: boolean | null = null;
+let configGet: ConfigGetResult | null = null;
 let externalMessageId = 0;
 const NATIVE_QR_BRIDGE_KEY = '__TEST_TEST_NATIVE_QR_BRIDGE__';
 
@@ -142,24 +142,24 @@ function nativeExternalBusSend(message: ExternalBusMessage): boolean {
   return false;
 }
 
-export function isNativeScannerAvailable(): boolean {
-  if (nativeScannerAvailable !== null) {
-    return nativeScannerAvailable;
-  }
+export async function getNativeScannerInfo(): Promise<ConfigGetResult | null> {
   const id = ++externalMessageId;
-  // const response = await nativeExternalBusRequest({ id, type: 'config/get' }, 1400);
-  nativeExternalBusRequest({ id, type: 'config/get' }, 1400).then((response) => {
-    nativeScannerAvailable = Boolean(
-      response?.type === 'result' &&
-      response?.success === true &&
-      response?.result &&
-      'hasBarCodeScanner' in response.result &&
-      Number(response.result.hasBarCodeScanner || 0) > 0,
-    );
-    return nativeScannerAvailable;
-  });
+  const response = await nativeExternalBusRequest({ id, type: 'config/get' }, 1400);
+  if (response?.type !== 'result' || response?.success !== true || !response?.result) {
+    return null;
+  }
+  if (response.result && 'hasBarCodeScanner' in response.result) {
+    configGet = response.result;
+  }
+  return configGet;
+}
 
-  return false;
+export function isNativeScannerAvailable(): boolean {
+  if (configGet === null) {
+    return false;
+  }
+
+  return Boolean(configGet?.hasBarCodeScanner);
 }
 
 export function startNativeScanner(onDetected: (code: string) => void): Promise<string | null> {
@@ -178,25 +178,20 @@ export function startNativeScanner(onDetected: (code: string) => void): Promise<
   if (!bridge) {
     return Promise.resolve('not_available');
   }
-  // {
-  //     'id': 112,
-  //     'type': 'command',
-  //     'command': 'bar_code/scan_result',
-  //     'payload': {
-  //         'rawValue': '7610029221077',
-  //         'format': 'ean_13'
-  //     }
-  // }
   bridge.typeListeners.clear();
   bridge.typeListeners.add((message) => {
-    if (
-      message?.type === 'command' &&
-      message?.command === 'bar_code/scan_result' &&
-      message?.id === id
-    ) {
+    if (message?.type === 'command' && message?.id === id) {
       const payload = message?.payload;
-      if (payload && 'rawValue' in payload && typeof payload.rawValue === 'string') {
-        onDetected(payload.rawValue);
+      switch (message?.command) {
+        case 'bar_code/scan_result':
+          if (payload && 'rawValue' in payload && typeof payload.rawValue === 'string') {
+            console.log('Native scanner detected barcode:', payload.rawValue);
+            onDetected(payload.rawValue);
+          }
+          break;
+        case 'bar_code/aborted':
+          console.warn('Native scanner aborted or error:', message);
+          break;
       }
     }
   });

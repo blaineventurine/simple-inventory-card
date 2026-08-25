@@ -107,17 +107,8 @@ function stopQuaggaScanner(): void {
 }
 
 export function stopScanner(): void {
-  if (!active) {
-    return;
-  }
-
-  if (isNativeScannerAvailable()) {
-    stopNativeScanner();
-  } else {
-    stopQuaggaScanner();
-  }
-
-  active = false;
+  stopNativeScanner();
+  stopQuaggaScanner();
 }
 
 export function isScanAvailable(): boolean {
