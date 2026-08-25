@@ -2,8 +2,12 @@ import { ExternalBusMessage, Bridge, ConfigGetResult } from '@/types/externalBus
 
 let active = false;
 let configGet: ConfigGetResult | null = null;
-let externalMessageId = 0;
+export let externalMessageId = 0;
 const NATIVE_QR_BRIDGE_KEY = '__TEST_TEST_NATIVE_QR_BRIDGE__';
+
+export function isNativeScannerActive(): boolean {
+  return active;
+}
 
 export function getBusBridge(): Bridge | null {
   const w = window as Window & {
@@ -142,7 +146,11 @@ function nativeExternalBusSend(message: ExternalBusMessage): boolean {
   return false;
 }
 
-export async function getNativeScannerInfo(): Promise<ConfigGetResult | null> {
+export function setNativeScannerConfig(config: ConfigGetResult): void {
+  configGet = config;
+}
+
+async function _getNativeScannerInfo(): Promise<ConfigGetResult | null> {
   const id = ++externalMessageId;
   const response = await nativeExternalBusRequest({ id, type: 'config/get' }, 1400);
   if (response?.type !== 'result' || response?.success !== true || !response?.result) {
@@ -152,6 +160,14 @@ export async function getNativeScannerInfo(): Promise<ConfigGetResult | null> {
     configGet = response.result;
   }
   return configGet;
+}
+
+export async function getNativeScannerInfo(): Promise<ConfigGetResult | null> {
+  if (configGet) {
+    return Promise.resolve(configGet);
+  }
+
+  return _getNativeScannerInfo();
 }
 
 export function isNativeScannerAvailable(): boolean {
@@ -185,7 +201,6 @@ export function startNativeScanner(onDetected: (code: string) => void): Promise<
       switch (message?.command) {
         case 'bar_code/scan_result':
           if (payload && 'rawValue' in payload && typeof payload.rawValue === 'string') {
-            console.log('Native scanner detected barcode:', payload.rawValue);
             onDetected(payload.rawValue);
           }
           break;

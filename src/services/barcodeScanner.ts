@@ -1,6 +1,7 @@
 import Quagga from '@ericblade/quagga2';
 import {
   startNativeScanner,
+  isNativeScannerActive,
   isNativeScannerAvailable,
   stopNativeScanner,
 } from './barcodeNativeScanner';
@@ -8,7 +9,7 @@ import {
 let active = false;
 
 export function isScannerActive(): boolean {
-  return active;
+  return isNativeScannerActive() || active;
 }
 
 export function startScanner(
