@@ -1,33 +1,46 @@
 import { ELEMENTS } from '../utils/constants';
-import { HomeAssistant, InventoryConfig } from '@/types/homeAssistant';
+import { GetCardContext } from '@/types/cardContext';
 import { Services } from './services';
-import { TranslationData } from '@/types/translatableComponent';
 import { TranslationManager } from './translationManager';
 import { InventoryResolver } from '../utils/inventoryResolver';
-import { startScanner, stopScanner, isLiveScanAvailable, decodeFromFile } from './barcodeScanner';
+import {
+  chooseBarcodePhoto,
+  nativeScanner,
+  scanSupport,
+  startNativeScanner,
+  startScanner,
+  stopScanner,
+} from './barcodeScanner';
+import { nativeScanTexts, scannerText } from './scannerText';
+import { RestockOptions } from '@/types/batchOptions';
+import { readRestockFields } from '../utils/batchFields';
+import type { AcquireHold } from './inventoryStore';
 
 export class ScanHandler {
   private renderRoot: ShadowRoot;
-  private getHass: () => HomeAssistant;
-  private getConfig: () => InventoryConfig;
-  private getTranslations: () => TranslationData;
+  private getContext: GetCardContext;
   private services: Services;
   private renderCallback: () => void;
 
   private scannedBarcode: string | null = null;
+  private scannedItemFound = false;
+  /** Releases the background hold taken while the scan panel shows. */
+  private release: (() => void) | undefined;
+  /** Releases the background hold taken while the companion app's scanner is open. */
+  private releaseNative: (() => void) | undefined;
+  /** Keeps the hold in step with the panel's `hidden`, whichever route flips it. */
+  private readonly panelObserver = new MutationObserver(() => this.syncHold());
 
   constructor(
     renderRoot: ShadowRoot,
-    getHass: () => HomeAssistant,
-    getConfig: () => InventoryConfig,
-    getTranslations: () => TranslationData,
+    getContext: GetCardContext,
     services: Services,
     renderCallback: () => void,
+    /** Holds background work while the scan panel shows; released when it hides or is replaced. */
+    private readonly hold?: AcquireHold,
   ) {
     this.renderRoot = renderRoot;
-    this.getHass = getHass;
-    this.getConfig = getConfig;
-    this.getTranslations = getTranslations;
+    this.getContext = getContext;
     this.services = services;
     this.renderCallback = renderCallback;
   }
@@ -37,68 +50,72 @@ export class ScanHandler {
   }
 
   async showScanPanel(): Promise<void> {
-    const translations = this.getTranslations();
+    const { hass, translations } = this.getContext();
 
-    if (!isLiveScanAvailable()) {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = 'image/*';
-      input.capture = 'environment';
-      // position off-screen instead of display:none — iOS WKWebView may not fire
-      // the change event on a hidden (display:none) file input
-      input.style.position = 'fixed';
-      input.style.top = '-9999px';
-      input.style.left = '-9999px';
-      input.style.width = '0';
-      input.style.height = '0';
-      input.style.opacity = '0';
-      document.body.appendChild(input);
-      input.addEventListener('change', async () => {
-        const file = input.files?.[0];
-        document.body.removeChild(input);
-        if (!file) return;
-        const error = await decodeFromFile(file, (code) => {
+    // The companion app draws its own scanner (it has its own camera, HTTPS or not).
+    const external = nativeScanner(hass);
+    if (external) {
+      startNativeScanner(external, nativeScanTexts(translations), {
+        onDetected: (code) => {
           this.handleScanDetected(code);
-        });
-        if (error) {
-          const panel = this.renderRoot.getElementById(ELEMENTS.SCAN_PANEL);
-          const viewportContainer = this.renderRoot.getElementById(
-            `${ELEMENTS.SCAN_VIEWPORT}-container`,
-          );
-          const errorEl = this.renderRoot.getElementById('scan-panel-error');
-          if (panel && errorEl) {
-            panel.style.display = 'block';
-            if (viewportContainer) viewportContainer.style.display = 'none';
-            errorEl.textContent = TranslationManager.localize(
-              translations,
-              'scanner.no_barcode_found',
-              undefined,
-              'No barcode found in photo',
-            );
-            errorEl.style.display = 'block';
-            setTimeout(() => this.hideScanPanel(), 3000);
-          }
+        },
+        onChoosePhoto: () => this.offerPhoto(''),
+        onEnd: () => {
+          const release = this.releaseNative;
+          this.releaseNative = undefined;
+          release?.();
+        },
+      });
+      // After the start: it ends a scan still open, releasing that scan's hold.
+      this.releaseNative ??= this.hold?.('background', 'native scanner');
+      return;
+    }
+
+    const support = scanSupport();
+
+    if (support === 'photo') {
+      void chooseBarcodePhoto((code) => {
+        this.handleScanDetected(code);
+      }).then((error) => {
+        if (!error) return;
+        const panel = this.renderRoot.getElementById(ELEMENTS.SCAN_PANEL);
+        const viewportContainer = this.renderRoot.getElementById(
+          `${ELEMENTS.SCAN_VIEWPORT}-container`,
+        );
+        const errorEl = this.renderRoot.getElementById('scan-panel-error');
+        if (panel && errorEl) {
+          this.showPanel(panel);
+          if (viewportContainer) viewportContainer.hidden = true;
+          errorEl.textContent = scannerText(translations, 'no_barcode');
+          errorEl.hidden = false;
+          setTimeout(() => this.hideScanPanel(), 3000);
         }
       });
-      input.click();
       return;
     }
 
     const panel = this.renderRoot.getElementById(ELEMENTS.SCAN_PANEL);
     if (!panel) return;
 
-    panel.style.display = 'block';
+    if (support === 'insecure') {
+      this.offerPhoto(scannerText(translations, 'insecure'));
+      return;
+    }
+
+    this.showPanel(panel);
     const viewportContainer = this.renderRoot.getElementById(`${ELEMENTS.SCAN_VIEWPORT}-container`);
     const viewport = this.renderRoot.getElementById(ELEMENTS.SCAN_VIEWPORT);
     const actionBar = this.renderRoot.getElementById(ELEMENTS.SCAN_ACTION_BAR);
     const errorEl = this.renderRoot.getElementById('scan-panel-error');
     const loadingEl = this.renderRoot.getElementById('scan-panel-loading');
+    const photo = this.renderRoot.getElementById(ELEMENTS.SCAN_PHOTO);
 
-    if (viewportContainer) viewportContainer.style.display = 'block';
-    if (actionBar) actionBar.style.display = 'none';
-    if (loadingEl) loadingEl.style.display = 'flex';
+    if (viewportContainer) viewportContainer.hidden = false;
+    if (actionBar) actionBar.hidden = true;
+    if (photo) photo.hidden = true;
+    if (loadingEl) loadingEl.hidden = false;
     if (errorEl) {
-      errorEl.style.display = 'none';
+      errorEl.hidden = true;
       errorEl.textContent = '';
     }
 
@@ -106,17 +123,42 @@ export class ScanHandler {
       const error = await startScanner(viewport, (code: string) => {
         this.handleScanDetected(code);
       });
-      if (loadingEl) loadingEl.style.display = 'none';
+      if (loadingEl) loadingEl.hidden = true;
       if (error) {
-        this.hideScanPanel();
-        const msgKey =
-          error === 'permission_denied'
-            ? 'modal.camera_permission_denied'
-            : 'modal.camera_not_available';
-        const fallback =
-          error === 'permission_denied' ? 'Camera access denied' : 'Camera not available';
-        alert(TranslationManager.localize(translations, msgKey, undefined, fallback));
+        this.offerPhoto(scannerText(translations, error));
       }
+    }
+  }
+
+  /** "Choose a photo" (after a camera problem): the chosen photo's barcode is handled as scanned. */
+  async choosePhoto(): Promise<void> {
+    const error = await chooseBarcodePhoto((code) => {
+      this.handleScanDetected(code);
+    });
+    if (error) {
+      this.offerPhoto(scannerText(this.getContext().translations, 'no_barcode'));
+    }
+  }
+
+  /** The panel offers "Choose a photo" instead of the camera, saying why (`message`). */
+  private offerPhoto(message: string): void {
+    const panel = this.renderRoot.getElementById(ELEMENTS.SCAN_PANEL);
+    if (!panel) return;
+    this.showPanel(panel);
+    for (const id of [
+      `${ELEMENTS.SCAN_VIEWPORT}-container`,
+      ELEMENTS.SCAN_ACTION_BAR,
+      'scan-panel-error',
+    ]) {
+      const el = this.renderRoot.getElementById(id);
+      if (el) el.hidden = true;
+    }
+    const photo = this.renderRoot.getElementById(ELEMENTS.SCAN_PHOTO);
+    const photoMessage = this.renderRoot.getElementById(ELEMENTS.SCAN_PHOTO_MESSAGE);
+    if (photo) photo.hidden = false;
+    if (photoMessage) {
+      photoMessage.textContent = message;
+      photoMessage.hidden = message === '';
     }
   }
 
@@ -124,7 +166,54 @@ export class ScanHandler {
     stopScanner();
     this.scannedBarcode = null;
     const panel = this.renderRoot.getElementById(ELEMENTS.SCAN_PANEL);
-    if (panel) panel.style.display = 'none';
+    if (panel) panel.hidden = true;
+    const photo = this.renderRoot.getElementById(ELEMENTS.SCAN_PHOTO);
+    if (photo) photo.hidden = true;
+    this.syncHold();
+  }
+
+  /**
+   * A full render replaced the panel (it comes back hidden): the old one's hold goes with it,
+   * and the new one is followed from now on.
+   */
+  panelReplaced(): void {
+    this.panelObserver.disconnect();
+    const panel = this.renderRoot.getElementById(ELEMENTS.SCAN_PANEL);
+    if (panel) {
+      this.panelObserver.observe(panel, { attributes: true, attributeFilter: ['hidden'] });
+    }
+    this.syncHold();
+  }
+
+  private showPanel(panel: HTMLElement): void {
+    panel.hidden = false;
+    this.syncHold();
+  }
+
+  /** Holds background work exactly while the panel shows. */
+  private syncHold(): void {
+    const panel = this.renderRoot.getElementById(ELEMENTS.SCAN_PANEL);
+    const open = panel instanceof HTMLElement && !panel.hidden;
+    if (open && !this.release) {
+      this.release = this.hold?.('background', 'scan panel');
+    } else if (!open && this.release) {
+      const release = this.release;
+      this.release = undefined;
+      release();
+    }
+  }
+
+  /**
+   * Card re-attached (the pause stopped the camera): a panel still showing the camera, i.e.
+   * waiting for a barcode, starts it again. A panel showing a scanned barcode stays as it is.
+   */
+  resumeScanning(): void {
+    const panel = this.renderRoot.getElementById(ELEMENTS.SCAN_PANEL);
+    const viewportContainer = this.renderRoot.getElementById(`${ELEMENTS.SCAN_VIEWPORT}-container`);
+    if (!panel || panel.hidden || !viewportContainer || viewportContainer.hidden) {
+      return;
+    }
+    void this.showScanPanel();
   }
 
   async handleScanDetected(barcode: string): Promise<void> {
@@ -132,7 +221,7 @@ export class ScanHandler {
     this.scannedBarcode = barcode;
 
     const panel = this.renderRoot.getElementById(ELEMENTS.SCAN_PANEL);
-    if (panel) panel.style.display = 'block';
+    if (panel) this.showPanel(panel);
 
     const viewportContainer = this.renderRoot.getElementById(`${ELEMENTS.SCAN_VIEWPORT}-container`);
     const actionBar = this.renderRoot.getElementById(ELEMENTS.SCAN_ACTION_BAR);
@@ -150,19 +239,29 @@ export class ScanHandler {
     const addBtn = this.renderRoot.getElementById(ELEMENTS.SCAN_ADD_BTN);
     const goBtn = this.renderRoot.getElementById(ELEMENTS.SCAN_GO_BTN);
 
-    if (viewportContainer) viewportContainer.style.display = 'none';
+    if (viewportContainer) viewportContainer.hidden = true;
+    const photo = this.renderRoot.getElementById(ELEMENTS.SCAN_PHOTO);
+    if (photo) photo.hidden = true;
     if (label) label.textContent = barcode;
-    if (actionBar) actionBar.style.display = 'flex';
+    if (actionBar) actionBar.hidden = false;
     if (errorEl) {
-      errorEl.style.display = 'none';
+      errorEl.hidden = true;
       errorEl.textContent = '';
     }
     if (amountInput) amountInput.value = '1';
     if (actionSelect) actionSelect.value = 'increment';
+    // Reset the previous scan's batch details before the lookup round-trip.
+    this.scannedItemFound = false;
+    const batchDetails = this.renderRoot.getElementById(ELEMENTS.SCAN_BATCH_FIELDS);
+    if (batchDetails instanceof HTMLDetailsElement) {
+      batchDetails.open = false;
+      for (const input of batchDetails.querySelectorAll('input')) {
+        input.value = '';
+      }
+    }
+    this.syncBatchFieldsVisibility();
 
-    const config = this.getConfig();
-    const hass = this.getHass();
-    const translations = this.getTranslations();
+    const { config, hass, translations } = this.getContext();
     const inventoryId = InventoryResolver.getInventoryId(hass, config.entity);
     const result = await this.services.lookupByBarcode(barcode);
     const localItems = result.items.filter((item) => item.inventory_id === inventoryId);
@@ -171,7 +270,7 @@ export class ScanHandler {
       const item = localItems[0];
       if (itemNameEl) {
         itemNameEl.textContent = item.name;
-        itemNameEl.style.display = '';
+        itemNameEl.hidden = false;
       }
       if (itemQuantityEl) {
         const qty = item.unit ? `${item.quantity} ${item.unit}` : String(item.quantity ?? 0);
@@ -181,24 +280,27 @@ export class ScanHandler {
           { quantity: qty },
           `In stock: ${qty}`,
         );
-        itemQuantityEl.style.display = '';
+        itemQuantityEl.hidden = false;
       }
-      if (existingControls) existingControls.style.display = '';
-      if (addBtn) addBtn.style.display = 'none';
-      if (goBtn) goBtn.style.display = '';
+      if (existingControls) existingControls.hidden = false;
+      if (addBtn) addBtn.hidden = true;
+      if (goBtn) goBtn.hidden = false;
     } else {
       if (itemNameEl) {
         itemNameEl.textContent = '';
-        itemNameEl.style.display = 'none';
+        itemNameEl.hidden = true;
       }
       if (itemQuantityEl) {
         itemQuantityEl.textContent = '';
-        itemQuantityEl.style.display = 'none';
+        itemQuantityEl.hidden = true;
       }
-      if (existingControls) existingControls.style.display = 'none';
-      if (addBtn) addBtn.style.display = '';
-      if (goBtn) goBtn.style.display = 'none';
+      if (existingControls) existingControls.hidden = true;
+      if (addBtn) addBtn.hidden = false;
+      if (goBtn) goBtn.hidden = true;
     }
+
+    this.scannedItemFound = localItems.length > 0;
+    this.syncBatchFieldsVisibility();
   }
 
   async handleScanGo(): Promise<void> {
@@ -214,14 +316,18 @@ export class ScanHandler {
     const action = (actionSelect?.value || 'increment') as 'increment' | 'decrement';
     const amount = parseFloat(amountInput?.value || '1') || 1;
 
-    const config = this.getConfig();
-    const hass = this.getHass();
+    const { config, hass } = this.getContext();
     const inventoryId = InventoryResolver.getInventoryId(hass, config.entity);
+    const batchDetails = this.renderRoot.getElementById(ELEMENTS.SCAN_BATCH_FIELDS);
+    // Batch details describe new stock, so only an increment sends them.
+    const restock: RestockOptions =
+      action === 'increment' && batchDetails ? readRestockFields(batchDetails) : {};
     const result = await this.services.scanBarcode(
       inventoryId,
       this.scannedBarcode,
       action,
       amount,
+      restock,
     );
 
     if (result.success) {
@@ -230,14 +336,30 @@ export class ScanHandler {
     } else {
       const errorEl = this.renderRoot.getElementById('scan-panel-error');
       if (errorEl) {
-        errorEl.textContent = TranslationManager.localize(
-          this.getTranslations(),
-          'scanner.barcode_not_found',
-          undefined,
-          'No item found for this barcode',
-        );
-        errorEl.style.display = 'block';
+        // The backend's not-found error gets the localized scanner text; any other
+        // failure shows the backend's own (already translated) message.
+        errorEl.textContent =
+          result.error && result.errorCode !== 'barcode_not_found'
+            ? result.error
+            : TranslationManager.localize(
+                this.getContext().translations,
+                'scanner.barcode_not_found',
+                undefined,
+                'No item found for this barcode',
+              );
+        errorEl.hidden = false;
       }
     }
+  }
+
+  /** Batch details apply only to restocking a known item; hide them otherwise. */
+  syncBatchFieldsVisibility(): void {
+    const details = this.renderRoot.getElementById(ELEMENTS.SCAN_BATCH_FIELDS);
+    if (!details) {
+      return;
+    }
+    const actionSelect = this.renderRoot.getElementById(ELEMENTS.SCAN_ACTION_SELECT);
+    const action = actionSelect instanceof HTMLSelectElement ? actionSelect.value : 'increment';
+    details.hidden = !this.scannedItemFound || action !== 'increment';
   }
 }

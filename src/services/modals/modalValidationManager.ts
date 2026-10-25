@@ -77,9 +77,10 @@ export class ModalValidationManager {
       validationText.textContent = message;
       validationMessage.classList.add('show');
 
-      const modalContent = validationMessage.closest('.modal-content');
-      if (modalContent) {
-        modalContent.scrollTop = 0;
+      // The banner sits first in the sheet's scrolling body.
+      const sheetBody = validationMessage.closest('.si-sheet__body');
+      if (sheetBody) {
+        sheetBody.scrollTop = 0;
       }
 
       // Auto-clear error after 5 seconds

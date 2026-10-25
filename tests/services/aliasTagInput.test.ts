@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 
 import { initializeAliasTagInput } from '../../src/services/aliasTagInput';
+import { must } from '../testHelpers';
 
 vi.mock('../../src/utils/constants', () => ({
   ELEMENTS: {
@@ -35,14 +36,14 @@ describe('aliasTagInput', () => {
   it('should do nothing if elements are missing', () => {
     const root = document.createElement('div');
     (root as any).getElementById = () => null;
-    expect(() => initializeAliasTagInput(root as unknown as ShadowRoot, 'add')).not.toThrow();
+    expect(() => initializeAliasTagInput(root as unknown as ShadowRoot, 'add', {})).not.toThrow();
   });
 
   it('should render initial chips from hidden input value', () => {
     const root = createMockShadowRoot('add', 'oats, hot cereal');
-    initializeAliasTagInput(root, 'add');
+    initializeAliasTagInput(root, 'add', {});
 
-    const chips = (root as unknown as HTMLElement).querySelector('#add-alias-chips')!;
+    const chips = must((root as unknown as HTMLElement).querySelector('#add-alias-chips'));
     const chipElements = chips.querySelectorAll('.alias-chip');
     expect(chipElements).toHaveLength(2);
     expect(chipElements[0].textContent).toContain('oats');
@@ -51,7 +52,7 @@ describe('aliasTagInput', () => {
 
   it('should add alias chip on Enter', () => {
     const root = createMockShadowRoot('add');
-    initializeAliasTagInput(root, 'add');
+    initializeAliasTagInput(root, 'add', {});
 
     const visibleInput = (root as unknown as HTMLElement).querySelector(
       '#add-aliases-input',
@@ -66,13 +67,13 @@ describe('aliasTagInput', () => {
     expect(hiddenInput.value).toBe('oats');
     expect(visibleInput.value).toBe('');
 
-    const chips = (root as unknown as HTMLElement).querySelector('#add-alias-chips')!;
+    const chips = must((root as unknown as HTMLElement).querySelector('#add-alias-chips'));
     expect(chips.querySelectorAll('.alias-chip')).toHaveLength(1);
   });
 
   it('should prevent duplicate aliases', () => {
     const root = createMockShadowRoot('add', 'oats');
-    initializeAliasTagInput(root, 'add');
+    initializeAliasTagInput(root, 'add', {});
 
     const visibleInput = (root as unknown as HTMLElement).querySelector(
       '#add-aliases-input',
@@ -85,13 +86,13 @@ describe('aliasTagInput', () => {
     visibleInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
 
     expect(hiddenInput.value).toBe('oats');
-    const chips = (root as unknown as HTMLElement).querySelector('#add-alias-chips')!;
+    const chips = must((root as unknown as HTMLElement).querySelector('#add-alias-chips'));
     expect(chips.querySelectorAll('.alias-chip')).toHaveLength(1);
   });
 
   it('should ignore empty input on Enter', () => {
     const root = createMockShadowRoot('add');
-    initializeAliasTagInput(root, 'add');
+    initializeAliasTagInput(root, 'add', {});
 
     const visibleInput = (root as unknown as HTMLElement).querySelector(
       '#add-aliases-input',
@@ -108,9 +109,9 @@ describe('aliasTagInput', () => {
 
   it('should remove chip when remove button clicked', () => {
     const root = createMockShadowRoot('add', 'oats, hot cereal');
-    initializeAliasTagInput(root, 'add');
+    initializeAliasTagInput(root, 'add', {});
 
-    const chips = (root as unknown as HTMLElement).querySelector('#add-alias-chips')!;
+    const chips = must((root as unknown as HTMLElement).querySelector('#add-alias-chips'));
     const hiddenInput = (root as unknown as HTMLElement).querySelector(
       '#add-aliases',
     ) as HTMLInputElement;
@@ -124,7 +125,7 @@ describe('aliasTagInput', () => {
 
   it('should not react to non-Enter keys', () => {
     const root = createMockShadowRoot('add');
-    initializeAliasTagInput(root, 'add');
+    initializeAliasTagInput(root, 'add', {});
 
     const visibleInput = (root as unknown as HTMLElement).querySelector(
       '#add-aliases-input',
@@ -141,15 +142,35 @@ describe('aliasTagInput', () => {
 
   it('should use the correct prefix for edit modal', () => {
     const root = createMockShadowRoot('edit', 'oats');
-    initializeAliasTagInput(root, 'edit');
+    initializeAliasTagInput(root, 'edit', {});
 
-    const chips = (root as unknown as HTMLElement).querySelector('#edit-alias-chips')!;
+    const chips = must((root as unknown as HTMLElement).querySelector('#edit-alias-chips'));
     expect(chips.querySelectorAll('.alias-chip')).toHaveLength(1);
+  });
+
+  it('makes each remove × a labelled button that the keyboard can reach', () => {
+    const root = createMockShadowRoot('add', 'oats, porridge');
+    document.body.appendChild(root as unknown as HTMLElement);
+    initializeAliasTagInput(root, 'add', { modal: { remove_value: 'Retirer {value}' } });
+
+    const removeBtn = (root as unknown as HTMLElement).querySelector('.alias-chip-remove');
+    if (!(removeBtn instanceof HTMLButtonElement)) throw new Error('remove × is not a button');
+    expect(removeBtn.type).toBe('button');
+    expect(removeBtn.getAttribute('aria-label')).toBe('Retirer oats');
+    removeBtn.focus();
+    expect(document.activeElement).toBe(removeBtn);
+
+    // Enter and Space on a native button fire click.
+    removeBtn.click();
+    expect(
+      (root as unknown as HTMLElement).querySelector<HTMLInputElement>('#add-aliases')?.value,
+    ).toBe('porridge');
+    (root as unknown as HTMLElement).remove();
   });
 
   it('should split a comma-containing Enter press into separate chips', () => {
     const root = createMockShadowRoot('add');
-    initializeAliasTagInput(root, 'add');
+    initializeAliasTagInput(root, 'add', {});
 
     const visibleInput = (root as unknown as HTMLElement).querySelector(
       '#add-aliases-input',
@@ -164,7 +185,7 @@ describe('aliasTagInput', () => {
     expect(hiddenInput.value).toBe('oats, hot cereal');
     expect(visibleInput.value).toBe('');
 
-    const chips = (root as unknown as HTMLElement).querySelector('#add-alias-chips')!;
+    const chips = must((root as unknown as HTMLElement).querySelector('#add-alias-chips'));
     const chipElements = chips.querySelectorAll('.alias-chip');
     expect(chipElements).toHaveLength(2);
     expect(chipElements[0].textContent).toContain('oats');
@@ -173,7 +194,7 @@ describe('aliasTagInput', () => {
 
   it('should treat differently-cased aliases as distinct', () => {
     const root = createMockShadowRoot('add');
-    initializeAliasTagInput(root, 'add');
+    initializeAliasTagInput(root, 'add', {});
 
     const visibleInput = (root as unknown as HTMLElement).querySelector(
       '#add-aliases-input',
@@ -189,7 +210,7 @@ describe('aliasTagInput', () => {
     visibleInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
 
     expect(hiddenInput.value).toBe('oats, Oats');
-    const chips = (root as unknown as HTMLElement).querySelector('#add-alias-chips')!;
+    const chips = must((root as unknown as HTMLElement).querySelector('#add-alias-chips'));
     expect(chips.querySelectorAll('.alias-chip')).toHaveLength(2);
   });
 
@@ -201,8 +222,8 @@ describe('aliasTagInput', () => {
       ) as HTMLInputElement;
       const addEventListenerSpy = vi.spyOn(visibleInput, 'addEventListener');
 
-      initializeAliasTagInput(root, 'add');
-      initializeAliasTagInput(root, 'add'); // simulate modal reopen
+      initializeAliasTagInput(root, 'add', {});
+      initializeAliasTagInput(root, 'add', {}); // simulate modal reopen
 
       const keydownRegistrations = addEventListenerSpy.mock.calls.filter(
         (call) => call[0] === 'keydown',
@@ -221,16 +242,16 @@ describe('aliasTagInput', () => {
 
     it('still renders freshly populated chips on a second call (e.g. editing a different item)', () => {
       const root = createMockShadowRoot('edit', 'first-item-alias');
-      initializeAliasTagInput(root, 'edit');
+      initializeAliasTagInput(root, 'edit', {});
 
       const hiddenInput = (root as unknown as HTMLElement).querySelector(
         '#edit-aliases',
       ) as HTMLInputElement;
-      const chips = (root as unknown as HTMLElement).querySelector('#edit-alias-chips')!;
+      const chips = must((root as unknown as HTMLElement).querySelector('#edit-alias-chips'));
 
       // Simulate populateEditModal writing a different item's aliases before reopening.
       hiddenInput.value = 'second-item-alias';
-      initializeAliasTagInput(root, 'edit');
+      initializeAliasTagInput(root, 'edit', {});
 
       const chipElements = chips.querySelectorAll('.alias-chip');
       expect(chipElements).toHaveLength(1);
@@ -239,7 +260,7 @@ describe('aliasTagInput', () => {
 
     it('marks the visible input as bound after the first call', () => {
       const root = createMockShadowRoot('add');
-      initializeAliasTagInput(root, 'add');
+      initializeAliasTagInput(root, 'add', {});
 
       const visibleInput = (root as unknown as HTMLElement).querySelector(
         '#add-aliases-input',

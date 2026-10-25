@@ -37,6 +37,8 @@ export function initializeModalMultiSelect(config: ModalMultiSelectInitConfig): 
 
   function updateHiddenInput(selected: string[]): void {
     hiddenInput.value = selected.join(', ');
+    // Let the modal react to the new value (e.g. batch merge notes follow the first location).
+    hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
   }
 
   function renderChips(): void {
@@ -46,11 +48,11 @@ export function initializeModalMultiSelect(config: ModalMultiSelectInitConfig): 
 
     if (selected.length === 0) {
       chipsContainer.innerHTML = '';
-      if (label) label.style.display = '';
+      if (label) label.hidden = false;
       return;
     }
 
-    if (label) label.style.display = 'none';
+    if (label) label.hidden = true;
     chipsContainer.innerHTML = '';
     for (const value of selected) {
       const chip = document.createElement('span');
@@ -128,11 +130,11 @@ export function initializeModalMultiSelect(config: ModalMultiSelectInitConfig): 
     const allDropdowns = root.querySelectorAll('.modal-multi-select-dropdown');
     allDropdowns.forEach((d) => {
       if (d !== dropdown) {
-        (d as HTMLElement).style.display = 'none';
+        (d as HTMLElement).hidden = true;
       }
     });
     isOpen = !isOpen;
-    dropdown.style.display = isOpen ? 'block' : 'none';
+    dropdown.hidden = !isOpen;
   });
 
   // Handle checkbox changes
@@ -195,7 +197,7 @@ export function initializeModalMultiSelect(config: ModalMultiSelectInitConfig): 
   // Close on outside click
   root.addEventListener('click', (e) => {
     if (!trigger.contains(e.target as Node) && !dropdown.contains(e.target as Node)) {
-      dropdown.style.display = 'none';
+      dropdown.hidden = true;
       isOpen = false;
     }
   });

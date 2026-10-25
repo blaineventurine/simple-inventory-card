@@ -85,4 +85,26 @@ describe('createMultiSelect', () => {
       expect(result).toContain(`<span>${escaped}</span>`);
     });
   });
+
+  it('renders every option as a toggle chip that wraps its checkbox', () => {
+    const host = document.createElement('div');
+    host.innerHTML = createMultiSelect({ ...baseConfig, selected: ['Dairy'] });
+
+    const chips = host.querySelectorAll(
+      '.multi-select-dropdown > label.multi-select-option.si-chip.si-toggle-chip',
+    );
+    expect(chips).toHaveLength(2);
+    expect(chips[1].querySelector<HTMLInputElement>('input[type="checkbox"]')?.checked).toBe(true);
+    expect(chips[1].querySelector('ha-icon.si-toggle-chip__check')?.getAttribute('icon')).toBe(
+      'mdi:check',
+    );
+  });
+
+  it('keeps the trigger and uses an mdi arrow', () => {
+    const result = createMultiSelect(baseConfig);
+
+    expect(result).toContain('id="filter-category-trigger"');
+    expect(result).toContain('icon="mdi:menu-down"');
+    expect(result).not.toContain('▼');
+  });
 });

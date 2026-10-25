@@ -1,21 +1,25 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
 import { Modals } from '../../src/services/modals';
+import { BatchEditor } from '../../src/services/modals/batchEditor';
 import { InventoryServices } from '../../src/types/inventoryServices';
 import { ServiceResult as InventoryServiceResult } from '../../src/types/serviceResult';
 import { ModalFormManager } from '../../src/services/modals/modalFormManager';
 import { ModalValidationManager } from '../../src/services/modals/modalValidationManager';
 import { ModalUIManager } from '../../src/services/modals/modalUIManager';
 import { FormUtils } from '../../src/utils/formUtils';
-import { HomeAssistant, InventoryConfig, InventoryItem } from '../../src/types/homeAssistant';
-import { RawFormData, SanitizedItemData, ItemData } from '../../src/types/inventoryItem';
+import { HomeAssistant } from '../../src/types/homeAssistant';
+import { InventoryConfig, InventoryItem } from '../../src/types/inventory';
+import { RawFormData, ItemData } from '../../src/types/inventoryItem';
 import { ValidationError } from '../../src/types/validationError';
 
-import { createMockHomeAssistant } from '../testHelpers';
+import { createMockCardContext, createMockHomeAssistant } from '../testHelpers';
 import { TranslationData } from '@/types/translatableComponent';
 
 vi.mock('../../src/services/modals/modalFormManager');
 vi.mock('../../src/services/modals/modalValidationManager');
 vi.mock('../../src/services/modals/modalUIManager');
+vi.mock('../../src/services/modals/batchEditor');
+vi.mock('../../src/services/modals/duplicateBatchOffer');
 vi.mock('../../src/utils/utilities');
 vi.mock('../../src/utils/formUtils');
 vi.mock('../../src/services/modalMultiSelect', () => ({
@@ -40,10 +44,12 @@ describe('Modals (Integration)', () => {
   let mockOnDataChanged: () => void;
   let mockUIManager: any;
   let mockValidationManager: any;
+  let mockBatchEditor: { open: Mock; toggleRemoved: Mock; collect: Mock; apply: Mock };
 
   beforeEach(() => {
     vi.useFakeTimers();
-    mockShadowRoot = {} as ShadowRoot;
+    // An empty sheet DOM: the managers are mocked; Modals only looks up the save buttons itself.
+    mockShadowRoot = document.createElement('div').attachShadow({ mode: 'open' });
 
     mockServices = {
       addItem: vi.fn(),
@@ -108,6 +114,16 @@ describe('Modals (Integration)', () => {
       return mockUIManager;
     });
 
+    mockBatchEditor = {
+      open: vi.fn(),
+      toggleRemoved: vi.fn(),
+      collect: vi.fn().mockReturnValue({ valid: true, operations: [] }),
+      apply: vi.fn().mockResolvedValue({ success: true }),
+    };
+    vi.mocked(BatchEditor).mockImplementation(function () {
+      return mockBatchEditor as unknown as BatchEditor;
+    });
+
     modals = new Modals(mockShadowRoot, mockServices, mockGetInventoryId, mockOnDataChanged);
   });
 
@@ -125,6 +141,7 @@ describe('Modals (Integration)', () => {
         mockShadowRoot,
         mockFormManager,
         mockValidationManager,
+        expect.any(Function),
       );
     });
 
@@ -206,8 +223,7 @@ describe('Modals (Integration)', () => {
 
     it('should successfully add item with valid data', async () => {
       const mockValidation = { isValid: true, errors: [] };
-      const mockItemData: ItemData = { name: 'Test Item', quantity: 5 };
-      const mockSanitizedData: SanitizedItemData = {
+      const mockItemData: ItemData = {
         aliases: '',
         autoAddEnabled: false,
         autoAddIdToDescriptionEnabled: false,
@@ -230,7 +246,7 @@ describe('Modals (Integration)', () => {
 
       vi.mocked(FormUtils.validateRawFormData).mockReturnValue(mockValidation);
       vi.mocked(FormUtils.convertRawFormDataToItemData).mockReturnValue(mockItemData);
-      vi.mocked(FormUtils.sanitizeItemData).mockReturnValue(mockSanitizedData);
+      vi.mocked(FormUtils.sanitizeItemData).mockReturnValue(mockItemData);
       vi.mocked(mockServices.addItem).mockResolvedValue(mockResult);
 
       const result = await modals.addItem(mockConfig);
@@ -275,7 +291,7 @@ describe('Modals (Integration)', () => {
 
       vi.mocked(FormUtils.validateRawFormData).mockReturnValue(mockValidation);
       vi.mocked(FormUtils.convertRawFormDataToItemData).mockReturnValue({} as ItemData);
-      vi.mocked(FormUtils.sanitizeItemData).mockReturnValue({} as SanitizedItemData);
+      vi.mocked(FormUtils.sanitizeItemData).mockReturnValue({} as ItemData);
       vi.mocked(mockServices.addItem).mockResolvedValue(mockResult);
 
       const result = await modals.addItem(mockConfig);
@@ -345,8 +361,7 @@ describe('Modals (Integration)', () => {
       modals.openEditModal('Test Item', mockGetFreshStateCallback, mockTranslations);
 
       const mockValidation = { isValid: true, errors: [] };
-      const mockItemData: ItemData = { name: 'Updated Item', quantity: 10 };
-      const mockSanitizedData: SanitizedItemData = {
+      const mockItemData: ItemData = {
         aliases: '',
         autoAddEnabled: true,
         autoAddIdToDescriptionEnabled: false,
@@ -369,7 +384,7 @@ describe('Modals (Integration)', () => {
 
       vi.mocked(FormUtils.validateRawFormData).mockReturnValue(mockValidation);
       vi.mocked(FormUtils.convertRawFormDataToItemData).mockReturnValue(mockItemData);
-      vi.mocked(FormUtils.sanitizeItemData).mockReturnValue(mockSanitizedData);
+      vi.mocked(FormUtils.sanitizeItemData).mockReturnValue(mockItemData);
       vi.mocked(mockServices.updateItem).mockResolvedValue(mockResult);
 
       const result = await modals.saveEditModal(mockConfig);
@@ -383,6 +398,84 @@ describe('Modals (Integration)', () => {
       );
       expect(mockOnDataChanged).toHaveBeenCalled();
       expect(result).toBe(true);
+    });
+
+    describe('duplicate names, folded like the integration', () => {
+      function editTo(name: string): void {
+        const itemData: ItemData = {
+          aliases: '',
+          autoAddEnabled: false,
+          autoAddIdToDescriptionEnabled: false,
+          autoAddToListQuantity: 0,
+          barcode: '',
+          category: '',
+          description: '',
+          desiredQuantity: 0,
+          expiryAlertDays: 0,
+          expiryDate: '',
+          location: '',
+          name,
+          price: 0,
+          quantity: 1,
+          todoList: '',
+          todoQuantityPlacement: 'name',
+          unit: '',
+        };
+        vi.mocked(FormUtils.validateRawFormData).mockReturnValue({ isValid: true, errors: [] });
+        vi.mocked(FormUtils.convertRawFormDataToItemData).mockReturnValue(itemData);
+        vi.mocked(FormUtils.sanitizeItemData).mockReturnValue(itemData);
+        vi.mocked(mockServices.updateItem).mockResolvedValue({ success: true });
+      }
+
+      /** A Modals whose card holds the items `names` (the duplicate check reads them). */
+      function openWith(editing: string, names: string[]): void {
+        vi.mocked(mockUIManager.openEditModal).mockReturnValue({ found: true });
+        const items = names.map((name): InventoryItem => ({
+          name,
+          quantity: 1,
+          unit: '',
+          description: '',
+          category: '',
+          location: '',
+          expiry_date: '',
+          todo_list: '',
+          auto_add_enabled: false,
+          auto_add_id_to_description_enabled: false,
+        }));
+        const context = createMockCardContext({ hass: mockHass, config: mockConfig, items });
+        modals = new Modals(
+          mockShadowRoot,
+          mockServices,
+          mockGetInventoryId,
+          mockOnDataChanged,
+          () => context,
+        );
+        modals.openEditModal(editing, () => context, mockTranslations);
+      }
+
+      it("refuses a rename to another item's name in another case form (ß → SS)", async () => {
+        openWith('Map', ['Map', 'Straße']);
+        editTo('STRASSE');
+
+        const result = await modals.saveEditModal(mockConfig);
+
+        expect(result).toBe(false);
+        expect(vi.mocked(mockValidationManager.highlightInvalidFields)).toHaveBeenCalledWith(
+          [{ field: 'name', message: 'Duplicate name' }],
+          false,
+        );
+        expect(vi.mocked(mockServices.updateItem)).not.toHaveBeenCalled();
+      });
+
+      it("allows changing only the case form of the item's own name", async () => {
+        openWith('Straße', ['Straße']);
+        editTo('STRASSE');
+
+        const result = await modals.saveEditModal(mockConfig);
+
+        expect(result).toBe(true);
+        expect(vi.mocked(mockServices.updateItem)).toHaveBeenCalled();
+      });
     });
 
     it('should handle validation errors in edit mode', async () => {
@@ -418,7 +511,7 @@ describe('Modals (Integration)', () => {
 
       vi.mocked(FormUtils.validateRawFormData).mockReturnValue(mockValidation);
       vi.mocked(FormUtils.convertRawFormDataToItemData).mockReturnValue({} as ItemData);
-      vi.mocked(FormUtils.sanitizeItemData).mockReturnValue({} as SanitizedItemData);
+      vi.mocked(FormUtils.sanitizeItemData).mockReturnValue({} as ItemData);
       vi.mocked(mockServices.updateItem).mockResolvedValue(mockResult);
 
       const result = await modals.saveEditModal(mockConfig);
@@ -447,7 +540,7 @@ describe('Modals (Integration)', () => {
       const mockValidation = { isValid: true, errors: [] };
       vi.mocked(FormUtils.validateRawFormData).mockReturnValue(mockValidation);
       vi.mocked(FormUtils.convertRawFormDataToItemData).mockReturnValue({} as ItemData);
-      vi.mocked(FormUtils.sanitizeItemData).mockReturnValue({} as SanitizedItemData);
+      vi.mocked(FormUtils.sanitizeItemData).mockReturnValue({} as ItemData);
       vi.mocked(mockServices.updateItem).mockResolvedValue({ success: true });
 
       result = await modals.saveEditModal(mockConfig);
@@ -466,6 +559,137 @@ describe('Modals (Integration)', () => {
       // Should not be in editing state
       const result = await modals.saveEditModal({} as InventoryConfig);
       expect(result).toBe(false);
+    });
+  });
+
+  describe('batch editor', () => {
+    const config: InventoryConfig = { type: 'inventory-card', entity: 'sensor.inventory' };
+    const milk: InventoryItem = {
+      auto_add_enabled: false,
+      auto_add_id_to_description_enabled: false,
+      category: '',
+      description: '',
+      expiry_date: '',
+      location: '',
+      name: 'Milk',
+      quantity: 3,
+      todo_list: '',
+      unit: 'L',
+      batches: [],
+    };
+    const removeB2 = { kind: 'remove', batchId: 'b2' } as const;
+    const wholeMilk: ItemData = {
+      aliases: '',
+      autoAddEnabled: false,
+      autoAddIdToDescriptionEnabled: false,
+      autoAddToListQuantity: 0,
+      barcode: '',
+      category: '',
+      description: '',
+      desiredQuantity: 0,
+      expiryAlertDays: 0,
+      expiryDate: '',
+      location: '',
+      name: 'Whole Milk',
+      price: 0,
+      quantity: 1,
+      todoList: '',
+      todoQuantityPlacement: 'name',
+      unit: '',
+    };
+
+    beforeEach(() => {
+      vi.mocked(mockUIManager.openEditModal).mockReturnValue({ found: true, item: milk });
+      vi.mocked(mockFormManager.getRawEditModalData).mockReturnValue({} as RawFormData);
+      vi.mocked(FormUtils.validateRawFormData).mockReturnValue({ isValid: true, errors: [] });
+      vi.mocked(FormUtils.convertRawFormDataToItemData).mockReturnValue(wholeMilk);
+      vi.mocked(mockServices.updateItem).mockResolvedValue({ success: true });
+      modals.openEditModal('Milk', mockGetFreshStateCallback, mockTranslations);
+    });
+
+    it('fills the batch editor with the item being edited', () => {
+      expect(mockBatchEditor.open).toHaveBeenCalledWith(milk, mockTranslations);
+    });
+
+    it('saves the item first, then the batch changes, then refreshes', async () => {
+      mockBatchEditor.collect.mockReturnValue({ valid: true, operations: [removeB2] });
+
+      expect(await modals.saveEditModal(config)).toBe(true);
+
+      expect(mockServices.updateItem).toHaveBeenCalledWith(
+        'inventory_sensor.inventory',
+        'Milk',
+        wholeMilk,
+      );
+      expect(mockBatchEditor.apply).toHaveBeenCalledWith(
+        mockServices,
+        'inventory_sensor.inventory',
+        'Whole Milk',
+        [removeB2],
+      );
+      expect(vi.mocked(mockServices.updateItem).mock.invocationCallOrder[0]).toBeLessThan(
+        mockBatchEditor.apply.mock.invocationCallOrder[0],
+      );
+      expect(mockOnDataChanged).toHaveBeenCalled();
+    });
+
+    it('rejects invalid batch input before saving anything', async () => {
+      mockBatchEditor.collect.mockReturnValue({
+        valid: false,
+        message: 'Batch quantity must be a number of 0 or more',
+      });
+
+      expect(await modals.saveEditModal(config)).toBe(false);
+      expect(mockServices.updateItem).not.toHaveBeenCalled();
+      expect(mockValidationManager.showError).toHaveBeenCalledWith(
+        'Batch quantity must be a number of 0 or more',
+        false,
+      );
+    });
+
+    it("shows the integration's batch_required message and skips batch changes", async () => {
+      const message = "Milk has 2 batches; change the batch itself instead of the item's price";
+      vi.mocked(mockServices.updateItem).mockResolvedValue({
+        success: false,
+        error: message,
+        errorCode: 'batch_required',
+      });
+
+      expect(await modals.saveEditModal(config)).toBe(false);
+      expect(mockValidationManager.showError).toHaveBeenCalledWith(
+        `Error updating item: ${message}`,
+        false,
+      );
+      expect(mockBatchEditor.apply).not.toHaveBeenCalled();
+    });
+
+    it('keeps the modal open on a batch failure and retries under the new name', async () => {
+      mockBatchEditor.collect.mockReturnValue({ valid: true, operations: [removeB2] });
+      mockBatchEditor.apply.mockResolvedValueOnce({
+        success: false,
+        error: 'Error updating batch: nope',
+      });
+
+      expect(await modals.saveEditModal(config)).toBe(false);
+      expect(mockValidationManager.showError).toHaveBeenCalledWith(
+        'Error updating batch: nope',
+        false,
+      );
+      expect(mockUIManager.closeEditModal).not.toHaveBeenCalled();
+      // The item update landed: the card must refresh, which it defers until the modal closes.
+      expect(mockOnDataChanged).toHaveBeenCalledTimes(1);
+
+      expect(await modals.saveEditModal(config)).toBe(true);
+      expect(mockServices.updateItem).toHaveBeenLastCalledWith(
+        'inventory_sensor.inventory',
+        'Whole Milk',
+        wholeMilk,
+      );
+    });
+
+    it('delegates remove toggles to the batch editor', () => {
+      modals.toggleBatchRemoved('b2');
+      expect(mockBatchEditor.toggleRemoved).toHaveBeenCalledWith('b2');
     });
   });
 });

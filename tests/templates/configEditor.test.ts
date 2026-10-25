@@ -4,10 +4,12 @@ import {
   createEntitySelector,
   createEntityInfo,
   createNoEntityMessage,
+  createLayoutToggle,
   createVisibilityToggles,
 } from '../../src/templates/configEditor';
-import { HomeAssistant, InventoryConfig } from '../../src/types/homeAssistant';
-import { createMockHomeAssistant, createMockHassEntity } from '../testHelpers';
+import { HomeAssistant } from '../../src/types/homeAssistant';
+import { InventoryConfig } from '../../src/types/inventory';
+import { createMockHomeAssistant, createMockHassEntity, must } from '../testHelpers';
 import { TranslationData } from '@/types/translatableComponent';
 
 vi.mock('lit-element', () => ({
@@ -19,14 +21,7 @@ vi.mock('lit-element', () => ({
   })),
 }));
 
-vi.mock('../../src/services/translationManager', () => ({
-  TranslationManager: {
-    localize: vi.fn((_translations: any, _key: string, _params: any, fallback: string) => {
-      return fallback;
-    }),
-  },
-  TranslationData: {},
-}));
+vi.mock('../../src/services/translationManager', () => import('../mocks/translationManager'));
 
 describe('Config Editor Templates', () => {
   let mockHass: HomeAssistant;
@@ -394,15 +389,15 @@ describe('Config Editor Templates', () => {
       expect(templateString).toContain('class="visibility-toggles"');
     });
 
-    it('should render ten toggle items', () => {
+    it('should render eleven toggle items, including item icons', () => {
       const onToggle = vi.fn();
       createVisibilityToggles(defaultConfig, onToggle, mockTranslations);
 
       const htmlCalls = vi.mocked(html).mock.calls;
-      // The outer template call + 10 inner calls for each toggle
-      // Find calls that contain ha-formfield
+      // The outer template call + one inner call per toggle
       const toggleCalls = htmlCalls.filter((call) => call[0].join('').includes('ha-formfield'));
-      expect(toggleCalls.length).toBe(10);
+      expect(toggleCalls.length).toBe(11);
+      expect(toggleCalls.some((call) => call.slice(1).includes('Show item icons'))).toBe(true);
     });
 
     it('should default all toggles to checked when config has no show_* fields', () => {
@@ -432,6 +427,7 @@ describe('Config Editor Templates', () => {
         show_expiry: false,
         show_auto_add_info: false,
         show_price: false,
+        show_icon: false,
       };
       const onToggle = vi.fn();
       createVisibilityToggles(config, onToggle, mockTranslations);
@@ -454,7 +450,9 @@ describe('Config Editor Templates', () => {
         call[0].join('').includes('class="section-header"'),
       );
       expect(outerCall).toBeDefined();
-      const headerValue = outerCall!.slice(1).find((v) => v === 'Display Options');
+      const headerValue = must(outerCall)
+        .slice(1)
+        .find((v) => v === 'Display Options');
       expect(headerValue).toBe('Display Options');
     });
   });
@@ -533,6 +531,41 @@ describe('Config Editor Templates', () => {
 
       const htmlCall = vi.mocked(html).mock.calls[0];
       expect(htmlCall[2]).toBe(specialCharName); // Should pass through as-is (Lit handles escaping)
+    });
+  });
+
+  describe('createLayoutToggle', () => {
+    const config: InventoryConfig = { type: 'custom:simple-inventory-card', entity: 'sensor.a' };
+    const switchValues = (): unknown[] =>
+      must(vi.mocked(html).mock.calls.find((call) => call[0].join('').includes('ha-switch'))).slice(
+        1,
+      );
+
+    it('is a "Show items as tiles" switch, on only for layout: tiles', () => {
+      createLayoutToggle(config, vi.fn(), mockTranslations);
+      expect(switchValues()).toContain('Show items as tiles');
+      expect(switchValues()).toContain(false);
+
+      vi.mocked(html).mockClear();
+      createLayoutToggle({ ...config, layout: 'tiles' }, vi.fn(), mockTranslations);
+      expect(switchValues()).toContain(true);
+    });
+
+    it('reports the switch state', () => {
+      const onChanged = vi.fn();
+      createLayoutToggle(config, onChanged, mockTranslations);
+      const handler = switchValues().find((value) => typeof value === 'function');
+      const target = document.createElement('input');
+      target.type = 'checkbox';
+      target.checked = true;
+      const event = new Event('change');
+      Object.defineProperty(event, 'target', { value: target });
+
+      if (typeof handler === 'function') {
+        handler(event);
+      }
+
+      expect(onChanged).toHaveBeenCalledWith(true);
     });
   });
 });

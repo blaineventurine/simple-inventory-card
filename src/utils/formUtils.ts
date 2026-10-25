@@ -1,5 +1,5 @@
-import { DEFAULTS } from './constants';
-import { ItemData, SanitizedItemData, RawFormData } from '../types/inventoryItem';
+import { ItemData, RawFormData } from '../types/inventoryItem';
+import { ITEM_FORM_FIELDS, collectItemForm } from './itemFormFields';
 import { ValidationError } from '../types/validationError';
 import { DateUtils } from './dateUtils';
 
@@ -9,7 +9,7 @@ interface ValidationResult {
 }
 
 export const FormUtils = {
-  parseNumber(value: string | number | undefined, defaultValue: number): number {
+  parseNumber(value: unknown, defaultValue: number): number {
     if ((typeof value === 'string' && !value?.trim()) || value === undefined) {
       return defaultValue;
     }
@@ -23,7 +23,7 @@ export const FormUtils = {
     return parsed;
   },
 
-  sanitizeString(string_: string | undefined, maxLength: number): string {
+  sanitizeString(string_: unknown, maxLength: number): string {
     if (!string_ || typeof string_ !== 'string') {
       return '';
     }
@@ -110,72 +110,48 @@ export const FormUtils = {
     };
   },
 
+  /** Form strings → item values, by each `ITEM_FORM_FIELDS` row's value rule. */
   convertRawFormDataToItemData(formData: RawFormData): ItemData {
-    return {
-      aliases: formData.aliases?.trim() || DEFAULTS.ALIASES,
-      name: formData.name?.trim() || '',
-      quantity: Math.max(0, FormUtils.parseNumber(formData.quantity, DEFAULTS.QUANTITY)),
-      autoAddEnabled: Boolean(formData.autoAddEnabled),
-      autoAddIdToDescriptionEnabled: Boolean(formData.autoAddIdToDescriptionEnabled),
-      autoAddToListQuantity: Math.max(
-        0,
-        FormUtils.parseNumber(formData.autoAddToListQuantity, DEFAULTS.AUTO_ADD_TO_LIST_QUANTITY),
-      ),
-      todoList: formData.todoList?.trim() || DEFAULTS.TODO_LIST,
-      expiryDate: formData.expiryDate?.trim() || DEFAULTS.EXPIRY_DATE,
-      expiryAlertDays: Math.max(
-        0,
-        FormUtils.parseNumber(formData.expiryAlertDays, DEFAULTS.EXPIRY_ALERT_DAYS),
-      ),
-      category: formData.category?.trim() || DEFAULTS.CATEGORY,
-      desiredQuantity: Math.max(
-        0,
-        FormUtils.parseNumber(formData.desiredQuantity, DEFAULTS.DESIRED_QUANTITY),
-      ),
-      location: formData.location?.trim() || DEFAULTS.LOCATION,
-      unit: formData.unit?.trim() || DEFAULTS.UNIT,
-      description: formData.description?.trim() || DEFAULTS.DESCRIPTION,
-      barcode: formData.barcode?.trim() || DEFAULTS.BARCODE,
-      price: Math.max(0, FormUtils.parseNumber(formData.price, DEFAULTS.PRICE)),
-      todoQuantityPlacement:
-        formData.todoQuantityPlacement?.trim() || DEFAULTS.TODO_QUANTITY_PLACEMENT,
-    };
+    return collectItemForm<ItemData>((key) => {
+      const { value: rule, send } = ITEM_FORM_FIELDS[key];
+      const raw: unknown = formData[key];
+      if (send === 'whenPresent' && raw === undefined) {
+        return undefined;
+      }
+      switch (rule.type) {
+        case 'boolean':
+          return Boolean(raw);
+        case 'number':
+          return Math.max(0, FormUtils.parseNumber(raw, rule.fallback));
+        case 'string':
+          return (typeof raw === 'string' && raw.trim()) || rule.fallback;
+      }
+    });
   },
 
-  sanitizeItemData(itemData: ItemData): SanitizedItemData {
-    return {
-      aliases: FormUtils.sanitizeString(itemData.aliases, 300),
-      autoAddEnabled: Boolean(itemData.autoAddEnabled),
-      autoAddIdToDescriptionEnabled: Boolean(itemData.autoAddIdToDescriptionEnabled),
-      autoAddToListQuantity: Math.max(
-        0,
-        FormUtils.parseNumber(itemData.autoAddToListQuantity, DEFAULTS.AUTO_ADD_TO_LIST_QUANTITY),
-      ),
-      barcode: FormUtils.sanitizeString(itemData.barcode, 100),
-      category: FormUtils.sanitizeString(itemData.category, 50),
-      description: FormUtils.sanitizeString(itemData.description, 500),
-      desiredQuantity: Math.max(
-        0,
-        FormUtils.parseNumber(itemData.desiredQuantity, DEFAULTS.DESIRED_QUANTITY),
-      ),
-      expiryAlertDays: Math.max(
-        0,
-        FormUtils.parseNumber(itemData.expiryAlertDays, DEFAULTS.EXPIRY_ALERT_DAYS),
-      ),
-      expiryDate: itemData.expiryDate || DEFAULTS.EXPIRY_DATE,
-      name: FormUtils.sanitizeString(itemData.name, 100),
-      quantity: Math.max(
-        0,
-        Math.min(999_999, FormUtils.parseNumber(itemData.quantity, DEFAULTS.QUANTITY)),
-      ),
-      todoList: FormUtils.sanitizeString(itemData.todoList, 100),
-      todoQuantityPlacement: FormUtils.sanitizeString(
-        itemData.todoQuantityPlacement || DEFAULTS.TODO_QUANTITY_PLACEMENT,
-        20,
-      ),
-      price: Math.max(0, FormUtils.parseNumber(itemData.price, DEFAULTS.PRICE)),
-      unit: FormUtils.sanitizeString(itemData.unit, 20),
-      location: FormUtils.sanitizeString(itemData.location, 50),
-    };
+  /**
+   * The service boundary: re-clamps every value and caps string lengths, by each
+   * `ITEM_FORM_FIELDS` row's value rule. Missing values fall back to the defaults.
+   */
+  sanitizeItemData(itemData: Partial<ItemData>): ItemData {
+    return collectItemForm<ItemData>((key) => {
+      const { value: rule, send } = ITEM_FORM_FIELDS[key];
+      const value: unknown = itemData[key];
+      if (send === 'whenPresent' && value === undefined) {
+        return undefined;
+      }
+      switch (rule.type) {
+        case 'boolean':
+          return Boolean(value);
+        case 'number': {
+          const parsed = FormUtils.parseNumber(value, rule.fallback);
+          return Math.max(0, rule.max === undefined ? parsed : Math.min(rule.max, parsed));
+        }
+        case 'string':
+          return rule.maxLength === undefined
+            ? value || rule.fallback
+            : FormUtils.sanitizeString(value || rule.fallback, rule.maxLength);
+      }
+    });
   },
 };

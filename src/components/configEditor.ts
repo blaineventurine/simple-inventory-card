@@ -1,9 +1,11 @@
 import { TemplateResult, CSSResult, LitElement, html } from 'lit-element';
-import { HomeAssistant, InventoryConfig } from '@/types/homeAssistant';
+import { HomeAssistant } from '@/types/homeAssistant';
+import { InventoryConfig, Layout } from '@/types/inventory';
 import { InventoryResolver } from '../utils/inventoryResolver';
 import {
   createEntitySelector,
   createEntityInfo,
+  createLayoutToggle,
   createNoEntityMessage,
   createVisibilityToggles,
 } from '../templates/configEditor';
@@ -162,25 +164,30 @@ class ConfigEditor extends LitElement {
         }
         ${
           this._entity
-            ? createVisibilityToggles(
+            ? html`${createVisibilityToggles(
                 this._config,
                 this._toggleChanged.bind(this),
                 this._translations,
-              )
+              )}${createLayoutToggle(
+                this._config,
+                (tiles: boolean) => this._toggleChanged('layout', tiles ? 'tiles' : 'list'),
+                this._translations,
+              )}`
             : ''
         }
       </div>
     `;
   }
 
-  private _toggleChanged(key: string, checked: boolean): void {
+  /** A display option changed: a `show_*` switch, or the layout switch (`layout`). */
+  private _toggleChanged(key: string, value: boolean | Layout): void {
     if (!this._config) {
       return;
     }
 
     const config: InventoryConfig = {
       ...this._config,
-      [key]: checked,
+      [key]: value,
     };
 
     this._config = config;

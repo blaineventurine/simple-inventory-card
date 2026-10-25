@@ -6,7 +6,7 @@ import { FormUtils } from '../../src/utils/formUtils';
 import { InventoryResolver } from '../../src/utils/inventoryResolver';
 import { createMockHassEntity } from '../testHelpers';
 import type { RawFormData, ItemData } from '../../src/types/inventoryItem';
-import type { InventoryItem } from '../../src/types/homeAssistant';
+import type { InventoryItem } from '../../src/types/inventory';
 
 describe('Utilities - Property-Based Tests', () => {
   describe('formatDate properties', () => {

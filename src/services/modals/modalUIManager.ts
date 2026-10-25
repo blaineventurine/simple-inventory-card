@@ -1,21 +1,160 @@
-import { ELEMENTS, CSS_CLASSES, TIMING, ACTIONS } from '../../utils/constants';
-import { HomeAssistant, InventoryItem, InventoryConfig } from '@/types/homeAssistant';
+import { ELEMENTS, CSS_CLASSES, TIMING } from '../../utils/constants';
+import { InventoryItem } from '@/types/inventory';
+import { CardContext } from '@/types/cardContext';
+import type { HomeAssistant } from '@/types/homeAssistant';
 import { ModalFormManager } from './modalFormManager';
 import { ModalValidationManager } from './modalValidationManager';
 import { TranslationData } from '@/types/translatableComponent';
 import { TranslationManager } from '../translationManager';
-import { initializeBarcodeTagInput, stopAllBarcodeScanners } from '../barcodeTagInput';
+import {
+  closeBarcodeScanner,
+  initializeBarcodeTagInput,
+  stopAllBarcodeScanners,
+} from '../barcodeTagInput';
 import { initializeAliasTagInput } from '../aliasTagInput';
+import { initializeIconField } from '../iconFieldInput';
+import type { AcquireHold, HoldKind } from '../inventoryStore';
+
+/** An open sheet: the element focused when it opened and the release of the hold it took. */
+interface OpenSheet {
+  opener: HTMLElement | undefined;
+  release: (() => void) | undefined;
+}
+
+/** Each card root's open sheets: one card never sees, forgets or releases another's. */
+const openSheetsByRoot = new WeakMap<ShadowRoot, Map<HTMLElement, OpenSheet>>();
+
+/** The open sheets of `root`. */
+function openSheets(root: ShadowRoot): Map<HTMLElement, OpenSheet> {
+  let sheets = openSheetsByRoot.get(root);
+  if (!sheets) {
+    sheets = new Map();
+    openSheetsByRoot.set(root, sheets);
+  }
+  return sheets;
+}
+
+/** The root each open sheet was shown in, so `hideSheet` finds its card's registry. */
+const sheetRoots = new WeakMap<HTMLElement, ShadowRoot>();
+
+/** Each card root's hold acquirer (`setSheetHolds`). */
+const sheetHolds = new WeakMap<ShadowRoot, AcquireHold>();
+
+/**
+ * The hold each sheet takes while open, by sheet id. `page`: staged edits and the import
+ * outcome (its own entity update would wipe it at once); `background`: the add and history
+ * sheets. Other sheets hold nothing.
+ */
+const SHEET_HOLD_KINDS: Readonly<Record<string, HoldKind>> = {
+  [ELEMENTS.EDIT_MODAL]: 'page',
+  [ELEMENTS.IMPORT_RESULT_MODAL]: 'page',
+  [ELEMENTS.ADD_MODAL]: 'background',
+  [ELEMENTS.HISTORY_MODAL]: 'background',
+};
+
+/** Sheets shown in `root` hold renders through `hold` while open. */
+export function setSheetHolds(root: ShadowRoot, hold: AcquireHold): void {
+  sheetHolds.set(root, hold);
+}
+
+/**
+ * Forget the sheets a re-render removed from `root`, releasing their holds: closing them would
+ * only steal focus. A sheet of a card that is merely detached is still in its root and stays.
+ * A full render calls this once it replaced the card.
+ */
+export function forgetDetachedSheets(root: ShadowRoot): void {
+  const sheets = openSheets(root);
+  for (const [modal, entry] of sheets) {
+    if (!root.contains(modal)) {
+      sheets.delete(modal);
+      sheetRoots.delete(modal);
+      entry.release?.();
+    }
+  }
+}
+
+/**
+ * Show a `.modal` sheet, take its hold and remember what had focus so closing can return focus
+ * there.
+ */
+export function showSheet(root: ShadowRoot, modal: HTMLElement): void {
+  forgetDetachedSheets(root);
+  const sheets = openSheets(root);
+  if (!sheets.has(modal)) {
+    const active = root.activeElement;
+    const kind = SHEET_HOLD_KINDS[modal.id];
+    sheets.set(modal, {
+      opener: active instanceof HTMLElement ? active : undefined,
+      release: kind ? sheetHolds.get(root)?.(kind, modal.id) : undefined,
+    });
+    sheetRoots.set(modal, root);
+  }
+  modal.classList.add(CSS_CLASSES.SHOW);
+}
+
+/** Event fired on a sheet's `.modal` element whenever an open sheet is hidden, by any route. */
+export const SHEET_CLOSED_EVENT = 'si-sheet-closed';
+
+/**
+ * Hide a sheet, release its hold and return focus to its opener when that is still on the
+ * page. Every close route (✕, backdrop, Escape, Cancel, Save, programmatic) ends here. The
+ * closed event goes out before the release, so a closer that refreshes on its own (the import
+ * result sheet) replaces the held refresh instead of adding a second one.
+ */
+export function hideSheet(modal: HTMLElement): void {
+  const wasOpen = modal.classList.contains(CSS_CLASSES.SHOW);
+  modal.classList.remove(CSS_CLASSES.SHOW);
+  const root = sheetRoots.get(modal);
+  sheetRoots.delete(modal);
+  const sheets = root ? openSheets(root) : undefined;
+  const entry = sheets?.get(modal);
+  sheets?.delete(modal);
+  if (entry?.opener?.isConnected) {
+    entry.opener.focus();
+  }
+  if (wasOpen) {
+    modal.dispatchEvent(new CustomEvent(SHEET_CLOSED_EVENT));
+  }
+  entry?.release?.();
+}
+
+/**
+ * Put `sheet()` markup into the card root. A sheet already mounted under the same id is
+ * reused (classes and content replaced) so repeated opens never stack duplicates.
+ */
+export function mountSheet(root: ShadowRoot, html: string): HTMLElement {
+  const template = document.createElement('template');
+  template.innerHTML = html.trim();
+  const fresh = template.content.firstElementChild;
+  if (!(fresh instanceof HTMLElement)) {
+    throw new Error('Sheet markup has no root element');
+  }
+  const existing = root.querySelector<HTMLElement>(`#${fresh.id}`);
+  if (!existing) {
+    root.appendChild(fresh);
+    return fresh;
+  }
+  existing.className = fresh.className;
+  existing.replaceChildren(...Array.from(fresh.childNodes));
+  return existing;
+}
 
 export class ModalUIManager {
   private boundEscHandler: ((e: KeyboardEvent) => void) | undefined = undefined;
+  /** Where the current click's press started; only a press on the scrim itself closes a sheet. */
+  private pressTarget: EventTarget | undefined = undefined;
+  private readonly recordPress = (e: Event): void => {
+    this.pressTarget = e.composedPath()[0];
+  };
 
   constructor(
     private readonly shadowRoot: ShadowRoot,
     private readonly formManager: ModalFormManager,
     private readonly validationManager: ModalValidationManager,
+    /** The card's current hass, for the barcode field's companion app scanner. */
+    private readonly getHass?: () => HomeAssistant | undefined,
   ) {
-    this.setupEventListeners();
+    this.addDocumentListeners();
   }
 
   /**
@@ -25,12 +164,13 @@ export class ModalUIManager {
     const modal = this.getElement<HTMLElement>(ELEMENTS.ADD_MODAL);
     if (modal) {
       this.validationManager.clearError(true);
-      modal.classList.add(CSS_CLASSES.SHOW);
-      this.focusElementWithDelay(ELEMENTS.NAME);
+      showSheet(this.shadowRoot, modal);
+      this.focusOnOpen(modal, `add-${ELEMENTS.NAME}`);
       this.setupExpiryThresholdInteraction(translations);
       this.validationManager.setupValidationListeners();
-      initializeBarcodeTagInput(this.shadowRoot, 'add', onBarcodeAdded);
-      initializeAliasTagInput(this.shadowRoot, 'add');
+      initializeBarcodeTagInput(this.shadowRoot, 'add', translations, onBarcodeAdded, this.getHass);
+      initializeAliasTagInput(this.shadowRoot, 'add', translations);
+      initializeIconField(this.shadowRoot, 'add');
     } else {
       console.warn('Add modal not found in DOM');
     }
@@ -40,10 +180,10 @@ export class ModalUIManager {
    * Closes the add item modal
    */
   closeAddModal(): void {
-    stopAllBarcodeScanners();
+    closeBarcodeScanner(this.shadowRoot, 'add');
     const modal = this.getElement<HTMLElement>(ELEMENTS.ADD_MODAL);
     if (modal) {
-      modal.classList.remove(CSS_CLASSES.SHOW);
+      hideSheet(modal);
     }
   }
 
@@ -52,10 +192,10 @@ export class ModalUIManager {
    */
   openEditModal(
     itemName: string,
-    getFreshData: () => { hass: HomeAssistant; config: InventoryConfig; items: InventoryItem[] },
+    getContext: () => Pick<CardContext, 'hass' | 'config' | 'items'>,
     translations: TranslationData,
   ): { item: InventoryItem | undefined; found: boolean } {
-    const { hass, config, items } = getFreshData();
+    const { hass, config, items } = getContext();
     const entityId = config.entity;
     const state = hass.states[entityId];
 
@@ -76,12 +216,14 @@ export class ModalUIManager {
     const modal = this.getElement<HTMLElement>(ELEMENTS.EDIT_MODAL);
     if (modal) {
       this.validationManager.clearError(false);
-      modal.classList.add(CSS_CLASSES.SHOW);
-      this.focusElementWithDelay(ELEMENTS.NAME, true);
+      showSheet(this.shadowRoot, modal);
+      // The sheet itself, not the name: no keyboard pop-up and no selected text on phones.
+      this.focusOnOpen(modal, undefined);
       this.setupExpiryThresholdInteraction(translations);
       this.validationManager.setupValidationListeners();
-      initializeBarcodeTagInput(this.shadowRoot, 'edit');
-      initializeAliasTagInput(this.shadowRoot, 'edit');
+      initializeBarcodeTagInput(this.shadowRoot, 'edit', translations, undefined, this.getHass);
+      initializeAliasTagInput(this.shadowRoot, 'edit', translations);
+      initializeIconField(this.shadowRoot, 'edit');
     }
 
     return { item, found: true };
@@ -91,10 +233,11 @@ export class ModalUIManager {
    * Closes the edit item modal
    */
   closeEditModal(): void {
-    stopAllBarcodeScanners();
+    closeBarcodeScanner(this.shadowRoot, 'edit');
     const modal = this.getElement<HTMLElement>(ELEMENTS.EDIT_MODAL);
     if (modal) {
-      modal.classList.remove(CSS_CLASSES.SHOW);
+      this.getElement<HTMLDetailsElement>(ELEMENTS.EDIT_MENU)?.removeAttribute('open');
+      hideSheet(modal);
     }
   }
 
@@ -107,13 +250,18 @@ export class ModalUIManager {
   }
 
   /**
-   * Handles modal click events (backdrop clicks, close buttons)
+   * Handles sheet clicks: backdrop and ✕ close the sheet; the edit ⋮ menu closes after a pick
+   * or a click elsewhere. Returns true when the click was consumed.
    */
   handleModalClick(e: MouseEvent): boolean {
     const target = e.target as HTMLElement;
+    // A press inside the panel released over the scrim (e.g. a text drag) is no backdrop tap.
+    const pressedHere = this.pressTarget === target;
+    this.pressTarget = undefined;
+    this.closeEditMenuAfter(target);
 
-    // Handle modal backdrop clicks (only if clicking directly on modal background)
-    if (target.id === ELEMENTS.ADD_MODAL || target.id === ELEMENTS.EDIT_MODAL) {
+    // Backdrop: a click on the overlay itself, outside the panel
+    if (pressedHere && (target.id === ELEMENTS.ADD_MODAL || target.id === ELEMENTS.EDIT_MODAL)) {
       e.preventDefault();
       e.stopPropagation();
 
@@ -126,32 +274,39 @@ export class ModalUIManager {
       return true;
     }
 
-    if (
-      target.dataset.action === ACTIONS.CLOSE_ADD_MODAL ||
-      (target.classList.contains(CSS_CLASSES.CLOSE_BTN) && target.closest(`#${ELEMENTS.ADD_MODAL}`))
-    ) {
+    if (pressedHere && openSheets(this.shadowRoot).has(target)) {
+      e.preventDefault();
+      e.stopPropagation();
+      hideSheet(target);
+      return true;
+    }
+
+    // ✕ buttons: the click may land on the icon inside the button
+    const closeButton = target.classList.contains(CSS_CLASSES.CLOSE_BTN)
+      ? target
+      : target.closest<HTMLElement>(`.${CSS_CLASSES.CLOSE_BTN}`);
+    if (!closeButton) {
+      return false;
+    }
+    if (closeButton.closest(`#${ELEMENTS.ADD_MODAL}`)) {
       e.preventDefault();
       e.stopPropagation();
       this.closeAddModal();
       return true;
     }
-
-    if (
-      target.classList.contains(CSS_CLASSES.CLOSE_BTN) &&
-      target.closest(`#${ELEMENTS.EDIT_MODAL}`)
-    ) {
+    if (closeButton.closest(`#${ELEMENTS.EDIT_MODAL}`)) {
       e.preventDefault();
       e.stopPropagation();
       this.closeEditModal();
       return true;
     }
-
-    // IMPORTANT: Don't close modal for clicks inside modal content
-    if (target.closest(`.${CSS_CLASSES.MODAL_CONTENT}`)) {
-      // Allow normal interaction with modal content
-      return false; // Let other handlers process this
+    const otherSheet = closeButton.closest<HTMLElement>('.si-sheet');
+    if (otherSheet) {
+      e.preventDefault();
+      e.stopPropagation();
+      hideSheet(otherSheet);
+      return true;
     }
-
     return false;
   }
 
@@ -234,36 +389,64 @@ export class ModalUIManager {
   }
 
   /**
-   * Sets up global event listeners (escape key)
+   * Close the edit sheet's ⋮ menu once an entry is picked or the click lands elsewhere. A pick
+   * returns focus to the ⋮ toggle, so e.g. Delete item → Cancel keeps focus in the sheet.
    */
-  private setupEventListeners(): void {
+  private closeEditMenuAfter(target: HTMLElement): void {
+    const menu = this.getElement<HTMLDetailsElement>(ELEMENTS.EDIT_MENU);
+    if (!menu?.open) {
+      return;
+    }
+    if (target.closest('.si-sheet__menu-item')) {
+      menu.open = false;
+      menu.querySelector<HTMLElement>('summary')?.focus();
+    } else if (!menu.contains(target)) {
+      menu.open = false;
+    }
+  }
+
+  /**
+   * Listens on the document for Escape and for where presses start; `destroy` removes both.
+   * Adds them once however often it is called.
+   */
+  addDocumentListeners(): void {
     if (!this.boundEscHandler) {
       this.boundEscHandler = this.handleEscapeKey.bind(this);
       document.addEventListener('keydown', this.boundEscHandler as EventListener);
+      document.addEventListener('pointerdown', this.recordPress, true);
     }
   }
 
   /**
-   * Handles escape key to close modals
+   * Escape closes the add/edit sheets and every other sheet this card opened, unless a control
+   * inside already handled it (dropdowns, pickers) or an IME composition is in progress.
+   * A hidden card (an inactive tab of the Inventory panel) keeps its sheets: the key was meant
+   * for the visible one.
    */
   private handleEscapeKey(e: KeyboardEvent): void {
-    if (e.key === 'Escape') {
-      this.closeAllModals();
+    if (e.key !== 'Escape' || e.defaultPrevented || e.isComposing) {
+      return;
+    }
+    const host: unknown = this.shadowRoot.host;
+    if (host instanceof HTMLElement && host.hidden) {
+      return;
+    }
+    this.closeAllModals();
+    forgetDetachedSheets(this.shadowRoot);
+    for (const modal of Array.from(openSheets(this.shadowRoot).keys())) {
+      hideSheet(modal);
     }
   }
 
   /**
-   * Focuses an element after a delay, optionally selecting all text
+   * After the open delay, focuses `fieldId` on a fine pointer; otherwise (touch screens, or no
+   * field) the sheet panel, so a phone keyboard does not pop up.
    */
-  private focusElementWithDelay(elementId: string, selectAll = false): void {
+  private focusOnOpen(modal: HTMLElement, fieldId: string | undefined): void {
     setTimeout(() => {
-      const element = this.getElement<HTMLInputElement>(elementId);
-      if (element) {
-        element.focus();
-        if (selectAll && element.select) {
-          element.select();
-        }
-      }
+      const coarse = globalThis.matchMedia?.('(pointer: coarse)').matches === true;
+      const field = fieldId && !coarse ? this.getElement<HTMLElement>(fieldId) : undefined;
+      (field ?? modal.querySelector<HTMLElement>(`.${CSS_CLASSES.MODAL_CONTENT}`))?.focus();
     }, TIMING.MODAL_FOCUS_DELAY);
   }
 
@@ -281,6 +464,7 @@ export class ModalUIManager {
     stopAllBarcodeScanners();
     if (this.boundEscHandler) {
       document.removeEventListener('keydown', this.boundEscHandler);
+      document.removeEventListener('pointerdown', this.recordPress, true);
       this.boundEscHandler = undefined;
     }
   }
