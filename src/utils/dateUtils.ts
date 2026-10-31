@@ -27,46 +27,52 @@ export const DateUtils = {
     }
   },
 
-  isExpired(dateString: string | undefined): boolean {
+  /**
+   * Whole calendar days from today (browser-local date) to the expiry date.
+   * Bare `YYYY-MM-DD` is read as a local calendar date, matching the backend,
+   * which computes days-until-expiry from Home Assistant's local date.
+   * Returns null for empty or unparseable input.
+   */
+  daysUntilExpiry(dateString: string | undefined): number | null {
     if (!dateString) {
-      return false;
+      return null;
     }
 
-    try {
-      const inputDate = new Date(dateString);
-      if (Number.isNaN(inputDate.getTime())) {
-        return false;
+    const trimmed = dateString.trim();
+    let year: number, month: number, day: number;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+      [year, month, day] = trimmed.split('-').map(Number);
+    } else {
+      let parsed: Date;
+      try {
+        parsed = new Date(trimmed);
+      } catch {
+        return null;
       }
-
-      const now = new Date();
-
-      const inputDateString = inputDate.toISOString().split('T')[0];
-      const nowDateString = now.toISOString().split('T')[0];
-
-      return inputDateString < nowDateString;
-    } catch {
-      return false;
+      if (Number.isNaN(parsed.getTime())) {
+        return null;
+      }
+      year = parsed.getFullYear();
+      month = parsed.getMonth() + 1;
+      day = parsed.getDate();
     }
+
+    const now = new Date();
+    // Compare calendar dates via UTC epoch days so DST shifts can't skew the count.
+    const expiryDay = Date.UTC(year, month - 1, day);
+    const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+    const diff = Math.round((expiryDay - today) / (1000 * 60 * 60 * 24));
+    return Number.isNaN(diff) ? null : diff;
+  },
+
+  isExpired(dateString: string | undefined): boolean {
+    const days = DateUtils.daysUntilExpiry(dateString);
+    return days !== null && days < 0;
   },
 
   isExpiringSoon(expiryDate: string, threshold: number = 7): boolean {
-    if (!expiryDate) {
-      return false;
-    }
-
-    try {
-      const now = new Date();
-      const todayDateString = now.toISOString().split('T')[0];
-      const today = new Date(todayDateString);
-
-      const expiry = new Date(expiryDate);
-      const diffTime = expiry.getTime() - today.getTime();
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-      return diffDays >= 0 && diffDays <= threshold;
-    } catch {
-      return false;
-    }
+    const days = DateUtils.daysUntilExpiry(expiryDate);
+    return days !== null && days >= 0 && days <= threshold;
   },
 
   isValidDate(dateString: string): boolean {

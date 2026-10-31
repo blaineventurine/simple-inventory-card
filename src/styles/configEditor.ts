@@ -76,4 +76,8 @@ export const configEditorStyles: CSSResult = css`
     display: flex;
     align-items: center;
   }
+
+  .layout-toggle {
+    margin-top: 8px;
+  }
 `;

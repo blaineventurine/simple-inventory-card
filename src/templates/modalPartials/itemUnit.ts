@@ -4,7 +4,7 @@ import { ELEMENTS } from '@/utils/constants';
 
 export function itemUnit(prefix: string, translations: TranslationData): string {
   return `
-    <div class="input-group">
+    <div class="input-group si-field">
       <label for="${prefix}-${ELEMENTS.UNIT}">
         ${TranslationManager.localize(translations, 'modal.unit', undefined, 'Unit')}
       </label>

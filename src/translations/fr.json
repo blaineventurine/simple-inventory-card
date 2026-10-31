@@ -4,23 +4,8 @@
   },
   "common": {
     "loading": "Chargement...",
-    "name": "Ma carte personnalisée",
     "no_location": "Pas d'emplacement",
-    "off": "Off",
-    "on": "On",
-    "uncategorized": "Sans catégorie",
-    "unknown": "Inconnu"
-  },
-  "editor": {
-    "entity": "Entité",
-    "name": "Nom (Optionnel)",
-    "show_icon": "Montrer l'icône",
-    "show_state": "Montrer l'état"
-  },
-  "state": {
-    "active": "Actif",
-    "inactive": "Inactif",
-    "unavailable": "Non disponible"
+    "uncategorized": "Sans catégorie"
   },
   "expiry": {
     "expired_day_ago": "Expiré depuis {days} jour",
@@ -31,12 +16,21 @@
   },
   "items": {
     "auto_add_info": "Ajout automatique à ≤ {quantity} → {list}",
-    "no_items": "Aucun article en stock"
+    "no_items": "Aucun article en stock",
+    "decrement": "Diminuer {name}",
+    "increment": "Augmenter {name}",
+    "toggle_details": "Détails de {name}",
+    "image_alt": "Photo de {name}",
+    "no_results": "Aucun article ne correspond à vos filtres",
+    "low_stock": "Stock bas"
   },
   "header": {
     "items_expired": "{count} article{count, plural, one {} other {s}} expiré(s)",
     "items_expiring_soon": "{count} article{count, plural, one {} other {s}} expirant bientôt",
-    "scan_barcode": "Scanner code-barres"
+    "scan_barcode": "Scanner code-barres",
+    "more_options": "Plus d'options",
+    "export": "Exporter",
+    "import": "Importer"
   },
   "scanner": {
     "increment": "Incrémenter",
@@ -48,14 +42,18 @@
     "barcode_not_found": "Aucun article trouvé pour ce code-barres",
     "no_barcode_found": "Aucun code-barres trouvé dans la photo",
     "in_stock": "En stock : {quantity}",
-    "scan_success": "Mis à jour {name}",
-    "add_new_item": "Ajouter"
+    "add_new_item": "Ajouter",
+    "choose_photo": "Choisir une photo",
+    "insecure_connection": "La caméra nécessite une connexion sécurisée (HTTPS) à Home Assistant",
+    "native_title": "Scanner le code-barres",
+    "native_description": "Pointez la caméra vers le code-barres de l'article"
   },
   "modal": {
     "add_item": "Ajouter un article",
     "auto_add_id_to_description": "Ajouter l’identifiant de l’inventaire à la description de l’article",
     "aliases": "Alias",
     "aliases_input_placeholder": "Saisissez un alias et appuyez sur Entrée",
+    "remove_value": "Retirer {value}",
     "auto_add_settings": "Paramètres d'ajout automatique",
     "auto_add_when_low": "Ajout automatique à la liste de tâches quand faible",
     "cancel": "Annuler",
@@ -73,6 +71,8 @@
     "location_placeholder": "Cellier, Garage, Étagère, etc.",
     "minimum_quantity": "Quantité minimale",
     "name_required": "Nom *",
+    "icon": "Icône",
+    "icon_help": "N'importe quelle icône Material Design, p. ex. mdi:apple. Laissez vide pour utiliser l'icône par défaut.",
     "quantity": "Quantité",
     "quantity_threshold": "Seuil de quantité",
     "save_changes": "Enregistrer les modifications",
@@ -85,7 +85,6 @@
     "todo_quantity_placement_none": "Ne pas afficher",
     "barcode": "Code-barres",
     "barcode_input_placeholder": "Saisissez le code-barres et appuyez sur Entrée",
-    "barcode_placeholder": "UPC, EAN, etc.",
     "desired_quantity": "Quantité souhaitée",
     "desired_quantity_placeholder": "Niveau de stock souhaité (vide = utiliser le seuil)",
     "unit": "Unité",
@@ -100,7 +99,17 @@
     "provider_openfoodfacts": "Open Food Facts",
     "provider_openbeautyfacts": "Open Beauty Facts",
     "provider_inventory": "Article existant",
-    "provider_openpetfoodfacts": "Open Pet Food Facts"
+    "provider_openpetfoodfacts": "Open Pet Food Facts",
+    "section_details": "Détails",
+    "section_barcodes": "Codes-barres et noms",
+    "section_stock": "Stock",
+    "section_where": "Où et quoi",
+    "section_expiry": "Péremption",
+    "section_shopping": "Liste de courses",
+    "more_actions": "Plus d'actions",
+    "close": "Fermer",
+    "view_history": "Voir l'historique",
+    "delete_item": "Supprimer l'article"
   },
   "filters": {
     "all_categories": "Toutes les catégories",
@@ -120,7 +129,8 @@
     "non_zero": "Non nul",
     "quantity": "Quantité",
     "search_placeholder": "Rechercher des articles...",
-    "zero": "Zéro"
+    "zero": "Zéro",
+    "apply": "Appliquer"
   },
   "sort": {
     "category": "Catégorie",
@@ -130,15 +140,17 @@
     "quantity_high": "Quantité (décroissante)",
     "quantity_low": "Quantité (croissante)",
     "sort_by": "Trier par :",
-    "zero_last": "Zéro en dernier"
+    "zero_last": "Zéro en dernier",
+    "chip_label": "Tri : {method}"
   },
   "active_filters": {
     "category": "Catégorie",
     "expiry": "Expiration",
-    "label": "Filtres actifs :",
     "location": "Emplacement",
     "quantity": "Quantité",
-    "search": "Recherche"
+    "search": "Recherche",
+    "remove": "Retirer {filter}",
+    "selected": "sélectionnés"
   },
   "config": {
     "inventory_entity_required": "Entité d'inventaire (requis)",
@@ -155,10 +167,22 @@
     "show_category": "Afficher la catégorie",
     "show_expiry": "Afficher la date d'expiration",
     "show_auto_add_info": "Afficher les infos d'ajout automatique",
-    "show_price": "Afficher la valeur totale"
+    "show_price": "Afficher la valeur totale",
+    "show_icon": "Afficher les icônes des articles",
+    "layout_tiles": "Afficher les articles en vignettes"
+  },
+  "layout": {
+    "show_tiles": "Afficher en vignettes",
+    "show_list": "Afficher en liste",
+    "tiles_label": "Affichage en vignettes"
   },
   "actions": {
-    "confirm_remove": "Retirer {name} de l'inventaire ?"
+    "confirm_remove": "Retirer {name} de l'inventaire ?",
+    "import_result": "Importation terminée : {added} ajoutés, {updated} mis à jour, {skipped} ignorés",
+    "import_errors": "{count} erreurs :",
+    "import_errors_more": "…et {count} de plus",
+    "import_failed": "Échec de l'importation : {error}",
+    "import_title": "Importation"
   },
   "analytics": {
     "tab_history": "Historique",
@@ -172,7 +196,6 @@
     "insufficient_data": "Pas assez de données",
     "insufficient_data_detail": "Il faut au moins 2 événements de consommation pour calculer les taux.",
     "per_day": "/jour",
-    "days": "jours",
     "window_30": "30j",
     "window_60": "60j",
     "window_90": "90j",
@@ -181,11 +204,150 @@
     "load_error": "Échec du chargement des données de consommation.",
     "daily_spend": "Dépense Quotidienne",
     "weekly_spend": "Dépense Hebdomadaire",
-    "total_spend": "Dépense Totale"
+    "total_spend": "Dépense Totale",
+    "per_week": "/sem",
+    "insufficient_data_progress": "{count} sur 2 événements de consommation enregistrés — décrémentez cet article pour commencer le suivi.",
+    "stock_level": "Niveau de Stock",
+    "consumption_over_time": "Consommation",
+    "no_consumption_in_window": "Aucune consommation sur cette période.",
+    "showing_recent_history": "Affichage de l'historique récent uniquement",
+    "runs_out": "Épuisé vers ~{date}"
   },
   "errors": {
     "clear_filters_error": "Erreur lors de l'effacement des filtres. Veuillez réessayer.",
-    "duplicate_name": "Un article nommé \"{name}\" existe déjà dans cet inventaire.",
-    "update_failed": "Échec de la mise à jour de l'article. Veuillez réessayer."
+    "load_items_failed": "Échec du chargement des articles de l'inventaire : {error}",
+    "history_failed": "Échec du chargement de l'historique : {error}",
+    "export_failed": "Échec de l'exportation : {error}"
+  },
+  "compatibility": {
+    "backend_outdated": "L'intégration Simple Inventory {version} est trop ancienne pour cette carte ; mettez-la à jour vers {minimum} ou plus récent.",
+    "unknown_version": "antérieure à {minimum}"
+  },
+  "batches": {
+    "list_label": "Lots de {name}",
+    "unit_price": "{price} l'unité",
+    "use_from_batch": "Utiliser du lot : {batch}",
+    "restock": "Réapprovisionner…",
+    "restock_submit": "Réapprovisionner",
+    "location_placeholder": "Par défaut : premier emplacement habituel",
+    "purchased_at": "Acheté le",
+    "details": "Détails du lot",
+    "editor_title": "Lots",
+    "editor_empty": "Aucun stock. Utilisez Réapprovisionner… sur la ligne de l'article pour ajouter un lot.",
+    "remove": "Supprimer le lot",
+    "undo_remove": "Conserver le lot",
+    "invalid_quantity": "La quantité du lot doit être un nombre supérieur ou égal à 0",
+    "invalid_unit_price": "Le prix unitaire du lot doit être un nombre supérieur ou égal à 0",
+    "invalid_purchased_at": "La date d'achat ne peut pas être vide",
+    "update_failed": "Erreur lors de la mise à jour du lot : {error}",
+    "restock_failed": "Échec du réapprovisionnement : {error}",
+    "move_from_batch": "Déplacer depuis le lot : {batch}",
+    "move_to": "Déplacer vers",
+    "move_submit": "Déplacer",
+    "move_failed": "Échec du déplacement : {error}",
+    "move_destination_required": "Choisissez où le déplacer",
+    "move_invalid_amount": "Saisissez une quantité supérieure à 0",
+    "quantity_readonly": "Total de tous les lots — modifiez les quantités dans la liste des lots ci-dessous",
+    "add_batch": "+ Ajouter un lot",
+    "discard_new": "Abandonner le nouveau lot",
+    "merge_note": "Sera ajouté au lot existant ({quantity}, {expiry}, {location})",
+    "merge_expires": "expire le {date}",
+    "merge_no_expiry": "sans date d'expiration",
+    "merge_no_location": "sans emplacement",
+    "invalid_new_quantity": "La quantité du nouveau lot doit être supérieure à 0",
+    "invalid_date": "Saisissez une date valide (AAAA-MM-JJ)",
+    "add_failed": "Erreur lors de l'ajout du lot : {error}",
+    "add_as_batch": "Ajouter {quantity} comme nouveau lot de {name}",
+    "add_as_batch_note": "Seuls la quantité, la date d'expiration, le premier emplacement et le prix unitaire sont utilisés. La description, la catégorie, le code-barres, les alias et l'ajout automatique ne sont pas modifiés."
+  },
+  "image": {
+    "label": "Image",
+    "choose": "Photo",
+    "media": "Médias",
+    "remove": "Supprimer l'image",
+    "use_product_photo": "Utiliser la photo du produit",
+    "pending_photo": "La nouvelle photo sera enregistrée à l'enregistrement.",
+    "pending_media": "L'image des médias sera enregistrée à l'enregistrement.",
+    "pending_product_photo": "La photo du produit sera enregistrée à l'enregistrement.",
+    "pending_remove": "L'image sera supprimée à l'enregistrement.",
+    "not_an_image": "Choisissez un fichier image.",
+    "too_large": "L'image dépasse 10 Mo.",
+    "invalid": "Le fichier n'a pas pu être lu comme une image.",
+    "item_not_found": "L'article n'existe plus.",
+    "save_failed": "{name} a été enregistré, mais pas son image : {error}",
+    "view_photo": "Voir la photo de {name}",
+    "view_photo_unnamed": "Voir la photo",
+    "viewer_unnamed": "Photo"
+  },
+  "detail": {
+    "back": "Retour",
+    "back_to_list": "Retour à la liste",
+    "edit": "Modifier",
+    "out_of_stock": "En rupture",
+    "locations": "Emplacements",
+    "categories": "Catégories",
+    "price_value": "{price} l'unité · {total} au total",
+    "auto_add_title": "Ajout automatique",
+    "auto_add": "À {threshold} ou moins, ajouter à {list}",
+    "auto_add_desired": "À {threshold} ou moins, ajouter jusqu'à {desired} à {list}",
+    "barcodes": "Codes-barres",
+    "section_batches": "Lots",
+    "section_history": "Historique",
+    "history_loading": "Chargement de l'historique…",
+    "gone": "Cet article n'existe plus"
+  },
+  "panel": {
+    "title": "Inventaire",
+    "tabs_label": "Inventaires",
+    "open_sidebar": "Ouvrir la barre latérale",
+    "loading": "Chargement des inventaires…",
+    "empty": "Aucun inventaire pour l'instant. Ajoutez-en un dans Paramètres → Appareils et services → Simple Inventory.",
+    "empty_link": "Ouvrir les paramètres de Simple Inventory",
+    "outdated": "Cette intégration Simple Inventory est trop ancienne pour le panneau ; mettez-la à jour et redémarrez Home Assistant.",
+    "error": "Impossible de charger les inventaires : {message}",
+    "retry": "Réessayer",
+    "sensor_unavailable": "Le capteur de cet inventaire est indisponible.",
+    "search": {
+      "open": "Rechercher dans tous les inventaires",
+      "placeholder": "Rechercher dans tous les inventaires…",
+      "close": "Fermer la recherche",
+      "scan": "Scanner un code-barres",
+      "scan_title": "Scanner un code-barres",
+      "scan_file": "Prendre ou choisir une photo",
+      "scan_close": "Fermer le scanner",
+      "hint": "Saisissez au moins 2 caractères",
+      "no_results": "Aucun article ne correspond à « {query} »",
+      "truncated": "Affichage des {count} premiers résultats ; affinez votre recherche",
+      "error": "La recherche a échoué : {message}",
+      "retry": "Réessayer",
+      "reason_alias": "alias : {value}",
+      "reason_barcode": "code-barres : {value}",
+      "reason_category": "catégorie",
+      "reason_location": "emplacement",
+      "reason_description": "description",
+      "reason_unit": "unité"
+    },
+    "home": {
+      "tab": "Accueil",
+      "loading": "Chargement de la vue d'ensemble…",
+      "error": "Impossible de charger la vue d'ensemble : {message}",
+      "items": "{count} article{count, plural, one {} other {s}}",
+      "need_attention": "{count} à surveiller",
+      "title_expired": "Périmés",
+      "title_expiring": "Bientôt périmés",
+      "title_out_of_stock": "En rupture",
+      "title_low_stock": "Stock bas",
+      "expired_today": "Périmé aujourd'hui",
+      "expired_one_day": "Périmé depuis 1 jour",
+      "expired_days": "Périmé depuis {n} jours",
+      "expires_today": "Périme aujourd'hui",
+      "expires_tomorrow": "Périme demain",
+      "expires_days": "Périme dans {n} jours",
+      "batches": "{k} lot{k, plural, one {} other {s}} sur {m}",
+      "out_of_stock": "En rupture",
+      "low": "Stock bas : reste {quantity}, besoin de {needed}",
+      "show_all": "Tout afficher ({count})",
+      "empty": "Tout est en stock et frais"
+    }
   }
 }

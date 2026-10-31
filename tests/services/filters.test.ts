@@ -3,7 +3,7 @@ import { Filters } from '../../src/services/filters';
 import { Utilities } from '../../src/utils/utilities';
 import { DateUtils } from '../../src/utils/dateUtils';
 import { FILTER_VALUES, STORAGE_KEYS, ELEMENTS, SORT_METHODS } from '../../src/utils/constants';
-import { InventoryItem } from '../../src/types/homeAssistant';
+import { InventoryItem } from '../../src/types/inventory';
 import { FilterState } from '../../src/types/filterState';
 import { TranslationData } from '@/types/translatableComponent';
 
@@ -38,7 +38,6 @@ describe('Filters', () => {
   let mockActiveFiltersDiv: HTMLElement;
   let mockActiveFiltersList: HTMLElement;
   let mockAdvancedToggle: HTMLElement;
-  let mockSearchInput: HTMLInputElement;
   let mockShadowRoot: ShadowRoot;
   let mockTranslations: TranslationData;
 
@@ -67,16 +66,7 @@ describe('Filters', () => {
   });
 
   beforeEach(() => {
-    mockSearchInput = {
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-      value: '',
-    } as unknown as HTMLInputElement;
-
-    mockAdvancedToggle = {
-      textContent: '',
-      style: { background: '' },
-    } as unknown as HTMLElement;
+    mockAdvancedToggle = document.createElement('button');
 
     mockActiveFiltersDiv = {
       style: { display: '' },
@@ -95,8 +85,6 @@ describe('Filters', () => {
     mockShadowRoot = {
       getElementById: vi.fn((id: string) => {
         switch (id) {
-          case ELEMENTS.SEARCH_INPUT:
-            return mockSearchInput;
           case ELEMENTS.ADVANCED_SEARCH_TOGGLE:
             return mockAdvancedToggle;
           case ELEMENTS.ACTIVE_FILTERS:
@@ -339,6 +327,35 @@ describe('Filters', () => {
         expect(result[0].unit).toBe('liters');
       });
 
+      it('finds a Greek name while the search still ends in sigma', () => {
+        const items: InventoryItem[] = [
+          createMockItem({ name: 'Κοσμος' }),
+          createMockItem({ name: 'Θάλασσα' }),
+        ];
+
+        const cosmos = filters.filterItems(items, { ...testFilters, searchText: 'Κοσ' });
+        const sea = filters.filterItems(items, { ...testFilters, searchText: 'θάλασ' });
+
+        expect(cosmos.map((item) => item.name)).toEqual(['Κοσμος']);
+        expect(sea.map((item) => item.name)).toEqual(['Θάλασσα']);
+      });
+
+      it('folds case like the integration: "strasse" finds "Straße", "STRASSE" too', () => {
+        const items: InventoryItem[] = [
+          createMockItem({ name: 'Straße map' }),
+          createMockItem({ name: 'Road atlas', aliases: ['Hauptstraße'] }),
+          createMockItem({ name: 'Compass' }),
+        ];
+
+        const lower = filters.filterItems(items, { ...testFilters, searchText: 'strasse' });
+        const upper = filters.filterItems(items, { ...testFilters, searchText: 'STRASSE' });
+        const sharp = filters.filterItems(items, { ...testFilters, searchText: 'straße' });
+
+        expect(lower.map((item) => item.name)).toEqual(['Straße map', 'Road atlas']);
+        expect(upper.map((item) => item.name)).toEqual(['Straße map', 'Road atlas']);
+        expect(sharp.map((item) => item.name)).toEqual(['Straße map', 'Road atlas']);
+      });
+
       it('should filter by search text - alias match', () => {
         const items: InventoryItem[] = [
           createMockItem({ name: 'Oatmeal', aliases: ['oats', 'hot cereal'] }),
@@ -363,6 +380,38 @@ describe('Filters', () => {
         });
 
         expect(result).toHaveLength(1);
+      });
+
+      it('matches the description', () => {
+        const items: InventoryItem[] = [
+          createMockItem({ name: 'Sugar', description: 'Dark muscovado' }),
+          createMockItem({ name: 'Salt', description: 'Sea salt' }),
+        ];
+
+        const result = filters.filterItems(items, { ...testFilters, searchText: 'muscovado' });
+
+        expect(result.map((item) => item.name)).toEqual(['Sugar']);
+      });
+
+      it('matches part of a barcode', () => {
+        const items: InventoryItem[] = [
+          createMockItem({ name: 'Beans', barcodes: ['5099874031102'] }),
+          createMockItem({ name: 'Peas', barcodes: ['4006381333931'] }),
+        ];
+
+        const result = filters.filterItems(items, { ...testFilters, searchText: '0311' });
+
+        expect(result.map((item) => item.name)).toEqual(['Beans']);
+      });
+
+      it('still filters out an item whose description and barcodes do not match', () => {
+        const items: InventoryItem[] = [
+          createMockItem({ name: 'Beans', description: 'Baked', barcodes: ['5099874031102'] }),
+        ];
+
+        const result = filters.filterItems(items, { ...testFilters, searchText: 'zzz' });
+
+        expect(result).toHaveLength(0);
       });
 
       it('should handle case sensitivity in search', () => {
@@ -472,6 +521,28 @@ describe('Filters', () => {
 
         expect(result).toHaveLength(2);
         expect(result.every((item) => item.location === 'Pantry')).toBe(true);
+      });
+
+      it('matches the locations that hold stock as well as the usual ones', () => {
+        const items: InventoryItem[] = [
+          createMockItem({
+            name: 'Milk',
+            location: 'Fridge',
+            locations: ['Fridge'],
+            stocked_locations: ['Fridge', 'Garage'],
+          }),
+          createMockItem({
+            name: 'Eggs',
+            location: 'Fridge',
+            locations: ['Fridge'],
+            stocked_locations: ['Fridge'],
+          }),
+          createMockItem({ name: 'Rice', location: 'Garage', locations: ['Garage'] }),
+        ];
+
+        const result = filters.filterItems(items, { ...testFilters, location: ['Garage'] });
+
+        expect(result.map((item) => item.name)).toEqual(['Milk', 'Rice']);
       });
     });
 
@@ -649,16 +720,10 @@ describe('Filters', () => {
       });
 
       it('should exclude items at exact threshold boundary (tests > vs >= mutation)', () => {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const thresholdDate = new Date(today);
-        thresholdDate.setDate(today.getDate() + 7);
-
-        const exactThresholdDateString = thresholdDate.toISOString().split('T')[0];
-
+        vi.mocked(DateUtils.daysUntilExpiry).mockReturnValue(7);
         const items: InventoryItem[] = [
           createMockItem({
-            expiry_date: exactThresholdDateString,
+            expiry_date: '2024-06-08',
             quantity: 5,
             expiry_alert_days: 7,
           }),
@@ -673,16 +738,10 @@ describe('Filters', () => {
       });
 
       it('should include items beyond threshold boundary', () => {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const beyondThresholdDate = new Date(today);
-        beyondThresholdDate.setDate(today.getDate() + 10);
-
-        const beyondThresholdDateString = beyondThresholdDate.toISOString().split('T')[0];
-
+        vi.mocked(DateUtils.daysUntilExpiry).mockReturnValue(10);
         const items: InventoryItem[] = [
           createMockItem({
-            expiry_date: beyondThresholdDateString,
+            expiry_date: '2024-06-11',
             quantity: 5,
             expiry_alert_days: 7,
           }),
@@ -694,6 +753,7 @@ describe('Filters', () => {
         });
 
         expect(result).toHaveLength(1);
+        expect(DateUtils.daysUntilExpiry).toHaveBeenCalledWith('2024-06-11');
       });
 
       it('should ensure expiry filter default case returns true', () => {
@@ -1044,30 +1104,8 @@ describe('Filters', () => {
   });
 
   describe('UI interaction', () => {
-    describe('setupSearchInput', () => {
-      it('should set up search input event listener', () => {
-        const onFilterChange = vi.fn();
-
-        filters.setupSearchInput('test.entity', onFilterChange);
-
-        expect(mockShadowRoot.getElementById).toHaveBeenCalledWith('search-input');
-        expect(mockSearchInput.addEventListener).toHaveBeenCalledWith(
-          'input',
-          expect.any(Function),
-        );
-      });
-
-      // TODO: re-enable when verified this is correct behavior
-      // it('should not set up listener twice', () => {
-      //   const onFilterChange = vi.fn();
-      //
-      //   filters.setupSearchInput('test.entity', onFilterChange);
-      //   filters.setupSearchInput('test.entity', onFilterChange);
-      //
-      //   expect(mockSearchInput.addEventListener).toHaveBeenCalledTimes(1);
-      // });
-
-      it('should handle search input changes with debouncing', () => {
+    describe('scheduleSearch', () => {
+      it('saves the search text and reports the change once typing pauses', () => {
         const onFilterChange = vi.fn();
         const existingFilters: FilterState = {
           ...testFilters,
@@ -1077,17 +1115,7 @@ describe('Filters', () => {
 
         vi.mocked(localStorageMock.getItem).mockReturnValue(JSON.stringify(existingFilters));
 
-        filters.setupSearchInput('test.entity', onFilterChange);
-
-        const eventListener = vi.mocked(mockSearchInput.addEventListener).mock.calls[0][1] as (
-          e: Event,
-        ) => void;
-
-        const mockEvent = {
-          target: { value: 'new search' } as HTMLInputElement,
-        } as unknown as Event;
-
-        eventListener(mockEvent);
+        filters.scheduleSearch('test.entity', 'new search', onFilterChange);
 
         expect(onFilterChange).not.toHaveBeenCalled();
 
@@ -1103,82 +1131,79 @@ describe('Filters', () => {
         );
       });
 
-      it('should clear previous timeout on rapid input changes', () => {
+      it('restarts the wait on rapid typing and reports only the last text', () => {
         const onFilterChange = vi.fn();
-        filters.setupSearchInput('test.entity', onFilterChange);
 
-        const eventListener = vi.mocked(mockSearchInput.addEventListener).mock.calls[0][1] as (
-          e: Event,
-        ) => void;
-
-        eventListener({ target: { value: 'first' } } as any);
+        filters.scheduleSearch('test.entity', 'first', onFilterChange);
         vi.advanceTimersByTime(100);
-
-        eventListener({ target: { value: 'second' } } as any);
+        filters.scheduleSearch('test.entity', 'second', onFilterChange);
         vi.advanceTimersByTime(300);
 
         expect(onFilterChange).toHaveBeenCalledTimes(1);
+        expect(localStorageMock.setItem).toHaveBeenLastCalledWith(
+          'filters_test.entity',
+          expect.stringContaining('"searchText":"second"'),
+        );
       });
 
-      it('should handle case when search input element is not found', () => {
-        vi.mocked(mockShadowRoot.getElementById).mockReturnValue(null);
+      it('drops a waiting search when cancelled', () => {
         const onFilterChange = vi.fn();
 
-        expect(() => {
-          filters.setupSearchInput('test.entity', onFilterChange);
-        }).not.toThrow();
+        filters.scheduleSearch('test.entity', 'milk', onFilterChange);
+        filters.cancelScheduledSearch();
+        vi.advanceTimersByTime(300);
+
+        expect(onFilterChange).not.toHaveBeenCalled();
+        expect(() => filters.cancelScheduledSearch()).not.toThrow();
       });
     });
 
     describe('updateFilterIndicators', () => {
-      it('should update advanced toggle when no active filters', () => {
+      it('should clear the active-filter dot when no filters are active', () => {
+        mockAdvancedToggle.classList.add('has-active-filters');
         vi.mocked(Utilities.hasActiveFilters).mockReturnValue(false);
 
         filters.updateFilterIndicators(testFilters, mockTranslations);
 
-        expect(mockAdvancedToggle.textContent).toBe('Filters');
-        expect(mockAdvancedToggle.style.background).toBe('var(--primary-color)');
+        expect(mockAdvancedToggle.classList.contains('has-active-filters')).toBe(false);
+        expect(mockAdvancedToggle.getAttribute('aria-expanded')).toBe('false');
       });
 
-      it('should update advanced toggle when active filters exist', () => {
-        const _testFilters: FilterState = {
-          ...testFilters,
-          searchText: 'test',
-        };
+      it('should show the active-filter dot without touching the icon', () => {
+        const icon = document.createElement('ha-icon');
+        mockAdvancedToggle.appendChild(icon);
         vi.mocked(Utilities.hasActiveFilters).mockReturnValue(true);
 
-        filters.updateFilterIndicators(_testFilters, mockTranslations);
+        filters.updateFilterIndicators({ ...testFilters, searchText: 'test' }, mockTranslations);
 
-        expect(mockAdvancedToggle.textContent).toBe('Filters ●');
-        expect(mockAdvancedToggle.style.background).toBe('var(--warning-color, #ff9800)');
+        expect(mockAdvancedToggle.classList.contains('has-active-filters')).toBe(true);
+        expect(mockAdvancedToggle.contains(icon)).toBe(true);
+        expect(mockAdvancedToggle.style.background).toBe('');
       });
 
-      it('should handle showAdvanced=true with active filters', () => {
-        const _testFilters: FilterState = {
-          ...testFilters,
-          searchText: 'test',
-          showAdvanced: true,
-        };
+      it('should mark the toggle expanded when the panel is open with active filters', () => {
         vi.mocked(Utilities.hasActiveFilters).mockReturnValue(true);
 
-        filters.updateFilterIndicators(_testFilters, mockTranslations);
+        filters.updateFilterIndicators(
+          { ...testFilters, searchText: 'test', showAdvanced: true },
+          mockTranslations,
+        );
 
-        expect(mockAdvancedToggle.textContent).toBe('Hide Filters ●');
+        expect(mockAdvancedToggle.getAttribute('aria-expanded')).toBe('true');
+        expect(mockAdvancedToggle.classList.contains('has-active-filters')).toBe(true);
       });
 
-      it('should handle showAdvanced=true without active filters', () => {
-        const _testFilters: FilterState = {
-          ...testFilters,
-          showAdvanced: true,
-        };
+      it('should mark the toggle expanded when the panel is open without active filters', () => {
         vi.mocked(Utilities.hasActiveFilters).mockReturnValue(false);
 
-        filters.updateFilterIndicators(_testFilters, mockTranslations);
+        filters.updateFilterIndicators({ ...testFilters, showAdvanced: true }, mockTranslations);
 
-        expect(mockAdvancedToggle.textContent).toBe('Hide Filters');
+        expect(mockAdvancedToggle.getAttribute('aria-expanded')).toBe('true');
+        expect(mockAdvancedToggle.classList.contains('has-active-filters')).toBe(false);
       });
 
       it('should show active filters when filters are applied', () => {
+        vi.mocked(Utilities.sanitizeHtml).mockImplementation((value: string) => value);
         const testFilters: FilterState = {
           category: ['Food'],
           expiry: ['soon'],
@@ -1192,24 +1217,34 @@ describe('Filters', () => {
         filters.updateFilterIndicators(testFilters, mockTranslations);
 
         // Check that the innerHTML contains the expected badges
-        expect(mockActiveFiltersList.innerHTML).toContain('<span class="filter-badge search">');
+        expect(mockActiveFiltersList.innerHTML).toContain(
+          '<span class="si-chip si-tone-primary filter-badge search">',
+        );
         expect(mockActiveFiltersList.innerHTML).toContain('Search: "test search"');
-        expect(mockActiveFiltersList.innerHTML).toContain('<span class="filter-badge category">');
+        expect(mockActiveFiltersList.innerHTML).toContain(
+          '<span class="si-chip si-tone-primary filter-badge category">',
+        );
         expect(mockActiveFiltersList.innerHTML).toContain('Category: Food');
-        expect(mockActiveFiltersList.innerHTML).toContain('<span class="filter-badge location">');
+        expect(mockActiveFiltersList.innerHTML).toContain(
+          '<span class="si-chip si-tone-primary filter-badge location">',
+        );
         expect(mockActiveFiltersList.innerHTML).toContain('Location: Pantry');
-        expect(mockActiveFiltersList.innerHTML).toContain('<span class="filter-badge quantity">');
+        expect(mockActiveFiltersList.innerHTML).toContain(
+          '<span class="si-chip si-tone-primary filter-badge quantity">',
+        );
         expect(mockActiveFiltersList.innerHTML).toContain('Quantity: nonzero');
-        expect(mockActiveFiltersList.innerHTML).toContain('<span class="filter-badge expiry">');
+        expect(mockActiveFiltersList.innerHTML).toContain(
+          '<span class="si-chip si-tone-primary filter-badge expiry">',
+        );
         expect(mockActiveFiltersList.innerHTML).toContain('Expiry: soon');
 
-        expect(mockActiveFiltersDiv.style.display).toBe('block');
+        expect(mockActiveFiltersDiv.hidden).toBe(false);
       });
 
       it('should hide active filters when no filters are applied', () => {
         filters.updateFilterIndicators(testFilters, mockTranslations);
 
-        expect(mockActiveFiltersDiv.style.display).toBe('none');
+        expect(mockActiveFiltersDiv.hidden).toBe(true);
       });
 
       it('should handle case when elements are not found', () => {
@@ -1223,6 +1258,49 @@ describe('Filters', () => {
         expect(() => {
           filters.updateFilterIndicators(_testFilters, mockTranslations);
         }).not.toThrow();
+      });
+
+      function buildChipRow(withSortChip: boolean) {
+        const row = document.createElement('div');
+        row.className = 'si-chip-row';
+        if (withSortChip) {
+          const sortChip = document.createElement('div');
+          sortChip.className = 'si-sort-chip';
+          row.appendChild(sortChip);
+        }
+        const activeDiv = document.createElement('div');
+        const activeList = document.createElement('div');
+        activeDiv.appendChild(activeList);
+        row.appendChild(activeDiv);
+        const elements: Record<string, HTMLElement> = {
+          [ELEMENTS.ACTIVE_FILTERS]: activeDiv,
+          [ELEMENTS.ACTIVE_FILTERS_LIST]: activeList,
+        };
+        vi.mocked(mockShadowRoot.getElementById).mockImplementation(
+          (id: string) => elements[id] ?? null,
+        );
+        return { row, activeDiv };
+      }
+
+      it('hides the chip row when it holds neither a sort chip nor filter chips', () => {
+        vi.mocked(Utilities.sanitizeHtml).mockImplementation((value: string) => value);
+        const { row, activeDiv } = buildChipRow(false);
+
+        filters.updateFilterIndicators(testFilters, mockTranslations);
+        expect(row.hidden).toBe(true);
+        expect(activeDiv.hidden).toBe(true);
+
+        filters.updateFilterIndicators({ ...testFilters, category: ['Food'] }, mockTranslations);
+        expect(row.hidden).toBe(false);
+        expect(activeDiv.hidden).toBe(false);
+      });
+
+      it('keeps the chip row visible while it holds the sort chip', () => {
+        const { row } = buildChipRow(true);
+
+        filters.updateFilterIndicators(testFilters, mockTranslations);
+
+        expect(row.hidden).toBe(false);
       });
     });
   });

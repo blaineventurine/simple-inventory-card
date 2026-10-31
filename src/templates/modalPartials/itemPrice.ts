@@ -4,7 +4,7 @@ import { ELEMENTS } from '@/utils/constants';
 
 export function itemPrice(prefix: string, translations: TranslationData): string {
   return `
-    <div class="input-group">
+    <div class="input-group si-field">
       <label for="${prefix}-${ELEMENTS.PRICE}">
         ${TranslationManager.localize(translations, 'modal.price', undefined, 'Unit Price')}
       </label>

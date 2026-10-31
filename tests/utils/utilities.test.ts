@@ -3,9 +3,10 @@ import { Utilities } from '../../src/utils/utilities';
 import { InventoryResolver } from '../../src/utils/inventoryResolver';
 import { DateUtils } from '../../src/utils/dateUtils';
 import { FormUtils } from '../../src/utils/formUtils';
-import { HomeAssistant, InventoryItem } from '../../src/types/homeAssistant';
+import { HomeAssistant } from '../../src/types/homeAssistant';
+import { InventoryItem } from '../../src/types/inventory';
 import { RawFormData, ItemData } from '../../src/types/inventoryItem';
-import { createMockHassEntity, createMockHomeAssistant } from '../testHelpers';
+import { createMockHassEntity, createMockHomeAssistant, must } from '../testHelpers';
 
 const createValidFormData = (overrides: Partial<RawFormData> = {}): RawFormData => ({
   aliases: '',
@@ -333,10 +334,20 @@ describe('Utilities', () => {
       vi.useFakeTimers();
       vi.setSystemTime(new Date('2023-06-15T12:00:00Z'));
 
-      // Exactly 7 days after "today" (anchored to the current UTC calendar
-      // date) should still fall within a 7-day threshold, independent of the
-      // host's local timezone offset from UTC.
+      // Exactly 7 days after "today" (the local calendar date, matching the
+      // backend's HA-local date) should still fall within a 7-day threshold.
       expect(DateUtils.isExpiringSoon('2023-06-22', 7)).toBe(true);
+    });
+
+    it('isExpiringSoon/isExpired anchor to the local date when it differs from UTC (Asia/Tokyo)', () => {
+      process.env.TZ = 'Asia/Tokyo';
+      vi.useFakeTimers();
+      // 05:00 on 2023-06-16 in Tokyo, still 2023-06-15 in UTC.
+      vi.setSystemTime(new Date('2023-06-15T20:00:00Z'));
+
+      expect(DateUtils.isExpired('2023-06-15')).toBe(true);
+      expect(DateUtils.isExpiringSoon('2023-06-23', 7)).toBe(true);
+      expect(DateUtils.isExpiringSoon('2023-06-24', 7)).toBe(false);
     });
 
     it('isExpiringSoon should treat the threshold boundary consistently in a timezone behind UTC (America/Los_Angeles, UTC-8)', () => {
@@ -345,39 +356,6 @@ describe('Utilities', () => {
       vi.setSystemTime(new Date('2023-06-15T12:00:00Z'));
 
       expect(DateUtils.isExpiringSoon('2023-06-22', 7)).toBe(true);
-    });
-  });
-
-  describe('debounce', () => {
-    beforeEach(() => {
-      vi.useFakeTimers();
-    });
-
-    afterEach(() => {
-      vi.useRealTimers();
-    });
-
-    it('should delay function execution', () => {
-      const mockFunction = vi.fn();
-      const debounced = Utilities.debounce(mockFunction, 100);
-
-      debounced('test');
-      expect(mockFunction).not.toHaveBeenCalled();
-
-      vi.advanceTimersByTime(100);
-      expect(mockFunction).toHaveBeenCalledWith('test');
-    });
-
-    it('should cancel previous calls', () => {
-      const mockFunction = vi.fn();
-      const debounced = Utilities.debounce(mockFunction, 100);
-
-      debounced('first');
-      debounced('second');
-
-      vi.advanceTimersByTime(100);
-      expect(mockFunction).toHaveBeenCalledTimes(1);
-      expect(mockFunction).toHaveBeenCalledWith('second');
     });
   });
 
@@ -421,7 +399,9 @@ describe('Utilities', () => {
             expect(result.errors.some((e) => e.field === 'quantity')).toBe(false);
           } else {
             expect(
-              result.errors.some((e) => e.field === 'quantity' && e.message.includes(errorType!)),
+              result.errors.some(
+                (e) => e.field === 'quantity' && e.message.includes(must(errorType)),
+              ),
             ).toBe(true);
           }
         });
@@ -483,6 +463,20 @@ describe('Utilities', () => {
     });
 
     describe('convertRawFormDataToItemData', () => {
+      it('passes the icon through trimmed when the field was rendered', () => {
+        const result = FormUtils.convertRawFormDataToItemData(
+          createValidFormData({ icon: '  mdi:apple ' }),
+        );
+
+        expect(result.icon).toBe('mdi:apple');
+      });
+
+      it('leaves icon out when the field was not rendered', () => {
+        const result = FormUtils.convertRawFormDataToItemData(createValidFormData());
+
+        expect(result).not.toHaveProperty('icon');
+      });
+
       it('should convert valid form data correctly', () => {
         const formData: RawFormData = {
           aliases: '  oats, hot cereal  ',
@@ -648,7 +642,7 @@ describe('Utilities', () => {
 
         const container = document.createElement('div');
         container.innerHTML = `<span data-name="${sanitized}">x</span>`;
-        const span = container.querySelector('span')!;
+        const span = must(container.querySelector('span'));
 
         expect(span.getAttribute('data-name')).toBe(payload);
         expect(span.hasAttribute('onmouseover')).toBe(false);
@@ -761,8 +755,16 @@ describe('Utilities', () => {
     });
 
     describe('sanitizeItemData', () => {
+      it('keeps an empty icon, caps its length and omits an absent one', () => {
+        expect(FormUtils.sanitizeItemData({ name: 'Jam', icon: '' }).icon).toBe('');
+        expect(
+          FormUtils.sanitizeItemData({ name: 'Jam', icon: `mdi:${'a'.repeat(200)}` }).icon,
+        ).toHaveLength(100);
+        expect(FormUtils.sanitizeItemData({ name: 'Jam' })).not.toHaveProperty('icon');
+      });
+
       it('should sanitize and enforce limits', () => {
-        const itemData: ItemData = {
+        const itemData: Partial<ItemData> = {
           aliases: `  ${'a'.repeat(310)}  `,
           autoAddEnabled: 'true' as any,
           autoAddToListQuantity: 1_000_000,
@@ -791,7 +793,7 @@ describe('Utilities', () => {
       });
 
       it('should default aliases to empty string when absent', () => {
-        const itemData: ItemData = { name: 'Test Item' };
+        const itemData: Partial<ItemData> = { name: 'Test Item' };
         const result = FormUtils.sanitizeItemData(itemData);
         expect(result.aliases).toBe('');
       });
@@ -1057,31 +1059,6 @@ describe('Utilities', () => {
       });
     });
 
-    describe('debounce - Timeout Handling', () => {
-      beforeEach(() => {
-        vi.useFakeTimers();
-      });
-
-      afterEach(() => {
-        vi.useRealTimers();
-      });
-
-      it('should handle multiple rapid calls with timeout cleanup', () => {
-        const mockFunction = vi.fn();
-        const debounced = Utilities.debounce(mockFunction, 100);
-
-        // Make multiple calls to test timeout cleanup
-        debounced('call1');
-        debounced('call2');
-        debounced('call3');
-
-        // Only the last call should execute
-        vi.advanceTimersByTime(100);
-        expect(mockFunction).toHaveBeenCalledTimes(1);
-        expect(mockFunction).toHaveBeenCalledWith('call3');
-      });
-    });
-
     describe('validateRawFormData - Optional Chaining and Trim Coverage', () => {
       it('should handle quantity field without optional chaining', () => {
         const formData = createValidFormData();
@@ -1233,7 +1210,7 @@ describe('Utilities', () => {
 
     describe('sanitizeItemData - Math Function Coverage', () => {
       it('should use Math.max instead of Math.min for autoAddToListQuantity', () => {
-        const itemData: ItemData = {
+        const itemData: Partial<ItemData> = {
           autoAddEnabled: true,
           autoAddToListQuantity: -10, // Negative value
           category: 'Test',
@@ -1250,7 +1227,7 @@ describe('Utilities', () => {
       });
 
       it('should handle logical OR vs AND in numeric conversion', () => {
-        const itemData: ItemData = {
+        const itemData: Partial<ItemData> = {
           name: 'Test',
           quantity: null as any,
           autoAddEnabled: true,

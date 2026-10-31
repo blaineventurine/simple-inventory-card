@@ -4,7 +4,7 @@ import { ELEMENTS } from '@/utils/constants';
 
 export function autoAddCheckbox(prefix: string, translations: TranslationData): string {
   return `
-    <input type="checkbox" id="${prefix}-${ELEMENTS.AUTO_ADD_ENABLED}" class="auto-add-checkbox" />
+    <input type="checkbox" id="${prefix}-${ELEMENTS.AUTO_ADD_ENABLED}" class="auto-add-checkbox si-switch" role="switch" />
     <label for="${prefix}-${ELEMENTS.AUTO_ADD_ENABLED}" class="checkbox-label">
       ${TranslationManager.localize(
         translations,

@@ -66,6 +66,15 @@ jobs:
             exit 1
           fi
           echo "Build successful - output size: $(wc -c < dist/simple-inventory-card.js) bytes"
+          if [ ! -f "dist/simple-inventory-panel.js" ]; then
+            echo "Panel build output not found!"
+            exit 1
+          fi
+          if grep -Eq '(^|[;}])import[ {*"]|import\(|from"\./|from"\.\./' dist/simple-inventory-panel.js; then
+            echo "Panel build is not self-contained (it imports another module)!"
+            exit 1
+          fi
+          echo "Panel build - output size: $(wc -c < dist/simple-inventory-panel.js) bytes"
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4

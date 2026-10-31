@@ -35,7 +35,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '26'
           cache: 'npm'
 
       - name: Install dependencies
@@ -88,4 +88,5 @@ jobs:
           body: ${{ steps.notes.outputs.body }}
           files: |
             ./dist/simple-inventory-card.js
+            ./dist/simple-inventory-panel.js
             ${{ steps.translations.outputs.files }}

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ModalFormManager } from '../../../src/services/modals/modalFormManager';
 import { ELEMENTS, DEFAULTS } from '../../../src/utils/constants';
-import { InventoryItem } from '../../../src/types/homeAssistant';
+import { InventoryItem } from '../../../src/types/inventory';
 import { RawFormData } from '../../../src/types/inventoryItem';
 
 describe('ModalFormManager', () => {
@@ -681,6 +681,78 @@ describe('ModalFormManager', () => {
       expect(finalValues).not.toBe(initialValues);
       expect(finalValues).toBe(''); // Should be cleared to empty
       expect(initialValues).toBe('Initial Value');
+    });
+  });
+
+  describe('item icon field', () => {
+    const item: InventoryItem = {
+      auto_add_enabled: false,
+      auto_add_id_to_description_enabled: false,
+      category: '',
+      description: '',
+      expiry_date: '',
+      location: '',
+      name: 'Jam',
+      quantity: 1,
+      todo_list: '',
+      unit: '',
+    };
+
+    it('leaves icon out of the add data when the field is not rendered', () => {
+      setupAddModalElements({ name: 'Jam' });
+
+      expect(modalFormManager.getRawAddModalData()).not.toHaveProperty('icon');
+    });
+
+    it('reads the trimmed icon when the field is rendered', () => {
+      setupAddModalElements({ name: 'Jam' });
+      mockElements.set(`add-${ELEMENTS.ICON}`, createMockInput('  mdi:apple '));
+
+      expect(modalFormManager.getRawAddModalData().icon).toBe('mdi:apple');
+    });
+
+    it('reads an emptied edit icon as an empty string (back to the default)', () => {
+      setupEditModalElements({ name: 'Jam' });
+      mockElements.set(`edit-${ELEMENTS.ICON}`, createMockInput(''));
+
+      expect(modalFormManager.getRawEditModalData().icon).toBe('');
+    });
+
+    it('reads an icon picker without a value as an empty string', () => {
+      setupEditModalElements({ name: 'Jam' });
+      mockElements.set(`edit-${ELEMENTS.ICON}`, {} as HTMLInputElement);
+
+      expect(modalFormManager.getRawEditModalData().icon).toBe('');
+    });
+
+    it('fills the edit icon from the item, empty when it has none', () => {
+      const iconInput = createMockInput('stale');
+      mockElements.set(`edit-${ELEMENTS.ICON}`, iconInput);
+
+      modalFormManager.populateEditModal({ ...item, icon: 'mdi:apple' });
+      expect(iconInput.value).toBe('mdi:apple');
+
+      modalFormManager.populateEditModal(item);
+      expect(iconInput.value).toBe('');
+    });
+
+    it('fills an empty edit icon for a non-string icon from the backend', () => {
+      const iconInput = createMockInput('stale');
+      mockElements.set(`edit-${ELEMENTS.ICON}`, iconInput);
+      const fromBackend: InventoryItem = { ...item, ...JSON.parse('{"icon": 42}') };
+
+      modalFormManager.populateEditModal(fromBackend);
+
+      expect(iconInput.value).toBe('');
+    });
+
+    it('clears the add icon', () => {
+      const iconInput = createMockInput('mdi:apple');
+      mockElements.set(`add-${ELEMENTS.ICON}`, iconInput);
+
+      modalFormManager.clearAddModalForm();
+
+      expect(iconInput.value).toBe('');
     });
   });
 });
