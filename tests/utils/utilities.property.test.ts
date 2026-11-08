@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
 import { Utilities } from '../../src/utils/utilities';
-import { DateUtils } from '../../src/utils/dateUtils';
 import { FormUtils } from '../../src/utils/formUtils';
 import { InventoryResolver } from '../../src/utils/inventoryResolver';
 import { createMockHassEntity } from '../testHelpers';
@@ -9,78 +8,6 @@ import type { RawFormData, ItemData } from '../../src/types/inventoryItem';
 import type { InventoryItem } from '../../src/types/inventory';
 
 describe('Utilities - Property-Based Tests', () => {
-  describe('formatDate properties', () => {
-    it('should never throw exceptions for any string input', () => {
-      fc.assert(
-        fc.property(
-          fc.string({ maxLength: 100 }), // Reasonable max length
-          (dateString) => {
-            expect(() => DateUtils.formatDate(dateString)).not.toThrow();
-          },
-        ),
-      );
-    });
-
-    it('should always return a string', () => {
-      fc.assert(
-        fc.property(fc.oneof(fc.string(), fc.constant(undefined), fc.constant('')), (input) => {
-          const result = DateUtils.formatDate(input);
-          expect(typeof result).toBe('string');
-        }),
-      );
-    });
-
-    it('should return empty string for falsy inputs', () => {
-      fc.assert(
-        fc.property(
-          fc.oneof(fc.constant(undefined), fc.constant(''), fc.constant(null)),
-          (input) => {
-            const result = DateUtils.formatDate(input as any);
-            expect(result).toBe('');
-          },
-        ),
-      );
-    });
-
-    it('should handle valid ISO dates consistently', () => {
-      fc.assert(
-        fc.property(
-          fc
-            .date({ min: new Date('1900-01-01'), max: new Date('2100-12-31') })
-            .filter((date) => !isNaN(date.getTime())), // Add this filter
-          (date) => {
-            const isoString = date.toISOString().split('T')[0]; // YYYY-MM-DD
-            const result = DateUtils.formatDate(isoString);
-
-            expect(result).toBeTruthy();
-            expect(result).not.toBe(isoString); // Should be formatted
-            expect(typeof result).toBe('string');
-          },
-        ),
-      );
-    });
-
-    it('should preserve invalid date strings', () => {
-      fc.assert(
-        fc.property(
-          fc
-            .string()
-            .filter(
-              (s) =>
-                s.trim() !== '' &&
-                isNaN(Date.parse(s)) &&
-                !/^\d+$/.test(s.trim()) &&
-                !/^\d{4}-\d{2}-\d{2}$/.test(s.trim()),
-            ),
-          (invalidDate) => {
-            const result = DateUtils.formatDate(invalidDate);
-            expect(result).toBe(invalidDate);
-          },
-        ),
-      );
-    });
-  });
-
   describe('sanitizeString properties', () => {
     it('should never exceed maxLength', () => {
       fc.assert(

@@ -2,6 +2,8 @@ import { ItemData, RawFormData } from '../types/inventoryItem';
 import { ITEM_FORM_FIELDS, collectItemForm } from './itemFormFields';
 import { ValidationError } from '../types/validationError';
 import { DateUtils } from './dateUtils';
+import { TranslationData } from '../types/translatableComponent';
+import { TranslationManager } from '../services/translationManager';
 
 interface ValidationResult {
   isValid: boolean;
@@ -30,19 +32,30 @@ export const FormUtils = {
     return string_.trim().slice(0, Math.max(0, maxLength)).trim();
   },
 
-  validateRawFormData(formData: RawFormData): ValidationResult {
+  validateRawFormData(formData: RawFormData, translations: TranslationData): ValidationResult {
     const errors: ValidationError[] = [];
+    const localize = (key: string, fallback: string): string =>
+      TranslationManager.localize(translations, key, undefined, fallback);
 
     if (!formData.name?.trim()) {
-      errors.push({ field: 'name', message: 'Item name is required' });
+      errors.push({
+        field: 'name',
+        message: localize('modal.validation_name_required', 'Item name is required'),
+      });
     }
 
     if (formData.quantity?.trim()) {
       const quantityNumber = Number.parseFloat(formData.quantity);
       if (Number.isNaN(quantityNumber)) {
-        errors.push({ field: 'quantity', message: 'Quantity must be a valid number' });
+        errors.push({
+          field: 'quantity',
+          message: localize('modal.validation_quantity_invalid', 'Quantity must be a valid number'),
+        });
       } else if (quantityNumber < 0) {
-        errors.push({ field: 'quantity', message: 'Quantity cannot be negative' });
+        errors.push({
+          field: 'quantity',
+          message: localize('modal.validation_quantity_negative', 'Quantity cannot be negative'),
+        });
       }
     }
 
@@ -52,31 +65,43 @@ export const FormUtils = {
         if (Number.isNaN(thresholdNumber)) {
           errors.push({
             field: 'autoAddToListQuantity',
-            message: 'Quantity threshold must be a valid number',
+            message: localize(
+              'modal.validation_threshold_invalid',
+              'Quantity threshold must be a valid number',
+            ),
           });
         } else if (thresholdNumber < 0) {
           errors.push({
             field: 'autoAddToListQuantity',
-            message: 'Quantity cannot be negative',
+            message: localize('modal.validation_quantity_negative', 'Quantity cannot be negative'),
           });
         }
       } else {
         errors.push({
           field: 'autoAddToListQuantity',
-          message: 'Quantity threshold is required when auto-add is enabled',
+          message: localize(
+            'modal.validation_threshold_required',
+            'Quantity threshold is required when auto-add is enabled',
+          ),
         });
       }
 
       if (!formData.todoList?.trim()) {
         errors.push({
           field: 'todoList',
-          message: 'Todo list selection is required when auto-add is enabled',
+          message: localize(
+            'modal.validation_todo_list_required',
+            'Todo list selection is required when auto-add is enabled',
+          ),
         });
       }
     }
 
     if (formData.expiryDate?.trim() && !DateUtils.isValidDate(formData.expiryDate)) {
-      errors.push({ field: 'expiryDate', message: 'Invalid expiry date format' });
+      errors.push({
+        field: 'expiryDate',
+        message: localize('modal.validation_expiry_date_invalid', 'Invalid expiry date format'),
+      });
     }
 
     if (formData.expiryAlertDays?.trim()) {
@@ -84,12 +109,18 @@ export const FormUtils = {
       if (Number.isNaN(alertDays)) {
         errors.push({
           field: 'expiryAlertDays',
-          message: 'Expiry alert days must be a valid number',
+          message: localize(
+            'modal.validation_expiry_alert_invalid',
+            'Expiry alert days must be a valid number',
+          ),
         });
       } else if (alertDays < 0) {
         errors.push({
           field: 'expiryAlertDays',
-          message: 'Expiry alert days cannot be negative',
+          message: localize(
+            'modal.validation_expiry_alert_negative',
+            'Expiry alert days cannot be negative',
+          ),
         });
       }
     }
@@ -100,7 +131,10 @@ export const FormUtils = {
     if (hasThreshold && !hasExpiryDate) {
       errors.push({
         field: 'expiryAlertDays',
-        message: 'Expiry threshold requires an expiry date to be set',
+        message: localize(
+          'modal.validation_expiry_threshold_requires_date',
+          'Expiry threshold requires an expiry date to be set',
+        ),
       });
     }
 

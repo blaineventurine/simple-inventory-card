@@ -25,7 +25,7 @@ export class Modals {
   private uiManager: ModalUIManager;
   private batchEditor: BatchEditor;
   private duplicateOffer: DuplicateBatchOffer;
-  private addTranslations: TranslationData = {};
+  private translations: TranslationData = {};
   private currentEditingItem: string | undefined = undefined;
   /** An add or edit save (image step included) is running; another one is ignored. */
   private isSaving = false;
@@ -59,7 +59,7 @@ export class Modals {
     categories: string[] = [],
     onBarcodeAdded?: (barcode: string) => void,
   ): void {
-    this.addTranslations = translations;
+    this.translations = translations;
     this.duplicateOffer.hide();
     this.uiManager.openAddModal(translations, onBarcodeAdded);
     this.imageField?.open('add', translations);
@@ -77,6 +77,7 @@ export class Modals {
     locations: string[] = [],
     categories: string[] = [],
   ): void {
+    this.translations = translations;
     const result = this.uiManager.openEditModal(itemName, getContext, translations);
     if (result.found) {
       this.currentEditingItem = itemName;
@@ -195,14 +196,23 @@ export class Modals {
       const existing = itemData.name ? this.findItem(itemData.name) : undefined;
       if (existing) {
         this.validationManager.highlightInvalidFields(
-          [{ field: 'name', message: 'Duplicate name' }],
+          [
+            {
+              field: 'name',
+              message: this.localize('modal.duplicate_name_hint', 'Duplicate name'),
+            },
+          ],
           true,
         );
         this.validationManager.showError(
-          `An item named "${itemData.name}" already exists in this inventory.`,
+          this.localize(
+            'modal.duplicate_name_error',
+            `An item named "${itemData.name}" already exists in this inventory.`,
+            { name: itemData.name ?? '' },
+          ),
           true,
         );
-        this.duplicateOffer.show(existing.name, this.addTranslations);
+        this.duplicateOffer.show(existing.name, this.translations);
         return false;
       }
 
@@ -212,7 +222,7 @@ export class Modals {
         this.handleAddResult(result);
         this.duplicateOffer.show(
           this.findItem(itemData.name)?.name ?? itemData.name,
-          this.addTranslations,
+          this.translations,
         );
         return false;
       }
@@ -246,7 +256,7 @@ export class Modals {
 
       const quantity = Number(raw.quantity.trim() || Number.NaN);
       if (!(quantity > 0)) {
-        const message = this.localizeAdd(
+        const message = this.localize(
           'batches.invalid_new_quantity',
           'New batch quantity must be greater than 0',
         );
@@ -259,10 +269,7 @@ export class Modals {
       const expiryDate = raw.expiryDate.trim();
       if (expiryDate !== '') {
         if (!isIsoDate(expiryDate)) {
-          const message = this.localizeAdd(
-            'batches.invalid_date',
-            'Enter a valid date (YYYY-MM-DD)',
-          );
+          const message = this.localize('batches.invalid_date', 'Enter a valid date (YYYY-MM-DD)');
           this.validationManager.highlightInvalidFields([{ field: 'expiryDate', message }], true);
           this.validationManager.showError(message, true);
           return false;
@@ -287,7 +294,7 @@ export class Modals {
       if (!result.success) {
         const error = result.error ?? '';
         this.validationManager.showError(
-          this.localizeAdd('batches.add_failed', `Error adding batch: ${error}`, { error }),
+          this.localize('batches.add_failed', `Error adding batch: ${error}`, { error }),
           true,
         );
         return false;
@@ -327,11 +334,20 @@ export class Modals {
         this.findItem(itemData.name)
       ) {
         this.validationManager.highlightInvalidFields(
-          [{ field: 'name', message: 'Duplicate name' }],
+          [
+            {
+              field: 'name',
+              message: this.localize('modal.duplicate_name_hint', 'Duplicate name'),
+            },
+          ],
           false,
         );
         this.validationManager.showError(
-          `An item named "${itemData.name}" already exists in this inventory.`,
+          this.localize(
+            'modal.duplicate_name_error',
+            `An item named "${itemData.name}" already exists in this inventory.`,
+            { name: itemData.name ?? '' },
+          ),
           false,
         );
         return false;
@@ -372,7 +388,7 @@ export class Modals {
       ? this.formManager.getRawAddModalData()
       : this.formManager.getRawEditModalData();
 
-    const validation = FormUtils.validateRawFormData(rawFormData);
+    const validation = FormUtils.validateRawFormData(rawFormData, this.translations);
 
     if (!validation.isValid) {
       this.validationManager.highlightInvalidFields(validation.errors, isAddModal);
@@ -389,7 +405,12 @@ export class Modals {
       this.triggerDataChanged();
       return true;
     } else {
-      this.validationManager.showError(`Error adding item: ${result.error}`, true);
+      this.validationManager.showError(
+        this.localize('modal.add_item_failed', `Error adding item: ${result.error}`, {
+          error: result.error ?? '',
+        }),
+        true,
+      );
       return false;
     }
   }
@@ -399,14 +420,21 @@ export class Modals {
       this.triggerDataChanged();
       return true;
     } else {
-      this.validationManager.showError(`Error updating item: ${result.error}`, false);
+      this.validationManager.showError(
+        this.localize('modal.update_item_failed', `Error updating item: ${result.error}`, {
+          error: result.error ?? '',
+        }),
+        false,
+      );
       return false;
     }
   }
 
   private handleException(error: unknown, operation: string, isAddModal: boolean): boolean {
     console.error(`Error in ${operation} item:`, error);
-    this.validationManager.showError(`An error occurred while ${operation} the item`, isAddModal);
+    const key = isAddModal ? 'modal.add_item_exception' : 'modal.update_item_exception';
+    const fallback = `An error occurred while ${operation} the item`;
+    this.validationManager.showError(this.localize(key, fallback), isAddModal);
     return false;
   }
 
@@ -425,8 +453,8 @@ export class Modals {
     return items.find((item) => foldCase(item.name) === foldCase(name));
   }
 
-  private localizeAdd(key: string, fallback: string, params?: Record<string, string>): string {
-    return TranslationManager.localize(this.addTranslations, key, params, fallback);
+  private localize(key: string, fallback: string, params?: Record<string, string>): string {
+    return TranslationManager.localize(this.translations, key, params, fallback);
   }
 
   private initializeAutoCompleteInputs(

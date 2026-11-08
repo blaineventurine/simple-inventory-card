@@ -16,6 +16,7 @@
   },
   "items": {
     "auto_add_info": "Aggiunta automatica a ≤ {quantity} → {list}",
+    "auto_add_desired_info": "Aggiunta automatica a ≤ {quantity}, fino a {desired} → {list}",
     "no_items": "Nessun oggetto in inventario",
     "decrement": "Diminuisci {name}",
     "increment": "Aumenta {name}",
@@ -109,7 +110,23 @@
     "more_actions": "Altre azioni",
     "close": "Chiudi",
     "view_history": "Visualizza cronologia",
-    "delete_item": "Elimina oggetto"
+    "delete_item": "Elimina oggetto",
+    "duplicate_name_hint": "Nome duplicato",
+    "duplicate_name_error": "Esiste già un oggetto chiamato «{name}» in questo inventario.",
+    "add_item_failed": "Errore nell'aggiunta dell'oggetto: {error}",
+    "update_item_failed": "Errore nell'aggiornamento dell'oggetto: {error}",
+    "add_item_exception": "Si è verificato un errore durante l'aggiunta dell'oggetto",
+    "update_item_exception": "Si è verificato un errore durante l'aggiornamento dell'oggetto",
+    "validation_name_required": "Il nome dell'oggetto è obbligatorio",
+    "validation_quantity_invalid": "La quantità deve essere un numero valido",
+    "validation_quantity_negative": "La quantità non può essere negativa",
+    "validation_threshold_invalid": "La soglia di quantità deve essere un numero valido",
+    "validation_threshold_required": "La soglia di quantità è obbligatoria quando l'aggiunta automatica è attiva",
+    "validation_todo_list_required": "La selezione di una lista è obbligatoria quando l'aggiunta automatica è attiva",
+    "validation_expiry_date_invalid": "Formato data di scadenza non valido",
+    "validation_expiry_alert_invalid": "I giorni di avviso di scadenza devono essere un numero valido",
+    "validation_expiry_alert_negative": "I giorni di avviso di scadenza non possono essere negativi",
+    "validation_expiry_threshold_requires_date": "La soglia di scadenza richiede una data di scadenza impostata"
   },
   "filters": {
     "all_categories": "Tutte le categorie",

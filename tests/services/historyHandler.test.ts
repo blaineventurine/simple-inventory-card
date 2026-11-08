@@ -155,7 +155,7 @@ describe('HistoryHandler', () => {
         itemName: 'Milk',
         limit: 500,
       });
-      expect(createHistoryAndConsumptionView).toHaveBeenCalledWith(events, mockTranslations);
+      expect(createHistoryAndConsumptionView).toHaveBeenCalledWith(events, mockTranslations, 'en');
     });
 
     it('logs an error and does not throw when getHistory rejects', async () => {
@@ -322,7 +322,7 @@ describe('HistoryHandler', () => {
 
       historyTab.click();
 
-      expect(createHistoryContent).toHaveBeenCalledWith(events);
+      expect(createHistoryContent).toHaveBeenCalledWith(events, 'en');
       expect(tabContent.innerHTML).toBe('HISTORY_CONTENT_MARKER');
       expect(historyTab.classList.contains('active')).toBe(true);
       expect(consumptionTab.classList.contains('active')).toBe(false);
@@ -364,6 +364,7 @@ describe('HistoryHandler', () => {
       expect(createHistoryAndConsumptionView).toHaveBeenCalledWith(
         events.slice(0, 50),
         mockTranslations,
+        'en',
       );
 
       const modal = renderRoot.getElementById(ELEMENTS.HISTORY_MODAL) as HTMLElement;
@@ -538,7 +539,12 @@ describe('HistoryHandler', () => {
         itemName: 'Milk',
         limit: 500,
       });
-      expect(createHistoryAndConsumptionView).toHaveBeenCalledWith(events, mockTranslations, '');
+      expect(createHistoryAndConsumptionView).toHaveBeenCalledWith(
+        events,
+        mockTranslations,
+        'en',
+        '',
+      );
       expect(container.textContent).toContain('HISTORY_VIEW_MARKER');
       expect(renderRoot.getElementById(ELEMENTS.HISTORY_MODAL)).toBeNull();
     });
@@ -615,7 +621,12 @@ describe('HistoryHandler', () => {
       await stale;
 
       expect(createHistoryAndConsumptionView).toHaveBeenCalledTimes(1);
-      expect(createHistoryAndConsumptionView).toHaveBeenCalledWith(second, mockTranslations, '');
+      expect(createHistoryAndConsumptionView).toHaveBeenCalledWith(
+        second,
+        mockTranslations,
+        'en',
+        '',
+      );
     });
 
     it('shows a failed load in the container', async () => {

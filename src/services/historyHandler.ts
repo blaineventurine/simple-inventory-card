@@ -70,6 +70,7 @@ export class HistoryHandler {
       const html = createHistoryAndConsumptionView(
         history.displayEvents,
         this.getContext().translations,
+        this.getContext().hass.language,
       );
       this.showHistoryModal(html, history);
     } catch (error) {
@@ -105,6 +106,7 @@ export class HistoryHandler {
     container.innerHTML = createHistoryAndConsumptionView(
       history.displayEvents,
       this.getContext().translations,
+      this.getContext().hass.language,
       idPrefix,
     );
     this.wireView(container, history, state, idPrefix);
@@ -200,7 +202,10 @@ export class HistoryHandler {
       state.segment = 'history';
       markTab(historyTab, true);
       markTab(consumptionTab, false);
-      tabContent.innerHTML = createHistoryContent(history.displayEvents);
+      tabContent.innerHTML = createHistoryContent(
+        history.displayEvents,
+        this.getContext().hass.language,
+      );
     });
 
     consumptionTab.addEventListener('click', showConsumption);

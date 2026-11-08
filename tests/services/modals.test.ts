@@ -253,7 +253,7 @@ describe('Modals (Integration)', () => {
 
       expect(vi.mocked(mockValidationManager.clearError)).toHaveBeenCalledWith(true);
       expect(vi.mocked(mockFormManager.getRawAddModalData)).toHaveBeenCalled();
-      expect(FormUtils.validateRawFormData).toHaveBeenCalledWith(mockRawFormData);
+      expect(FormUtils.validateRawFormData).toHaveBeenCalledWith(mockRawFormData, {});
       expect(vi.mocked(mockServices.addItem)).toHaveBeenCalledWith(
         'inventory_sensor.inventory',
         mockItemData,
@@ -428,7 +428,11 @@ describe('Modals (Integration)', () => {
       }
 
       /** A Modals whose card holds the items `names` (the duplicate check reads them). */
-      function openWith(editing: string, names: string[]): void {
+      function openWith(
+        editing: string,
+        names: string[],
+        translations: TranslationData = mockTranslations,
+      ): void {
         vi.mocked(mockUIManager.openEditModal).mockReturnValue({ found: true });
         const items = names.map((name): InventoryItem => ({
           name,
@@ -450,8 +454,29 @@ describe('Modals (Integration)', () => {
           mockOnDataChanged,
           () => context,
         );
-        modals.openEditModal(editing, () => context, mockTranslations);
+        modals.openEditModal(editing, () => context, translations);
       }
+
+      it("uses the edit modal's own translations, not a stale add-modal copy", async () => {
+        modals = new Modals(
+          mockShadowRoot,
+          mockServices,
+          mockGetInventoryId,
+          mockOnDataChanged,
+          () => createMockCardContext({ hass: mockHass, config: mockConfig, items: [] }),
+        );
+        modals.openAddModal({ modal: { duplicate_name_hint: 'ADD: Duplicado' } });
+
+        openWith('Map', ['Map', 'Straße'], { modal: { duplicate_name_hint: 'EDIT: Duplicado' } });
+        editTo('STRASSE');
+
+        await modals.saveEditModal(mockConfig);
+
+        expect(vi.mocked(mockValidationManager.highlightInvalidFields)).toHaveBeenCalledWith(
+          [{ field: 'name', message: 'EDIT: Duplicado' }],
+          false,
+        );
+      });
 
       it("refuses a rename to another item's name in another case form (ß → SS)", async () => {
         openWith('Map', ['Map', 'Straße']);

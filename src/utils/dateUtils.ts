@@ -1,32 +1,4 @@
 export const DateUtils = {
-  formatDate(dateString: string | undefined): string {
-    if (!dateString) {
-      return '';
-    }
-
-    try {
-      let date: Date;
-
-      if (/^\d+$/.test(dateString.trim())) {
-        date = new Date(Number.parseInt(dateString.trim()));
-      } else if (/^\d{4}-\d{2}-\d{2}$/.test(dateString.trim())) {
-        const [year, month, day] = dateString.trim().split('-').map(Number);
-        date = new Date(Date.UTC(year, month - 1, day));
-      } else {
-        date = new Date(dateString);
-      }
-
-      if (Number.isNaN(date.getTime())) {
-        return dateString;
-      }
-
-      return date.toLocaleDateString('en-US', { timeZone: 'UTC' });
-    } catch (error) {
-      console.warn(`Error formatting date "${dateString}":`, error);
-      return dateString;
-    }
-  },
-
   /**
    * Whole calendar days from today (browser-local date) to the expiry date.
    * Bare `YYYY-MM-DD` is read as a local calendar date, matching the backend,

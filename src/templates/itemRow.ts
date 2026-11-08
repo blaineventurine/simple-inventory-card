@@ -54,9 +54,13 @@ export function itemSecondaryLine(
   formatValue: (value: number) => string = PLAIN_VALUE,
 ): string {
   const locations =
-    item.locations && item.locations.length > 0 ? item.locations.join(', ') : item.location;
+    item.locations && item.locations.length > 0
+      ? item.locations.filter((value) => value.trim() !== '').join(', ')
+      : item.location;
   const categories =
-    item.categories && item.categories.length > 0 ? item.categories.join(', ') : item.category;
+    item.categories && item.categories.length > 0
+      ? item.categories.filter((value) => value.trim() !== '').join(', ')
+      : item.category;
   const expiry =
     config?.show_expiry !== false && item.expiry_date
       ? getExpiryStatus(item.expiry_date, translations, item.expiry_alert_days)
@@ -157,12 +161,21 @@ export function createItemRowTemplate(
     const list = todoLists.find((l) => l.entity_id === item.todo_list || l.id === item.todo_list);
     const listName = list ? list.name : item.todo_list || '';
     const threshold = item.auto_add_to_list_quantity || 0;
-    autoAddText = TranslationManager.localize(
-      translations,
-      'items.auto_add_info',
-      { quantity: threshold, list: listName },
-      `Auto-add at ≤ ${threshold} → ${listName}`,
-    );
+    const desired = item.desired_quantity || 0;
+    autoAddText =
+      desired > 0
+        ? TranslationManager.localize(
+            translations,
+            'items.auto_add_desired_info',
+            { quantity: threshold, desired, list: listName },
+            `Auto-add at ≤ ${threshold}, up to ${desired} → ${listName}`,
+          )
+        : TranslationManager.localize(
+            translations,
+            'items.auto_add_info',
+            { quantity: threshold, list: listName },
+            `Auto-add at ≤ ${threshold} → ${listName}`,
+          );
   }
   const details = hasDetails
     ? `<div class="item-details-panel si-details" id="${detailsPanelId(item.name)}"${expanded ? '' : ' hidden'}>

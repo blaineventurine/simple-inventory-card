@@ -16,6 +16,7 @@
   },
   "items": {
     "auto_add_info": "Auto-agregar en ≤ {quantity} → {list}",
+    "auto_add_desired_info": "Auto-agregar en ≤ {quantity}, hasta {desired} → {list}",
     "no_items": "No hay artículos en el inventario",
     "decrement": "Disminuir {name}",
     "increment": "Aumentar {name}",
@@ -109,7 +110,23 @@
     "more_actions": "Más acciones",
     "close": "Cerrar",
     "view_history": "Ver historial",
-    "delete_item": "Eliminar artículo"
+    "delete_item": "Eliminar artículo",
+    "duplicate_name_hint": "Nombre duplicado",
+    "duplicate_name_error": "Ya existe un artículo llamado «{name}» en este inventario.",
+    "add_item_failed": "Error al agregar el artículo: {error}",
+    "update_item_failed": "Error al actualizar el artículo: {error}",
+    "add_item_exception": "Se produjo un error al agregar el artículo",
+    "update_item_exception": "Se produjo un error al actualizar el artículo",
+    "validation_name_required": "El nombre del artículo es obligatorio",
+    "validation_quantity_invalid": "La cantidad debe ser un número válido",
+    "validation_quantity_negative": "La cantidad no puede ser negativa",
+    "validation_threshold_invalid": "El umbral de cantidad debe ser un número válido",
+    "validation_threshold_required": "El umbral de cantidad es obligatorio cuando el auto-agregado está activado",
+    "validation_todo_list_required": "La selección de lista es obligatoria cuando el auto-agregado está activado",
+    "validation_expiry_date_invalid": "Formato de fecha de caducidad no válido",
+    "validation_expiry_alert_invalid": "Los días de alerta de caducidad deben ser un número válido",
+    "validation_expiry_alert_negative": "Los días de alerta de caducidad no pueden ser negativos",
+    "validation_expiry_threshold_requires_date": "El umbral de caducidad requiere que se establezca una fecha de caducidad"
   },
   "filters": {
     "all_categories": "Todas las Categorías",

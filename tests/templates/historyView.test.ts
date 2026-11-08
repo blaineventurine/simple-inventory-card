@@ -153,6 +153,18 @@ describe('historyView', () => {
       expect(html).toContain('15 L');
     });
 
+    it('formats the daily/weekly rate for the configured language, comma-decimal included', () => {
+      const html = createConsumptionView(
+        makeRates({ daily_rate: 1.5, weekly_rate: 10.5, unit: 'L' }),
+        chartEvents,
+        null,
+        mockTranslations,
+        { ...mockOptions, language: 'fr' },
+      );
+      expect(html).toContain('1,5 L/day');
+      expect(html).toContain('10,5 L/wk');
+    });
+
     it('omits the unit when empty (legacy rendering)', () => {
       const html = createConsumptionView(
         makeRates({ unit: '' }),
@@ -352,8 +364,11 @@ describe('historyView', () => {
       const originalTz = process.env.TZ;
       process.env.TZ = 'America/Los_Angeles';
       try {
-        const html = createHistoryContent([makeEvent({ timestamp: '2026-08-12T10:00:00.123456' })]);
-        expect(html).toContain(new Date(Date.parse('2026-08-12T10:00:00Z')).toLocaleString());
+        const html = createHistoryContent(
+          [makeEvent({ timestamp: '2026-08-12T10:00:00.123456' })],
+          'en',
+        );
+        expect(html).toContain(new Date(Date.parse('2026-08-12T10:00:00Z')).toLocaleString('en'));
         expect(html).toContain('3:00:00');
       } finally {
         if (originalTz === undefined) {
@@ -365,7 +380,7 @@ describe('historyView', () => {
     });
 
     it('renders empty message for no events', () => {
-      const html = createHistoryContent([]);
+      const html = createHistoryContent([], 'en');
       expect(html).toContain('No history recorded yet');
     });
 
@@ -380,7 +395,7 @@ describe('historyView', () => {
           quantity_after: 3,
         }),
       ];
-      const html = createHistoryContent(events);
+      const html = createHistoryContent(events, 'en');
 
       expect(html).toContain('history-timeline');
       expect(html).toContain('history-event');
@@ -390,7 +405,7 @@ describe('historyView', () => {
 
     it('shows negative sign when quantity_before > quantity_after (decrement)', () => {
       const event = makeEvent({ amount: 2, quantity_before: 5, quantity_after: 3 });
-      const html = createHistoryContent([event]);
+      const html = createHistoryContent([event], 'en');
       expect(html).toContain('(-2)');
     });
 
@@ -401,7 +416,7 @@ describe('historyView', () => {
         quantity_before: 3,
         quantity_after: 5,
       });
-      const html = createHistoryContent([event]);
+      const html = createHistoryContent([event], 'en');
       expect(html).toContain('(+2)');
     });
 
@@ -412,7 +427,7 @@ describe('historyView', () => {
         quantity_before: 5,
         quantity_after: 5,
       });
-      const html = createHistoryContent([event]);
+      const html = createHistoryContent([event], 'en');
       expect(html).toContain('(2)');
       expect(html).not.toContain('(-2)');
       expect(html).not.toContain('(+2)');
@@ -429,7 +444,7 @@ describe('historyView', () => {
       ['something_new', 'mdi:history', 'si-tone-disabled'],
     ])('renders a %s event with %s in a small %s circle', (eventType, icon, toneClass) => {
       const container = document.createElement('div');
-      container.innerHTML = createHistoryContent([makeEvent({ event_type: eventType })]);
+      container.innerHTML = createHistoryContent([makeEvent({ event_type: eventType })], 'en');
 
       const circle = container.querySelector('.history-event .si-icon-circle');
       expect(circle?.classList.contains('si-icon-circle--small')).toBe(true);
@@ -439,23 +454,29 @@ describe('historyView', () => {
 
     it('renders no emoji icons', () => {
       const types = ['add', 'remove', 'increment', 'decrement', 'transfer', 'update', 'x'];
-      const html = createHistoryContent(types.map((type) => makeEvent({ event_type: type })));
+      const html = createHistoryContent(
+        types.map((type) => makeEvent({ event_type: type })),
+        'en',
+      );
       for (const emoji of ['➕', '❌', '⬆️', '⬇️', '↔️', '✏️', '📝']) {
         expect(html).not.toContain(emoji);
       }
     });
 
     it('escapes the event type and transfer locations', () => {
-      const html = createHistoryContent([
-        makeEvent({ event_type: '<b>odd</b>' }),
-        makeEvent({
-          event_type: 'transfer',
-          location_from: '<i>Pantry</i>',
-          location_to: 'Fridge',
-          quantity_before: 5,
-          quantity_after: 5,
-        }),
-      ]);
+      const html = createHistoryContent(
+        [
+          makeEvent({ event_type: '<b>odd</b>' }),
+          makeEvent({
+            event_type: 'transfer',
+            location_from: '<i>Pantry</i>',
+            location_to: 'Fridge',
+            quantity_before: 5,
+            quantity_after: 5,
+          }),
+        ],
+        'en',
+      );
       expect(html).not.toContain('<b>');
       expect(html).not.toContain('<i>');
       expect(html).toContain('&lt;b&gt;odd&lt;/b&gt;');
@@ -463,26 +484,32 @@ describe('historyView', () => {
     });
 
     it('formats quantities without floating-point noise', () => {
-      const html = createHistoryContent([
-        makeEvent({ quantity_before: 0.1 + 0.2, quantity_after: 0.1, amount: 0.2 }),
-      ]);
+      const html = createHistoryContent(
+        [makeEvent({ quantity_before: 0.1 + 0.2, quantity_after: 0.1, amount: 0.2 })],
+        'en',
+      );
       expect(html).toContain('0.3 → 0.1 (-0.2)');
       expect(html).not.toContain('0.30000000000000004');
     });
 
     it('shows an icon with the empty message', () => {
       const container = document.createElement('div');
-      container.innerHTML = createHistoryContent([]);
+      container.innerHTML = createHistoryContent([], 'en');
       expect(
         container.querySelector('.history-empty .si-icon-circle ha-icon')?.getAttribute('icon'),
       ).toBe('mdi:history');
+    });
+
+    it('formats the timestamp for the configured language', () => {
+      const html = createHistoryContent([makeEvent({ timestamp: '2026-08-12T10:00:00Z' })], 'fr');
+      expect(html).toContain(new Date(Date.parse('2026-08-12T10:00:00Z')).toLocaleString('fr'));
     });
   });
 
   describe('createHistoryAndConsumptionView', () => {
     it('includes tab buttons and history content', () => {
       const events = [makeEvent()];
-      const html = createHistoryAndConsumptionView(events, mockTranslations);
+      const html = createHistoryAndConsumptionView(events, mockTranslations, 'en');
 
       expect(html).toContain('id="history-tab-history"');
       expect(html).toContain('id="history-tab-consumption"');
@@ -493,7 +520,7 @@ describe('historyView', () => {
     });
 
     it('shows history tab as active by default', () => {
-      const html = createHistoryAndConsumptionView([], mockTranslations);
+      const html = createHistoryAndConsumptionView([], mockTranslations, 'en');
 
       expect(html).toContain('history-tab active" id="history-tab-history"');
       expect(html).not.toContain('history-tab active" id="history-tab-consumption"');
@@ -501,7 +528,7 @@ describe('historyView', () => {
 
     it('renders the tabs as a two-segment tablist with the history segment selected', () => {
       const container = document.createElement('div');
-      container.innerHTML = createHistoryAndConsumptionView([], mockTranslations);
+      container.innerHTML = createHistoryAndConsumptionView([], mockTranslations, 'en');
 
       const tablist = container.querySelector('[role="tablist"]');
       const historyTab = container.querySelector('#history-tab-history');

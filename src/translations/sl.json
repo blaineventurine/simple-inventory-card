@@ -16,6 +16,7 @@
   },
   "items": {
     "auto_add_info": "Samodejno dodaj na seznam ko ≤ {quantity} → {list}",
+    "auto_add_desired_info": "Samodejno dodaj na seznam ko ≤ {quantity}, do {desired} → {list}",
     "no_items": "V zalogi ni predmetov",
     "decrement": "Zmanjšajte {name}",
     "increment": "Povečajte {name}",
@@ -109,7 +110,23 @@
     "more_actions": "Več dejanj",
     "close": "Zapri",
     "view_history": "Prikaži zgodovino",
-    "delete_item": "Izbriši predmet"
+    "delete_item": "Izbriši predmet",
+    "duplicate_name_hint": "Podvojeno ime",
+    "duplicate_name_error": "Predmet z imenom »{name}« že obstaja v tej zalogi.",
+    "add_item_failed": "Napaka pri dodajanju predmeta: {error}",
+    "update_item_failed": "Napaka pri posodabljanju predmeta: {error}",
+    "add_item_exception": "Prišlo je do napake pri dodajanju predmeta",
+    "update_item_exception": "Prišlo je do napake pri posodabljanju predmeta",
+    "validation_name_required": "Ime predmeta je obvezno",
+    "validation_quantity_invalid": "Količina mora biti veljavno število",
+    "validation_quantity_negative": "Količina ne more biti negativna",
+    "validation_threshold_invalid": "Prag količine mora biti veljavno število",
+    "validation_threshold_required": "Prag količine je obvezen, ko je samodejno dodajanje omogočeno",
+    "validation_todo_list_required": "Izbira seznama je obvezna, ko je samodejno dodajanje omogočeno",
+    "validation_expiry_date_invalid": "Neveljavna oblika datuma roka uporabnosti",
+    "validation_expiry_alert_invalid": "Dnevi opozorila o roku uporabnosti morajo biti veljavno število",
+    "validation_expiry_alert_negative": "Dnevi opozorila o roku uporabnosti ne morejo biti negativni",
+    "validation_expiry_threshold_requires_date": "Prag roka uporabnosti zahteva nastavljen datum roka uporabnosti"
   },
   "filters": {
     "all_categories": "Vse kategorije",

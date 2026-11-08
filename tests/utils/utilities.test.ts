@@ -6,6 +6,7 @@ import { FormUtils } from '../../src/utils/formUtils';
 import { HomeAssistant } from '../../src/types/homeAssistant';
 import { InventoryItem } from '../../src/types/inventory';
 import { RawFormData, ItemData } from '../../src/types/inventoryItem';
+import { TranslationData } from '../../src/types/translatableComponent';
 import { createMockHassEntity, createMockHomeAssistant, must } from '../testHelpers';
 
 const createValidFormData = (overrides: Partial<RawFormData> = {}): RawFormData => ({
@@ -28,6 +29,8 @@ const createValidFormData = (overrides: Partial<RawFormData> = {}): RawFormData 
   unit: 'pieces',
   ...overrides,
 });
+
+const translations: TranslationData = {};
 
 describe('Utilities', () => {
   describe('getInventoryName', () => {
@@ -217,45 +220,6 @@ describe('Utilities', () => {
     });
   });
 
-  describe('formatDate', () => {
-    it.each([
-      '2023-12-25',
-      '2023-01-01',
-      '2024-02-29', // Leap year
-      '2023-12-25T15:30:00Z',
-      '2023-12-25T00:00:00.000Z',
-    ])('should format valid date strings: %s', (dateString) => {
-      const result = DateUtils.formatDate(dateString);
-      expect(result).toBeTruthy();
-      expect(result).not.toBe(dateString);
-    });
-
-    it.each([undefined, '', undefined])(
-      'should return empty string for falsy inputs: %s',
-      (input) => {
-        expect(DateUtils.formatDate(input as any)).toBe('');
-      },
-    );
-
-    it.each(['invalid-date', 'not-a-date', 'abc123', '####', 'completely-invalid'])(
-      'should return original string for invalid dates: %s',
-      (invalidDate) => {
-        const result = DateUtils.formatDate(invalidDate);
-        expect(result).toBe(invalidDate);
-      },
-    );
-
-    it.each([
-      '  2023-12-25  ',
-      '\t2023-12-25\n',
-      '  1640995200000  ', // Timestamp with whitespace
-    ])('should handle whitespace correctly: %s', (paddedDate) => {
-      const result = DateUtils.formatDate(paddedDate);
-      expect(result).toBeTruthy();
-      expect(result).not.toBe(paddedDate);
-    });
-  });
-
   describe('date validation functions', () => {
     beforeEach(() => {
       vi.useFakeTimers();
@@ -305,7 +269,7 @@ describe('Utilities', () => {
     });
   });
 
-  describe('formatDate and isExpiringSoon - timezone correctness', () => {
+  describe('isExpiringSoon - timezone correctness', () => {
     const originalTz = process.env.TZ;
 
     afterEach(() => {
@@ -315,18 +279,6 @@ describe('Utilities', () => {
         process.env.TZ = originalTz;
       }
       vi.useRealTimers();
-    });
-
-    it('formatDate should represent the correct UTC calendar day in a timezone ahead of UTC (Asia/Tokyo, UTC+9)', () => {
-      process.env.TZ = 'Asia/Tokyo';
-      // Bare YYYY-MM-DD must always render as its own calendar date, never the
-      // previous day, regardless of the host's local timezone offset.
-      expect(DateUtils.formatDate('2026-08-11')).toBe('8/11/2026');
-    });
-
-    it('formatDate should represent the correct UTC calendar day in a timezone behind UTC (America/Los_Angeles, UTC-8)', () => {
-      process.env.TZ = 'America/Los_Angeles';
-      expect(DateUtils.formatDate('2026-08-11')).toBe('8/11/2026');
     });
 
     it('isExpiringSoon should treat the threshold boundary consistently in a timezone ahead of UTC (Asia/Tokyo, UTC+9)', () => {
@@ -363,10 +315,19 @@ describe('Utilities', () => {
     describe('validateRawFormData', () => {
       it('should pass validation for valid data', () => {
         const formData = createValidFormData();
-        const result = FormUtils.validateRawFormData(formData);
+        const result = FormUtils.validateRawFormData(formData, translations);
 
         expect(result.isValid).toBe(true);
         expect(result.errors).toHaveLength(0);
+      });
+
+      it('localizes validation messages from the given translations', () => {
+        const formData = createValidFormData({ name: '' });
+        const result = FormUtils.validateRawFormData(formData, {
+          modal: { validation_name_required: 'Se requiere un nombre' },
+        });
+
+        expect(result.errors).toContainEqual({ field: 'name', message: 'Se requiere un nombre' });
       });
 
       describe('name validation', () => {
@@ -377,7 +338,7 @@ describe('Utilities', () => {
           { name: null, description: 'null' },
         ])('should fail for invalid name: $description', ({ name }) => {
           const formData = createValidFormData({ name: name as any });
-          const result = FormUtils.validateRawFormData(formData);
+          const result = FormUtils.validateRawFormData(formData, translations);
 
           expect(result.isValid).toBe(false);
           expect(result.errors).toContainEqual({ field: 'name', message: 'Item name is required' });
@@ -393,7 +354,7 @@ describe('Utilities', () => {
           { quantity: '', shouldError: false },
         ])('should validate quantity: $quantity', ({ quantity, errorType, shouldError }) => {
           const formData = createValidFormData({ quantity });
-          const result = FormUtils.validateRawFormData(formData);
+          const result = FormUtils.validateRawFormData(formData, translations);
 
           if (shouldError === false) {
             expect(result.errors.some((e) => e.field === 'quantity')).toBe(false);
@@ -414,7 +375,7 @@ describe('Utilities', () => {
             autoAddToListQuantity: '',
             todoList: '',
           });
-          const result = FormUtils.validateRawFormData(formData);
+          const result = FormUtils.validateRawFormData(formData, translations);
 
           expect(result.isValid).toBe(false);
           expect(result.errors).toHaveLength(2);
@@ -427,7 +388,7 @@ describe('Utilities', () => {
             autoAddEnabled: false,
             todoList: undefined as any,
           });
-          const result = FormUtils.validateRawFormData(formData);
+          const result = FormUtils.validateRawFormData(formData, translations);
 
           expect(result.errors.some((e) => e.field === 'todoList')).toBe(false);
           expect(result.isValid).toBe(true);
@@ -441,7 +402,7 @@ describe('Utilities', () => {
           { expiryDate: '', shouldError: false },
         ])('should validate expiry date format: $expiryDate', ({ expiryDate, shouldError }) => {
           const formData = createValidFormData({ expiryDate });
-          const result = FormUtils.validateRawFormData(formData);
+          const result = FormUtils.validateRawFormData(formData, translations);
 
           expect(result.errors.some((e) => e.field === 'expiryDate')).toBe(shouldError);
         });
@@ -451,7 +412,7 @@ describe('Utilities', () => {
             expiryDate: '',
             expiryAlertDays: '5',
           });
-          const result = FormUtils.validateRawFormData(formData);
+          const result = FormUtils.validateRawFormData(formData, translations);
 
           expect(
             result.errors.some(
@@ -952,48 +913,6 @@ describe('Utilities', () => {
       });
     });
 
-    describe('formatDate - Regex and Edge Case Coverage', () => {
-      it('should handle numeric strings that are not pure digits', () => {
-        const result = DateUtils.formatDate('123abc');
-        expect(result).toBe('123abc'); // Should return original for invalid format
-      });
-
-      it('should handle partial numeric strings', () => {
-        const result = DateUtils.formatDate('123');
-        expect(result).not.toBe('123'); // Should be formatted as timestamp
-      });
-
-      it('should handle regex mutation edge cases', () => {
-        // Test cases that would behave differently with mutated regex patterns
-        const testCases = [
-          '123abc', // Would match /^\d+/ but not /^\d+$/
-          'abc123', // Would match /\d+$/ but not /^\d+$/
-          'x2023-12-25', // Would match /\d{4}-\d{2}-\d{2}$/ but not /^\d{4}-\d{2}-\d{2}$/
-          '2023-12-25x', // Would match /^\d{4}-\d{2}-\d{2}/ but not /^\d{4}-\d{2}-\d{2}$/
-        ];
-
-        for (const dateString of testCases) {
-          const result = DateUtils.formatDate(dateString);
-          // These should NOT be parsed as timestamps or YYYY-MM-DD format
-          // They should go through the general Date() constructor path
-          expect(result).toBeTruthy(); // Just verify it returns something
-        }
-      });
-
-      it('should handle date strings without trimming', () => {
-        // Test the specific mutant that removes .trim()
-        const result = DateUtils.formatDate('2023-12-25');
-        expect(result).toBeTruthy();
-        expect(result).not.toBe('2023-12-25');
-      });
-
-      it('should handle arithmetic mutation in month calculation', () => {
-        const result = DateUtils.formatDate('2023-12-25');
-        // Verify the month is correct (not off by 2 due to +1 instead of -1)
-        expect(result).toContain('12'); // Should contain December representation
-      });
-    });
-
     describe('isExpired - Edge Cases', () => {
       beforeEach(() => {
         vi.useFakeTimers();
@@ -1064,7 +983,7 @@ describe('Utilities', () => {
         const formData = createValidFormData();
         delete (formData as any).quantity; // Remove quantity entirely
 
-        const result = FormUtils.validateRawFormData(formData);
+        const result = FormUtils.validateRawFormData(formData, translations);
         expect(result.errors.some((e) => e.field === 'quantity')).toBe(false);
       });
 
@@ -1075,7 +994,7 @@ describe('Utilities', () => {
           todoList: 'todo.test',
         });
 
-        const result = FormUtils.validateRawFormData(formData);
+        const result = FormUtils.validateRawFormData(formData, translations);
         expect(result.errors.some((e) => e.field === 'autoAddToListQuantity')).toBe(true);
       });
 
@@ -1086,7 +1005,7 @@ describe('Utilities', () => {
           todoList: null as any,
         });
 
-        const result = FormUtils.validateRawFormData(formData);
+        const result = FormUtils.validateRawFormData(formData, translations);
         expect(result.errors.some((e) => e.field === 'todoList')).toBe(true);
       });
 
@@ -1095,7 +1014,7 @@ describe('Utilities', () => {
           expiryDate: null as any,
         });
 
-        const result = FormUtils.validateRawFormData(formData);
+        const result = FormUtils.validateRawFormData(formData, translations);
         expect(result.errors.some((e) => e.field === 'expiryDate')).toBe(false);
       });
 
@@ -1103,7 +1022,7 @@ describe('Utilities', () => {
         const formData = createValidFormData();
         delete (formData as any).expiryAlertDays;
 
-        const result = FormUtils.validateRawFormData(formData);
+        const result = FormUtils.validateRawFormData(formData, translations);
         expect(result.errors.some((e) => e.field === 'expiryAlertDays')).toBe(false);
       });
 
@@ -1114,7 +1033,7 @@ describe('Utilities', () => {
           todoList: 'todo.test',
         });
 
-        const result = FormUtils.validateRawFormData(formData);
+        const result = FormUtils.validateRawFormData(formData, translations);
         expect(
           result.errors.some(
             (e) => e.field === 'autoAddToListQuantity' && e.message.includes('valid number'),
@@ -1129,7 +1048,7 @@ describe('Utilities', () => {
           todoList: 'todo.test',
         });
 
-        const result = FormUtils.validateRawFormData(formData);
+        const result = FormUtils.validateRawFormData(formData, translations);
         expect(
           result.errors.some(
             (e) => e.field === 'autoAddToListQuantity' && e.message.includes('cannot be negative'),
@@ -1143,7 +1062,7 @@ describe('Utilities', () => {
           expiryAlertDays: 'invalid-number',
         });
 
-        const result = FormUtils.validateRawFormData(formData);
+        const result = FormUtils.validateRawFormData(formData, translations);
         expect(
           result.errors.some(
             (e) => e.field === 'expiryAlertDays' && e.message.includes('valid number'),
@@ -1157,7 +1076,7 @@ describe('Utilities', () => {
           expiryAlertDays: '-3',
         });
 
-        const result = FormUtils.validateRawFormData(formData);
+        const result = FormUtils.validateRawFormData(formData, translations);
         expect(
           result.errors.some(
             (e) => e.field === 'expiryAlertDays' && e.message.includes('cannot be negative'),
@@ -1414,15 +1333,6 @@ describe('Utilities', () => {
         expect(result).not.toContain('sensor.no_match');
         expect(result).not.toContain('sensor.inventory_no_items');
         expect(result).not.toContain('sensor.pantry_sensor');
-      });
-    });
-
-    describe('formatDate - Timezone and Options Coverage', () => {
-      it('should handle date formatting without timezone option', () => {
-        const result = DateUtils.formatDate('2023-12-25');
-        expect(result).toBeTruthy();
-        // The mutant removes the timeZone option, but result should still be valid
-        expect(result).toMatch(/\d{1,2}\/\d{1,2}\/\d{4}/); // Should match MM/DD/YYYY format
       });
     });
   });

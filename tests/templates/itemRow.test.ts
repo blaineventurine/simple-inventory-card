@@ -127,6 +127,14 @@ describe('createItemRowTemplate', () => {
       expect(secondaryText(row())).toBe('Pantry, Kitchen · Spreads, Breakfast');
     });
 
+    it('skips blank entries when joining locations and categories', () => {
+      baseItem.expiry_date = '';
+      baseItem.locations = ['', 'Pantry', '  '];
+      baseItem.categories = ['Spreads'];
+
+      expect(secondaryText(row())).toBe('Pantry · Spreads');
+    });
+
     it('should include quantity and unit', () => {
       expect(row().querySelector('.si-stepper__value')?.textContent).toBe('5 pieces');
     });
@@ -426,6 +434,30 @@ describe('createItemRowTemplate', () => {
       };
 
       expect(autoAddText(autoAddItem)).toBe('Auto-add at ≤ 2 → ');
+    });
+
+    it('should show the desired-quantity phrasing when desired_quantity is set', () => {
+      const autoAddItem = {
+        ...baseItem,
+        auto_add_enabled: true,
+        auto_add_to_list_quantity: 3,
+        desired_quantity: 10,
+        todo_list: 'todo.grocery',
+      };
+
+      expect(autoAddText(autoAddItem)).toBe('Auto-add at ≤ 3, up to 10 → Grocery List');
+    });
+
+    it('should use the legacy phrasing when desired_quantity is 0 or unset', () => {
+      const autoAddItem = {
+        ...baseItem,
+        auto_add_enabled: true,
+        auto_add_to_list_quantity: 3,
+        desired_quantity: 0,
+        todo_list: 'todo.grocery',
+      };
+
+      expect(autoAddText(autoAddItem)).toBe('Auto-add at ≤ 3 → Grocery List');
     });
 
     it('should render auto-add-info in the details panel, not in the row line', () => {

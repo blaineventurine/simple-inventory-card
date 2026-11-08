@@ -16,6 +16,7 @@
   },
   "items": {
     "auto_add_info": "Auto-add at ≤ {quantity} → {list}",
+    "auto_add_desired_info": "Auto-add at ≤ {quantity}, up to {desired} → {list}",
     "no_items": "No items in inventory",
     "decrement": "Decrease {name}",
     "increment": "Increase {name}",
@@ -109,7 +110,23 @@
     "more_actions": "More actions",
     "close": "Close",
     "view_history": "View history",
-    "delete_item": "Delete item"
+    "delete_item": "Delete item",
+    "duplicate_name_hint": "Duplicate name",
+    "duplicate_name_error": "An item named \"{name}\" already exists in this inventory.",
+    "add_item_failed": "Error adding item: {error}",
+    "update_item_failed": "Error updating item: {error}",
+    "add_item_exception": "An error occurred while adding the item",
+    "update_item_exception": "An error occurred while updating the item",
+    "validation_name_required": "Item name is required",
+    "validation_quantity_invalid": "Quantity must be a valid number",
+    "validation_quantity_negative": "Quantity cannot be negative",
+    "validation_threshold_invalid": "Quantity threshold must be a valid number",
+    "validation_threshold_required": "Quantity threshold is required when auto-add is enabled",
+    "validation_todo_list_required": "Todo list selection is required when auto-add is enabled",
+    "validation_expiry_date_invalid": "Invalid expiry date format",
+    "validation_expiry_alert_invalid": "Expiry alert days must be a valid number",
+    "validation_expiry_alert_negative": "Expiry alert days cannot be negative",
+    "validation_expiry_threshold_requires_date": "Expiry threshold requires an expiry date to be set"
   },
   "filters": {
     "all_categories": "All Categories",

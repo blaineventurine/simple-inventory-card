@@ -52,8 +52,8 @@ interface MetricTile {
   title?: string | undefined;
 }
 
-function formatTimestamp(iso: string): string {
-  return new Date(parseHistoryTimestamp(iso)).toLocaleString();
+function formatTimestamp(iso: string, language: string): string {
+  return new Date(parseHistoryTimestamp(iso)).toLocaleString(language);
 }
 
 function signedAmount(event: HistoryEvent): string {
@@ -66,7 +66,7 @@ function signedAmount(event: HistoryEvent): string {
   return `${sign}${formatQuantity(event.amount)}`;
 }
 
-function renderEvent(event: HistoryEvent): string {
+function renderEvent(event: HistoryEvent, language: string): string {
   const style = EVENT_STYLES.get(event.event_type) ?? UNKNOWN_EVENT_STYLE;
   const locationInfo =
     event.event_type === 'transfer' && event.location_from && event.location_to
@@ -81,7 +81,7 @@ function renderEvent(event: HistoryEvent): string {
         <span class="history-type">${Utilities.sanitizeHtml(`${event.event_type}${locationInfo}`)}</span>
         ${secondaryLine([
           { text: change, className: 'history-qty' },
-          { text: formatTimestamp(event.timestamp), className: 'history-time' },
+          { text: formatTimestamp(event.timestamp, language), className: 'history-time' },
         ])}
       </div>
     </div>
@@ -101,12 +101,12 @@ function getDepletion(days: number | null): Depletion {
   return { className: 'depletion-safe', tone: 'success' };
 }
 
-function formatRate(value: number | null, unit: string, suffix: string): string {
+function formatRate(value: number | null, unit: string, suffix: string, language: string): string {
   if (value === null) {
     return '—';
   }
   const safeUnit = unit ? ` ${Utilities.sanitizeHtml(unit)}` : '';
-  return `${value.toFixed(1)}${safeUnit}${suffix}`;
+  return `${value.toLocaleString(language, { maximumFractionDigits: 1 })}${safeUnit}${suffix}`;
 }
 
 function formatDays(value: number | null): string {
@@ -137,7 +137,7 @@ function metricTile(tile: MetricTile): string {
       </div>`;
 }
 
-export function createHistoryContent(events: HistoryEvent[]): string {
+export function createHistoryContent(events: HistoryEvent[], language: string): string {
   if (events.length === 0) {
     return `
       <div class="history-empty">
@@ -149,7 +149,7 @@ export function createHistoryContent(events: HistoryEvent[]): string {
 
   return `
     <div class="history-timeline">
-      ${events.map(renderEvent).join('')}
+      ${events.map((event) => renderEvent(event, language)).join('')}
     </div>
   `;
 }
@@ -273,11 +273,11 @@ export function createConsumptionView(
 
   const tiles: MetricTile[] = [
     {
-      valueHtml: formatRate(rates.daily_rate, unit, perDay),
+      valueHtml: formatRate(rates.daily_rate, unit, perDay, options.language),
       label: t(translations, 'analytics.daily_rate', 'Daily'),
     },
     {
-      valueHtml: formatRate(rates.weekly_rate, unit, perWeek),
+      valueHtml: formatRate(rates.weekly_rate, unit, perWeek, options.language),
       label: t(translations, 'analytics.weekly_rate', 'Weekly'),
     },
     {
@@ -333,6 +333,7 @@ export function createConsumptionView(
 export function createHistoryAndConsumptionView(
   events: HistoryEvent[],
   translations: TranslationData,
+  language: string,
   idPrefix = '',
 ): string {
   const historyId = `${idPrefix}${ELEMENTS.HISTORY_TAB_HISTORY}`;
@@ -348,7 +349,7 @@ export function createHistoryAndConsumptionView(
         <button type="button" class="si-tone-primary history-tab" id="${consumptionId}" role="tab" aria-selected="false" aria-controls="${contentId}">${Utilities.sanitizeHtml(tabConsumption)}</button>
       </div>
       <div id="${contentId}" role="tabpanel">
-        ${createHistoryContent(events)}
+        ${createHistoryContent(events, language)}
       </div>
     </div>
   `;

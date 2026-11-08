@@ -89,13 +89,13 @@ describe('item form → service payload (golden)', () => {
 
   const submitAdd = async (): Promise<void> => {
     const raw = forms.getRawAddModalData();
-    expect(FormUtils.validateRawFormData(raw).isValid).toBe(true);
+    expect(FormUtils.validateRawFormData(raw, {}).isValid).toBe(true);
     await services.addItem('inventory_1', FormUtils.convertRawFormDataToItemData(raw));
   };
 
   const submitEdit = async (oldName: string): Promise<void> => {
     const raw = forms.getRawEditModalData();
-    expect(FormUtils.validateRawFormData(raw).isValid).toBe(true);
+    expect(FormUtils.validateRawFormData(raw, {}).isValid).toBe(true);
     await services.updateItem('inventory_1', oldName, FormUtils.convertRawFormDataToItemData(raw));
   };
 

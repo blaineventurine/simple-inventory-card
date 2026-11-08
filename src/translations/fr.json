@@ -16,6 +16,7 @@
   },
   "items": {
     "auto_add_info": "Ajout automatique à ≤ {quantity} → {list}",
+    "auto_add_desired_info": "Ajout automatique à ≤ {quantity}, jusqu'à {desired} → {list}",
     "no_items": "Aucun article en stock",
     "decrement": "Diminuer {name}",
     "increment": "Augmenter {name}",
@@ -109,7 +110,23 @@
     "more_actions": "Plus d'actions",
     "close": "Fermer",
     "view_history": "Voir l'historique",
-    "delete_item": "Supprimer l'article"
+    "delete_item": "Supprimer l'article",
+    "duplicate_name_hint": "Nom en double",
+    "duplicate_name_error": "Un article nommé « {name} » existe déjà dans cet inventaire.",
+    "add_item_failed": "Erreur lors de l'ajout de l'article : {error}",
+    "update_item_failed": "Erreur lors de la mise à jour de l'article : {error}",
+    "add_item_exception": "Une erreur est survenue lors de l'ajout de l'article",
+    "update_item_exception": "Une erreur est survenue lors de la mise à jour de l'article",
+    "validation_name_required": "Le nom de l'article est requis",
+    "validation_quantity_invalid": "La quantité doit être un nombre valide",
+    "validation_quantity_negative": "La quantité ne peut pas être négative",
+    "validation_threshold_invalid": "Le seuil de quantité doit être un nombre valide",
+    "validation_threshold_required": "Le seuil de quantité est requis lorsque l'ajout automatique est activé",
+    "validation_todo_list_required": "La sélection d'une liste est requise lorsque l'ajout automatique est activé",
+    "validation_expiry_date_invalid": "Format de date de péremption invalide",
+    "validation_expiry_alert_invalid": "Le nombre de jours d'alerte de péremption doit être un nombre valide",
+    "validation_expiry_alert_negative": "Le nombre de jours d'alerte de péremption ne peut pas être négatif",
+    "validation_expiry_threshold_requires_date": "Le seuil de péremption nécessite une date de péremption définie"
   },
   "filters": {
     "all_categories": "Toutes les catégories",
