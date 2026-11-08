@@ -63,7 +63,7 @@
     "fast-check": "^4.1.1",
     "globals": "^17.9.0",
     "husky": "^9.1.7",
-    "jsdom": "^30.1.3",
+    "jsdom": "^31.0.0",
     "lint-staged": "^17.6.0",
     "prettier": "^3.5.3",
     "terser": "^5.41.0",
@@ -71,6 +71,9 @@
     "vite": "^8.3.4",
     "vite-plugin-static-copy": "^4.1.1",
     "vitest": "^5.0.5"
+  },
+  "overrides": {
+    "minimatch": "^11.0.5"
   },
   "dependencies": {
     "@ericblade/quagga2": "^1.12.1",
