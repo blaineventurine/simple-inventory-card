@@ -188,13 +188,17 @@ describe('historyView', () => {
       );
     });
 
-    it('falls back to $ when the currency code is invalid', () => {
+    it('falls back to a plain number when the currency code is invalid', () => {
       const rates = makeRates({ daily_spend_rate: 1.5, weekly_spend_rate: 10.5, total_spend: 42 });
       const html = createConsumptionView(rates, chartEvents, null, mockTranslations, {
         ...mockOptions,
         currency: 'NOT_A_CODE',
       });
-      expect(html).toContain('$42.00');
+      expect(html).toContain(
+        new Intl.NumberFormat('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(
+          42,
+        ),
+      );
     });
 
     it('adds a projected run-out date tooltip to Days Left', () => {

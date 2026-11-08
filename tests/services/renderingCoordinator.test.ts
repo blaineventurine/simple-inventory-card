@@ -155,7 +155,13 @@ describe('RenderingCoordinator', () => {
         mockTodoLists,
         mockTranslations,
         mockConfig,
-        { batches: true, expanded: new Set(['Test Item']), transfers: false, layout: 'list' },
+        {
+          batches: true,
+          expanded: new Set(['Test Item']),
+          transfers: false,
+          layout: 'list',
+          formatValue: expect.any(Function),
+        },
         false,
       );
     });
@@ -190,6 +196,7 @@ describe('RenderingCoordinator', () => {
           layout: 'list',
           images: imageLoader,
           tileImages: false,
+          formatValue: expect.any(Function),
         },
         false,
       );
@@ -252,6 +259,7 @@ describe('RenderingCoordinator', () => {
           expanded: mockServices.state.expandedBatchItems,
           transfers: true,
           layout: 'list',
+          formatValue: expect.any(Function),
         },
         false,
       );
@@ -279,6 +287,7 @@ describe('RenderingCoordinator', () => {
           expanded: mockServices.state.expandedBatchItems,
           transfers: true,
           layout: 'list',
+          formatValue: expect.any(Function),
         },
         true,
       );
@@ -390,6 +399,7 @@ describe('RenderingCoordinator', () => {
           expanded: mockServices.state.expandedBatchItems,
           transfers: false,
           layout: 'list',
+          formatValue: expect.any(Function),
         },
         false,
       );
@@ -419,6 +429,7 @@ describe('RenderingCoordinator', () => {
           expanded: mockServices.state.expandedBatchItems,
           transfers: false,
           layout: 'list',
+          formatValue: expect.any(Function),
         },
         false,
       );
@@ -495,7 +506,13 @@ describe('RenderingCoordinator', () => {
           mockTodoLists,
           mockTranslations,
           mockConfig,
-          { batches: true, expanded: new Set(['Test Item']), transfers: false, layout: 'list' },
+          {
+            batches: true,
+            expanded: new Set(['Test Item']),
+            transfers: false,
+            layout: 'list',
+            formatValue: expect.any(Function),
+          },
         );
       });
       // The re-listed rows' forms are gone: their holds are released.
@@ -526,6 +543,7 @@ describe('RenderingCoordinator', () => {
             expanded: mockServices.state.expandedBatchItems,
             transfers: true,
             layout: 'list',
+            formatValue: expect.any(Function),
           },
         );
       });
@@ -565,6 +583,7 @@ describe('RenderingCoordinator', () => {
             layout: 'list',
             images: imageLoader,
             tileImages: false,
+            formatValue: expect.any(Function),
           },
         );
         expect(fetchBlob).toHaveBeenCalledWith('/api/simple_inventory/image/a?thumb=1&v=1');
@@ -608,6 +627,7 @@ describe('RenderingCoordinator', () => {
             expanded: mockServices.state.expandedBatchItems,
             transfers: false,
             layout: 'list',
+            formatValue: expect.any(Function),
           },
         );
       });

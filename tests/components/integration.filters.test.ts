@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { SimpleInventoryCard } from '../../src/components/simpleInventoryCard';
 import { TranslationManager } from '../../src/services/translationManager';
 import { HomeAssistant } from '../../src/types/homeAssistant';
-import { fakeConnection } from '../testHelpers';
+import { createMockHassConfig, fakeConnection } from '../testHelpers';
 
 vi.mock('lit-element', () => ({
   LitElement: class MockLitElement {
@@ -88,6 +88,7 @@ describe('filter dropdowns — full card lifecycle (integration)', () => {
     return {
       language: 'en',
       selectedLanguage: 'en',
+      config: createMockHassConfig(),
       states: {
         'sensor.test_inventory': {
           entity_id: 'sensor.test_inventory',

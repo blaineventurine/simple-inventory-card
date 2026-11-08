@@ -66,7 +66,7 @@ describe('createBatchPanel', () => {
     expect(rows[0].querySelector('.batch-quantity')?.textContent).toBe('0.5 L');
     expect(rows[0].querySelector('.batch-location')?.textContent).toBe('Fridge');
     expect(rows[0].querySelector('.batch-expiry')?.classList.contains('expired')).toBe(true);
-    expect(rows[0].querySelector('.batch-price')?.textContent).toBe('$1.20 each');
+    expect(rows[0].querySelector('.batch-price')?.textContent).toBe('1.20 each');
     expect(rows[0].querySelectorAll('.si-secondary')).toHaveLength(1);
     expect(rows[1].querySelector('.batch-quantity')?.textContent).toBe('3 L');
     expect(rows[1].querySelector('.batch-location')).toBeNull();

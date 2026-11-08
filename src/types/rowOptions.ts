@@ -25,4 +25,6 @@ export interface RowOptions {
   tileImages?: boolean;
   /** Rows or tiles (see `getLayout`); absent = rows. */
   layout?: Layout;
+  /** Formats a price in HA's currency (built once per render; see `valueFormatter`). */
+  formatValue?: (value: number) => string;
 }

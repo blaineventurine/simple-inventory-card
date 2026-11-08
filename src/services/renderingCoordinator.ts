@@ -1,3 +1,4 @@
+import { valueFormatter } from '@/utils/currency';
 import { RowOptions } from '@/types/rowOptions';
 import { CardContext } from '@/types/cardContext';
 import { InventoryConfig, InventoryItem } from '../types/inventory';
@@ -143,7 +144,7 @@ export class RenderingCoordinator {
    * The row options of a render: the context's capabilities plus the open details panels and the
    * inventory's layout.
    */
-  private rowOptions({ capabilities, config }: CardContext): RowOptions {
+  private rowOptions({ capabilities, config, hass }: CardContext): RowOptions {
     const services = this.lifecycleManager.getServices();
     const images = capabilities.itemImages ? services?.imageLoader : undefined;
     return {
@@ -151,6 +152,7 @@ export class RenderingCoordinator {
       expanded: services?.state.expandedBatchItems ?? new Set<string>(),
       transfers: capabilities.transfers,
       layout: getLayout(config.entity, config),
+      formatValue: valueFormatter(hass.language, hass.config.currency),
       ...(images ? { images, tileImages: capabilities.tileImages } : {}),
     };
   }

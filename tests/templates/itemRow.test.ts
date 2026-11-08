@@ -267,8 +267,8 @@ describe('createItemRowTemplate', () => {
     it('shows the total value only when the item has a price', () => {
       const priced = row({ ...baseItem, expiry_date: '', price: 6.4 });
 
-      expect(priced.querySelector('.item-price')?.textContent).toBe('$32.00');
-      expect(secondaryText(priced)).toBe('Fruit · $32.00');
+      expect(priced.querySelector('.item-price')?.textContent).toBe('32.00');
+      expect(secondaryText(priced)).toBe('Fruit · 32.00');
       expect(row({ ...baseItem, price: 0 }).querySelector('.item-price')).toBeNull();
     });
 
@@ -568,7 +568,7 @@ describe('createItemRowTemplate', () => {
 
       expect(element.querySelector('.item-name')?.textContent).toBe('Maximal Item');
       expect(element.querySelector('.si-stepper__value')?.textContent).toBe('10 units');
-      expect(secondaryText(element)).toBe('Pantry · Test Category · 2026-11-24 · $15.00');
+      expect(secondaryText(element)).toBe('Pantry · Test Category · 2026-11-24 · 15.00');
       expect(element.querySelector('.item-description')?.textContent).toBe('A fully detailed item');
       expect(element.querySelector('.auto-add-info')?.textContent).toBe(
         'Auto-add at ≤ 3 → Grocery List',

@@ -70,7 +70,7 @@ export function createItemTileTemplate(
         <div class="si-tile__media">${media}${badge}</div>
         <div class="item-name si-tile__name">${name}</div>
       </div>
-      ${itemSecondaryLine(item, translations, config)}
+      ${itemSecondaryLine(item, translations, config, undefined, rowOptions?.formatValue)}
       ${itemStepper(item, translations)}
     </div>
   `;

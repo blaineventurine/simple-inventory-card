@@ -207,7 +207,7 @@ export function itemDetailTemplate(
   const batches = options.batches
     ? `<section class="si-detail__section si-detail__batches">
         <h3>${t(translations, 'section_batches', 'Batches')}</h3>
-        ${createBatchPanel(item, translations, config, options.transfers)}
+        ${createBatchPanel(item, translations, config, options.transfers, options.formatValue)}
       </section>`
     : '';
   return `${header(item, translations)}

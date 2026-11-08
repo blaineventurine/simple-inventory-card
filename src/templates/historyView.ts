@@ -1,3 +1,4 @@
+import { valueFormatter } from '@/utils/currency';
 import { HistoryEvent } from '@/types/historyEvent';
 import { ItemConsumptionRates } from '@/types/consumptionRates';
 import { TranslationData } from '@/types/translatableComponent';
@@ -119,17 +120,7 @@ function formatCurrency(value: number | null, options: ConsumptionFormatOptions)
   if (value === null) {
     return '—';
   }
-  if (options.currency) {
-    try {
-      return new Intl.NumberFormat(options.language, {
-        style: 'currency',
-        currency: options.currency,
-      }).format(value);
-    } catch {
-      // invalid currency code -> legacy fallback below
-    }
-  }
-  return `$${value.toFixed(2)}`;
+  return valueFormatter(options.language, options.currency)(value);
 }
 
 function t(translations: TranslationData, key: string, fallback: string): string {

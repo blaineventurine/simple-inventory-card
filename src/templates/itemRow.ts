@@ -1,3 +1,4 @@
+import { valueFormatter } from '@/utils/currency';
 import { InventoryConfig, InventoryItem } from '@/types/inventory';
 import { TodoList } from '@/types/todoList';
 import { TranslationData } from '@/types/translatableComponent';
@@ -18,6 +19,9 @@ import {
   stepper,
 } from './primitives';
 import { itemImagePath } from '@/utils/itemImage';
+
+/** Fallback when no `formatValue` is supplied (isolated calls without `rowOptions`). */
+const PLAIN_VALUE = valueFormatter('en', undefined);
 
 /**
  * Id of an item's details panel, referenced by the chevron's `aria-controls`. Item names
@@ -47,6 +51,7 @@ export function itemSecondaryLine(
   translations: TranslationData,
   config?: SecondaryLineOptions,
   leading: SecondaryPart[] = [],
+  formatValue: (value: number) => string = PLAIN_VALUE,
 ): string {
   const locations =
     item.locations && item.locations.length > 0 ? item.locations.join(', ') : item.location;
@@ -66,7 +71,7 @@ export function itemSecondaryLine(
     {
       text:
         config?.show_price !== false && item.price && item.price > 0
-          ? `$${(item.price * item.quantity).toFixed(2)}`
+          ? formatValue(item.price * item.quantity)
           : '',
       className: 'item-price',
     },
@@ -119,7 +124,13 @@ export function createItemRowTemplate(
   const imagePath = images ? itemImagePath(item, 'full') : null;
   const hasDetails = showBatches || description !== '' || showAutoAdd || imagePath !== null;
 
-  const secondary = itemSecondaryLine(item, translations, config);
+  const secondary = itemSecondaryLine(
+    item,
+    translations,
+    config,
+    undefined,
+    rowOptions?.formatValue ?? PLAIN_VALUE,
+  );
 
   const chevron = hasDetails
     ? iconButton({
@@ -179,7 +190,7 @@ export function createItemRowTemplate(
         }
         ${description ? `<p class="item-description si-details__description">${Utilities.sanitizeHtml(description)}</p>` : ''}
         ${autoAddText ? `<div class="auto-add-info si-details__auto-add"><ha-icon icon="mdi:cart-arrow-down"></ha-icon><span>${Utilities.sanitizeHtml(autoAddText)}</span></div>` : ''}
-        ${showBatches ? createBatchPanel(item, translations, config, rowOptions?.transfers === true) : ''}
+        ${showBatches ? createBatchPanel(item, translations, config, rowOptions?.transfers === true, rowOptions?.formatValue) : ''}
       </div>`
     : '';
 

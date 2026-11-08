@@ -1,3 +1,4 @@
+import { valueFormatter } from '@/utils/currency';
 import { ACTIONS, BATCH_FIELDS, ELEMENTS } from '@/utils/constants';
 import { InventoryBatch, InventoryConfig, InventoryItem } from '@/types/inventory';
 import { TranslationData } from '@/types/translatableComponent';
@@ -6,6 +7,9 @@ import { Utilities } from '@/utils/utilities';
 import { expiryTone, getExpiryStatus } from './expiryStatus';
 import { batchFields } from './modalPartials/batchFields';
 import { Tone, button, formatQuantity, iconButton, secondaryLine } from './primitives';
+
+/** Fallback when no `formatValue` is supplied (isolated calls without `rowOptions`). */
+const PLAIN_VALUE = valueFormatter('en', undefined);
 
 /**
  * The batch list inside an item's details panel: one row per batch in the order the
@@ -17,11 +21,12 @@ export function createBatchPanel(
   translations: TranslationData,
   config: InventoryConfig | undefined,
   transfers = false,
+  formatValue: (value: number) => string = PLAIN_VALUE,
 ): string {
   const label = (key: string, fallback: string): string =>
     TranslationManager.localize(translations, key, undefined, fallback);
   const rows = (item.batches ?? [])
-    .map((batch) => createBatchRow(batch, item, translations, config, transfers))
+    .map((batch) => createBatchRow(batch, item, translations, config, transfers, formatValue))
     .join('');
   const listLabel = TranslationManager.localize(
     translations,
@@ -56,6 +61,7 @@ function createBatchRow(
   translations: TranslationData,
   config: InventoryConfig | undefined,
   transfers: boolean,
+  formatValue: (value: number) => string,
 ): string {
   const quantity = `${formatQuantity(batch.quantity)} ${item.unit || ''}`.trim();
   const parts: Array<{ text: string; tone?: Tone | undefined; className?: string }> = [
@@ -73,7 +79,7 @@ function createBatchRow(
     });
   }
   if (config?.show_price !== false && batch.unit_price > 0) {
-    const price = `$${batch.unit_price.toFixed(2)}`;
+    const price = formatValue(batch.unit_price);
     parts.push({
       text: TranslationManager.localize(
         translations,

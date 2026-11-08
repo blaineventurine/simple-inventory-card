@@ -190,7 +190,7 @@ describe('createItemTileTemplate', () => {
       expect(element.querySelector('.si-secondary .location')?.textContent).toBe('Fridge');
       expect(element.querySelector('.si-secondary .category')?.textContent).toBe('Dairy');
       expect(element.querySelector('.si-secondary .expiry')).not.toBeNull();
-      expect(element.querySelector('.si-secondary .item-price')?.textContent).toBe('$6.00');
+      expect(element.querySelector('.si-secondary .item-price')?.textContent).toBe('6.00');
     });
 
     it('honours show_location and show_price', () => {
