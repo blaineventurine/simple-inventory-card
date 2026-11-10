@@ -1,37 +1,60 @@
-export interface CardContext {
-  hass: HomeAssistant;
-  config: InventoryConfig;
-  translations: TranslationData;
-}
-
 export interface HomeAssistant {
   states: { [entityId: string]: HassEntity };
   config: HassConfig;
-  themes: any;
-  selectedTheme: any;
-  panels: any;
+  themes: unknown;
+  selectedTheme: unknown;
+  panels: unknown;
   panelUrl: string;
   language: string;
   selectedLanguage: string;
-  localize: (key: string, ...arguments_: any[]) => string;
-  translationMetadata: any;
+  localize: (key: string, ...arguments_: unknown[]) => string;
+  translationMetadata: unknown;
   dockedSidebar: 'docked' | 'always_hidden' | 'auto';
   moreInfoEntityId: string | null;
   user?: CurrentUser;
   callService: (
     domain: string,
     service: string,
-    serviceData?: Record<string, any>,
+    serviceData?: Record<string, unknown>,
     target?: HassServiceTarget,
   ) => Promise<ServiceCallResponse>;
   callApi: <T>(
     method: 'GET' | 'POST' | 'PUT' | 'DELETE',
     path: string,
-    parameters?: Record<string, any>,
+    parameters?: Record<string, unknown>,
   ) => Promise<T>;
   fetchWithAuth: (path: string, init?: RequestInit) => Promise<Response>;
   sendWS: (message: MessageBase) => void;
   callWS: <T>(message: MessageBase) => Promise<T>;
+  /** HA's websocket connection (home-assistant-js-websocket); absent in some test doubles. */
+  connection?: HassConnection;
+  /** HA's auth; absent in some test doubles. */
+  auth?: HassAuth;
+}
+
+export interface HassAuth {
+  /**
+   * HA's `ExternalMessaging` when the frontend runs in the companion app; read through the
+   * type guard in services/barcodeScanner.
+   */
+  external?: unknown;
+}
+
+/** The part of home-assistant-js-websocket's `Connection` the card uses. */
+export interface HassConnection {
+  /**
+   * Subscribe to a websocket command's events; resolves to the unsubscribe function once the
+   * backend accepted it, rejects when it refused (e.g. an unknown command). Resubscribes by
+   * itself after a reconnect unless `resubscribe` is false.
+   */
+  subscribeMessage(
+    callback: (event: unknown) => void,
+    message: MessageBase,
+    options?: { resubscribe?: boolean },
+  ): Promise<() => Promise<void>>;
+  /** `ready` fires when the websocket (re)connected. */
+  addEventListener(event: 'ready', listener: () => void): void;
+  removeEventListener(event: 'ready', listener: () => void): void;
 }
 
 export interface HassConfig {
@@ -46,6 +69,7 @@ export interface HassConfig {
   };
   location_name: string;
   time_zone: string;
+  currency?: string;
   components: string[];
   config_dir: string;
   whitelist_external_dirs: string[];
@@ -106,7 +130,7 @@ export interface Context {
 export interface HassEntity {
   entity_id: string;
   state: string;
-  attributes: HassEntityAttributeBase & Record<string, any>;
+  attributes: HassEntityAttributeBase & InventorySensorAttributes & Record<string, unknown>;
   context: Context;
   last_changed: string;
   last_updated: string;
@@ -125,6 +149,16 @@ export interface HassEntityAttributeBase {
   restored?: boolean;
 }
 
+/** Attributes of the integration's inventory sensors that the card reads. */
+export interface InventorySensorAttributes {
+  inventory_id?: string;
+  /** `inventory_<entry id>` also names the inventory (see `InventoryResolver.getInventoryId`). */
+  unique_id?: string;
+  description?: string;
+  total_items?: number;
+  total_quantity?: number;
+}
+
 export interface LovelaceCard extends HTMLElement {
   hass?: HomeAssistant;
   config?: LovelaceCardConfig;
@@ -141,43 +175,6 @@ export interface LovelaceCardEditor extends HTMLElement {
   hass?: HomeAssistant;
   config?: LovelaceCardConfig;
   setConfig(config: LovelaceCardConfig): void;
-}
-
-export interface InventoryItem {
-  aliases?: string[];
-  auto_add_enabled: boolean;
-  auto_add_id_to_description_enabled: boolean;
-  auto_add_to_list_quantity?: number;
-  barcodes?: string[];
-  categories?: string[];
-  category: string;
-  description: string;
-  desired_quantity?: number;
-  expiry_alert_days?: number;
-  expiry_date: string;
-  location: string;
-  locations?: string[];
-  name: string;
-  price?: number;
-  quantity: number;
-  todo_list: string;
-  todo_quantity_placement?: string;
-  unit: string;
-}
-
-export interface InventoryConfig extends LovelaceCardConfig {
-  type: string;
-  entity: string;
-  show_header?: boolean;
-  show_search?: boolean;
-  show_sort?: boolean;
-  show_add_button?: boolean;
-  show_description?: boolean;
-  show_location?: boolean;
-  show_category?: boolean;
-  show_expiry?: boolean;
-  show_auto_add_info?: boolean;
-  show_price?: boolean;
 }
 
 declare global {

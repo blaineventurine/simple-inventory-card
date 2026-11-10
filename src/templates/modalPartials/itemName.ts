@@ -4,7 +4,7 @@ import { ELEMENTS } from '@/utils/constants';
 
 export function itemName(prefix: string, translations: TranslationData): string {
   return `
-    <div class="form-group">
+    <div class="form-group si-field">
       <label for="${prefix}-${ELEMENTS.NAME}" class="form-label">
         ${TranslationManager.localize(translations, 'modal.name_required', undefined, 'Name *')}
       </label>

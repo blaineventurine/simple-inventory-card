@@ -169,6 +169,7 @@ yarn-debug.log*
 
 dist/
 coverage/
+.vitest/
 
 update.sh
 

@@ -9,7 +9,7 @@ export function createModalMultiSelect(config: ModalMultiSelectConfig): string {
         <div class="modal-multi-select-chips" id="${config.id}-chips"></div>
         <span class="modal-multi-select-label">${config.placeholder}</span>
       </div>
-      <div class="modal-multi-select-dropdown" id="${config.id}-dropdown" style="display: none;">
+      <div class="modal-multi-select-dropdown" id="${config.id}-dropdown" hidden>
         <div class="modal-multi-select-options" id="${config.id}-options">
           ${config.options
             .map((option) => {

@@ -4,7 +4,7 @@ import { ELEMENTS } from '@/utils/constants';
 
 export function expiryAlertDays(prefix: string, translations: TranslationData): string {
   return `
-    <div class="input-group expiry-threshold-section">
+    <div class="input-group si-field expiry-threshold-section">
       <label for="${prefix}-${ELEMENTS.EXPIRY_ALERT_DAYS}" class="form-label">
         ${TranslationManager.localize(
           translations,
@@ -34,7 +34,7 @@ export function expiryAlertDays(prefix: string, translations: TranslationData): 
         )}"
         disabled
       />
-      <small class="help-text">
+      <small class="help-text si-field__help">
         ${TranslationManager.localize(
           translations,
           'modal.expiry_help_text',

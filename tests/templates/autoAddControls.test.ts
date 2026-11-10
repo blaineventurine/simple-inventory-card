@@ -4,20 +4,7 @@ import { autoAddControls } from '../../src/templates/modalPartials/autoAddContro
 import { TodoList } from '../../src/types/todoList';
 import { TranslationData } from '@/types/translatableComponent';
 import { Utilities } from '../../src/utils/utilities';
-vi.mock('../../src/services/translationManager', () => ({
-  TranslationManager: {
-    localize: vi.fn(
-      (
-        _translations: TranslationData,
-        _key: string,
-        _params: Record<string, unknown> | undefined,
-        fallback: string,
-      ) => {
-        return fallback;
-      },
-    ),
-  },
-}));
+vi.mock('../../src/services/translationManager', () => import('../mocks/translationManager'));
 
 vi.mock('../../src/utils/utilities', () => ({
   Utilities: {

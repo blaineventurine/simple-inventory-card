@@ -3,22 +3,31 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { ScanHandler } from '../../src/services/scanHandler';
 import { Services } from '../../src/services/services';
 import { InventoryResolver } from '../../src/utils/inventoryResolver';
-import { ELEMENTS } from '../../src/utils/constants';
-import { HomeAssistant, InventoryConfig } from '../../src/types/homeAssistant';
+import { ELEMENTS, BATCH_FIELDS } from '../../src/utils/constants';
+import { batchFieldValue } from '../../src/utils/batchFields';
+import { HomeAssistant } from '../../src/types/homeAssistant';
+import { InventoryConfig } from '../../src/types/inventory';
 import { TranslationData } from '@/types/translatableComponent';
-import { createMockHomeAssistant } from '../testHelpers';
+import { createMockHomeAssistant, must, createMockCardContext } from '../testHelpers';
+import { holdTracker } from '../holdTracker';
+import { AcquireHold, UiHold } from '../../src/services/inventoryStore';
 import {
   startScanner,
   stopScanner,
-  isLiveScanAvailable,
-  decodeFromFile,
+  scanSupport,
+  chooseBarcodePhoto,
+  nativeScanner,
+  startNativeScanner,
+  NativeScanHandlers,
 } from '../../src/services/barcodeScanner';
 
 vi.mock('../../src/services/barcodeScanner', () => ({
   startScanner: vi.fn(),
   stopScanner: vi.fn(),
-  isLiveScanAvailable: vi.fn(),
-  decodeFromFile: vi.fn(),
+  scanSupport: vi.fn(),
+  chooseBarcodePhoto: vi.fn(),
+  nativeScanner: vi.fn(),
+  startNativeScanner: vi.fn(),
 }));
 
 vi.mock('../../src/utils/inventoryResolver');
@@ -39,43 +48,48 @@ interface ScanRootRefs {
   existingControls: HTMLElement;
   addBtn: HTMLElement;
   goBtn: HTMLElement;
+  photo: HTMLElement;
+  photoMessage: HTMLElement;
 }
 
 function createScanRoot(omit: string[] = []): ScanRootRefs {
   const container = document.createElement('div');
 
-  function make(id: string, tag: 'div'): HTMLDivElement | null;
-  function make(id: string, tag: 'input'): HTMLInputElement | null;
-  function make(id: string, tag: 'select'): HTMLSelectElement | null;
-  function make(id: string, tag: 'div' | 'input' | 'select' = 'div'): HTMLElement | null {
-    if (omit.includes(id)) return null;
+  /** An omitted element is created but left out of the root, so the handler cannot find it. */
+  function make(id: string, tag: 'div'): HTMLDivElement;
+  function make(id: string, tag: 'input'): HTMLInputElement;
+  function make(id: string, tag: 'select'): HTMLSelectElement;
+  function make(id: string, tag: 'div' | 'input' | 'select' = 'div'): HTMLElement {
     const el = document.createElement(tag);
     el.id = id;
-    container.appendChild(el);
+    if (!omit.includes(id)) {
+      container.appendChild(el);
+    }
     return el;
   }
 
-  const panel = make(ELEMENTS.SCAN_PANEL, 'div')!;
-  const viewportContainer = make(`${ELEMENTS.SCAN_VIEWPORT}-container`, 'div')!;
-  const viewport = make(ELEMENTS.SCAN_VIEWPORT, 'div')!;
-  const actionBar = make(ELEMENTS.SCAN_ACTION_BAR, 'div')!;
-  const errorEl = make('scan-panel-error', 'div')!;
-  const loadingEl = make('scan-panel-loading', 'div')!;
-  const amountInput = make(ELEMENTS.SCAN_AMOUNT_INPUT, 'input')!;
-  const actionSelect = make(ELEMENTS.SCAN_ACTION_SELECT, 'select')!;
-  if (actionSelect) {
-    for (const value of ['increment', 'decrement']) {
-      const option = document.createElement('option');
-      option.value = value;
-      actionSelect.appendChild(option);
-    }
+  const panel = make(ELEMENTS.SCAN_PANEL, 'div');
+  const viewportContainer = make(`${ELEMENTS.SCAN_VIEWPORT}-container`, 'div');
+  const viewport = make(ELEMENTS.SCAN_VIEWPORT, 'div');
+  const actionBar = make(ELEMENTS.SCAN_ACTION_BAR, 'div');
+  const errorEl = make('scan-panel-error', 'div');
+  const loadingEl = make('scan-panel-loading', 'div');
+  const amountInput = make(ELEMENTS.SCAN_AMOUNT_INPUT, 'input');
+  const actionSelect = make(ELEMENTS.SCAN_ACTION_SELECT, 'select');
+  for (const value of ['increment', 'decrement']) {
+    const option = document.createElement('option');
+    option.value = value;
+    actionSelect.appendChild(option);
   }
-  const barcodeLabel = make('scan-barcode-label', 'div')!;
-  const itemNameEl = make(ELEMENTS.SCAN_ITEM_NAME, 'div')!;
-  const itemQuantityEl = make(ELEMENTS.SCAN_ITEM_QUANTITY, 'div')!;
-  const existingControls = make(ELEMENTS.SCAN_EXISTING_CONTROLS, 'div')!;
-  const addBtn = make(ELEMENTS.SCAN_ADD_BTN, 'div')!;
-  const goBtn = make(ELEMENTS.SCAN_GO_BTN, 'div')!;
+  const barcodeLabel = make('scan-barcode-label', 'div');
+  const itemNameEl = make(ELEMENTS.SCAN_ITEM_NAME, 'div');
+  const itemQuantityEl = make(ELEMENTS.SCAN_ITEM_QUANTITY, 'div');
+  const existingControls = make(ELEMENTS.SCAN_EXISTING_CONTROLS, 'div');
+  const addBtn = make(ELEMENTS.SCAN_ADD_BTN, 'div');
+  const goBtn = make(ELEMENTS.SCAN_GO_BTN, 'div');
+  const photo = make(ELEMENTS.SCAN_PHOTO, 'div');
+  photo.hidden = true;
+  const photoMessage = make(ELEMENTS.SCAN_PHOTO_MESSAGE, 'div');
 
   // ShadowRoot implements NonElementParentNode#getElementById — delegate to querySelector
   // on the real backing container (unchecked cast: container stands in for a ShadowRoot).
@@ -99,6 +113,8 @@ function createScanRoot(omit: string[] = []): ScanRootRefs {
     existingControls,
     addBtn,
     goBtn,
+    photo,
+    photoMessage,
   };
 }
 
@@ -111,23 +127,29 @@ describe('ScanHandler', () => {
   let mockServices: Services;
   let mockRenderCallback: () => void;
 
-  const build = (omit: string[] = []): void => {
+  const build = (omit: string[] = [], hold?: AcquireHold): void => {
     refs = createScanRoot(omit);
     scanHandler = new ScanHandler(
       refs.root,
-      () => mockHass,
-      () => mockConfig,
-      () => mockTranslations,
+      () =>
+        createMockCardContext({
+          hass: mockHass,
+          config: mockConfig,
+          translations: mockTranslations,
+        }),
       mockServices,
       mockRenderCallback,
+      hold,
     );
   };
 
   beforeEach(() => {
     vi.mocked(startScanner).mockReset();
     vi.mocked(stopScanner).mockReset();
-    vi.mocked(isLiveScanAvailable).mockReset().mockReturnValue(true);
-    vi.mocked(decodeFromFile).mockReset();
+    vi.mocked(nativeScanner).mockReset().mockReturnValue(undefined);
+    vi.mocked(startNativeScanner).mockReset();
+    vi.mocked(scanSupport).mockReset().mockReturnValue('live');
+    vi.mocked(chooseBarcodePhoto).mockReset().mockResolvedValue(null);
 
     mockHass = createMockHomeAssistant();
     mockConfig = { type: 'inventory-card', entity: 'sensor.test_inventory' };
@@ -135,6 +157,7 @@ describe('ScanHandler', () => {
 
     mockServices = {
       lookupByBarcode: vi.fn().mockResolvedValue({ items: [] }),
+      lookupBarcodeProduct: vi.fn().mockResolvedValue({ barcode: '', results: [] }),
       scanBarcode: vi.fn().mockResolvedValue({ success: true }),
     } as unknown as Services;
 
@@ -147,101 +170,127 @@ describe('ScanHandler', () => {
     build();
   });
 
+  describe("showScanPanel — the companion app's native scanner", () => {
+    const external = { config: { hasBarCodeScanner: 1 }, fireMessage: vi.fn() };
+    let holds: { hold: AcquireHold; holds: () => UiHold[] };
+    const handlers = (): NativeScanHandlers => must(vi.mocked(startNativeScanner).mock.calls[0])[2];
+
+    beforeEach(() => {
+      vi.mocked(nativeScanner).mockReturnValue(external);
+      holds = holdTracker();
+      build([], holds.hold);
+      refs.panel.hidden = true;
+    });
+
+    it('opens the app scanner instead of the panel and the camera', async () => {
+      await scanHandler.showScanPanel();
+
+      expect(nativeScanner).toHaveBeenCalledWith(mockHass);
+      expect(startNativeScanner).toHaveBeenCalledWith(
+        external,
+        {
+          title: 'Scan barcode',
+          description: "Point the camera at the item's barcode",
+          alternativeOptionLabel: 'Choose a photo',
+        },
+        expect.any(Object),
+      );
+      expect(refs.panel.hidden).toBe(true);
+      expect(startScanner).not.toHaveBeenCalled();
+      expect(chooseBarcodePhoto).not.toHaveBeenCalled();
+    });
+
+    it('uses the app scanner on HTTP too: the app has its own camera', async () => {
+      vi.mocked(scanSupport).mockReturnValue('insecure');
+
+      await scanHandler.showScanPanel();
+
+      expect(startNativeScanner).toHaveBeenCalledOnce();
+      expect(refs.panel.hidden).toBe(true);
+    });
+
+    it('holds background work while the app scanner is open, until it ends', async () => {
+      await scanHandler.showScanPanel();
+      expect(holds.holds()).toEqual([{ kind: 'background', reason: 'native scanner' }]);
+
+      handlers().onEnd?.();
+
+      expect(holds.holds()).toEqual([]);
+    });
+
+    it("a barcode from the app shows the panel's action bar, the hold passing to the panel", async () => {
+      await scanHandler.showScanPanel();
+
+      handlers().onDetected('4006381333931');
+      handlers().onEnd?.();
+      expect(mockServices.lookupByBarcode).toHaveBeenCalledWith('4006381333931');
+
+      expect(refs.panel.hidden).toBe(false);
+      expect(refs.barcodeLabel.textContent).toBe('4006381333931');
+      expect(holds.holds()).toEqual([{ kind: 'background', reason: 'scan panel' }]);
+    });
+
+    it('"Choose a photo" in the app shows the panel\'s photo offer, without a message', async () => {
+      await scanHandler.showScanPanel();
+
+      handlers().onChoosePhoto();
+      handlers().onEnd?.();
+
+      expect(refs.panel.hidden).toBe(false);
+      expect(refs.photo.hidden).toBe(false);
+      expect(refs.photoMessage.hidden).toBe(true);
+      expect(refs.viewportContainer.hidden).toBe(true);
+      expect(holds.holds()).toEqual([{ kind: 'background', reason: 'scan panel' }]);
+    });
+
+    it('closing (stopScanner) ends the app scanner and releases the hold', async () => {
+      vi.mocked(stopScanner).mockImplementation(() => handlers().onEnd?.());
+      await scanHandler.showScanPanel();
+
+      scanHandler.hideScanPanel();
+
+      expect(stopScanner).toHaveBeenCalled();
+      expect(holds.holds()).toEqual([]);
+    });
+  });
+
   afterEach(() => {
     vi.useRealTimers();
     vi.restoreAllMocks();
   });
 
-  describe('showScanPanel — live scan unavailable (file input fallback)', () => {
+  describe('showScanPanel — live scan unavailable (photo fallback)', () => {
     beforeEach(() => {
-      vi.mocked(isLiveScanAvailable).mockReturnValue(false);
+      vi.mocked(scanSupport).mockReturnValue('photo');
     });
 
-    it('creates a hidden file input, appends it to document.body and clicks it', async () => {
-      const appendSpy = vi.spyOn(document.body, 'appendChild').mockImplementation((el) => el);
-      const clickSpy = vi.spyOn(HTMLInputElement.prototype, 'click').mockImplementation(() => {});
-
+    it('opens the photo chooser right away instead of the camera', async () => {
       await scanHandler.showScanPanel();
 
-      expect(appendSpy).toHaveBeenCalledOnce();
-      const input = appendSpy.mock.calls[0][0] as HTMLInputElement;
-      expect(input.type).toBe('file');
-      expect(input.accept).toBe('image/*');
-      expect(clickSpy).toHaveBeenCalledOnce();
+      expect(chooseBarcodePhoto).toHaveBeenCalledOnce();
+      expect(startScanner).not.toHaveBeenCalled();
     });
 
     it('routes a successfully decoded barcode into handleScanDetected', async () => {
-      let capturedFile: File | undefined;
-      vi.mocked(decodeFromFile).mockImplementation(async (file, onDetected) => {
-        capturedFile = file;
-        onDetected('1234567890128');
-        return null;
-      });
-
-      let capturedInput: HTMLInputElement | null = null;
-      vi.spyOn(document.body, 'appendChild').mockImplementation((el) => {
-        capturedInput = el as HTMLInputElement;
-        return el;
-      });
-      vi.spyOn(document.body, 'removeChild').mockImplementation((el) => el);
-      vi.spyOn(HTMLInputElement.prototype, 'click').mockImplementation(() => {});
-
       const detectedSpy = vi.spyOn(scanHandler, 'handleScanDetected').mockResolvedValue(undefined);
 
       await scanHandler.showScanPanel();
+      vi.mocked(chooseBarcodePhoto).mock.calls[0]?.[0]('1234567890128');
 
-      const file = new File(['data'], 'photo.jpg', { type: 'image/jpeg' });
-      Object.defineProperty(capturedInput!, 'files', { value: [file], configurable: true });
-      capturedInput!.dispatchEvent(new Event('change'));
-
-      // decodeFromFile's mock body (including the onDetected callback) runs synchronously
-      // up to its first await, so the detection is already routed by this point.
-      expect(capturedFile).toBe(file);
       expect(detectedSpy).toHaveBeenCalledWith('1234567890128');
-    });
-
-    it('does nothing when the change event fires with no file selected', async () => {
-      let capturedInput: HTMLInputElement | null = null;
-      vi.spyOn(document.body, 'appendChild').mockImplementation((el) => {
-        capturedInput = el as HTMLInputElement;
-        return el;
-      });
-      const removeSpy = vi.spyOn(document.body, 'removeChild').mockImplementation((el) => el);
-      vi.spyOn(HTMLInputElement.prototype, 'click').mockImplementation(() => {});
-
-      await scanHandler.showScanPanel();
-
-      Object.defineProperty(capturedInput!, 'files', { value: [], configurable: true });
-      capturedInput!.dispatchEvent(new Event('change'));
-
-      expect(removeSpy).toHaveBeenCalledWith(capturedInput);
-      expect(decodeFromFile).not.toHaveBeenCalled();
     });
 
     it('shows the error panel and schedules hideScanPanel after 3s on decode failure', async () => {
       vi.useFakeTimers();
-      vi.mocked(decodeFromFile).mockResolvedValue('not_found');
-
-      let capturedInput: HTMLInputElement | null = null;
-      vi.spyOn(document.body, 'appendChild').mockImplementation((el) => {
-        capturedInput = el as HTMLInputElement;
-        return el;
-      });
-      vi.spyOn(document.body, 'removeChild').mockImplementation((el) => el);
-      vi.spyOn(HTMLInputElement.prototype, 'click').mockImplementation(() => {});
+      vi.mocked(chooseBarcodePhoto).mockResolvedValue('not_found');
 
       await scanHandler.showScanPanel();
-
-      const file = new File(['data'], 'photo.jpg', { type: 'image/jpeg' });
-      Object.defineProperty(capturedInput!, 'files', { value: [file], configurable: true });
-      capturedInput!.dispatchEvent(new Event('change'));
-
       await vi.advanceTimersByTimeAsync(0);
 
-      expect(refs.panel.style.display).toBe('block');
-      expect(refs.viewportContainer.style.display).toBe('none');
+      expect(refs.panel.hidden).toBe(false);
+      expect(refs.viewportContainer.hidden).toBe(true);
       expect(refs.errorEl.textContent).toBe('No barcode found in photo');
-      expect(refs.errorEl.style.display).toBe('block');
+      expect(refs.errorEl.hidden).toBe(false);
 
       const stopScannerSpy = vi.mocked(stopScanner);
       expect(stopScannerSpy).not.toHaveBeenCalled();
@@ -249,29 +298,15 @@ describe('ScanHandler', () => {
       await vi.advanceTimersByTimeAsync(3000);
 
       expect(stopScannerSpy).toHaveBeenCalled();
-      expect(refs.panel.style.display).toBe('none');
+      expect(refs.panel.hidden).toBe(true);
     });
 
     it('does not schedule hideScanPanel when the panel/error elements are missing on decode failure', async () => {
       vi.useFakeTimers();
       build(['scan-panel-error']);
-      vi.mocked(isLiveScanAvailable).mockReturnValue(false);
-      vi.mocked(decodeFromFile).mockResolvedValue('not_found');
-
-      let capturedInput: HTMLInputElement | null = null;
-      vi.spyOn(document.body, 'appendChild').mockImplementation((el) => {
-        capturedInput = el as HTMLInputElement;
-        return el;
-      });
-      vi.spyOn(document.body, 'removeChild').mockImplementation((el) => el);
-      vi.spyOn(HTMLInputElement.prototype, 'click').mockImplementation(() => {});
+      vi.mocked(chooseBarcodePhoto).mockResolvedValue('not_found');
 
       await scanHandler.showScanPanel();
-
-      const file = new File(['data'], 'photo.jpg', { type: 'image/jpeg' });
-      Object.defineProperty(capturedInput!, 'files', { value: [file], configurable: true });
-      capturedInput!.dispatchEvent(new Event('change'));
-
       await vi.advanceTimersByTimeAsync(3000);
 
       expect(stopScanner).not.toHaveBeenCalled();
@@ -280,33 +315,70 @@ describe('ScanHandler', () => {
     it('shows the error panel without throwing when the viewport container is missing', async () => {
       vi.useFakeTimers();
       build([`${ELEMENTS.SCAN_VIEWPORT}-container`]);
-      vi.mocked(isLiveScanAvailable).mockReturnValue(false);
-      vi.mocked(decodeFromFile).mockResolvedValue('not_found');
-
-      let capturedInput: HTMLInputElement | null = null;
-      vi.spyOn(document.body, 'appendChild').mockImplementation((el) => {
-        capturedInput = el as HTMLInputElement;
-        return el;
-      });
-      vi.spyOn(document.body, 'removeChild').mockImplementation((el) => el);
-      vi.spyOn(HTMLInputElement.prototype, 'click').mockImplementation(() => {});
+      vi.mocked(chooseBarcodePhoto).mockResolvedValue('not_found');
 
       await scanHandler.showScanPanel();
-
-      const file = new File(['data'], 'photo.jpg', { type: 'image/jpeg' });
-      Object.defineProperty(capturedInput!, 'files', { value: [file], configurable: true });
-      capturedInput!.dispatchEvent(new Event('change'));
-
       await vi.advanceTimersByTimeAsync(0);
 
-      expect(refs.panel.style.display).toBe('block');
-      expect(refs.errorEl.style.display).toBe('block');
+      expect(refs.panel.hidden).toBe(false);
+      expect(refs.errorEl.hidden).toBe(false);
+    });
+  });
+
+  describe('showScanPanel — insecure (HTTP) connection', () => {
+    beforeEach(() => {
+      vi.mocked(scanSupport).mockReturnValue('insecure');
+    });
+
+    it('explains the HTTPS requirement and offers a photo, never starting the camera', async () => {
+      await scanHandler.showScanPanel();
+
+      expect(startScanner).not.toHaveBeenCalled();
+      expect(chooseBarcodePhoto).not.toHaveBeenCalled();
+      expect(refs.panel.hidden).toBe(false);
+      expect(refs.viewportContainer.hidden).toBe(true);
+      expect(refs.photo.hidden).toBe(false);
+      expect(refs.photoMessage.textContent).toBe(
+        'The camera needs a secure (HTTPS) connection to Home Assistant',
+      );
+    });
+  });
+
+  describe('choosePhoto (the "Choose a photo" button)', () => {
+    it('decodes the chosen photo into handleScanDetected', async () => {
+      const detectedSpy = vi.spyOn(scanHandler, 'handleScanDetected').mockResolvedValue(undefined);
+
+      const chosen = scanHandler.choosePhoto();
+      vi.mocked(chooseBarcodePhoto).mock.calls[0]?.[0]('4006381333931');
+      await chosen;
+
+      expect(detectedSpy).toHaveBeenCalledWith('4006381333931');
+    });
+
+    it('keeps offering a photo, saying none had a barcode', async () => {
+      vi.mocked(chooseBarcodePhoto).mockResolvedValue('not_found');
+
+      await scanHandler.choosePhoto();
+
+      expect(refs.panel.hidden).toBe(false);
+      expect(refs.photo.hidden).toBe(false);
+      expect(refs.photoMessage.textContent).toBe('No barcode found in photo');
+    });
+
+    it('a detected barcode replaces the photo offer with the action bar', async () => {
+      vi.mocked(startScanner).mockResolvedValue('permission_denied');
+      await scanHandler.showScanPanel();
+
+      await scanHandler.handleScanDetected('4006381333931');
+
+      expect(refs.photo.hidden).toBe(true);
+      expect(refs.actionBar.hidden).toBe(false);
     });
   });
 
   describe('showScanPanel — live scan available', () => {
     beforeEach(() => {
-      vi.mocked(isLiveScanAvailable).mockReturnValue(true);
+      vi.mocked(scanSupport).mockReturnValue('live');
     });
 
     it('returns early without starting the scanner when the panel element is missing', async () => {
@@ -322,9 +394,9 @@ describe('ScanHandler', () => {
 
       await scanHandler.showScanPanel();
 
-      expect(refs.panel.style.display).toBe('block');
+      expect(refs.panel.hidden).toBe(false);
       expect(startScanner).not.toHaveBeenCalled();
-      expect(refs.loadingEl.style.display).toBe('flex');
+      expect(refs.loadingEl.hidden).toBe(false);
     });
 
     it('shows the panel and loading state, then hides loading with no error on success', async () => {
@@ -332,13 +404,13 @@ describe('ScanHandler', () => {
 
       await scanHandler.showScanPanel();
 
-      expect(refs.panel.style.display).toBe('block');
-      expect(refs.viewportContainer.style.display).toBe('block');
-      expect(refs.actionBar.style.display).toBe('none');
-      expect(refs.errorEl.style.display).toBe('none');
+      expect(refs.panel.hidden).toBe(false);
+      expect(refs.viewportContainer.hidden).toBe(false);
+      expect(refs.actionBar.hidden).toBe(true);
+      expect(refs.errorEl.hidden).toBe(true);
       expect(refs.errorEl.textContent).toBe('');
       expect(startScanner).toHaveBeenCalledWith(refs.viewport, expect.any(Function));
-      expect(refs.loadingEl.style.display).toBe('none');
+      expect(refs.loadingEl.hidden).toBe(true);
       expect(globalThis.alert).not.toHaveBeenCalled();
     });
 
@@ -352,30 +424,43 @@ describe('ScanHandler', () => {
 
       await scanHandler.showScanPanel();
 
-      capturedCallback!('9999999999');
+      must(capturedCallback)('9999999999');
 
       expect(detectedSpy).toHaveBeenCalledWith('9999999999');
     });
 
-    it('hides the panel and alerts with the permission-denied message on permission_denied', async () => {
+    it('keeps the panel with the permission-denied message and a photo offer on permission_denied', async () => {
       vi.mocked(startScanner).mockResolvedValue('permission_denied');
-      const hideSpy = vi.spyOn(scanHandler, 'hideScanPanel');
 
       await scanHandler.showScanPanel();
 
-      expect(refs.loadingEl.style.display).toBe('none');
-      expect(hideSpy).toHaveBeenCalled();
-      expect(globalThis.alert).toHaveBeenCalledWith('Camera access denied');
+      expect(refs.loadingEl.hidden).toBe(true);
+      expect(refs.panel.hidden).toBe(false);
+      expect(refs.viewportContainer.hidden).toBe(true);
+      expect(refs.photo.hidden).toBe(false);
+      expect(refs.photoMessage.textContent).toBe('Camera access denied');
+      expect(globalThis.alert).not.toHaveBeenCalled();
     });
 
-    it('hides the panel and alerts with the camera-not-available message on other errors', async () => {
-      vi.mocked(startScanner).mockResolvedValue('camera_not_available');
-      const hideSpy = vi.spyOn(scanHandler, 'hideScanPanel');
+    it('keeps the panel with the camera-not-available message and a photo offer on other errors', async () => {
+      vi.mocked(startScanner).mockResolvedValue('not_available');
 
       await scanHandler.showScanPanel();
 
-      expect(hideSpy).toHaveBeenCalled();
-      expect(globalThis.alert).toHaveBeenCalledWith('Camera not available');
+      expect(refs.panel.hidden).toBe(false);
+      expect(refs.photo.hidden).toBe(false);
+      expect(refs.photoMessage.textContent).toBe('Camera not available');
+      expect(globalThis.alert).not.toHaveBeenCalled();
+    });
+
+    it('hides a previous photo offer when the camera starts again', async () => {
+      vi.mocked(startScanner).mockResolvedValueOnce('permission_denied').mockResolvedValue(null);
+      await scanHandler.showScanPanel();
+
+      await scanHandler.showScanPanel();
+
+      expect(refs.photo.hidden).toBe(true);
+      expect(refs.viewportContainer.hidden).toBe(false);
     });
 
     it('does not throw when viewportContainer, actionBar, errorEl and loadingEl are all missing', async () => {
@@ -389,7 +474,7 @@ describe('ScanHandler', () => {
 
       await expect(scanHandler.showScanPanel()).resolves.toBeUndefined();
 
-      expect(refs.panel.style.display).toBe('block');
+      expect(refs.panel.hidden).toBe(false);
       expect(startScanner).toHaveBeenCalledWith(refs.viewport, expect.any(Function));
     });
   });
@@ -403,7 +488,7 @@ describe('ScanHandler', () => {
 
       expect(stopScanner).toHaveBeenCalled();
       expect(scanHandler.getScannedBarcode()).toBeNull();
-      expect(refs.panel.style.display).toBe('none');
+      expect(refs.panel.hidden).toBe(true);
     });
 
     it('no-ops handleScanGo after hiding since scannedBarcode is cleared', async () => {
@@ -428,11 +513,11 @@ describe('ScanHandler', () => {
       await scanHandler.handleScanDetected('5551234567');
 
       expect(scanHandler.getScannedBarcode()).toBe('5551234567');
-      expect(refs.panel.style.display).toBe('block');
-      expect(refs.viewportContainer.style.display).toBe('none');
+      expect(refs.panel.hidden).toBe(false);
+      expect(refs.viewportContainer.hidden).toBe(true);
       expect(refs.barcodeLabel.textContent).toBe('5551234567');
-      expect(refs.actionBar.style.display).toBe('flex');
-      expect(refs.errorEl.style.display).toBe('none');
+      expect(refs.actionBar.hidden).toBe(false);
+      expect(refs.errorEl.hidden).toBe(true);
       expect(refs.errorEl.textContent).toBe('');
       expect(refs.amountInput.value).toBe('1');
       expect(refs.actionSelect.value).toBe('increment');
@@ -448,12 +533,12 @@ describe('ScanHandler', () => {
       await scanHandler.handleScanDetected('123');
 
       expect(refs.itemNameEl.textContent).toBe('Milk');
-      expect(refs.itemNameEl.style.display).toBe('');
+      expect(refs.itemNameEl.hidden).toBe(false);
       expect(refs.itemQuantityEl.textContent).toBe('In stock: 5 pieces');
-      expect(refs.itemQuantityEl.style.display).toBe('');
-      expect(refs.existingControls.style.display).toBe('');
-      expect(refs.addBtn.style.display).toBe('none');
-      expect(refs.goBtn.style.display).toBe('');
+      expect(refs.itemQuantityEl.hidden).toBe(false);
+      expect(refs.existingControls.hidden).toBe(false);
+      expect(refs.addBtn.hidden).toBe(true);
+      expect(refs.goBtn.hidden).toBe(false);
     });
 
     it('shows item quantity without a unit using the plain quantity number', async () => {
@@ -476,7 +561,7 @@ describe('ScanHandler', () => {
       expect(refs.itemQuantityEl.textContent).toBe('In stock: 0');
     });
 
-    it('clears and hides name/quantity, hides existing controls, shows add, hides go when no match', async () => {
+    it('shows the not-found hint, hides name, hides existing controls, shows add, hides go when no match', async () => {
       mockServices.lookupByBarcode = vi.fn().mockResolvedValue({
         items: [{ name: 'Other', inventory_id: 'a-different-inventory', quantity: 3 }],
       });
@@ -484,12 +569,69 @@ describe('ScanHandler', () => {
       await scanHandler.handleScanDetected('999');
 
       expect(refs.itemNameEl.textContent).toBe('');
-      expect(refs.itemNameEl.style.display).toBe('none');
-      expect(refs.itemQuantityEl.textContent).toBe('');
-      expect(refs.itemQuantityEl.style.display).toBe('none');
-      expect(refs.existingControls.style.display).toBe('none');
-      expect(refs.addBtn.style.display).toBe('');
-      expect(refs.goBtn.style.display).toBe('none');
+      expect(refs.itemNameEl.hidden).toBe(true);
+      expect(refs.itemQuantityEl.textContent).toBe('No item found for this barcode');
+      expect(refs.itemQuantityEl.hidden).toBe(false);
+      expect(refs.existingControls.hidden).toBe(true);
+      expect(refs.addBtn.hidden).toBe(false);
+      expect(refs.goBtn.hidden).toBe(true);
+    });
+
+    it('shows the product name from the product-DB lookup when nothing matched locally', async () => {
+      mockServices.lookupByBarcode = vi.fn().mockResolvedValue({ items: [] });
+      mockServices.lookupBarcodeProduct = vi.fn().mockResolvedValue({
+        barcode: '555',
+        results: [
+          { provider: 'openfoodfacts', found: true, product: { name: 'Probiotic Yogurt' } },
+        ],
+      });
+
+      await scanHandler.handleScanDetected('555');
+
+      expect(refs.itemNameEl.textContent).toBe('Probiotic Yogurt');
+      expect(refs.itemNameEl.hidden).toBe(false);
+      expect(refs.itemQuantityEl.hidden).toBe(true);
+      expect(refs.addBtn.hidden).toBe(false);
+      expect(refs.goBtn.hidden).toBe(true);
+    });
+
+    it('falls back to the not-found hint when the product lookup also finds nothing', async () => {
+      mockServices.lookupByBarcode = vi.fn().mockResolvedValue({ items: [] });
+      mockServices.lookupBarcodeProduct = vi.fn().mockResolvedValue({
+        barcode: '555',
+        results: [{ provider: 'openfoodfacts', found: false }],
+      });
+
+      await scanHandler.handleScanDetected('555');
+
+      expect(refs.itemNameEl.hidden).toBe(true);
+      expect(refs.itemQuantityEl.textContent).toBe('No item found for this barcode');
+      expect(refs.itemQuantityEl.hidden).toBe(false);
+    });
+
+    it('ignores a product-lookup result superseded by a newer scan', async () => {
+      mockServices.lookupByBarcode = vi.fn().mockResolvedValue({ items: [] });
+      let resolveFirst!: (value: { barcode: string; results: unknown[] }) => void;
+      mockServices.lookupBarcodeProduct = vi.fn().mockImplementation((barcode: string) => {
+        if (barcode === 'first') {
+          // Promise.withResolvers() is unavailable under this project's TS lib target (< ES2024).
+          return new Promise((resolve) => {
+            resolveFirst = resolve;
+          });
+        }
+        return Promise.resolve({ barcode, results: [] });
+      });
+
+      const firstScan = scanHandler.handleScanDetected('first');
+      await scanHandler.handleScanDetected('second');
+      resolveFirst({
+        barcode: 'first',
+        results: [{ provider: 'openfoodfacts', found: true, product: { name: 'Stale Product' } }],
+      });
+      await firstScan;
+
+      expect(refs.itemNameEl.textContent).not.toBe('Stale Product');
+      expect(refs.itemQuantityEl.textContent).toBe('No item found for this barcode');
     });
 
     it('treats an empty items result as no match', async () => {
@@ -497,8 +639,8 @@ describe('ScanHandler', () => {
 
       await scanHandler.handleScanDetected('000');
 
-      expect(refs.addBtn.style.display).toBe('');
-      expect(refs.goBtn.style.display).toBe('none');
+      expect(refs.addBtn.hidden).toBe(false);
+      expect(refs.goBtn.hidden).toBe(true);
     });
 
     it('does not throw on a match when name/quantity/controls elements are missing', async () => {
@@ -522,7 +664,7 @@ describe('ScanHandler', () => {
       await expect(scanHandler.handleScanDetected('123')).resolves.toBeUndefined();
 
       expect(scanHandler.getScannedBarcode()).toBe('123');
-      expect(refs.panel.style.display).toBe('block');
+      expect(refs.panel.hidden).toBe(false);
     });
 
     it('does not throw on no-match when name/quantity/controls elements are missing', async () => {
@@ -544,7 +686,7 @@ describe('ScanHandler', () => {
       await expect(scanHandler.handleScanDetected('999')).resolves.toBeUndefined();
 
       expect(scanHandler.getScannedBarcode()).toBe('999');
-      expect(refs.panel.style.display).toBe('block');
+      expect(refs.panel.hidden).toBe(false);
     });
   });
 
@@ -569,6 +711,7 @@ describe('ScanHandler', () => {
         '123456',
         'decrement',
         3,
+        {},
       );
       expect(hideSpy).toHaveBeenCalled();
       expect(mockRenderCallback).toHaveBeenCalled();
@@ -587,6 +730,7 @@ describe('ScanHandler', () => {
         '123456',
         'increment',
         2,
+        {},
       );
     });
 
@@ -602,6 +746,7 @@ describe('ScanHandler', () => {
         '123456',
         'increment',
         1,
+        {},
       );
     });
 
@@ -617,21 +762,64 @@ describe('ScanHandler', () => {
         '123456',
         'increment',
         1,
+        {},
       );
     });
 
-    it('shows the barcode-not-found error without hiding the panel on failure', async () => {
+    it('shows the localized not-found text for the barcode_not_found error code', async () => {
       await scanHandler.handleScanDetected('123456');
-      mockServices.scanBarcode = vi.fn().mockResolvedValue({ success: false, error: 'nope' });
+      mockServices.scanBarcode = vi.fn().mockResolvedValue({
+        success: false,
+        error: "Validation error: No item found for barcode '123456'",
+        errorCode: 'barcode_not_found',
+      });
       const hideSpy = vi.spyOn(scanHandler, 'hideScanPanel');
 
       await scanHandler.handleScanGo();
 
       expect(refs.errorEl.textContent).toBe('No item found for this barcode');
-      expect(refs.errorEl.style.display).toBe('block');
+      expect(refs.errorEl.hidden).toBe(false);
       expect(hideSpy).not.toHaveBeenCalled();
       expect(mockRenderCallback).not.toHaveBeenCalled();
-      expect(refs.panel.style.display).toBe('block');
+      expect(refs.panel.hidden).toBe(false);
+    });
+
+    it('shows the backend message verbatim when there is no error code, even if it reads like not-found', async () => {
+      await scanHandler.handleScanDetected('123456');
+      mockServices.scanBarcode = vi.fn().mockResolvedValue({
+        success: false,
+        error: "No item found for barcode '123456'",
+      });
+
+      await scanHandler.handleScanGo();
+
+      expect(refs.errorEl.textContent).toBe("No item found for barcode '123456'");
+    });
+
+    it('shows the backend error message for other error codes', async () => {
+      await scanHandler.handleScanDetected('123456');
+      mockServices.scanBarcode = vi.fn().mockResolvedValue({
+        success: false,
+        error: "Validation error: Barcode '123456' matches items in more than one inventory",
+        errorCode: 'ambiguous_barcode',
+      });
+
+      await scanHandler.handleScanGo();
+
+      expect(refs.errorEl.textContent).toBe(
+        "Validation error: Barcode '123456' matches items in more than one inventory",
+      );
+      expect(refs.errorEl.hidden).toBe(false);
+      expect(mockRenderCallback).not.toHaveBeenCalled();
+    });
+
+    it('falls back to the localized not-found text when no error message is given', async () => {
+      await scanHandler.handleScanDetected('123456');
+      mockServices.scanBarcode = vi.fn().mockResolvedValue({ success: false });
+
+      await scanHandler.handleScanGo();
+
+      expect(refs.errorEl.textContent).toBe('No item found for this barcode');
     });
 
     it('does not throw on failure when the error element is missing', async () => {
@@ -642,6 +830,151 @@ describe('ScanHandler', () => {
       await expect(scanHandler.handleScanGo()).resolves.toBeUndefined();
 
       expect(mockServices.scanBarcode).toHaveBeenCalled();
+    });
+  });
+
+  describe('batch details (batches feature)', () => {
+    function addBatchDetails(): HTMLDetailsElement {
+      const details = document.createElement('details');
+      details.id = ELEMENTS.SCAN_BATCH_FIELDS;
+      details.hidden = true;
+      details.innerHTML = `
+        <input data-batch-field="${BATCH_FIELDS.EXPIRY_DATE}" />
+        <input data-batch-field="${BATCH_FIELDS.LOCATION}" />
+        <input data-batch-field="${BATCH_FIELDS.UNIT_PRICE}" />
+        <input data-batch-field="${BATCH_FIELDS.PURCHASED_AT}" />`;
+      refs.root.appendChild(details);
+      return details;
+    }
+
+    function setBatchField(details: HTMLElement, field: string, value: string): void {
+      const input = details.querySelector(`[data-batch-field="${field}"]`);
+      if (!(input instanceof HTMLInputElement)) {
+        throw new Error(`missing ${field}`);
+      }
+      input.value = value;
+    }
+
+    const knownItem = { items: [{ name: 'Milk', inventory_id: 'test-inventory-id', quantity: 1 }] };
+
+    it('sends batch details with an increment of a known item', async () => {
+      const details = addBatchDetails();
+      mockServices.lookupByBarcode = vi.fn().mockResolvedValue(knownItem);
+      await scanHandler.handleScanDetected('123456');
+      setBatchField(details, BATCH_FIELDS.EXPIRY_DATE, '2026-11-01');
+      setBatchField(details, BATCH_FIELDS.LOCATION, 'Garage');
+      setBatchField(details, BATCH_FIELDS.UNIT_PRICE, '2.5');
+
+      await scanHandler.handleScanGo();
+
+      expect(mockServices.scanBarcode).toHaveBeenCalledWith(
+        'test-inventory-id',
+        '123456',
+        'increment',
+        1,
+        { expiryDate: '2026-11-01', location: 'Garage', price: 2.5 },
+      );
+    });
+
+    it('ignores batch details on a decrement', async () => {
+      const details = addBatchDetails();
+      mockServices.lookupByBarcode = vi.fn().mockResolvedValue(knownItem);
+      await scanHandler.handleScanDetected('123456');
+      setBatchField(details, BATCH_FIELDS.LOCATION, 'Garage');
+      refs.actionSelect.value = 'decrement';
+
+      await scanHandler.handleScanGo();
+
+      expect(mockServices.scanBarcode).toHaveBeenCalledWith(
+        'test-inventory-id',
+        '123456',
+        'decrement',
+        1,
+        {},
+      );
+    });
+
+    it('resets the details on every scan and shows them only to restock a known item', async () => {
+      const details = addBatchDetails();
+      details.open = true;
+      setBatchField(details, BATCH_FIELDS.LOCATION, 'Old');
+
+      mockServices.lookupByBarcode = vi.fn().mockResolvedValue({ items: [] });
+      await scanHandler.handleScanDetected('000');
+      expect(details.open).toBe(false);
+      expect(batchFieldValue(details, BATCH_FIELDS.LOCATION)).toBe('');
+      expect(details.hidden).toBe(true);
+
+      mockServices.lookupByBarcode = vi.fn().mockResolvedValue(knownItem);
+      await scanHandler.handleScanDetected('123456');
+      expect(details.hidden).toBe(false);
+
+      refs.actionSelect.value = 'decrement';
+      scanHandler.syncBatchFieldsVisibility();
+      expect(details.hidden).toBe(true);
+    });
+
+    it("clears the previous scan's details before the next lookup answers", async () => {
+      const details = addBatchDetails();
+      mockServices.lookupByBarcode = vi.fn().mockResolvedValue(knownItem);
+      await scanHandler.handleScanDetected('123456');
+      details.open = true;
+      setBatchField(details, BATCH_FIELDS.LOCATION, 'Garage');
+
+      let resolveLookup: (value: typeof knownItem) => void = () => {};
+      // Promise.withResolvers() is unavailable under this project's TS lib target (< ES2024).
+      mockServices.lookupByBarcode = vi.fn().mockReturnValue(
+        new Promise<typeof knownItem>((resolve) => {
+          resolveLookup = resolve;
+        }),
+      );
+      const scan = scanHandler.handleScanDetected('654321');
+
+      expect(details.open).toBe(false);
+      expect(batchFieldValue(details, BATCH_FIELDS.LOCATION)).toBe('');
+      expect(details.hidden).toBe(true);
+
+      resolveLookup(knownItem);
+      await scan;
+      expect(details.hidden).toBe(false);
+    });
+
+    it('does nothing when the card was rendered without batch details', () => {
+      expect(() => scanHandler.syncBatchFieldsVisibility()).not.toThrow();
+    });
+  });
+
+  describe('resumeScanning (card re-attached; the pause stopped the camera)', () => {
+    beforeEach(() => {
+      vi.mocked(startScanner).mockResolvedValue(null);
+    });
+
+    it('restarts the camera of a panel still waiting for a barcode', async () => {
+      await scanHandler.showScanPanel();
+      vi.mocked(startScanner).mockClear();
+
+      scanHandler.resumeScanning();
+
+      expect(startScanner).toHaveBeenCalledOnce();
+      expect(vi.mocked(startScanner).mock.calls[0]?.[0]).toBe(refs.viewport);
+      expect(refs.panel.hidden).toBe(false);
+    });
+
+    it('leaves a closed panel closed', () => {
+      refs.panel.hidden = true;
+
+      scanHandler.resumeScanning();
+
+      expect(startScanner).not.toHaveBeenCalled();
+    });
+
+    it('keeps showing a scanned barcode instead of the camera', async () => {
+      await scanHandler.handleScanDetected('123456');
+
+      scanHandler.resumeScanning();
+
+      expect(startScanner).not.toHaveBeenCalled();
+      expect(refs.actionBar.hidden).toBe(false);
     });
   });
 });

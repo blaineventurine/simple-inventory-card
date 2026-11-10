@@ -3,342 +3,113 @@ import { CSSResult, css } from 'lit-element';
 export const cardHeaderStyles: CSSResult = css`
   .card-header {
     display: flex;
+    align-items: center;
     justify-content: space-between;
-    align-items: flex-start;
-    padding: 12px 16px;
-    gap: 8px;
-    border-bottom: 1px solid var(--divider-color);
-    background-color: var(--card-background-color);
+    gap: var(--si-space-2);
+    padding: 0 0 var(--si-space-3);
   }
 
   .header-content {
     flex: 1;
-    min-width: 0; /* Allows text to wrap */
+    min-width: 0;
   }
 
   .inventory-title {
-    margin: 0 0 2px 0;
-    font-size: 1em;
-    font-weight: 500;
+    display: -webkit-box;
+    margin: 0;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
     color: var(--primary-text-color);
-    line-height: 1.2;
+    font-size: var(--si-font-title);
+    font-weight: 600;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
   }
 
   .inventory-description {
-    margin: 2px 0 0 0;
-    font-size: 0.75em;
+    margin: 2px 0 0;
     color: var(--secondary-text-color);
-    line-height: 1.2;
-    opacity: 0.8;
-    max-width: 300px;
+    font-size: var(--si-font-secondary);
+    line-height: 1.3;
   }
 
   .header-actions {
     display: flex;
-    align-items: center;
-    gap: 8px;
     flex-shrink: 0;
+    align-items: center;
+    gap: var(--si-space-1);
+    color: var(--primary-text-color);
+  }
+
+  .expiry-indicators {
+    display: flex;
+    align-items: center;
+    gap: var(--si-space-1);
+    margin-right: var(--si-space-1);
+  }
+
+  .expiry-indicators .si-chip {
+    cursor: pointer;
+  }
+
+  .expiry-indicators .si-chip ha-icon {
+    --mdc-icon-size: 16px;
+  }
+
+  .header-scan-btn,
+  .overflow-menu-btn {
+    color: inherit;
   }
 
   .overflow-menu-container {
     position: relative;
   }
 
-  .overflow-menu-btn {
-    background: transparent;
-    border: none;
-    font-size: 20px;
-    cursor: pointer;
-    color: var(--primary-text-color);
-    padding: 4px 8px;
-    border-radius: 4px;
-    line-height: 1;
-    transition: background-color 0.2s ease;
-  }
-
-  .overflow-menu-btn:hover {
-    background-color: var(--secondary-background-color, rgba(0, 0, 0, 0.05));
-  }
-
   .overflow-menu {
     position: absolute;
+    top: calc(100% + var(--si-space-1));
     right: 0;
-    top: 100%;
-    background: var(--card-background-color);
-    border: 1px solid var(--divider-color);
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     z-index: 100;
-    min-width: 140px;
+    min-width: 180px;
+    padding: var(--si-space-1) 0;
     overflow: hidden;
+    border: 1px solid var(--divider-color);
+    border-radius: var(--si-radius);
+    background: var(--card-background-color, var(--ha-card-background));
+    box-shadow: var(--si-shadow-raised);
   }
 
   .overflow-menu-item {
     display: flex;
     align-items: center;
+    gap: var(--si-space-3);
     width: 100%;
-    padding: 10px 16px;
+    min-height: 44px;
+    margin: 0;
+    padding: 0 var(--si-space-4);
     border: none;
+    border-radius: 0;
     background: transparent;
-    cursor: pointer;
-    font-size: 0.9em;
     color: var(--primary-text-color);
-    transition: background-color 0.2s ease;
+    font: inherit;
+    font-size: var(--si-font-name);
+    font-weight: 400;
     text-align: left;
+    cursor: pointer;
+  }
+
+  .overflow-menu-item ha-icon {
+    --mdc-icon-size: 20px;
+    color: var(--secondary-text-color);
   }
 
   .overflow-menu-item:hover {
-    background-color: var(--secondary-background-color, rgba(0, 0, 0, 0.05));
+    background: color-mix(in srgb, currentColor 8%, transparent);
   }
 
-  .overflow-menu-item + .overflow-menu-item {
-    border-top: 1px solid var(--divider-color);
-  }
-
-  .expiry-indicators {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 6px;
-    flex-shrink: 0;
-  }
-
-  .expiring-badge,
-  .expired-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 0.75em;
-    font-weight: 500;
-    white-space: nowrap;
-    border: none;
-    cursor: pointer;
-    font-family: inherit;
-    line-height: inherit;
-    transition: opacity 0.15s ease;
-  }
-
-  .expiring-badge:hover,
-  .expired-badge:hover {
-    opacity: 0.75;
-  }
-
-  .expiring-badge {
-    background-color: rgba(255, 152, 0, 0.12);
-    color: var(--warning-color, #e68900);
-  }
-
-  .expired-badge {
-    background-color: rgba(244, 67, 54, 0.12);
-    color: var(--error-color, #d32f2f);
-  }
-
-  .expiring-badge ha-icon,
-  .expired-badge ha-icon {
-    --mdc-icon-size: 13px;
-  }
-
-  .header-scan-btn {
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    color: var(--primary-text-color);
-    padding: 4px 8px;
-    border-radius: 4px;
-    line-height: 1;
-    display: flex;
-    align-items: center;
-    transition: background-color 0.2s ease;
-  }
-
-  .header-scan-btn:hover {
-    background-color: var(--secondary-background-color, rgba(0, 0, 0, 0.05));
-  }
-
-  .header-scan-btn svg,
-  .header-scan-btn svg * {
-    pointer-events: none;
-    display: block;
-  }
-
-  .scan-panel {
-    border-bottom: 1px solid var(--divider-color);
-    padding: 8px 16px;
-  }
-
-  .scan-panel-viewport-container {
-    position: relative;
-  }
-
-  .scan-panel-loading {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-    color: var(--secondary-text-color);
-    font-size: 0.85em;
-  }
-
-  .scan-panel-viewport {
-    max-height: 250px;
-    background: #000;
-    border-radius: 8px;
-    overflow: hidden;
-  }
-
-  .scan-panel-viewport video {
-    width: 100%;
-    display: block;
-  }
-
-  .scan-panel-close {
-    position: absolute;
-    bottom: 8px;
-    right: 8px;
-    background: rgba(0, 0, 0, 0.6);
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    padding: 4px 12px;
-    cursor: pointer;
-    font-size: 0.8em;
-  }
-
-  .scan-action-bar {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-    padding: 8px 0;
-  }
-
-  .scan-info-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-
-  .scan-barcode-label {
-    font-weight: 500;
-    font-size: 0.9em;
-    color: var(--primary-text-color);
-  }
-
-  .scan-buttons-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .scan-go-btn {
-    padding: 6px 20px;
-    border: none;
-    border-radius: 8px;
-    background: var(--primary-color);
-    color: var(--text-primary-color, #fff);
-    cursor: pointer;
-    font-size: 0.85em;
-    font-weight: 500;
-  }
-
-  .scan-go-btn:hover {
-    opacity: 0.9;
-  }
-
-  .scan-cancel-btn {
-    padding: 6px 14px;
-    border: 1px solid var(--divider-color);
-    border-radius: 8px;
-    background: transparent;
-    color: var(--primary-text-color);
-    cursor: pointer;
-    font-size: 0.85em;
-  }
-
-  .scan-cancel-btn:hover {
-    background-color: var(--secondary-background-color, rgba(0, 0, 0, 0.05));
-  }
-
-  .scan-item-name {
-    font-weight: 600;
-    font-size: 0.85em;
-    color: var(--primary-text-color);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 200px;
-    display: inline-block;
-  }
-
-  .scan-item-quantity {
-    font-size: 0.8em;
-    color: var(--secondary-text-color);
-    display: inline-block;
-  }
-
-  .scan-existing-controls {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .scan-add-btn {
-    padding: 6px 20px;
-    border: 1px solid var(--primary-color);
-    border-radius: 8px;
-    background: transparent;
-    color: var(--primary-color);
-    cursor: pointer;
-    font-size: 0.85em;
-    font-weight: 500;
-  }
-
-  .scan-add-btn:hover {
-    background: var(--primary-color);
-    color: var(--text-primary-color, #fff);
-  }
-
-  .scan-panel-error {
-    color: var(--error-color, #d32f2f);
-    font-size: 0.85em;
-    padding: 4px 0;
-  }
-
-  @media (max-width: 600px) {
-    .card-header {
-      padding: 10px 12px;
-    }
-
-    .inventory-description {
-      max-width: none;
-    }
-  }
-
-  @media (max-width: 480px) {
-    .card-header {
-      padding: 8px 12px;
-    }
-
-    .inventory-title {
-      font-size: 0.95em;
-    }
-
-    .inventory-description {
-      font-size: 0.7em;
-    }
-
-    .expiring-badge,
-    .expired-badge {
-      padding: 2px 6px;
-      font-size: 0.7em;
-    }
-
-    .expiring-badge ha-icon,
-    .expired-badge ha-icon {
-      --mdc-icon-size: 11px;
-    }
+  .overflow-menu-item:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: -2px;
   }
 `;

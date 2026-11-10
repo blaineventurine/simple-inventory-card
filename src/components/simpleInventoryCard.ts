@@ -1,32 +1,98 @@
 import packageJson from '../../package.json';
 
 import { ConfigEditor } from './configEditor';
-import { HomeAssistant, InventoryConfig, InventoryItem } from '@/types/homeAssistant';
+import { HomeAssistant } from '@/types/homeAssistant';
+import { InventoryConfig, InventoryItem } from '@/types/inventory';
 import { LifecycleManager } from '../services/lifecycleManager';
-import { Services } from '../services/services';
+import { InventoryStore } from '../services/inventoryStore';
+import { showHassNotification } from '../utils/notify';
+import { stopAllBarcodeScanners } from '../services/barcodeTagInput';
 import { LitElement } from 'lit-element';
 import { RenderingCoordinator } from '../services/renderingCoordinator';
 import { Utilities } from '../utils/utilities';
 import { InventoryResolver } from '../utils/inventoryResolver';
-import { TranslationData } from '@/types/translatableComponent';
 import { TranslationManager } from '@/services/translationManager';
+import { createCompatibilityBanner } from '../utils/backendCompatibility';
+import { Capabilities, CardContext } from '@/types/cardContext';
 
 let cardDescription = 'A card to manage your inventories';
 
+/**
+ * The list view of one inventory: config, DOM and rendering. Its data, live updates and refresh
+ * policy live in an `InventoryStore`; the card's sheets, forms, viewer and scanner hold its
+ * renders while open (`InventoryStore.hold`), and release those holds when a render replaces
+ * them. `State.hasRealEntityChange` stays in the card for now (a dashboard view would need it
+ * in the store).
+ */
 class SimpleInventoryCard extends LitElement {
   private _config: InventoryConfig | undefined = undefined;
-  private _hass: HomeAssistant | undefined = undefined;
   private _todoLists: Array<{ id: string; name: string }> = [];
-  private _translations: TranslationData = {};
-  private _items: InventoryItem[] = [];
   private lifecycleManager: LifecycleManager;
   private renderingCoordinator: RenderingCoordinator;
+  private readonly _store = new InventoryStore({
+    showError: (message) => showHassNotification(this.shadowRoot ?? this, message),
+    compatibilityChecked: () => this._applyCompatibilityBanner(),
+  });
+  /** The item `openItem` asked for, until the items are loaded and it opens (or is unknown). */
+  private _pendingOpen: string | undefined = undefined;
+  /** The item page `showItem` asked for, until the items are loaded and it shows. */
+  private _pendingItemPage: string | undefined = undefined;
 
   constructor() {
     super();
-    this.attachShadow({ mode: 'open' });
-    this.lifecycleManager = new LifecycleManager(this.shadowRoot!);
-    this.renderingCoordinator = new RenderingCoordinator(this.lifecycleManager, this.shadowRoot!);
+    const shadowRoot = this.attachShadow({ mode: 'open' });
+    this.lifecycleManager = new LifecycleManager(shadowRoot);
+    this.renderingCoordinator = new RenderingCoordinator(this.lifecycleManager, shadowRoot);
+    this._store.subscribe(() => this._renderView());
+  }
+
+  /**
+   * HA re-attaches the same element when the masonry view moves cards between columns (window
+   * width, phone rotation, sidebar): the DOM, open sheets and forms included, is still intact,
+   * so only the document listeners come back, plus a refresh missed while detached.
+   */
+  connectedCallback(): void {
+    super.connectedCallback();
+    this._store.resume(() => this.lifecycleManager.resume());
+  }
+
+  /**
+   * Releases what outlives a detached card (document listeners, camera, timers); DOM, services
+   * and state stay for a re-attach. A card left on another view is then garbage, not a leak.
+   */
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    this._store.pause();
+    this.lifecycleManager.pause();
+  }
+
+  /** `hidden`: the Inventory panel hides the cards of inactive tabs (a dashboard never does). */
+  static get observedAttributes(): string[] {
+    return [...super.observedAttributes, 'hidden'];
+  }
+
+  /**
+   * A hidden card stays connected and live (its tab keeps its sheets and gets live updates) but
+   * releases the camera, as on detach, and its item page stops refreshing its history; shown
+   * again, a scanner that was showing its camera starts it again, and a history refresh missed
+   * meanwhile runs.
+   */
+  attributeChangedCallback(name: string, oldValue: string | null, value: string | null): void {
+    super.attributeChangedCallback(name, oldValue, value);
+    if (name !== 'hidden' || (oldValue === null) === (value === null)) {
+      return;
+    }
+    const detailView = this.lifecycleManager.getServices()?.detailView;
+    if (value !== null) {
+      stopAllBarcodeScanners();
+      detailView?.pause('hidden');
+      return;
+    }
+    // Shown: the page waits for a re-attach too when it is also detached.
+    detailView?.resume('hidden');
+    if (this.isConnected) {
+      this.lifecycleManager.resumeScanners();
+    }
   }
 
   setConfig(config: InventoryConfig): void {
@@ -34,6 +100,7 @@ class SimpleInventoryCard extends LitElement {
       throw new Error('Entity is required');
     }
     this._config = config;
+    this._store.setEntity(config.entity);
   }
 
   /**
@@ -41,146 +108,154 @@ class SimpleInventoryCard extends LitElement {
    * @param hass - The Home Assistant instance
    */
   set hass(hass: HomeAssistant) {
-    const oldHass = this._hass;
-    this._hass = hass;
-
-    if (!oldHass) {
-      this._loadTranslations().then(() => {
-        this._updateTodoLists();
-        this._fetchItems();
-      });
+    this._todoLists = InventoryResolver.extractTodoLists(hass);
+    if (this._store.setHass(hass)) {
       return;
     }
-
-    if (
-      oldHass &&
-      (oldHass.language !== hass.language || oldHass.selectedLanguage !== hass.selectedLanguage)
-    ) {
-      this._loadTranslations().then(() => {
-        this._updateTodoLists();
-        this.render();
-      });
-      return;
-    }
-
-    this._updateTodoLists();
-
-    if (!oldHass) {
-      this.render();
-      return;
-    }
-
     const entityId = this._config?.entity;
-    if (entityId) {
-      this.lifecycleManager.updateDependencies(this._hass, this._config!);
-
-      const services = this.lifecycleManager.getServices();
-      if (services && services.state.hasRealEntityChange(hass, entityId)) {
-        const scanPanel = this.shadowRoot?.getElementById('scan-panel') as HTMLElement | null;
-        if (scanPanel && scanPanel.style.display !== 'none') {
-          return;
-        }
-        if (services.state.userInteracting) {
-          services.state.debouncedRender();
-        } else {
-          this._fetchItems();
-        }
-      }
+    const services = this.lifecycleManager.getServices();
+    // Runs on every update to track the state, so a later fallback from live updates compares
+    // against the latest one.
+    if (entityId && services && services.state.hasRealEntityChange(hass, entityId)) {
+      this._store.entityChanged(services.state.userInteracting);
     }
   }
 
   render(): void {
-    if (!this._config || !this._hass || !this.renderRoot) {
-      return;
-    }
+    this._store.render();
+  }
 
-    if (!this._translations || Object.keys(this._translations).length === 0) {
+  /** Paints the store's current data (the store decided a render may run now). */
+  private _renderView(): void {
+    if (!this._config || !this._store.hass || !this.renderRoot) {
       return;
     }
 
     if (!this.lifecycleManager.isReady()) {
-      const services = this.lifecycleManager.initialize(
-        this._hass,
-        this._config,
-        () => {
+      const services = this.lifecycleManager.initialize(() => this._getContext(), {
+        render: () => {
           this._fetchItems();
         },
-        () => this._refreshAfterSave(),
-        (items, sortMethod) => this._updateItemsOnly(items, sortMethod),
-        () => ({
-          hass: this._hass!,
-          config: this._config!,
-          translations: this._translations,
-          items: this._items,
-        }),
-        this._translations,
-      );
+        refreshAfterSave: () => this._store.refreshAfterSave(),
+        updateItems: (items, sortMethod) => this._updateItemsOnly(items, sortMethod),
+        hold: (kind, reason) => this._store.hold(kind, reason),
+      });
 
       if (!services) {
-        this.renderingCoordinator.renderError('Failed to initialize card components');
+        this.renderingCoordinator.renderError('Failed to initialize card components', this._config);
         return;
       }
     }
 
     this.renderingCoordinator.render(
-      this._config,
-      this._hass,
+      this._getContext(),
       this._todoLists,
-      this._translations,
-      this._items,
       (items: InventoryItem[]) => Utilities.validateInventoryItems(items),
+    );
+    // The render replaced every sheet, form and panel that could hold; a hold left now is a
+    // holder that missed its release, and would silently keep background refreshes back.
+    const outlived = this._store.holds();
+    if (outlived.length > 0) {
+      console.warn('Simple Inventory: holds outlived a full render; releasing them:', outlived);
+      this._store.releaseHolds();
+    }
+    // Each full render rebuilds <ha-card>, so the banner must be re-applied.
+    this._applyCompatibilityBanner();
+    this._openPendingItem();
+    this._showPendingItemPage();
+  }
+
+  /**
+   * Shows the page of the item with id `id` in place of the list. Before the items' first load
+   * the request waits for it; an unknown id shows the page's "no longer exists" state.
+   */
+  public showItem(id: string): void {
+    this._pendingItemPage = id;
+    this._showPendingItemPage();
+  }
+
+  /** Shows the list again, as it was left (search, filters, layout and scroll position). */
+  public showList(): void {
+    this._pendingItemPage = undefined;
+    this.lifecycleManager.getServices()?.detailView.hide();
+  }
+
+  private _showPendingItemPage(): void {
+    const id = this._pendingItemPage;
+    const services = this.lifecycleManager.getServices();
+    if (id === undefined || !this._store.loaded || !services) {
+      return;
+    }
+    this._pendingItemPage = undefined;
+    services.detailView.show(id);
+  }
+
+  /**
+   * Opens an item's edit sheet as tapping its row does. Before the items' first load the
+   * request waits for it (a later call replaces an earlier one); an unknown name does nothing.
+   */
+  public openItem(name: string): void {
+    this._pendingOpen = name;
+    this._openPendingItem();
+  }
+
+  private _openPendingItem(): void {
+    const name = this._pendingOpen;
+    const services = this.lifecycleManager.getServices();
+    if (name === undefined || !this._store.loaded || !services) {
+      return;
+    }
+    this._pendingOpen = undefined;
+    if (this._store.items.some((item) => item.name === name)) {
+      services.eventHandler.itemActions.openEdit(name);
+    }
+  }
+
+  /** What the connected integration supports (from get_info). */
+  public get capabilities(): Capabilities {
+    return this._store.capabilities;
+  }
+
+  /** The card's current state, as the services read it. */
+  private _getContext(): CardContext {
+    // Both are set before the first render and never unset.
+    const { hass, translations, items, capabilities } = this._store;
+    const config = this._config;
+    if (!hass || !config) {
+      throw new Error('Simple Inventory card state read before hass and config were set');
+    }
+    return { hass, config, translations, items, capabilities };
+  }
+
+  private _applyCompatibilityBanner(): void {
+    // Only an outdated backend shows a banner, and the status never changes after the check.
+    const compatibility = this._store.compatibility;
+    if (compatibility?.status !== 'outdated') return;
+    const card = this.shadowRoot?.querySelector('ha-card');
+    if (!card) return;
+    card.querySelector('#compat-banner')?.remove();
+    card.insertAdjacentHTML(
+      'afterbegin',
+      createCompatibilityBanner(compatibility, this._store.translations),
     );
   }
 
-  private async _loadTranslations(): Promise<void> {
-    const language = this._hass?.language || this._hass?.selectedLanguage || 'en';
-
-    try {
-      this._translations = await TranslationManager.loadTranslations(language);
-    } catch (error) {
-      console.warn('Failed to load translations:', error);
-      this._translations = {};
-    }
+  public localize(key: string, params?: Record<string, unknown>, fallback?: string): string {
+    return TranslationManager.localize(this._store.translations, key, params, fallback);
   }
 
-  public localize(key: string, params?: Record<string, any>, fallback?: string): string {
-    return TranslationManager.localize(this._translations, key, params, fallback);
-  }
-
-  private _refreshAfterSave(): void {
-    this.renderingCoordinator.refreshAfterSave(() => {
-      this._fetchItems();
-    });
-  }
-
-  private async _fetchItems(): Promise<void> {
-    if (!this._hass || !this._config) return;
-    const inventoryId = InventoryResolver.getInventoryId(this._hass, this._config.entity);
-    if (!inventoryId) return;
-    try {
-      const svc = this.lifecycleManager.getServices()?.services ?? new Services(this._hass);
-      this._items = await svc.getItems(inventoryId);
-    } catch (error) {
-      console.warn('Failed to fetch inventory items:', error);
-    }
-    this.render();
+  /** Fetches the items and re-renders (see `InventoryStore.fetch`). */
+  private _fetchItems(background = false): Promise<void> {
+    return this._store.fetch(background);
   }
 
   private _updateItemsOnly(items: InventoryItem[], sortMethod: string): void {
     this.renderingCoordinator.updateItemsOnly(
+      this._getContext(),
       items,
       sortMethod,
       this._todoLists,
-      this._translations,
-      this._config,
     );
-  }
-
-  private _updateTodoLists(): void {
-    if (!this._hass) {
-      return;
-    }
-    this._todoLists = InventoryResolver.extractTodoLists(this._hass);
   }
 
   getCardSize(): number {

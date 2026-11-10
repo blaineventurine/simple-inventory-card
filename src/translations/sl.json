@@ -4,23 +4,8 @@
   },
   "common": {
     "loading": "Nalaganje ...",
-    "name": "Moja prilagojena kartica",
-    "off": "Izklopljeno",
-    "on": "Vklopljeno",
     "uncategorized": "Brez kategorije",
-    "no_location": "Brez lokacije",
-    "unknown": "Neznano"
-  },
-  "editor": {
-    "entity": "Entiteta",
-    "name": "Ime (neobvezno)",
-    "show_icon": "Prikaži ikono",
-    "show_state": "Prikaži stanje"
-  },
-  "state": {
-    "active": "Aktivno",
-    "inactive": "Neaktivno",
-    "unavailable": "Nedosegljivo"
+    "no_location": "Brez lokacije"
   },
   "expiry": {
     "expired_day_ago": "Poteklo pred {days} dnevom",
@@ -31,12 +16,22 @@
   },
   "items": {
     "auto_add_info": "Samodejno dodaj na seznam ko ≤ {quantity} → {list}",
-    "no_items": "V zalogi ni predmetov"
+    "auto_add_desired_info": "Samodejno dodaj na seznam ko ≤ {quantity}, do {desired} → {list}",
+    "no_items": "V zalogi ni predmetov",
+    "decrement": "Zmanjšajte {name}",
+    "increment": "Povečajte {name}",
+    "toggle_details": "Podrobnosti za {name}",
+    "image_alt": "Fotografija: {name}",
+    "no_results": "Noben predmet se ne ujema z vašimi filtri",
+    "low_stock": "Nizka zaloga"
   },
   "header": {
-    "items_expired": "{count} item{count, plural, one {} other {s}} expired",
-    "items_expiring_soon": "{count} item{count, plural, one {} other {s}} expiring soon",
-    "scan_barcode": "Skeniraj črtno kodo"
+    "items_expired": "Poteklih izdelkov: {count}",
+    "items_expiring_soon": "Izdelkov, ki kmalu potečejo: {count}",
+    "scan_barcode": "Skeniraj črtno kodo",
+    "more_options": "Več možnosti",
+    "export": "Izvozi",
+    "import": "Uvozi"
   },
   "scanner": {
     "increment": "Povečaj",
@@ -48,19 +43,22 @@
     "barcode_not_found": "Za to črtno kodo ni najdenega predmeta",
     "no_barcode_found": "V fotografiji ni najdene črtne kode",
     "in_stock": "Na zalogi: {quantity}",
-    "scan_success": "Posodobljen predmet: {name}",
-    "add_new_item": "Dodaj predmet"
+    "add_new_item": "Dodaj predmet",
+    "choose_photo": "Izberite fotografijo",
+    "insecure_connection": "Kamera potrebuje varno povezavo (HTTPS) s strežnikom Home Assistant",
+    "native_title": "Skeniraj črtno kodo",
+    "native_description": "Usmerite kamero v črtno kodo predmeta"
   },
   "modal": {
     "add_item": "Dodaj predmet",
     "auto_add_id_to_description": "Dodaj ID zaloge v opis predmeta",
     "aliases": "Vzdevki",
     "aliases_input_placeholder": "Vnesite vzdevek in pritisnite Enter",
+    "remove_value": "Odstrani {value}",
     "auto_add_settings": "Nastavitve samodejnega dodajanja",
     "auto_add_when_low": "Samodejno dodaj na seznam opravil ob nizki zalogi",
     "barcode": "Črtna koda",
     "barcode_input_placeholder": "Vnesite črtno kodo in pritisnite Enter",
-    "barcode_placeholder": "UPC, EAN ipd.",
     "cancel": "Prekliči",
     "description": "Opis",
     "description_placeholder": "Opis predmeta",
@@ -78,6 +76,8 @@
     "expiry_threshold_placeholder": "Število dni pred potekom (privzeto: 0)",
     "minimum_quantity": "Minimalna količina",
     "name_required": "Ime *",
+    "icon": "Ikona",
+    "icon_help": "Katera koli ikona Material Design, npr. mdi:apple. Pustite prazno za privzeto ikono.",
     "quantity": "Količina",
     "quantity_threshold": "Mejna količina",
     "save_changes": "Shrani spremembe",
@@ -100,7 +100,33 @@
     "provider_inventory": "Obstoječi predmet",
     "provider_openbeautyfacts": "Open Beauty Facts",
     "provider_openfoodfacts": "Open Food Facts",
-    "provider_openpetfoodfacts": "Open Pet Food Facts"
+    "provider_openpetfoodfacts": "Open Pet Food Facts",
+    "section_details": "Podrobnosti",
+    "section_barcodes": "Črtne kode in imena",
+    "section_stock": "Zaloga",
+    "section_where": "Kje in kaj",
+    "section_expiry": "Rok uporabnosti",
+    "section_shopping": "Nakupovalni seznam",
+    "more_actions": "Več dejanj",
+    "close": "Zapri",
+    "view_history": "Prikaži zgodovino",
+    "delete_item": "Izbriši predmet",
+    "duplicate_name_hint": "Podvojeno ime",
+    "duplicate_name_error": "Predmet z imenom »{name}« že obstaja v tej zalogi.",
+    "add_item_failed": "Napaka pri dodajanju predmeta: {error}",
+    "update_item_failed": "Napaka pri posodabljanju predmeta: {error}",
+    "add_item_exception": "Prišlo je do napake pri dodajanju predmeta",
+    "update_item_exception": "Prišlo je do napake pri posodabljanju predmeta",
+    "validation_name_required": "Ime predmeta je obvezno",
+    "validation_quantity_invalid": "Količina mora biti veljavno število",
+    "validation_quantity_negative": "Količina ne more biti negativna",
+    "validation_threshold_invalid": "Prag količine mora biti veljavno število",
+    "validation_threshold_required": "Prag količine je obvezen, ko je samodejno dodajanje omogočeno",
+    "validation_todo_list_required": "Izbira seznama je obvezna, ko je samodejno dodajanje omogočeno",
+    "validation_expiry_date_invalid": "Neveljavna oblika datuma roka uporabnosti",
+    "validation_expiry_alert_invalid": "Dnevi opozorila o roku uporabnosti morajo biti veljavno število",
+    "validation_expiry_alert_negative": "Dnevi opozorila o roku uporabnosti ne morejo biti negativni",
+    "validation_expiry_threshold_requires_date": "Prag roka uporabnosti zahteva nastavljen datum roka uporabnosti"
   },
   "filters": {
     "all_categories": "Vse kategorije",
@@ -120,7 +146,8 @@
     "non_zero": "Več kot 0",
     "quantity": "Količina",
     "search_placeholder": "Išči predmete ...",
-    "zero": "0"
+    "zero": "0",
+    "apply": "Uporabi"
   },
   "sort": {
     "category": "Kategorija",
@@ -130,15 +157,17 @@
     "quantity_high": "Količina (veliko)",
     "quantity_low": "Količina (malo)",
     "sort_by": "Razvrsti po:",
-    "zero_last": "Brez zaloge na koncu"
+    "zero_last": "Brez zaloge na koncu",
+    "chip_label": "Razvrsti: {method}"
   },
   "active_filters": {
     "category": "Kategorija",
     "location": "Lokacija",
     "expiry": "Potek",
-    "label": "Aktivni filtri:",
     "quantity": "Količina",
-    "search": "Iskanje"
+    "search": "Iskanje",
+    "remove": "Odstrani {filter}",
+    "selected": "izbranih"
   },
   "config": {
     "inventory_entity_required": "Entiteta zaloge (obvezno)",
@@ -155,10 +184,22 @@
     "show_category": "Prikaži kategorijo",
     "show_expiry": "Prikaži datum poteka",
     "show_auto_add_info": "Prikaži informacije o samodejnem dodajanju",
-    "show_price": "Prikaži skupno vrednost"
+    "show_price": "Prikaži skupno vrednost",
+    "show_icon": "Prikaži ikone izdelkov",
+    "layout_tiles": "Prikaži izdelke kot ploščice"
+  },
+  "layout": {
+    "show_tiles": "Prikaži kot ploščice",
+    "show_list": "Prikaži kot seznam",
+    "tiles_label": "Prikaz s ploščicami"
   },
   "actions": {
-    "confirm_remove": "Odstranim {name} iz zaloge?"
+    "confirm_remove": "Odstranim {name} iz zaloge?",
+    "import_result": "Uvoz končan: dodanih {added}, posodobljenih {updated}, preskočenih {skipped}",
+    "import_errors": "Napake ({count}):",
+    "import_errors_more": "…in še {count}",
+    "import_failed": "Uvoz ni uspel: {error}",
+    "import_title": "Uvoz"
   },
   "analytics": {
     "tab_history": "Zgodovina",
@@ -172,7 +213,6 @@
     "insufficient_data": "Ni dovolj podatkov",
     "insufficient_data_detail": "Za izračun sta potrebna vsaj 2 dogodka porabe.",
     "per_day": "/dan",
-    "days": "dni",
     "window_30": "30 dni",
     "window_60": "60 dni",
     "window_90": "90 dni",
@@ -181,11 +221,150 @@
     "load_error": "Napaka pri nalaganju podatkov o porabi.",
     "daily_spend": "Dnevna poraba (vrednost)",
     "weekly_spend": "Tedenska poraba (vrednost)",
-    "total_spend": "Skupna poraba (vrednost)"
+    "total_spend": "Skupna poraba (vrednost)",
+    "per_week": "/ted",
+    "insufficient_data_progress": "{count} od 2 zabeleženih dogodkov porabe — zmanjšajte ta artikel za začetek sledenja.",
+    "stock_level": "Raven Zaloge",
+    "consumption_over_time": "Poraba",
+    "no_consumption_in_window": "V tem obdobju ni porabe.",
+    "showing_recent_history": "Prikazana je samo nedavna zgodovina",
+    "runs_out": "Zmanjka ~{date}"
   },
   "errors": {
     "clear_filters_error": "Napaka pri brisanju filtrov. Poskusite znova.",
-    "duplicate_name": "Predmet z imenom \"{name}\" že obstaja v tej zalogi.",
-    "update_failed": "Posodobitev predmeta ni uspela. Poskusite znova."
+    "load_items_failed": "Nalaganje elementov inventarja ni uspelo: {error}",
+    "history_failed": "Nalaganje zgodovine ni uspelo: {error}",
+    "export_failed": "Izvoz ni uspel: {error}"
+  },
+  "compatibility": {
+    "backend_outdated": "Integracija Simple Inventory {version} je prestara za to kartico; posodobite jo na {minimum} ali novejšo.",
+    "unknown_version": "starejša od {minimum}"
+  },
+  "batches": {
+    "list_label": "Serije za {name}",
+    "unit_price": "{price} na kos",
+    "use_from_batch": "Porabi iz serije: {batch}",
+    "restock": "Dopolni…",
+    "restock_submit": "Dopolni",
+    "location_placeholder": "Privzeto: prva običajna lokacija",
+    "purchased_at": "Kupljeno",
+    "details": "Podrobnosti serije",
+    "editor_title": "Serije",
+    "editor_empty": "Ni zaloge. Za dodajanje serije uporabite Dopolni… v vrstici izdelka.",
+    "remove": "Odstrani serijo",
+    "undo_remove": "Obdrži serijo",
+    "invalid_quantity": "Količina serije mora biti število, večje ali enako 0",
+    "invalid_unit_price": "Cena na enoto serije mora biti število, večja ali enaka 0",
+    "invalid_purchased_at": "Datum nakupa ne sme biti prazen",
+    "update_failed": "Napaka pri posodabljanju serije: {error}",
+    "restock_failed": "Dopolnitev ni uspela: {error}",
+    "move_from_batch": "Premakni iz serije: {batch}",
+    "move_to": "Premakni na",
+    "move_submit": "Premakni",
+    "move_failed": "Premik ni uspel: {error}",
+    "move_destination_required": "Izberite, kam ga premakniti",
+    "move_invalid_amount": "Vnesite količino, večjo od 0",
+    "quantity_readonly": "Skupaj vseh serij — količine uredite na seznamu serij spodaj",
+    "add_batch": "+ Dodaj serijo",
+    "discard_new": "Zavrzi novo serijo",
+    "merge_note": "Dodano bo obstoječi seriji ({quantity}, {expiry}, {location})",
+    "merge_expires": "rok uporabe {date}",
+    "merge_no_expiry": "brez roka uporabe",
+    "merge_no_location": "brez lokacije",
+    "invalid_new_quantity": "Količina nove serije mora biti večja od 0",
+    "invalid_date": "Vnesite veljaven datum (LLLL-MM-DD)",
+    "add_failed": "Napaka pri dodajanju serije: {error}",
+    "add_as_batch": "Dodaj {quantity} kot novo serijo izdelka {name}",
+    "add_as_batch_note": "Uporabijo se samo količina, rok uporabe, prva lokacija in cena na enoto. Opis, kategorija, črtna koda, vzdevki in samodejno dodajanje se ne spremenijo."
+  },
+  "image": {
+    "label": "Slika",
+    "choose": "Fotografija",
+    "media": "Predstavnost",
+    "remove": "Odstrani sliko",
+    "use_product_photo": "Uporabi fotografijo izdelka",
+    "pending_photo": "Nova fotografija bo shranjena ob shranjevanju.",
+    "pending_media": "Slika iz predstavnosti bo shranjena ob shranjevanju.",
+    "pending_product_photo": "Fotografija izdelka bo shranjena ob shranjevanju.",
+    "pending_remove": "Slika bo odstranjena ob shranjevanju.",
+    "not_an_image": "Izberite slikovno datoteko.",
+    "too_large": "Slika je večja od 10 MB.",
+    "invalid": "Datoteke ni bilo mogoče prebrati kot slike.",
+    "item_not_found": "Predmet ne obstaja več.",
+    "save_failed": "{name} je shranjen, njegova slika pa ne: {error}",
+    "view_photo": "Prikaži fotografijo: {name}",
+    "view_photo_unnamed": "Prikaži fotografijo",
+    "viewer_unnamed": "Fotografija"
+  },
+  "detail": {
+    "back": "Nazaj",
+    "back_to_list": "Nazaj na seznam",
+    "edit": "Uredi",
+    "out_of_stock": "Ni na zalogi",
+    "locations": "Lokacije",
+    "categories": "Kategorije",
+    "price_value": "{price} na kos · skupaj {total}",
+    "auto_add_title": "Samodejno dodajanje",
+    "auto_add": "Pri {threshold} ali manj dodaj na {list}",
+    "auto_add_desired": "Pri {threshold} ali manj dodaj do {desired} na {list}",
+    "barcodes": "Črtne kode",
+    "section_batches": "Serije",
+    "section_history": "Zgodovina",
+    "history_loading": "Nalaganje zgodovine …",
+    "gone": "Ta predmet ne obstaja več"
+  },
+  "panel": {
+    "title": "Inventar",
+    "tabs_label": "Inventarji",
+    "open_sidebar": "Odpri stransko vrstico",
+    "loading": "Nalaganje inventarjev …",
+    "empty": "Še ni inventarjev. Dodajte ga v Nastavitve → Naprave in storitve → Simple Inventory.",
+    "empty_link": "Odpri nastavitve Simple Inventory",
+    "outdated": "Ta integracija Simple Inventory je prestara za ploščo; posodobite jo in znova zaženite Home Assistant.",
+    "error": "Inventarjev ni bilo mogoče naložiti: {message}",
+    "retry": "Poskusi znova",
+    "sensor_unavailable": "Senzor tega inventarja ni na voljo.",
+    "search": {
+      "open": "Išči po vseh inventarjih",
+      "placeholder": "Išči po vseh inventarjih …",
+      "close": "Zapri iskanje",
+      "scan": "Skeniraj črtno kodo",
+      "scan_title": "Skeniraj črtno kodo",
+      "scan_file": "Fotografiraj ali izberi fotografijo",
+      "scan_close": "Zapri skener",
+      "hint": "Vnesite vsaj 2 znaka",
+      "no_results": "Noben predmet se ne ujema z »{query}«",
+      "truncated": "Prikazanih je prvih {count} zadetkov; natančneje določite iskanje",
+      "error": "Iskanje ni uspelo: {message}",
+      "retry": "Poskusi znova",
+      "reason_alias": "vzdevek: {value}",
+      "reason_barcode": "črtna koda: {value}",
+      "reason_category": "kategorija",
+      "reason_location": "lokacija",
+      "reason_description": "opis",
+      "reason_unit": "enota"
+    },
+    "home": {
+      "tab": "Domov",
+      "loading": "Nalaganje pregleda …",
+      "error": "Pregleda ni bilo mogoče naložiti: {message}",
+      "items": "Predmetov: {count}",
+      "need_attention": "Potrebuje pozornost: {count}",
+      "title_expired": "Poteklo",
+      "title_expiring": "Kmalu poteče",
+      "title_out_of_stock": "Ni na zalogi",
+      "title_low_stock": "Nizka zaloga",
+      "expired_today": "Poteklo danes",
+      "expired_one_day": "Poteklo pred 1 dnem",
+      "expired_days": "Dni po izteku: {n}",
+      "expires_today": "Poteče danes",
+      "expires_tomorrow": "Poteče jutri",
+      "expires_days": "Dni do izteka: {n}",
+      "batches": "Serij: {k} od {m}",
+      "out_of_stock": "Ni na zalogi",
+      "low": "Nizka zaloga: še {quantity}, potrebno {needed}",
+      "show_all": "Prikaži vse ({count})",
+      "empty": "Vse je na zalogi in sveže"
+    }
   }
 }

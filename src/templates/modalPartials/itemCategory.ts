@@ -9,7 +9,7 @@ export function itemCategory(
   categories: string[] = [],
 ): string {
   return `
-    <div class="input-group">
+    <div class="input-group si-field">
       <label for="${prefix}-${ELEMENTS.CATEGORY}" class="form-label">
         ${TranslationManager.localize(translations, 'modal.category', undefined, 'Category')}
       </label>
@@ -21,7 +21,8 @@ export function itemCategory(
           undefined,
           'Food, Tools, Supplies, etc.',
         ),
-        options: categories.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' })),
+        // Already sorted by itemOptions; the multi-select re-sorts when values are added.
+        options: categories,
       })}
     </div>
   `;

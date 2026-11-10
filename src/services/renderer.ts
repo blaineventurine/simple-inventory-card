@@ -1,51 +1,38 @@
 import { Utilities } from '../utils/utilities';
 import { InventoryResolver } from '../utils/inventoryResolver';
+import { itemOptions } from '../utils/itemOptions';
 import { styles } from '../styles/styles';
-import { HassEntity, InventoryConfig, InventoryItem } from '@/types/homeAssistant';
+import { HassEntity } from '@/types/homeAssistant';
+import { InventoryConfig, InventoryItem } from '@/types/inventory';
 import { FilterState } from '@/types/filterState';
 import { TodoList } from '@/types/todoList';
 import { generateCardHTML } from '../templates/inventoryCard';
 import { TranslationData } from '@/types/translatableComponent';
-import { TranslationManager } from './translationManager';
+import { RowOptions } from '@/types/rowOptions';
 
 export class Renderer {
   constructor(private readonly shadowRoot: ShadowRoot) {}
 
+  /**
+   * `items` are the rows to list (filtered and sorted); `allItems` is the whole inventory, which
+   * the header counts and the category/location options are taken from.
+   */
   renderCard(
     state: HassEntity,
     entityId: string,
     items: InventoryItem[],
+    allItems: InventoryItem[],
     filters: FilterState,
     sortMethod: string,
     todoLists: TodoList[],
     translations: TranslationData,
     config?: InventoryConfig,
+    rowOptions?: RowOptions,
+    itemIconsEnabled = false,
   ): void {
     const inventoryName = InventoryResolver.getInventoryName(state, entityId);
     const description = InventoryResolver.getInventoryDescription(state);
-    const categorySet = new Set<string>();
-    items.forEach((item) => {
-      if (Array.isArray(item.categories) && item.categories.length > 0) {
-        item.categories.forEach((c) => {
-          if (c?.trim()) categorySet.add(c.trim());
-        });
-      } else if (item.category?.trim()) {
-        categorySet.add(item.category.trim());
-      }
-    });
-    const categories = [...categorySet].sort();
-
-    const locationSet = new Set<string>();
-    items.forEach((item) => {
-      if (Array.isArray(item.locations) && item.locations.length > 0) {
-        item.locations.forEach((loc) => {
-          if (loc?.trim()) locationSet.add(loc.trim());
-        });
-      } else if (item.location?.trim()) {
-        locationSet.add(item.location.trim());
-      }
-    });
-    const locations = [...locationSet].sort();
+    const { categories, locations } = itemOptions(allItems);
 
     this.shadowRoot.innerHTML = generateCardHTML(
       inventoryName,
@@ -55,41 +42,23 @@ export class Renderer {
       categories,
       locations,
       todoLists,
-      items,
+      allItems,
       description,
       translations,
       config,
+      rowOptions,
+      itemIconsEnabled,
     );
   }
 
-  renderError(message: string, translations?: TranslationData): void {
-    const errorLabel = translations
-      ? TranslationManager.localize(translations, 'common.error', undefined, 'Error')
-      : 'Error';
-
+  /** Callers pass an already localized message (the label stays English, as before). */
+  renderError(message: string): void {
     this.shadowRoot.innerHTML = `
       <style>${styles}</style>
       <ha-card>
         <div class="card-content">
           <div class="error-message" style="color: var(--error-color); padding: 16px; text-align: center;">
-            <p><strong>${errorLabel}:</strong> ${Utilities.sanitizeHtml(message)}</p>
-          </div>
-        </div>
-      </ha-card>
-    `;
-  }
-
-  renderLoading(translations?: TranslationData): void {
-    const loadingMessage = translations
-      ? TranslationManager.localize(translations, 'common.loading', undefined, 'Loading...')
-      : 'Loading...';
-
-    this.shadowRoot.innerHTML = `
-      <style>${styles}</style>
-      <ha-card>
-        <div class="card-content">
-          <div class="loading-container" style="padding: 16px; text-align: center;">
-            <p>${loadingMessage}</p>
+            <p><strong>Error:</strong> ${Utilities.sanitizeHtml(message)}</p>
           </div>
         </div>
       </ha-card>
