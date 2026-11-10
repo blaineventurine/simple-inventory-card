@@ -560,7 +560,7 @@ describe('ScanHandler', () => {
       expect(refs.itemQuantityEl.textContent).toBe('In stock: 0');
     });
 
-    it('clears and hides name/quantity, hides existing controls, shows add, hides go when no match', async () => {
+    it('shows the not-found hint, hides name, hides existing controls, shows add, hides go when no match', async () => {
       mockServices.lookupByBarcode = vi.fn().mockResolvedValue({
         items: [{ name: 'Other', inventory_id: 'a-different-inventory', quantity: 3 }],
       });
@@ -569,8 +569,8 @@ describe('ScanHandler', () => {
 
       expect(refs.itemNameEl.textContent).toBe('');
       expect(refs.itemNameEl.hidden).toBe(true);
-      expect(refs.itemQuantityEl.textContent).toBe('');
-      expect(refs.itemQuantityEl.hidden).toBe(true);
+      expect(refs.itemQuantityEl.textContent).toBe('No item found for this barcode');
+      expect(refs.itemQuantityEl.hidden).toBe(false);
       expect(refs.existingControls.hidden).toBe(true);
       expect(refs.addBtn.hidden).toBe(false);
       expect(refs.goBtn.hidden).toBe(true);

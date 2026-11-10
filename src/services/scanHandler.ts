@@ -291,8 +291,13 @@ export class ScanHandler {
         itemNameEl.hidden = true;
       }
       if (itemQuantityEl) {
-        itemQuantityEl.textContent = '';
-        itemQuantityEl.hidden = true;
+        itemQuantityEl.textContent = TranslationManager.localize(
+          translations,
+          'scanner.barcode_not_found',
+          undefined,
+          'No item found for this barcode',
+        );
+        itemQuantityEl.hidden = false;
       }
       if (existingControls) existingControls.hidden = true;
       if (addBtn) addBtn.hidden = false;
