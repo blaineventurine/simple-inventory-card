@@ -54,9 +54,12 @@ describe('card camera across detach / re-attach (real scanner module)', () => {
         attributes: { inventory_id: 'pantry' },
       }),
     });
-    hass.callWS = vi.fn().mockImplementation(async (msg: { type: string }) => {
+    hass.callWS = vi.fn().mockImplementation(async (msg: { type: string; barcode?: string }) => {
       if (msg.type === WS_COMMANDS.LOOKUP_BY_BARCODE) {
         return { items: [] };
+      }
+      if (msg.type === WS_COMMANDS.LOOKUP_BARCODE_PRODUCT) {
+        return { barcode: msg.barcode ?? '', results: [] };
       }
       if (msg.type === WS_COMMANDS.LIST_ITEMS) {
         const item: InventoryItem = {

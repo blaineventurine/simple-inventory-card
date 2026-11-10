@@ -1465,6 +1465,10 @@ describe('EventHandler', () => {
       (mockServices as any).lookupByBarcode = vi.fn().mockResolvedValue({
         items: [],
       });
+      (mockServices as any).lookupBarcodeProduct = vi.fn().mockResolvedValue({
+        barcode: '9999999999',
+        results: [],
+      });
 
       await (eventHandler as any).scanHandler.handleScanDetected('9999999999');
 

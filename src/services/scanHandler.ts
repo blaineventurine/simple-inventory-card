@@ -1,5 +1,6 @@
 import { ELEMENTS } from '../utils/constants';
 import { GetCardContext } from '@/types/cardContext';
+import type { FoundBarcodeProduct } from '@/types/barcodeResult';
 import { Services } from './services';
 import { TranslationManager } from './translationManager';
 import { InventoryResolver } from '../utils/inventoryResolver';
@@ -285,12 +286,37 @@ export class ScanHandler {
       if (existingControls) existingControls.hidden = false;
       if (addBtn) addBtn.hidden = true;
       if (goBtn) goBtn.hidden = false;
+      this.scannedItemFound = true;
+      this.syncBatchFieldsVisibility();
     } else {
       if (itemNameEl) {
         itemNameEl.textContent = '';
         itemNameEl.hidden = true;
       }
       if (itemQuantityEl) {
+        itemQuantityEl.textContent = '';
+        itemQuantityEl.hidden = true;
+      }
+      if (existingControls) existingControls.hidden = true;
+      if (addBtn) addBtn.hidden = false;
+      if (goBtn) goBtn.hidden = true;
+      this.scannedItemFound = false;
+      this.syncBatchFieldsVisibility();
+
+      // Not in this inventory - check whether it's at least a known product before
+      // reporting a flat "not found" (the Add Item sheet will look this up again anyway,
+      // but showing nothing here when a product IS known is misleading).
+      const productResult = await this.services.lookupBarcodeProduct(barcode);
+      if (this.scannedBarcode !== barcode) return; // superseded by a newer scan, or cancelled
+
+      const foundProduct = productResult.results.find(
+        (r): r is FoundBarcodeProduct => r.found && r.product !== undefined,
+      )?.product;
+
+      if (foundProduct?.name && itemNameEl) {
+        itemNameEl.textContent = foundProduct.name;
+        itemNameEl.hidden = false;
+      } else if (itemQuantityEl) {
         itemQuantityEl.textContent = TranslationManager.localize(
           translations,
           'scanner.barcode_not_found',
@@ -299,13 +325,7 @@ export class ScanHandler {
         );
         itemQuantityEl.hidden = false;
       }
-      if (existingControls) existingControls.hidden = true;
-      if (addBtn) addBtn.hidden = false;
-      if (goBtn) goBtn.hidden = true;
     }
-
-    this.scannedItemFound = localItems.length > 0;
-    this.syncBatchFieldsVisibility();
   }
 
   async handleScanGo(): Promise<void> {

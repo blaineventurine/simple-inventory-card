@@ -157,6 +157,7 @@ describe('ScanHandler', () => {
 
     mockServices = {
       lookupByBarcode: vi.fn().mockResolvedValue({ items: [] }),
+      lookupBarcodeProduct: vi.fn().mockResolvedValue({ barcode: '', results: [] }),
       scanBarcode: vi.fn().mockResolvedValue({ success: true }),
     } as unknown as Services;
 
@@ -574,6 +575,63 @@ describe('ScanHandler', () => {
       expect(refs.existingControls.hidden).toBe(true);
       expect(refs.addBtn.hidden).toBe(false);
       expect(refs.goBtn.hidden).toBe(true);
+    });
+
+    it('shows the product name from the product-DB lookup when nothing matched locally', async () => {
+      mockServices.lookupByBarcode = vi.fn().mockResolvedValue({ items: [] });
+      mockServices.lookupBarcodeProduct = vi.fn().mockResolvedValue({
+        barcode: '555',
+        results: [
+          { provider: 'openfoodfacts', found: true, product: { name: 'Probiotic Yogurt' } },
+        ],
+      });
+
+      await scanHandler.handleScanDetected('555');
+
+      expect(refs.itemNameEl.textContent).toBe('Probiotic Yogurt');
+      expect(refs.itemNameEl.hidden).toBe(false);
+      expect(refs.itemQuantityEl.hidden).toBe(true);
+      expect(refs.addBtn.hidden).toBe(false);
+      expect(refs.goBtn.hidden).toBe(true);
+    });
+
+    it('falls back to the not-found hint when the product lookup also finds nothing', async () => {
+      mockServices.lookupByBarcode = vi.fn().mockResolvedValue({ items: [] });
+      mockServices.lookupBarcodeProduct = vi.fn().mockResolvedValue({
+        barcode: '555',
+        results: [{ provider: 'openfoodfacts', found: false }],
+      });
+
+      await scanHandler.handleScanDetected('555');
+
+      expect(refs.itemNameEl.hidden).toBe(true);
+      expect(refs.itemQuantityEl.textContent).toBe('No item found for this barcode');
+      expect(refs.itemQuantityEl.hidden).toBe(false);
+    });
+
+    it('ignores a product-lookup result superseded by a newer scan', async () => {
+      mockServices.lookupByBarcode = vi.fn().mockResolvedValue({ items: [] });
+      let resolveFirst!: (value: { barcode: string; results: unknown[] }) => void;
+      mockServices.lookupBarcodeProduct = vi.fn().mockImplementation((barcode: string) => {
+        if (barcode === 'first') {
+          // Promise.withResolvers() is unavailable under this project's TS lib target (< ES2024).
+          return new Promise((resolve) => {
+            resolveFirst = resolve;
+          });
+        }
+        return Promise.resolve({ barcode, results: [] });
+      });
+
+      const firstScan = scanHandler.handleScanDetected('first');
+      await scanHandler.handleScanDetected('second');
+      resolveFirst({
+        barcode: 'first',
+        results: [{ provider: 'openfoodfacts', found: true, product: { name: 'Stale Product' } }],
+      });
+      await firstScan;
+
+      expect(refs.itemNameEl.textContent).not.toBe('Stale Product');
+      expect(refs.itemQuantityEl.textContent).toBe('No item found for this barcode');
     });
 
     it('treats an empty items result as no match', async () => {
