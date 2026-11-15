@@ -94,7 +94,7 @@ describe('background refreshes and open in-card UI (integration)', () => {
       wsTypes.push(msg.type);
       switch (msg.type) {
         case WS_COMMANDS.GET_INFO:
-          return { version: '0.10.0', api_version: 2, features: ['batches', 'transfers'] };
+          return { version: '0.7.0', api_version: 2, features: ['batches', 'transfers'] };
         case WS_COMMANDS.LIST_ITEMS:
           return { items };
         case WS_COMMANDS.GET_HISTORY:

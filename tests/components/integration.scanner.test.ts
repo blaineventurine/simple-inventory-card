@@ -76,7 +76,7 @@ describe('card camera across detach / re-attach (real scanner module)', () => {
         };
         return { items: [item] };
       }
-      return { version: '0.10.0', api_version: 2, features: [] };
+      return { version: '0.7.0', api_version: 2, features: [] };
     });
     return hass;
   }

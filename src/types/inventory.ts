@@ -1,6 +1,6 @@
 import { LovelaceCardConfig } from './homeAssistant';
 
-/** One stock lot of an item (integration 0.8.0+, `batches` feature). */
+/** One stock lot of an item (`batches` feature). */
 export interface InventoryBatch {
   id: string;
   quantity: number;

@@ -90,8 +90,8 @@ describe('createCompatibilityBanner', () => {
     expect(html).not.toContain('<img');
   });
 
-  it('accepts a newer api_version (0.8.0 with batches) and an older one without features', async () => {
-    const batches = { version: '0.8.0', api_version: 3, features: ['batches'] };
+  it('accepts a newer api_version with batches and an older one without features', async () => {
+    const batches = { version: '0.7.0', api_version: 3, features: ['batches'] };
     const plain = { version: '0.7.0', api_version: 2, features: [] };
 
     expect(await checkBackendCompatibility(servicesWith(async () => batches))).toEqual({

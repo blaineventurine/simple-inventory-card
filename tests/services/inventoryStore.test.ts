@@ -87,7 +87,7 @@ describe('InventoryStore', () => {
     vi.mocked(TranslationManager.loadTranslations).mockResolvedValue({ items: {} });
     connection = fakeConnection();
     listItems = vi.fn(async () => ({ items: [item('Milk', 1)] }));
-    getInfo = vi.fn(async () => ({ version: '0.11.0', api_version: 3, features: [] }));
+    getInfo = vi.fn(async () => ({ version: '0.7.0', api_version: 3, features: [] }));
     hass = hassWith();
     showError = vi.fn<(message: string) => void>();
     compatibilityChecked = vi.fn<() => void>();
@@ -124,7 +124,7 @@ describe('InventoryStore', () => {
     });
 
     it('takes the capabilities from get_info and reports the check to the view', async () => {
-      getInfo.mockResolvedValue({ version: '0.9.0', api_version: 3, features: ['transfers'] });
+      getInfo.mockResolvedValue({ version: '0.7.0', api_version: 3, features: ['transfers'] });
       await start();
 
       expect(store.capabilities.transfers).toBe(true);
@@ -142,7 +142,7 @@ describe('InventoryStore', () => {
       await start();
       expect(rendered).toHaveBeenCalledTimes(1);
 
-      answer({ version: '0.8.0', api_version: 3, features: ['batches'] });
+      answer({ version: '0.7.0', api_version: 3, features: ['batches'] });
       await vi.advanceTimersByTimeAsync(0);
 
       expect(rendered).toHaveBeenCalledTimes(2);

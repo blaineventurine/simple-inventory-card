@@ -79,7 +79,7 @@ describe('SimpleInventoryCard.openItem (integration)', () => {
           releaseLoads.push(() => resolve({ items: [item('Apples'), item('Bananas')] }));
         });
       }
-      return Promise.resolve({ version: '0.10.0', api_version: 2, features: [] });
+      return Promise.resolve({ version: '0.7.0', api_version: 2, features: [] });
     });
     return hass;
   }

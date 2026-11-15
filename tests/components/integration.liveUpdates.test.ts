@@ -101,7 +101,7 @@ describe('live updates via simple_inventory/subscribe (integration)', () => {
       switch (msg.type) {
         case WS_COMMANDS.GET_INFO:
           if (infoError) throw infoError;
-          return { version: '0.10.0', api_version: 2, features: ['batches', 'transfers'] };
+          return { version: '0.7.0', api_version: 2, features: ['batches', 'transfers'] };
         case WS_COMMANDS.LIST_ITEMS:
           if (listError) throw listError;
           return { items };

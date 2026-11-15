@@ -95,7 +95,7 @@ describe('card connect / disconnect / reconnect (integration)', () => {
         });
         return { items: [item('Apples'), item('Bananas')] };
       }
-      return { version: '0.10.0', api_version: 2, features };
+      return { version: '0.7.0', api_version: 2, features };
     });
     hass.fetchWithAuth = vi.fn(async () => new Response('img', { status: 200 }));
     return hass;

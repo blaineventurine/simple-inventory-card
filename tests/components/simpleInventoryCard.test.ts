@@ -505,7 +505,7 @@ describe('SimpleInventoryCard', () => {
         expect(mockRenderingCoordinator.render.mock.lastCall[0].capabilities.batches).toBe(false);
         const rendersBeforeInfo = mockRenderingCoordinator.render.mock.calls.length;
 
-        resolveInfo({ version: '0.8.0', api_version: 3, features: ['batches'] });
+        resolveInfo({ version: '0.7.0', api_version: 3, features: ['batches'] });
 
         await vi.waitFor(() =>
           expect(mockRenderingCoordinator.render.mock.lastCall[0].capabilities.batches).toBe(true),
@@ -524,7 +524,7 @@ describe('SimpleInventoryCard', () => {
           .fn()
           .mockImplementation((msg: { type: string }) =>
             msg.type === 'simple_inventory/get_info'
-              ? Promise.resolve({ version: '0.8.0', api_version: 3, features: ['batches'] })
+              ? Promise.resolve({ version: '0.7.0', api_version: 3, features: ['batches'] })
               : new Promise(() => {}),
           );
         const renderSpy = renderCount();
@@ -536,7 +536,7 @@ describe('SimpleInventoryCard', () => {
         expect(mockRenderingCoordinator.render).not.toHaveBeenCalled();
       });
 
-      it('keeps batch UI off for an integration without the batches feature (0.7.x)', async () => {
+      it('keeps batch UI off for an integration without the batches feature', async () => {
         mockHass.callWS = vi
           .fn()
           .mockImplementation(async (msg: { type: string }) =>
@@ -558,12 +558,12 @@ describe('SimpleInventoryCard', () => {
         expect(card.shadowRoot?.querySelector('#compat-banner')).toBeNull();
       });
 
-      it('passes the transfers feature to the renderer when get_info reports it (0.9.0)', async () => {
+      it('passes the transfers feature to the renderer when get_info reports it', async () => {
         mockHass.callWS = vi
           .fn()
           .mockImplementation(async (msg: { type: string }) =>
             msg.type === 'simple_inventory/get_info'
-              ? { version: '0.9.0', api_version: 3, features: ['batches', 'transfers'] }
+              ? { version: '0.7.0', api_version: 3, features: ['batches', 'transfers'] }
               : { items: [] },
           );
 
@@ -577,12 +577,12 @@ describe('SimpleInventoryCard', () => {
         expect(card.capabilities.transfers).toBe(true);
       });
 
-      it('keeps Move… off for an integration with batches but without transfers (0.8.x)', async () => {
+      it('keeps Move… off for an integration with batches but without transfers', async () => {
         mockHass.callWS = vi
           .fn()
           .mockImplementation(async (msg: { type: string }) =>
             msg.type === 'simple_inventory/get_info'
-              ? { version: '0.8.0', api_version: 3, features: ['batches'] }
+              ? { version: '0.7.0', api_version: 3, features: ['batches'] }
               : { items: [] },
           );
 
@@ -594,11 +594,11 @@ describe('SimpleInventoryCard', () => {
         expect(mockRenderingCoordinator.render.mock.lastCall[0].capabilities.transfers).toBe(false);
       });
 
-      it('passes the item_icons feature to the renderer when get_info reports it (0.10.0)', async () => {
+      it('passes the item_icons feature to the renderer when get_info reports it', async () => {
         mockHass.callWS = vi.fn().mockImplementation(async (msg: { type: string }) =>
           msg.type === 'simple_inventory/get_info'
             ? {
-                version: '0.10.0',
+                version: '0.7.0',
                 api_version: 3,
                 features: ['batches', 'transfers', 'item_icons'],
               }
@@ -615,11 +615,11 @@ describe('SimpleInventoryCard', () => {
         expect(card.capabilities.itemIcons).toBe(true);
       });
 
-      it('passes the item_images feature to full and list-only renders (0.11.0)', async () => {
+      it('passes the item_images feature to full and list-only renders', async () => {
         mockHass.callWS = vi.fn().mockImplementation(async (msg: { type: string }) =>
           msg.type === 'simple_inventory/get_info'
             ? {
-                version: '0.11.0',
+                version: '0.7.0',
                 api_version: 3,
                 features: ['batches', 'transfers', 'item_icons', 'item_images'],
               }
@@ -640,11 +640,11 @@ describe('SimpleInventoryCard', () => {
         ).toBe(true);
       });
 
-      it('keeps photos off for an integration without item_images (0.10.x)', async () => {
+      it('keeps photos off for an integration without item_images', async () => {
         mockHass.callWS = vi.fn().mockImplementation(async (msg: { type: string }) =>
           msg.type === 'simple_inventory/get_info'
             ? {
-                version: '0.10.0',
+                version: '0.7.0',
                 api_version: 3,
                 features: ['batches', 'transfers', 'item_icons'],
               }
@@ -663,12 +663,12 @@ describe('SimpleInventoryCard', () => {
         );
       });
 
-      it('keeps the icon field off for an integration without item_icons (0.9.x)', async () => {
+      it('keeps the icon field off for an integration without item_icons', async () => {
         mockHass.callWS = vi
           .fn()
           .mockImplementation(async (msg: { type: string }) =>
             msg.type === 'simple_inventory/get_info'
-              ? { version: '0.9.0', api_version: 3, features: ['batches', 'transfers'] }
+              ? { version: '0.7.0', api_version: 3, features: ['batches', 'transfers'] }
               : { items: [] },
           );
 

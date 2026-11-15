@@ -162,7 +162,7 @@ describe('item detail view in the card (integration)', () => {
         });
       }
       return Promise.resolve({
-        version: '0.12.0',
+        version: '0.7.0',
         api_version: 3,
         features: ['batches', 'transfers', 'item_images', 'item_icons'],
       });

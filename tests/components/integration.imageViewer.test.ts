@@ -71,7 +71,7 @@ describe('full-screen photo viewer in the card (integration)', () => {
         };
         return { items: [item] };
       }
-      return { version: '0.10.0', api_version: 2, features: ['item_images'] };
+      return { version: '0.7.0', api_version: 2, features: ['item_images'] };
     });
     hass.fetchWithAuth = vi.fn(async (path: string) => {
       imageFetches.push(path);
