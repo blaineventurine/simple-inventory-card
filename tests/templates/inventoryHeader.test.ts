@@ -483,31 +483,6 @@ describe('createInventoryHeader', () => {
       expect(result).not.toContain('class="expiry-indicators"');
     });
 
-    it('should handle items with undefined quantity', () => {
-      const itemsWithUndefinedQuantity = [
-        {
-          auto_add_enabled: false,
-          auto_add_id_to_description_enabled: false,
-          auto_add_to_list_quantity: 1,
-          category: 'Test',
-          description: 'Item with undefined quantity',
-          expiry_alert_days: 7,
-          expiry_date: '2024-01-01',
-          location: 'Pantry',
-          name: 'Undefined Quantity',
-          quantity: undefined as any,
-          todo_list: 'grocery',
-          unit: 'pieces',
-        },
-      ];
-
-      vi.mocked(DateUtils.isExpired).mockReturnValue(true);
-
-      const result = createInventoryHeader('Test', itemsWithUndefinedQuantity, mockTranslations);
-
-      expect(result).not.toContain('class="expiry-indicators"');
-    });
-
     it('should handle special characters in description', () => {
       createInventoryHeader(
         'Test',

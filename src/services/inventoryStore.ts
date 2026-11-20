@@ -264,7 +264,7 @@ export class InventoryStore {
     for (const listener of this.listeners) {
       listener();
     }
-    this._renderedItems = JSON.stringify(Utilities.validateInventoryItems(this._items));
+    this._renderedItems = JSON.stringify(this._items);
   }
 
   /**
@@ -291,7 +291,8 @@ export class InventoryStore {
       return;
     }
     try {
-      this._items = await this.services.getItems(inventoryId);
+      // Normalised once on arrival, so every reader can trust the InventoryItem field types.
+      this._items = Utilities.validateInventoryItems(await this.services.getItems(inventoryId));
       this._loaded = true;
     } catch (error) {
       console.warn('Failed to fetch inventory items:', error);
@@ -423,10 +424,11 @@ export class InventoryStore {
     if (this.pending === 'push') {
       this.pending = 'none';
     }
-    if (JSON.stringify(Utilities.validateInventoryItems(items)) === this._renderedItems) {
+    const valid = Utilities.validateInventoryItems(items);
+    if (JSON.stringify(valid) === this._renderedItems) {
       return;
     }
-    this._items = items;
+    this._items = valid;
     this.render();
   }
 

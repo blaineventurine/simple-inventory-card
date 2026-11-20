@@ -133,12 +133,9 @@ export class Filters {
   /** Case-insensitive substring match on the item's texts, case folded like the integration. */
   private matchesTextSearch(item: InventoryItem, searchText: string): boolean {
     const search = foldCase(searchText);
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- backend item fields can be missing at runtime
-    const itemName = foldCase(item.name ?? '');
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- backend item fields can be missing at runtime
-    const itemUnit = foldCase(item.unit ?? '');
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- backend item fields can be missing at runtime
-    const itemDescription = foldCase(item.description ?? '');
+    const itemName = foldCase(item.name);
+    const itemUnit = foldCase(item.unit);
+    const itemDescription = foldCase(item.description);
 
     if (
       itemName.includes(search) ||
@@ -157,22 +154,16 @@ export class Filters {
       return true;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- backend item fields can be missing at runtime
-    const fallbackCategory = item.category ?? '';
     const categoryTexts =
       Array.isArray(item.categories) && item.categories.length > 0
         ? item.categories
-        : [fallbackCategory];
+        : [item.category];
     if (categoryTexts.some((c) => foldCase(c).includes(search))) {
       return true;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- backend item fields can be missing at runtime
-    const fallbackLocation = item.location ?? '';
     const locationTexts =
-      Array.isArray(item.locations) && item.locations.length > 0
-        ? item.locations
-        : [fallbackLocation];
+      Array.isArray(item.locations) && item.locations.length > 0 ? item.locations : [item.location];
     if (locationTexts.some((l) => foldCase(l).includes(search))) {
       return true;
     }
@@ -201,8 +192,7 @@ export class Filters {
         }
 
         case FILTER_VALUES.EXPIRY.EXPIRED: {
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- backend item fields can be missing at runtime
-          if (!item.expiry_date || (item.quantity ?? 0) <= 0) {
+          if (!item.expiry_date || item.quantity <= 0) {
             return false;
           }
 
@@ -210,8 +200,7 @@ export class Filters {
         }
 
         case FILTER_VALUES.EXPIRY.SOON: {
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- backend item fields can be missing at runtime
-          if (!item.expiry_date || (item.quantity ?? 0) <= 0) {
+          if (!item.expiry_date || item.quantity <= 0) {
             return false;
           }
 
@@ -220,8 +209,7 @@ export class Filters {
         }
 
         case FILTER_VALUES.EXPIRY.FUTURE: {
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- backend item fields can be missing at runtime
-          if (!item.expiry_date || (item.quantity ?? 0) <= 0) {
+          if (!item.expiry_date || item.quantity <= 0) {
             return false;
           }
 
@@ -281,10 +269,8 @@ export class Filters {
 
   private sortByName(items: InventoryItem[]): InventoryItem[] {
     return items.sort((a, b) => {
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- backend item fields can be missing at runtime
-      const nameA = (a.name ?? '').toLowerCase().trim();
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- backend item fields can be missing at runtime
-      const nameB = (b.name ?? '').toLowerCase().trim();
+      const nameA = a.name.toLowerCase().trim();
+      const nameB = b.name.toLowerCase().trim();
       return nameA.localeCompare(nameB, undefined, {
         numeric: true,
         sensitivity: 'base',
@@ -300,10 +286,9 @@ export class Filters {
         undefined,
         'No Location',
       );
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- backend item fields can be missing at runtime
-      const locationA = (a.location ?? noLocation).toLowerCase().trim();
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- backend item fields can be missing at runtime
-      const locationB = (b.location ?? noLocation).toLowerCase().trim();
+      // The backend sends '' for no location; `||`, not `??`, so it sorts as the label.
+      const locationA = (a.location || noLocation).toLowerCase().trim();
+      const locationB = (b.location || noLocation).toLowerCase().trim();
 
       // First sort by location
       const locationCompare = locationA.localeCompare(locationB);
@@ -323,10 +308,9 @@ export class Filters {
         undefined,
         'Uncategorized',
       );
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- backend item fields can be missing at runtime
-      const categoryA = (a.category ?? uncategorized).toLowerCase().trim();
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- backend item fields can be missing at runtime
-      const categoryB = (b.category ?? uncategorized).toLowerCase().trim();
+      // The backend sends '' for no category; `||`, not `??`, so it sorts as the label.
+      const categoryA = (a.category || uncategorized).toLowerCase().trim();
+      const categoryB = (b.category || uncategorized).toLowerCase().trim();
 
       // First sort by category
       const categoryCompare = categoryA.localeCompare(categoryB);
@@ -341,11 +325,7 @@ export class Filters {
 
   private sortByQuantity(items: InventoryItem[], lowToHigh = false): InventoryItem[] {
     return items.sort((a, b) => {
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- backend item fields can be missing at runtime
-      const quantityA = a.quantity ?? 0;
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- backend item fields can be missing at runtime
-      const quantityB = b.quantity ?? 0;
-      const quantityDiff = lowToHigh ? quantityA - quantityB : quantityB - quantityA;
+      const quantityDiff = lowToHigh ? a.quantity - b.quantity : b.quantity - a.quantity;
 
       if (quantityDiff !== 0) {
         return quantityDiff;
@@ -357,10 +337,9 @@ export class Filters {
 
   private sortByExpiry(items: InventoryItem[]): InventoryItem[] {
     return items.sort((a, b) => {
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- backend item fields can be missing at runtime
-      const dateA = a.expiry_date ?? '9999-12-31'; // Items without expiry go to end
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- backend item fields can be missing at runtime
-      const dateB = b.expiry_date ?? '9999-12-31';
+      // Items without expiry ('' from the backend) go to the end; `??` would keep '' first.
+      const dateA = a.expiry_date || '9999-12-31';
+      const dateB = b.expiry_date || '9999-12-31';
 
       const dateCompare = dateA.localeCompare(dateB);
       if (dateCompare !== 0) {
@@ -373,10 +352,8 @@ export class Filters {
 
   private sortZeroLast(items: InventoryItem[]): InventoryItem[] {
     return items.sort((a, b) => {
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- backend item fields can be missing at runtime
-      const aHasQuantity = (a.quantity ?? 0) > 0;
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- backend item fields can be missing at runtime
-      const bHasQuantity = (b.quantity ?? 0) > 0;
+      const aHasQuantity = a.quantity > 0;
+      const bHasQuantity = b.quantity > 0;
 
       if (aHasQuantity && !bHasQuantity) {
         return -1; // a comes first

@@ -20,8 +20,7 @@ function summary(icon: string, tone: Tone, message: string): string {
 }
 
 function resultBody(result: ImportResult, translations: TranslationData): string {
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- backend import response may omit errors
-  const errors = result.errors ?? [];
+  const { errors } = result;
   const counts = TranslationManager.localize(
     translations,
     'actions.import_result',

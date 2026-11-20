@@ -428,64 +428,6 @@ describe('Filters', () => {
 
         expect(result).toHaveLength(3);
       });
-
-      it('should handle items with null/undefined properties in text search', () => {
-        const items: InventoryItem[] = [
-          createMockItem({ name: undefined as any, category: 'Test', unit: 'pcs' }),
-          createMockItem({ name: 'Test Item', category: null as any, unit: 'pcs' }),
-          createMockItem({ name: 'Test Item', category: 'Test', unit: undefined as any }),
-        ];
-
-        const result = filters.filterItems(items, {
-          ...testFilters,
-          searchText: 'test',
-        });
-
-        expect(result).toHaveLength(3);
-      });
-
-      it('should fail search when null defaults are changed (mutation test)', () => {
-        const items: InventoryItem[] = [
-          createMockItem({ name: null as any, category: 'nomatch', unit: 'nomatch' }),
-        ];
-
-        const result = filters.filterItems(items, {
-          ...testFilters,
-          searchText: 'stryker', // Should NOT match if name is null -> ''
-        });
-
-        expect(result).toHaveLength(0);
-        // If mutation changes name ?? '' to name ?? "Stryker was here!", this would match
-      });
-
-      it('should search specifically for empty string in category (mutation test)', () => {
-        const items: InventoryItem[] = [
-          createMockItem({ name: 'nomatch', category: null as any, unit: 'nomatch' }),
-          createMockItem({ name: 'nomatch', category: 'realcategory', unit: 'nomatch' }),
-        ];
-
-        const result = filters.filterItems(items, {
-          ...testFilters,
-          searchText: 'stryker',
-        });
-
-        expect(result).toHaveLength(0);
-        // If mutation changes category ?? '' to category ?? "Stryker was here!", first item would match
-      });
-
-      it('should search specifically for empty string in unit (mutation test)', () => {
-        const items: InventoryItem[] = [
-          createMockItem({ name: 'nomatch', category: 'nomatch', unit: null as any }),
-        ];
-
-        const result = filters.filterItems(items, {
-          ...testFilters,
-          searchText: 'stryker', // Should NOT match if unit becomes ''
-        });
-
-        expect(result).toHaveLength(0);
-        // If mutation changes unit ?? '' to unit ?? "Stryker was here!", this would match
-      });
     });
 
     describe('category filtering', () => {
@@ -911,19 +853,6 @@ describe('Filters', () => {
         expect(result.map((item) => item.name)).toEqual(['item2', 'item10']);
         // With numeric: false, would be ['item10', 'item2']
       });
-
-      it('should handle undefined names in sorting', () => {
-        const items: InventoryItem[] = [
-          createMockItem({ name: undefined as any }),
-          createMockItem({ name: 'Real Name' }),
-          createMockItem({ name: null as any }),
-        ];
-
-        const result = filters.sortItems(items, 'name', mockTranslations);
-
-        expect(result).toHaveLength(3);
-        expect(result.some((item) => item.name === 'Real Name')).toBe(true);
-      });
     });
 
     describe('category sorting', () => {
@@ -943,18 +872,16 @@ describe('Filters', () => {
         ]);
       });
 
-      it('should handle undefined categories in category sort', () => {
+      it('sorts an item without a category (empty string) as "Uncategorized"', () => {
         const items: InventoryItem[] = [
-          createMockItem({ name: 'Item1', category: undefined as any }),
-          createMockItem({ name: 'Item2', category: 'Real Category' }),
-          createMockItem({ name: 'Item3', category: null as any }),
+          createMockItem({ name: 'Item1', category: 'Zoo' }),
+          createMockItem({ name: 'Item2', category: '' }),
+          createMockItem({ name: 'Item3', category: 'Apples' }),
         ];
 
         const result = filters.sortItems(items, 'category', mockTranslations);
 
-        expect(result[0].category).toBe('Real Category');
-        expect([undefined, null]).toContain(result[1].category);
-        expect([undefined, null]).toContain(result[2].category);
+        expect(result.map((item) => item.category)).toEqual(['Apples', '', 'Zoo']);
       });
 
       it('should handle categories with leading/trailing whitespace', () => {
@@ -1023,20 +950,6 @@ describe('Filters', () => {
 
         expect(resultDefault).not.toEqual(resultLowHigh);
       });
-
-      it('should handle undefined quantities in sorting', () => {
-        const items: InventoryItem[] = [
-          createMockItem({ name: 'A', quantity: undefined as any }),
-          createMockItem({ name: 'B', quantity: 5 }),
-          createMockItem({ name: 'C', quantity: null as any }),
-        ];
-
-        const result = filters.sortItems(items, 'quantity', mockTranslations);
-
-        expect(result[0].quantity).toBe(5);
-        expect([undefined, null]).toContain(result[1].quantity);
-        expect([undefined, null]).toContain(result[2].quantity);
-      });
     });
 
     describe('expiry sorting', () => {
@@ -1056,12 +969,12 @@ describe('Filters', () => {
         ]);
       });
 
-      it('should put items without expiry date at the end', () => {
+      it('should put items without expiry date (empty string) at the end', () => {
         const items: InventoryItem[] = [
           createMockItem({ name: 'A', expiry_date: '2024-12-31' }),
-          createMockItem({ name: 'B', expiry_date: null as any }),
+          createMockItem({ name: 'B', expiry_date: '' }),
           createMockItem({ name: 'C', expiry_date: '2024-01-01' }),
-          createMockItem({ name: 'D', expiry_date: undefined as any }),
+          createMockItem({ name: 'D', expiry_date: '' }),
         ];
 
         const result = filters.sortItems(items, 'expiry', mockTranslations);

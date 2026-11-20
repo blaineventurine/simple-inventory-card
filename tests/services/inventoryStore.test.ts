@@ -123,6 +123,23 @@ describe('InventoryStore', () => {
       expect(store.hass).toBe(hass);
     });
 
+    it('normalises fetched items, so every reader can trust the field types', async () => {
+      listItems.mockResolvedValue({
+        items: [{ name: 'Milk', quantity: 2 } as unknown as InventoryItem],
+      });
+      await start();
+
+      expect(store.items[0]).toMatchObject({
+        name: 'Milk',
+        quantity: 2,
+        unit: '',
+        category: '',
+        location: '',
+        expiry_date: '',
+        description: '',
+      });
+    });
+
     it('takes the capabilities from get_info and reports the check to the view', async () => {
       getInfo.mockResolvedValue({ version: '0.7.0', api_version: 3, features: ['transfers'] });
       await start();

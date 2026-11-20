@@ -77,8 +77,7 @@ export const ITEM_FORM_FIELDS: ItemFormFields = {
     param: PARAMS.AUTO_ADD_ENABLED,
     value: { type: 'boolean' },
     read: readChecked,
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- items come from the backend; older items can lack this field
-    format: (item) => item.auto_add_enabled ?? false,
+    format: (item) => item.auto_add_enabled,
     blank: DEFAULTS.AUTO_ADD_ENABLED,
   },
   autoAddIdToDescriptionEnabled: {
@@ -86,8 +85,7 @@ export const ITEM_FORM_FIELDS: ItemFormFields = {
     param: PARAMS.AUTO_ADD_ID_TO_DESCRIPTION_ENABLED,
     value: { type: 'boolean' },
     read: readChecked,
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- items come from the backend; older items can lack this field
-    format: (item) => item.auto_add_id_to_description_enabled ?? false,
+    format: (item) => item.auto_add_id_to_description_enabled,
     blank: DEFAULTS.AUTO_ADD_ID_TO_DESCRIPTION_ENABLED,
   },
   autoAddToListQuantity: {
@@ -104,8 +102,7 @@ export const ITEM_FORM_FIELDS: ItemFormFields = {
     param: PARAMS.CATEGORY,
     value: { type: 'string', fallback: DEFAULTS.CATEGORY, maxLength: 50 },
     read: readText,
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- items come from the backend; older items can lack this field
-    format: (item) => joined(item.categories, item.category ?? DEFAULTS.CATEGORY),
+    format: (item) => joined(item.categories, item.category),
     blank: DEFAULTS.CATEGORY,
   },
   description: {
@@ -113,8 +110,7 @@ export const ITEM_FORM_FIELDS: ItemFormFields = {
     param: PARAMS.DESCRIPTION,
     value: { type: 'string', fallback: DEFAULTS.DESCRIPTION, maxLength: 500 },
     read: readText,
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- items come from the backend; older items can lack this field
-    format: (item) => item.description ?? DEFAULTS.DESCRIPTION,
+    format: (item) => item.description,
     blank: DEFAULTS.DESCRIPTION,
   },
   desiredQuantity: {
@@ -138,8 +134,7 @@ export const ITEM_FORM_FIELDS: ItemFormFields = {
     param: PARAMS.EXPIRY_DATE,
     value: { type: 'string', fallback: DEFAULTS.EXPIRY_DATE },
     read: readText,
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- items come from the backend; older items can lack this field
-    format: (item) => item.expiry_date ?? DEFAULTS.EXPIRY_DATE,
+    format: (item) => item.expiry_date,
     blank: DEFAULTS.EXPIRY_DATE,
   },
   location: {
@@ -147,8 +142,7 @@ export const ITEM_FORM_FIELDS: ItemFormFields = {
     param: PARAMS.LOCATION,
     value: { type: 'string', fallback: DEFAULTS.LOCATION, maxLength: 50 },
     read: readText,
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- items come from the backend; older items can lack this field
-    format: (item) => joined(item.locations, item.location ?? DEFAULTS.LOCATION),
+    format: (item) => joined(item.locations, item.location),
     blank: DEFAULTS.LOCATION,
   },
   name: {
@@ -156,8 +150,7 @@ export const ITEM_FORM_FIELDS: ItemFormFields = {
     param: PARAMS.NAME,
     value: { type: 'string', fallback: '', maxLength: 100 },
     read: readText,
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- items come from the backend; older items can lack this field
-    format: (item) => item.name ?? '',
+    format: (item) => item.name,
     blank: '',
   },
   quantity: {
@@ -165,8 +158,7 @@ export const ITEM_FORM_FIELDS: ItemFormFields = {
     param: PARAMS.QUANTITY,
     value: { type: 'number', fallback: DEFAULTS.QUANTITY, max: 999_999 },
     read: readText,
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- items come from the backend; older items can lack this field
-    format: (item) => (item.quantity ?? DEFAULTS.QUANTITY).toString(),
+    format: (item) => item.quantity.toString(),
     blank: DEFAULTS.QUANTITY.toString(),
   },
   todoList: {
@@ -174,8 +166,7 @@ export const ITEM_FORM_FIELDS: ItemFormFields = {
     param: PARAMS.TODO_LIST,
     value: { type: 'string', fallback: DEFAULTS.TODO_LIST, maxLength: 100 },
     read: readText,
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- items come from the backend; older items can lack this field
-    format: (item) => item.todo_list ?? DEFAULTS.TODO_LIST,
+    format: (item) => item.todo_list,
     blank: DEFAULTS.TODO_LIST,
   },
   todoQuantityPlacement: {
@@ -199,8 +190,7 @@ export const ITEM_FORM_FIELDS: ItemFormFields = {
     param: PARAMS.UNIT,
     value: { type: 'string', fallback: DEFAULTS.UNIT, maxLength: 20 },
     read: readText,
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- items come from the backend; older items can lack this field
-    format: (item) => item.unit ?? DEFAULTS.UNIT,
+    format: (item) => item.unit,
     blank: DEFAULTS.UNIT,
   },
   barcode: {

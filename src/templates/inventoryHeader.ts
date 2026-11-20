@@ -140,8 +140,7 @@ function expiryIndicators(
 
 function getExpiringItemsCount(items: InventoryItem[]): number {
   return items.filter((item) => {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- item data comes from the backend and may lack quantity
-    if (!item.expiry_date || (item.quantity ?? 0) <= 0) {
+    if (!item.expiry_date || item.quantity <= 0) {
       return false;
     }
     const threshold = item.expiry_alert_days ?? DEFAULTS.EXPIRY_ALERT_DAYS;
@@ -151,8 +150,7 @@ function getExpiringItemsCount(items: InventoryItem[]): number {
 
 function getExpiredItemsCount(items: InventoryItem[]): number {
   return items.filter((item) => {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- item data comes from the backend and may lack quantity
-    if (!item.expiry_date || (item.quantity ?? 0) <= 0) {
+    if (!item.expiry_date || item.quantity <= 0) {
       return false;
     }
     return DateUtils.isExpired(item.expiry_date);
