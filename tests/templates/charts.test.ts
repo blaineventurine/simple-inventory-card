@@ -116,7 +116,7 @@ describe('renderBarChart', () => {
 
   it('renders one rect per bucket', () => {
     const html = renderBarChart(makeBuckets([1, 0, 3]), { title: 'Consumption', language: 'en' });
-    const rects = html.match(/<rect class="chart-bar"/g) || [];
+    const rects = html.match(/<rect class="chart-bar"/g) ?? [];
     expect(rects).toHaveLength(3);
     expect(html).toContain('Consumption');
   });

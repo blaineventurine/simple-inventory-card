@@ -687,7 +687,7 @@ describe('Renderer', () => {
     it('should include correct CSS styling', () => {
       renderer.renderError('test');
 
-      expect(mockShadowRoot.innerHTML).toContain(`<style>${styles}</style>`);
+      expect(mockShadowRoot.innerHTML).toContain(`<style>${String(styles)}</style>`);
       expect(mockShadowRoot.innerHTML).toContain('color: var(--error-color)');
       expect(mockShadowRoot.innerHTML).toContain('padding: 16px');
       expect(mockShadowRoot.innerHTML).toContain('text-align: center');

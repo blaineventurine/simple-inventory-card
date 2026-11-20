@@ -140,6 +140,7 @@ function expiryIndicators(
 
 function getExpiringItemsCount(items: InventoryItem[]): number {
   return items.filter((item) => {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- item data comes from the backend and may lack quantity
     if (!item.expiry_date || (item.quantity ?? 0) <= 0) {
       return false;
     }
@@ -150,6 +151,7 @@ function getExpiringItemsCount(items: InventoryItem[]): number {
 
 function getExpiredItemsCount(items: InventoryItem[]): number {
   return items.filter((item) => {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- item data comes from the backend and may lack quantity
     if (!item.expiry_date || (item.quantity ?? 0) <= 0) {
       return false;
     }

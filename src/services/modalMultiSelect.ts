@@ -1,14 +1,14 @@
 import { ModalMultiSelectInitConfig } from '@/types/modalMultiSelect';
 
 export function initializeModalMultiSelect(config: ModalMultiSelectInitConfig): void {
-  const root = config.shadowRoot || document;
-  const hiddenInput = root.getElementById(config.id) as HTMLInputElement;
-  const trigger = root.getElementById(`${config.id}-trigger`) as HTMLElement;
-  const dropdown = root.getElementById(`${config.id}-dropdown`) as HTMLElement;
-  const optionsContainer = root.getElementById(`${config.id}-options`) as HTMLElement;
-  const newInput = root.getElementById(`${config.id}-new-input`) as HTMLInputElement;
-  const addBtn = root.getElementById(`${config.id}-add-btn`) as HTMLElement;
-  const chipsContainer = root.getElementById(`${config.id}-chips`) as HTMLElement;
+  const root = config.shadowRoot ?? document;
+  const hiddenInput = root.getElementById(config.id) as HTMLInputElement | null;
+  const trigger = root.getElementById(`${config.id}-trigger`);
+  const dropdown = root.getElementById(`${config.id}-dropdown`);
+  const optionsContainer = root.getElementById(`${config.id}-options`);
+  const newInput = root.getElementById(`${config.id}-new-input`) as HTMLInputElement | null;
+  const addBtn = root.getElementById(`${config.id}-add-btn`);
+  const chipsContainer = root.getElementById(`${config.id}-chips`);
 
   if (!hiddenInput || !trigger || !dropdown || !optionsContainer) {
     return;
@@ -27,8 +27,9 @@ export function initializeModalMultiSelect(config: ModalMultiSelectInitConfig): 
       .forEach((v) => allOptions.add(v));
   }
 
+  // Arrow functions, not declarations: hoisted declarations lose the null guard above.
   // Parse initial value from hidden input
-  function getSelected(): string[] {
+  const getSelected = (): string[] => {
     const val = hiddenInput.value.trim();
     if (!val) {
       return [];
@@ -37,20 +38,20 @@ export function initializeModalMultiSelect(config: ModalMultiSelectInitConfig): 
       .split(',')
       .map((s) => s.trim())
       .filter(Boolean);
-  }
+  };
 
-  function updateHiddenInput(selected: string[]): void {
+  const updateHiddenInput = (selected: string[]): void => {
     hiddenInput.value = selected.join(', ');
     // Let the modal react to the new value (e.g. batch merge notes follow the first location).
     hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
-  }
+  };
 
-  function renderChips(): void {
+  const renderChips = (): void => {
     if (!chipsContainer) {
       return;
     }
     const selected = getSelected();
-    const label = trigger.querySelector('.modal-multi-select-label') as HTMLElement;
+    const label = trigger.querySelector<HTMLElement>('.modal-multi-select-label');
 
     if (selected.length === 0) {
       chipsContainer.innerHTML = '';
@@ -79,9 +80,9 @@ export function initializeModalMultiSelect(config: ModalMultiSelectInitConfig): 
       chip.appendChild(removeBtn);
       chipsContainer.appendChild(chip);
     }
-  }
+  };
 
-  function rebuildOptions(): void {
+  const rebuildOptions = (): void => {
     const selected = getSelected();
     const sorted = Array.from(allOptions).sort((a, b) =>
       a.localeCompare(b, undefined, { sensitivity: 'base' }),
@@ -103,7 +104,7 @@ export function initializeModalMultiSelect(config: ModalMultiSelectInitConfig): 
       label.appendChild(span);
       optionsContainer.appendChild(label);
     }
-  }
+  };
 
   // Initialize: sync checkboxes with hidden input value
   rebuildOptions();

@@ -453,7 +453,9 @@ describe('SimpleInventoryCard', () => {
       beforeEach(() => {
         vi.mocked(TranslationManager.localize).mockImplementation(
           (_translations, _key, params, fallback) =>
-            (fallback ?? '').replace(/\{(\w+)\}/g, (_m, name) => String(params?.[name] ?? '')),
+            (fallback ?? '').replace(/\{(\w+)\}/g, (_m, name) =>
+              String((params?.[name] as string | number | undefined) ?? ''),
+            ),
         );
         // The real renderer rebuilds the whole card on every render.
         mockRenderingCoordinator.render.mockImplementation(() => {
@@ -545,7 +547,7 @@ describe('SimpleInventoryCard', () => {
           expect(mockRenderingCoordinator.render).toHaveBeenCalled();
         });
         expect(mockRenderingCoordinator.render.mock.lastCall[0].capabilities.batches).toBe(false);
-        const rendersBeforeInfo = mockRenderingCoordinator.render.mock.calls.length;
+        const rendersBeforeInfo: number = mockRenderingCoordinator.render.mock.calls.length;
 
         resolveInfo({ version: '0.7.0', api_version: 3, features: ['batches'] });
 

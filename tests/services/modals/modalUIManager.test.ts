@@ -78,7 +78,7 @@ describe('ModalUIManager', () => {
 
     // Mock shadow root
     mockShadowRoot = {
-      getElementById: vi.fn((id: string) => mockElements.get(id) || undefined),
+      getElementById: vi.fn((id: string) => mockElements.get(id)),
     } as unknown as ShadowRoot;
 
     // Mock form manager

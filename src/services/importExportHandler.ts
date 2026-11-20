@@ -55,11 +55,11 @@ export class ImportExportHandler {
     }
   }
 
-  async handleImport(): Promise<void> {
+  handleImport(): Promise<void> {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.json,.csv';
-    input.addEventListener('change', async () => {
+    const onChange = async (): Promise<void> => {
       const file = input.files?.[0];
       if (!file) {
         return;
@@ -73,7 +73,7 @@ export class ImportExportHandler {
         const inventoryId = InventoryResolver.getInventoryId(hass, config.entity);
         const isCSV = file.name.endsWith('.csv');
         const format = isCSV ? 'csv' : 'json';
-        const data = isCSV ? text : JSON.parse(text);
+        const data: unknown = isCSV ? text : JSON.parse(text);
         outcome = {
           result: await this.services.importInventory(inventoryId, data, format, 'skip'),
         };
@@ -90,8 +90,12 @@ export class ImportExportHandler {
         };
       }
       this.showImportResult(outcome, translations);
+    };
+    input.addEventListener('change', () => {
+      void onChange();
     });
     input.click();
+    return Promise.resolve();
   }
 
   /**

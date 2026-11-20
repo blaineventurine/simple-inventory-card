@@ -27,14 +27,11 @@ export class RenderingCoordinator {
     validateItemsCallback: (items: InventoryItem[]) => InventoryItem[],
   ): void {
     const { config, hass, translations, items } = context;
-    if (!config || !hass || !this.renderRoot) {
-      return;
-    }
-
     try {
       const entityId = config.entity;
       const state = hass.states[entityId];
 
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- the configured entity may not exist in hass.states
       if (!state) {
         const errorMessage = TranslationManager.localize(
           translations,
@@ -113,10 +110,6 @@ export class RenderingCoordinator {
     sortMethod: string,
     todoLists: { id: string; name: string }[],
   ): void {
-    if (!this.renderRoot) {
-      return;
-    }
-
     const itemsContainer = this.renderRoot.querySelector('.items-container');
     if (!itemsContainer) {
       return;
@@ -129,7 +122,7 @@ export class RenderingCoordinator {
       items,
       sortMethod,
       todoLists,
-      context.translations || {},
+      context.translations,
       context.config,
       rowOptions,
     );
@@ -160,9 +153,6 @@ export class RenderingCoordinator {
   /** Replaces the card with an error message (through the card's renderer, or a fresh one before
    * the services exist). */
   renderError(message: string, config: InventoryConfig): void {
-    if (!this.renderRoot) {
-      return;
-    }
     const renderer = this.lifecycleManager.getServices()?.renderer ?? new Renderer(this.renderRoot);
     renderer.renderError(message);
     this.renderRoot.host.setAttribute('layout', getLayout(config.entity, config));

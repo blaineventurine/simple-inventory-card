@@ -742,7 +742,7 @@ describe('decodeFromFile', () => {
         Object.defineProperty(imgMock, 'src', {
           set(_: string) {
             // Fire onload asynchronously (after img.onload is assigned)
-            Promise.resolve().then(() => imgMock.onload?.());
+            void Promise.resolve().then(() => imgMock.onload?.());
           },
           get() {
             return '';

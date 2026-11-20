@@ -65,7 +65,7 @@ describe('historyView', () => {
       const html = createConsumptionView(rates, chartEvents, null, mockTranslations, mockOptions);
 
       expect(html).toContain('metric-card');
-      const metricCardCount = (html.match(/class="metric-card[ "]/g) || []).length;
+      const metricCardCount = (html.match(/class="metric-card[ "]/g) ?? []).length;
       expect(metricCardCount).toBe(6);
 
       expect(html).toContain('0.5 L/day');

@@ -91,6 +91,7 @@ describe('ImportExportHandler', () => {
       const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (
         this: HTMLAnchorElement,
       ) {
+        // eslint-disable-next-line @typescript-eslint/no-this-alias -- the spy captures the clicked anchor
         capturedAnchor = this;
       });
 

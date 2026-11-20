@@ -60,7 +60,7 @@ export class ScanHandler {
     if (external) {
       startNativeScanner(external, nativeScanTexts(translations), {
         onDetected: (code) => {
-          this.handleScanDetected(code);
+          this.scanDetected(code);
         },
         onChoosePhoto: () => {
           this.offerPhoto('');
@@ -80,7 +80,7 @@ export class ScanHandler {
 
     if (support === 'photo') {
       void chooseBarcodePhoto((code) => {
-        this.handleScanDetected(code);
+        this.scanDetected(code);
       }).then((error) => {
         if (!error) {
           return;
@@ -142,7 +142,7 @@ export class ScanHandler {
 
     if (viewport) {
       const error = await startScanner(viewport, (code: string) => {
-        this.handleScanDetected(code);
+        this.scanDetected(code);
       });
       if (loadingEl) {
         loadingEl.hidden = true;
@@ -156,7 +156,7 @@ export class ScanHandler {
   /** "Choose a photo" (after a camera problem): the chosen photo's barcode is handled as scanned. */
   async choosePhoto(): Promise<void> {
     const error = await chooseBarcodePhoto((code) => {
-      this.handleScanDetected(code);
+      this.scanDetected(code);
     });
     if (error) {
       this.offerPhoto(scannerText(this.getContext().translations, 'no_barcode'));
@@ -249,6 +249,13 @@ export class ScanHandler {
     void this.showScanPanel();
   }
 
+  /** A detection callback: the lookup runs in the background, its failure is logged. */
+  private scanDetected(barcode: string): void {
+    this.handleScanDetected(barcode).catch((error: unknown) => {
+      console.error('Error handling scanned barcode:', error);
+    });
+  }
+
   async handleScanDetected(barcode: string): Promise<void> {
     stopScanner();
     this.scannedBarcode = barcode;
@@ -320,7 +327,9 @@ export class ScanHandler {
         itemNameEl.hidden = false;
       }
       if (itemQuantityEl) {
-        const qty = item.unit ? `${item.quantity} ${item.unit}` : String(item.quantity ?? 0);
+        const quantity = item.quantity as number | undefined;
+        const unit = item.unit as string | undefined;
+        const qty = unit ? `${String(quantity)} ${unit}` : String(quantity ?? 0);
         itemQuantityEl.textContent = TranslationManager.localize(
           translations,
           'scanner.in_stock',

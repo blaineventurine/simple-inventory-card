@@ -56,7 +56,7 @@ vi.mock('../../src/templates/filters', () => ({
 }));
 
 vi.mock('../../src/styles/styles', () => ({
-  styles: 'mock-styles-content',
+  styles: { cssText: 'mock-styles-content' },
 }));
 
 describe('generateCardHTML', () => {

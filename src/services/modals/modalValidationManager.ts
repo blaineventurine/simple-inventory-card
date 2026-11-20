@@ -174,6 +174,7 @@ export class ModalValidationManager {
   /**
    * Gets an element from the shadow root by ID
    */
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters -- typed DOM lookup; callers name the element type
   private getElement<T extends HTMLElement>(id: string): T | null {
     return this.shadowRoot.getElementById(id) as T | null;
   }

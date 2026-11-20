@@ -19,32 +19,26 @@ export class Filters {
 
     if (savedFilters) {
       try {
-        const parsed = JSON.parse(savedFilters);
+        const parsed = JSON.parse(savedFilters) as Record<string, unknown>;
 
         // Migrate old single-value format to array format
-        if (typeof parsed.category === 'string') {
-          parsed.category = parsed.category ? [parsed.category] : [];
-        }
-        if (typeof parsed.location === 'string') {
-          parsed.location = parsed.location ? [parsed.location] : [];
-        }
-        if (typeof parsed.expiry === 'string') {
-          parsed.expiry = parsed.expiry ? [parsed.expiry] : [];
-        }
-        if (typeof parsed.quantity === 'string') {
-          parsed.quantity = parsed.quantity ? [parsed.quantity] : [];
-        }
+        const toArray = (value: unknown): string[] => {
+          if (typeof value === 'string') {
+            return value ? [value] : [];
+          }
+          return Array.isArray(value) ? (value as string[]) : [];
+        };
 
-        parsed.category = Array.isArray(parsed.category) ? parsed.category : [];
-        parsed.location = Array.isArray(parsed.location) ? parsed.location : [];
-        parsed.quantity = Array.isArray(parsed.quantity) ? parsed.quantity : [];
-        parsed.expiry = Array.isArray(parsed.expiry) ? parsed.expiry : [];
-
-        parsed.searchText = parsed.searchText || '';
-        parsed.showAdvanced = !!parsed.showAdvanced;
-        parsed.sortMethod = parsed.sortMethod || DEFAULTS.SORT_METHOD;
-
-        return parsed;
+        return {
+          ...parsed,
+          category: toArray(parsed.category),
+          location: toArray(parsed.location),
+          expiry: toArray(parsed.expiry),
+          quantity: toArray(parsed.quantity),
+          searchText: (parsed.searchText || '') as string,
+          showAdvanced: !!parsed.showAdvanced,
+          sortMethod: (parsed.sortMethod || DEFAULTS.SORT_METHOD) as string,
+        };
       } catch (error) {
         console.error('Error parsing saved filters:', error);
       }
@@ -80,6 +74,7 @@ export class Filters {
   }
 
   filterItems(items: readonly InventoryItem[], filters: FilterState): InventoryItem[] {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- callers/tests may pass a missing or empty filter state
     if (!filters || Object.keys(filters).length === 0) {
       return [...items];
     }
@@ -89,6 +84,7 @@ export class Filters {
         return false;
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- filter state may come from partial/legacy objects
       if (filters.category && filters.category.length > 0) {
         const itemCategories =
           Array.isArray(item.categories) && item.categories.length > 0
@@ -99,6 +95,7 @@ export class Filters {
         }
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- filter state may come from partial/legacy objects
       if (filters.location && filters.location.length > 0) {
         const usualLocations =
           Array.isArray(item.locations) && item.locations.length > 0
@@ -112,6 +109,7 @@ export class Filters {
       }
 
       if (
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- filter state may come from partial/legacy objects
         filters.quantity &&
         filters.quantity.length > 0 &&
         !this.matchesQuantityFilter(item, filters.quantity)
@@ -120,6 +118,7 @@ export class Filters {
       }
 
       if (
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- filter state may come from partial/legacy objects
         filters.expiry &&
         filters.expiry.length > 0 &&
         !this.matchesExpiryFilter(item, filters.expiry)
@@ -134,8 +133,11 @@ export class Filters {
   /** Case-insensitive substring match on the item's texts, case folded like the integration. */
   private matchesTextSearch(item: InventoryItem, searchText: string): boolean {
     const search = foldCase(searchText);
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- backend item fields can be missing at runtime
     const itemName = foldCase(item.name ?? '');
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- backend item fields can be missing at runtime
     const itemUnit = foldCase(item.unit ?? '');
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- backend item fields can be missing at runtime
     const itemDescription = foldCase(item.description ?? '');
 
     if (
@@ -155,18 +157,22 @@ export class Filters {
       return true;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- backend item fields can be missing at runtime
+    const fallbackCategory = item.category ?? '';
     const categoryTexts =
       Array.isArray(item.categories) && item.categories.length > 0
         ? item.categories
-        : [item.category ?? ''];
+        : [fallbackCategory];
     if (categoryTexts.some((c) => foldCase(c).includes(search))) {
       return true;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- backend item fields can be missing at runtime
+    const fallbackLocation = item.location ?? '';
     const locationTexts =
       Array.isArray(item.locations) && item.locations.length > 0
         ? item.locations
-        : [item.location ?? ''];
+        : [fallbackLocation];
     if (locationTexts.some((l) => foldCase(l).includes(search))) {
       return true;
     }
@@ -195,6 +201,7 @@ export class Filters {
         }
 
         case FILTER_VALUES.EXPIRY.EXPIRED: {
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- backend item fields can be missing at runtime
           if (!item.expiry_date || (item.quantity ?? 0) <= 0) {
             return false;
           }
@@ -203,6 +210,7 @@ export class Filters {
         }
 
         case FILTER_VALUES.EXPIRY.SOON: {
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- backend item fields can be missing at runtime
           if (!item.expiry_date || (item.quantity ?? 0) <= 0) {
             return false;
           }
@@ -212,6 +220,7 @@ export class Filters {
         }
 
         case FILTER_VALUES.EXPIRY.FUTURE: {
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- backend item fields can be missing at runtime
           if (!item.expiry_date || (item.quantity ?? 0) <= 0) {
             return false;
           }
@@ -272,7 +281,9 @@ export class Filters {
 
   private sortByName(items: InventoryItem[]): InventoryItem[] {
     return items.sort((a, b) => {
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- backend item fields can be missing at runtime
       const nameA = (a.name ?? '').toLowerCase().trim();
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- backend item fields can be missing at runtime
       const nameB = (b.name ?? '').toLowerCase().trim();
       return nameA.localeCompare(nameB, undefined, {
         numeric: true,
@@ -289,7 +300,9 @@ export class Filters {
         undefined,
         'No Location',
       );
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- backend item fields can be missing at runtime
       const locationA = (a.location ?? noLocation).toLowerCase().trim();
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- backend item fields can be missing at runtime
       const locationB = (b.location ?? noLocation).toLowerCase().trim();
 
       // First sort by location
@@ -310,7 +323,9 @@ export class Filters {
         undefined,
         'Uncategorized',
       );
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- backend item fields can be missing at runtime
       const categoryA = (a.category ?? uncategorized).toLowerCase().trim();
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- backend item fields can be missing at runtime
       const categoryB = (b.category ?? uncategorized).toLowerCase().trim();
 
       // First sort by category
@@ -326,9 +341,11 @@ export class Filters {
 
   private sortByQuantity(items: InventoryItem[], lowToHigh = false): InventoryItem[] {
     return items.sort((a, b) => {
-      const quantityDiff = lowToHigh
-        ? (a.quantity ?? 0) - (b.quantity ?? 0)
-        : (b.quantity ?? 0) - (a.quantity ?? 0);
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- backend item fields can be missing at runtime
+      const quantityA = a.quantity ?? 0;
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- backend item fields can be missing at runtime
+      const quantityB = b.quantity ?? 0;
+      const quantityDiff = lowToHigh ? quantityA - quantityB : quantityB - quantityA;
 
       if (quantityDiff !== 0) {
         return quantityDiff;
@@ -340,7 +357,9 @@ export class Filters {
 
   private sortByExpiry(items: InventoryItem[]): InventoryItem[] {
     return items.sort((a, b) => {
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- backend item fields can be missing at runtime
       const dateA = a.expiry_date ?? '9999-12-31'; // Items without expiry go to end
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- backend item fields can be missing at runtime
       const dateB = b.expiry_date ?? '9999-12-31';
 
       const dateCompare = dateA.localeCompare(dateB);
@@ -354,7 +373,9 @@ export class Filters {
 
   private sortZeroLast(items: InventoryItem[]): InventoryItem[] {
     return items.sort((a, b) => {
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- backend item fields can be missing at runtime
       const aHasQuantity = (a.quantity ?? 0) > 0;
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- backend item fields can be missing at runtime
       const bHasQuantity = (b.quantity ?? 0) > 0;
 
       if (aHasQuantity && !bHasQuantity) {

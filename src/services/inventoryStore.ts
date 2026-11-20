@@ -102,7 +102,7 @@ export class InventoryStore {
       this.applyPushedItems();
     },
     () => {
-      this.fetch(true);
+      void this.fetch(true);
     },
   );
 
@@ -196,15 +196,15 @@ export class InventoryStore {
     this.connectLiveUpdates();
 
     if (!oldHass) {
-      this.checkCompatibility();
-      this.loadTranslations().then(() => {
-        this.fetch();
+      void this.checkCompatibility();
+      void this.loadTranslations().then(() => {
+        void this.fetch();
       });
       return true;
     }
 
     if (oldHass.language !== hass.language || oldHass.selectedLanguage !== hass.selectedLanguage) {
-      this.loadTranslations().then(() => {
+      void this.loadTranslations().then(() => {
         if (!this.deferIfBlocked('background')) {
           this.render();
         }
@@ -234,10 +234,10 @@ export class InventoryStore {
       clearTimeout(this.debounceTimer);
       this.debounceTimer = setTimeout(() => {
         this.debounceTimer = undefined;
-        this.fetch(true);
+        void this.fetch(true);
       }, INTERACTION_REFRESH_DELAY_MS);
     } else {
-      this.fetch(true);
+      void this.fetch(true);
     }
   }
 
@@ -318,7 +318,7 @@ export class InventoryStore {
   /** Refreshes shortly after a save (the user's own refresh). */
   refreshAfterSave(): void {
     this.scheduleSaveRefresh(() => {
-      this.fetch();
+      void this.fetch();
     });
   }
 
@@ -353,7 +353,7 @@ export class InventoryStore {
     this.connectLiveUpdates();
     if (this.resumeRefresh) {
       this.resumeRefresh = false;
-      this.fetch(true);
+      void this.fetch(true);
     }
   }
 
@@ -403,7 +403,7 @@ export class InventoryStore {
     }
     this.scheduleSaveRefresh(() => {
       if (refetch) {
-        this.fetch(true);
+        void this.fetch(true);
       } else {
         this.applyPushedItems();
       }

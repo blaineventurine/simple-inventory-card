@@ -343,7 +343,7 @@ export class BatchEditor {
     const expiries = stock
       .map((entry) => entry.expiryDate)
       .filter((expiry) => expiry !== '')
-      .sort();
+      .sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
     this.setItemField(ELEMENTS.EXPIRY_DATE, expiries[0] ?? '');
     this.snapshotSavedItem();
   }

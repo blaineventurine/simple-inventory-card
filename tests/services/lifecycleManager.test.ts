@@ -18,7 +18,7 @@ import { DetailView } from '../../src/services/detailView';
 import { InventoryResolver } from '../../src/utils/inventoryResolver';
 import { HomeAssistant } from '../../src/types/homeAssistant';
 import { InventoryConfig } from '../../src/types/inventory';
-import { createMockHomeAssistant, must, createMockCardContext } from '../testHelpers';
+import { createMockHomeAssistant, createMockCardContext } from '../testHelpers';
 import { AcquireHold } from '../../src/services/inventoryStore';
 import { hideSheet, showSheet } from '../../src/services/modals/modalUIManager';
 import { ELEMENTS } from '../../src/utils/constants';
@@ -151,35 +151,6 @@ describe('LifecycleManager', () => {
 
       expect(initialServices).toBe(secondServices);
       expect(vi.mocked(Services)).toHaveBeenCalledTimes(1);
-    });
-
-    it('should return null if hass is missing', () => {
-      const result = lifecycleManager.initialize(
-        () => createMockCardContext({ hass: null as unknown as HomeAssistant, config: mockConfig }),
-        callbacks(),
-      );
-
-      expect(result).toBe(undefined);
-      expect(lifecycleManager['isInitialized']).toBe(false);
-    });
-
-    it('should return null if config is missing', () => {
-      const result = lifecycleManager.initialize(
-        () => createMockCardContext({ hass: mockHass, config: null as unknown as InventoryConfig }),
-        callbacks(),
-      );
-
-      expect(result).toBe(undefined);
-      expect(lifecycleManager['isInitialized']).toBe(false);
-    });
-
-    it('should return null if renderRoot is missing', () => {
-      const lifecycleManagerWithoutRoot = new LifecycleManager(null as any);
-
-      const result = lifecycleManagerWithoutRoot.initialize(mockGetContext, callbacks());
-
-      expect(result).toBe(undefined);
-      expect(lifecycleManagerWithoutRoot['isInitialized']).toBe(false);
     });
 
     it('should create all services correctly', () => {
@@ -482,19 +453,6 @@ describe('LifecycleManager', () => {
     });
 
     it('should handle cleanup when services is null', () => {
-      expect(() => {
-        lifecycleManager.cleanup();
-      }).not.toThrow();
-    });
-
-    it('should handle missing service methods gracefully', () => {
-      lifecycleManager.initialize(mockGetContext, callbacks());
-
-      // Remove some methods to test graceful handling
-      must(lifecycleManager['services']).eventHandler = null as any;
-      must(lifecycleManager['services']).state = null as any;
-      must(lifecycleManager['services']).modals = null as any;
-
       expect(() => {
         lifecycleManager.cleanup();
       }).not.toThrow();

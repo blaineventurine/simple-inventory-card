@@ -1,5 +1,6 @@
 import { ELEMENTS, ACTIONS, DEFAULTS, ITEM_EVENTS } from '../utils/constants';
 import { InventoryItem } from '@/types/inventory';
+import type { HassEntity } from '@/types/homeAssistant';
 import { Services } from './services';
 import { Modals } from './modals';
 import { Filters } from './filters';
@@ -170,7 +171,7 @@ export class EventHandler {
     }
 
     this.boundClickHandler = (event: Event) => {
-      this.handleClick(event).catch((error) => {
+      this.handleClick(event).catch((error: unknown) => {
         console.error('Error in handleClick:', error);
       });
     };
@@ -180,7 +181,7 @@ export class EventHandler {
     };
 
     this.boundKeydownHandler = (event: Event) => {
-      this.handleKeydown(event).catch((error) => {
+      this.handleKeydown(event).catch((error: unknown) => {
         console.error('Error in handleKeydown:', error);
       });
     };
@@ -283,7 +284,7 @@ export class EventHandler {
     const target = event.target as HTMLElement;
 
     if (target instanceof HTMLInputElement && target.type === 'checkbox') {
-      const dropdown = target.closest?.('.multi-select-dropdown') as HTMLElement | null;
+      const dropdown = target.closest<HTMLElement>('.multi-select-dropdown');
       if (dropdown) {
         this.handleFilterMultiSelectChange(dropdown);
         return;
@@ -309,7 +310,7 @@ export class EventHandler {
       (target.id.includes('auto') || target.id.includes('AUTO_ADD'))
     ) {
       setTimeout(() => {
-        const controls = target.parentElement?.querySelector('.auto-add-controls') as HTMLElement;
+        const controls = target.parentElement?.querySelector<HTMLElement>('.auto-add-controls');
         if (controls) {
           controls.hidden = !target.checked;
         }
@@ -349,7 +350,7 @@ export class EventHandler {
 
   private handleSearchChange(): void {
     const { hass, config } = this.getContext();
-    const state = hass.states[config.entity];
+    const state = hass.states[config.entity] as HassEntity | undefined;
     if (!state) {
       return;
     }
@@ -416,7 +417,9 @@ export class EventHandler {
       },
       [ACTIONS.SCAN_CHOOSE_PHOTO]: () => this.scanHandler.choosePhoto(),
       [ACTIONS.SCAN_GO]: () => this.scanHandler.handleScanGo(),
-      [ACTIONS.SCAN_ADD_ITEM]: () => this.handleScanAddItem(),
+      [ACTIONS.SCAN_ADD_ITEM]: () => {
+        this.handleScanAddItem();
+      },
     };
   }
 
@@ -508,9 +511,9 @@ export class EventHandler {
     try {
       this.filters.clearFilters(this.getContext().config.entity);
 
-      const searchInput = this.renderRoot.querySelector(
+      const searchInput = this.renderRoot.querySelector<HTMLInputElement>(
         `#${ELEMENTS.SEARCH_INPUT}`,
-      ) as HTMLInputElement | null;
+      );
       if (searchInput) {
         searchInput.value = '';
       }
@@ -567,7 +570,8 @@ export class EventHandler {
   }
 
   private handleFilterMultiSelectChange(dropdown: HTMLElement): void {
-    const filterKey = MULTI_SELECT_FILTER_KEYS[dropdown.id];
+    const filterKey = MULTI_SELECT_FILTER_KEYS[dropdown.id] as
+      (typeof MULTI_SELECT_FILTER_KEYS)[string] | undefined;
     if (!filterKey) {
       return;
     }
@@ -595,9 +599,9 @@ export class EventHandler {
 
   private applyFiltersWithoutRender(): void {
     const filters = this.filters.getCurrentFilters(this.getContext().config.entity);
-    const sortMethodElement = this.renderRoot.querySelector(
+    const sortMethodElement = this.renderRoot.querySelector<HTMLSelectElement>(
       `#${ELEMENTS.SORT_METHOD}`,
-    ) as HTMLSelectElement | null;
+    );
     const sortMethod = sortMethodElement?.value || filters.sortMethod || DEFAULTS.SORT_METHOD;
 
     const allItems = Utilities.validateInventoryItems(this.getContext().items);
@@ -751,7 +755,7 @@ export class EventHandler {
     });
   }
 
-  private async handleScanAddItem(): Promise<void> {
+  private handleScanAddItem(): void {
     const barcode = this.scanHandler.getScannedBarcode();
     this.scanHandler.hideScanPanel();
     this.openAddModal();

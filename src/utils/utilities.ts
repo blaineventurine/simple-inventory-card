@@ -26,6 +26,7 @@ export const Utilities = {
     }
 
     return items.filter((item): item is InventoryItem => {
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- items come from Home Assistant state and are unvalidated
       if (!item || typeof item !== 'object' || !item.name || typeof item.name !== 'string') {
         return false;
       }
@@ -46,6 +47,7 @@ export const Utilities = {
           ? item.expiry_alert_days
           : DEFAULTS.EXPIRY_ALERT_DAYS;
       item.todo_list = typeof item.todo_list === 'string' ? item.todo_list : DEFAULTS.TODO_LIST;
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-conversion -- the backend may send 0/1 or omit the flag
       item.auto_add_enabled = Boolean(item.auto_add_enabled);
       item.auto_add_to_list_quantity =
         typeof item.auto_add_to_list_quantity === 'number' &&
@@ -53,6 +55,7 @@ export const Utilities = {
         item.auto_add_to_list_quantity >= 0
           ? item.auto_add_to_list_quantity
           : DEFAULTS.AUTO_ADD_TO_LIST_QUANTITY;
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-conversion -- the backend may send 0/1 or omit the flag
       item.auto_add_id_to_description_enabled = Boolean(item.auto_add_id_to_description_enabled);
       item.description =
         typeof item.description === 'string' ? item.description : DEFAULTS.DESCRIPTION;
@@ -76,6 +79,7 @@ export const Utilities = {
   groupItemsByCategory<T extends { category?: string }>(items: readonly T[]): Record<string, T[]> {
     return items.reduce<Record<string, T[]>>((groups, item) => {
       const category = item.category || 'Uncategorized';
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- groups is a plain record; unseen keys are undefined
       if (!groups[category]) {
         groups[category] = [];
       }
@@ -90,6 +94,7 @@ export const Utilities = {
   groupItemsByLocation<T extends { location?: string }>(items: readonly T[]): Record<string, T[]> {
     return items.reduce<Record<string, T[]>>((groups, item) => {
       const location = item.location || 'No Location';
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- groups is a plain record; unseen keys are undefined
       if (!groups[location]) {
         groups[location] = [];
       }
@@ -101,10 +106,12 @@ export const Utilities = {
   hasActiveFilters(filters: FilterState): boolean {
     return Boolean(
       filters.searchText ||
+      /* eslint-disable @typescript-eslint/no-unnecessary-condition -- filter state is restored from localStorage and may lack these arrays */
       (filters.category && filters.category.length > 0) ||
       (filters.location && filters.location.length > 0) ||
       (filters.quantity && filters.quantity.length > 0) ||
       (filters.expiry && filters.expiry.length > 0),
+      /* eslint-enable @typescript-eslint/no-unnecessary-condition */
     );
   },
 

@@ -70,6 +70,7 @@ describe('sheet lifecycle', () => {
     vi.useRealTimers();
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters -- callers pick the element type
   function element<T extends HTMLElement = HTMLElement>(id: string): T {
     const found = root.getElementById(id);
     if (!found) {

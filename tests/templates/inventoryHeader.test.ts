@@ -9,7 +9,7 @@ vi.mock('../../src/services/translationManager', () => ({
   TranslationManager: {
     localize: vi.fn((_translations: any, _key: string, params: any, fallback: string) => {
       // For parameterized translations, replace the placeholder
-      if (params && params.count !== undefined) {
+      if (params?.count !== undefined) {
         return fallback.replace('{count}', params.count.toString());
       }
       return fallback;

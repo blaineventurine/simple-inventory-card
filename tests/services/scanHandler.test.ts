@@ -95,7 +95,7 @@ function createScanRoot(omit: string[] = []): ScanRootRefs {
   // on the real backing container (unchecked cast: container stands in for a ShadowRoot).
   const root = container as unknown as ShadowRoot;
   root.getElementById = (id: string): HTMLElement | null =>
-    container.querySelector(`#${id}`) as HTMLElement | null;
+    container.querySelector<HTMLElement>(`#${id}`);
 
   return {
     root,

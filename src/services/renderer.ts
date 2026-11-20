@@ -54,7 +54,7 @@ export class Renderer {
   /** Callers pass an already localized message (the label stays English, as before). */
   renderError(message: string): void {
     this.shadowRoot.innerHTML = `
-      <style>${styles}</style>
+      <style>${styles.cssText}</style>
       <ha-card>
         <div class="card-content">
           <div class="error-message" style="color: var(--error-color); padding: 16px; text-align: center;">

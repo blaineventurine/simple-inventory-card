@@ -1,7 +1,7 @@
 import { ELEMENTS, CSS_CLASSES, TIMING } from '../../utils/constants';
 import { InventoryItem } from '@/types/inventory';
 import { CardContext } from '@/types/cardContext';
-import type { HomeAssistant } from '@/types/homeAssistant';
+import type { HassEntity, HomeAssistant } from '@/types/homeAssistant';
 import { ModalFormManager } from './modalFormManager';
 import { ModalValidationManager } from './modalValidationManager';
 import { TranslationData } from '@/types/translatableComponent';
@@ -82,7 +82,7 @@ export function showSheet(root: ShadowRoot, modal: HTMLElement): void {
   const sheets = openSheets(root);
   if (!sheets.has(modal)) {
     const active = root.activeElement;
-    const kind = SHEET_HOLD_KINDS[modal.id];
+    const kind = SHEET_HOLD_KINDS[modal.id] as HoldKind | undefined;
     sheets.set(modal, {
       opener: active instanceof HTMLElement ? active : undefined,
       release: kind ? sheetHolds.get(root)?.(kind, modal.id) : undefined,
@@ -197,7 +197,7 @@ export class ModalUIManager {
   ): { item: InventoryItem | undefined; found: boolean } {
     const { hass, config, items } = getContext();
     const entityId = config.entity;
-    const state = hass.states[entityId];
+    const state = hass.states[entityId] as HassEntity | undefined;
 
     if (!state) {
       console.warn(`Entity not found: ${entityId}`);
@@ -444,6 +444,7 @@ export class ModalUIManager {
    */
   private focusOnOpen(modal: HTMLElement, fieldId: string | undefined): void {
     setTimeout(() => {
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- matchMedia is missing in some embedded webviews and test DOMs
       const coarse = globalThis.matchMedia?.('(pointer: coarse)').matches;
       const field = fieldId && !coarse ? this.getElement<HTMLElement>(fieldId) : undefined;
       (field ?? modal.querySelector<HTMLElement>(`.${CSS_CLASSES.MODAL_CONTENT}`))?.focus();
@@ -453,6 +454,7 @@ export class ModalUIManager {
   /**
    * Gets an element from the shadow root by ID
    */
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters -- typed DOM lookup; callers name the element type
   private getElement<T extends HTMLElement>(id: string): T | undefined {
     return this.shadowRoot.getElementById(id) as T | undefined;
   }

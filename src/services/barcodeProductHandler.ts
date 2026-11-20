@@ -35,11 +35,12 @@ export class BarcodeProductHandler {
         const foundResults = result.results.filter(
           (r): r is FoundBarcodeProduct => r.found && r.product !== undefined,
         );
-        const [first] = foundResults;
+        const first = foundResults.at(0);
         if (first === undefined) {
           return;
         }
         // The integration saves the first found result's photo, in lookup order: offer that one.
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- providers omit image_url when they have no photo
         const imageUrl = foundResults.find((r) => r.product.image_url?.trim())?.product.image_url;
         const photo = imageUrl ? { barcode, imageUrl } : undefined;
 
@@ -95,8 +96,8 @@ export class BarcodeProductHandler {
     list.querySelectorAll('.product-picker-item').forEach((item) => {
       item.addEventListener('click', () => {
         const index = parseInt((item as HTMLElement).dataset.productIndex || '0', 10);
-        const selected = results[index];
-        if (selected?.product) {
+        const selected = results[index] as FoundBarcodeProduct | undefined;
+        if (selected) {
           this.selectProduct(prefix, selected.product, photo);
           this.hideProductPicker(prefix);
         }

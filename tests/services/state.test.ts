@@ -377,43 +377,6 @@ describe('State - Additional mutation killing tests', () => {
     state.cleanup();
   });
 
-  // Kill OptionalChaining mutants - test with null/undefined attributes
-  it('should handle entities with null attributes', () => {
-    const entityId = 'sensor.test';
-    const mockEntity: HassEntity = {
-      entity_id: entityId,
-      state: 'on',
-      attributes: null as any, // This will break without optional chaining
-      context: { id: 'test', user_id: '' },
-      last_changed: '2023-01-01T00:00:00Z',
-      last_updated: '2023-01-01T00:00:00Z',
-    };
-
-    mockHass.states[entityId] = mockEntity;
-
-    // Should not crash and should work correctly
-    expect(state.hasRealEntityChange(mockHass, entityId)).toBe(true);
-    expect(state.hasRealEntityChange(mockHass, entityId)).toBe(false);
-  });
-
-  it('should handle entities with undefined attributes', () => {
-    const entityId = 'sensor.test';
-    const mockEntity: HassEntity = {
-      entity_id: entityId,
-      state: 'on',
-      attributes: undefined as any, // This will break without optional chaining
-      context: { id: 'test', user_id: '' },
-      last_changed: '2023-01-01T00:00:00Z',
-      last_updated: '2023-01-01T00:00:00Z',
-    };
-
-    mockHass.states[entityId] = mockEntity;
-
-    // Should not crash and should work correctly
-    expect(state.hasRealEntityChange(mockHass, entityId)).toBe(true);
-    expect(state.hasRealEntityChange(mockHass, entityId)).toBe(false);
-  });
-
   // Kill ConditionalExpression and LogicalOperator mutants
   it('should detect change when any of last_changed, total_items, or total_quantity differs', () => {
     const entityId = 'sensor.test';

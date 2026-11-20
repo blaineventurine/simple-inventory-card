@@ -135,6 +135,7 @@ class SimpleInventoryCard extends LitElement {
 
   /** Paints the store's current data (the store decided a render may run now). */
   private _renderView(): void {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- Lit sets renderRoot only once the element connects
     if (!this._config || !this._store.hass || !this.renderRoot) {
       return;
     }
@@ -142,7 +143,9 @@ class SimpleInventoryCard extends LitElement {
     if (!this.lifecycleManager.isReady()) {
       const services = this.lifecycleManager.initialize(() => this._getContext(), {
         render: () => {
-          this._fetchItems();
+          this._fetchItems().catch((error: unknown) => {
+            console.error('Error fetching items:', error);
+          });
         },
         refreshAfterSave: () => {
           this._store.refreshAfterSave();
@@ -302,6 +305,7 @@ async function loadCardDescription(): Promise<void> {
     if (translatedDescription !== cardDescription) {
       cardDescription = translatedDescription;
 
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- window.customCards is owned by HA's frontend and may be replaced or unset
       const existingCard = window.customCards?.find(
         (card) => card.type === 'simple-inventory-card',
       );
@@ -314,7 +318,7 @@ async function loadCardDescription(): Promise<void> {
   }
 }
 
-loadCardDescription();
+void loadCardDescription();
 
 export { SimpleInventoryCard };
 
@@ -327,6 +331,7 @@ if (!customElements.get('simple-inventory-config-editor')) {
   customElements.define('simple-inventory-config-editor', ConfigEditor);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- undefined until a custom card registers itself
 window.customCards = window.customCards || [];
 const cardConfig = {
   type: 'simple-inventory-card',

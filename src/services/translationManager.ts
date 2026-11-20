@@ -1,5 +1,6 @@
 import { TranslationData } from '@/types/translatableComponent';
 
+// eslint-disable-next-line @typescript-eslint/no-extraneous-class -- static API used across the card; tests spy on its members
 export class TranslationManager {
   private static _cache = new Map<string, TranslationData>();
   private static _loadingPromises = new Map<string, Promise<TranslationData>>();
@@ -42,8 +43,11 @@ export class TranslationManager {
       try {
         const response = await fetch(url);
         if (response.ok) {
-          const translations = await response.json();
-          return translations;
+          const translations: unknown = await response.json();
+          if (typeof translations === 'object' && translations !== null) {
+            return translations as TranslationData;
+          }
+          console.debug('❌ Translations from', url, 'are not an object');
         } else {
           console.debug('❌ Failed to load from', url, 'Status:', response.status);
         }

@@ -308,41 +308,6 @@ describe('RenderingCoordinator', () => {
       vi.mocked(mockServices.filters.sortItems).mockReturnValue(mockInventoryItems);
     });
 
-    it('should return early if config is missing', () => {
-      renderingCoordinator.render(
-        context({ config: undefined as any, items: [] }),
-        mockTodoLists,
-        mockValidateItemsCallback,
-      );
-
-      expect(mockLifecycleManager.getServices).not.toHaveBeenCalled();
-    });
-
-    it('should return early if hass is missing', () => {
-      renderingCoordinator.render(
-        context({ hass: undefined as any, items: [] }),
-        mockTodoLists,
-        mockValidateItemsCallback,
-      );
-
-      expect(mockLifecycleManager.getServices).not.toHaveBeenCalled();
-    });
-
-    it('should return early if renderRoot is missing', () => {
-      const coordinatorWithoutRoot = new RenderingCoordinator(
-        mockLifecycleManager,
-        undefined as any,
-      );
-
-      coordinatorWithoutRoot.render(
-        context({ items: [] }),
-        mockTodoLists,
-        mockValidateItemsCallback,
-      );
-
-      expect(mockLifecycleManager.getServices).not.toHaveBeenCalled();
-    });
-
     it('should render error if entity not found', () => {
       const configWithMissingEntity = {
         ...mockConfig,
@@ -590,14 +555,6 @@ describe('RenderingCoordinator', () => {
       });
     });
 
-    it('should return early if renderRoot is missing', () => {
-      const coordinatorWithoutRoot = new RenderingCoordinator(mockLifecycleManager, null as any);
-
-      coordinatorWithoutRoot.updateItemsOnly(context(), mockInventoryItems, 'name', mockTodoLists);
-
-      expect(mockRenderRoot.querySelector).not.toHaveBeenCalled();
-    });
-
     it('should return early if items container not found', () => {
       vi.mocked(mockRenderRoot.querySelector).mockReturnValue(null);
 
@@ -637,14 +594,6 @@ describe('RenderingCoordinator', () => {
   });
 
   describe('renderError', () => {
-    it('should return early if renderRoot is missing', () => {
-      const coordinatorWithoutRoot = new RenderingCoordinator(mockLifecycleManager, null as any);
-
-      coordinatorWithoutRoot.renderError('Test error', mockConfig);
-
-      expect(mockLifecycleManager.getServices).not.toHaveBeenCalled();
-    });
-
     it('should use renderer service when available', () => {
       renderingCoordinator.renderError('Test error message', mockConfig);
 

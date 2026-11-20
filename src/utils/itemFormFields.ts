@@ -47,6 +47,7 @@ export type ItemFormKey = keyof RawFormData;
 /** Mapped over a key alias (not `keyof RawFormData`) so the optional icon is still a required row. */
 export type ItemFormFields = { [K in ItemFormKey]: ItemFormField<K> };
 
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- the element may be a not-yet-upgraded custom field without a value
 const readText = (element: HTMLInputElement | null): string => element?.value?.trim() ?? '';
 const readChecked = (element: HTMLInputElement | null): boolean => element?.checked ?? false;
 /** A number shown blank when it is 0 ("not set"). */
@@ -76,6 +77,7 @@ export const ITEM_FORM_FIELDS: ItemFormFields = {
     param: PARAMS.AUTO_ADD_ENABLED,
     value: { type: 'boolean' },
     read: readChecked,
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- items come from the backend; older items can lack this field
     format: (item) => item.auto_add_enabled ?? false,
     blank: DEFAULTS.AUTO_ADD_ENABLED,
   },
@@ -84,6 +86,7 @@ export const ITEM_FORM_FIELDS: ItemFormFields = {
     param: PARAMS.AUTO_ADD_ID_TO_DESCRIPTION_ENABLED,
     value: { type: 'boolean' },
     read: readChecked,
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- items come from the backend; older items can lack this field
     format: (item) => item.auto_add_id_to_description_enabled ?? false,
     blank: DEFAULTS.AUTO_ADD_ID_TO_DESCRIPTION_ENABLED,
   },
@@ -101,6 +104,7 @@ export const ITEM_FORM_FIELDS: ItemFormFields = {
     param: PARAMS.CATEGORY,
     value: { type: 'string', fallback: DEFAULTS.CATEGORY, maxLength: 50 },
     read: readText,
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- items come from the backend; older items can lack this field
     format: (item) => joined(item.categories, item.category ?? DEFAULTS.CATEGORY),
     blank: DEFAULTS.CATEGORY,
   },
@@ -109,6 +113,7 @@ export const ITEM_FORM_FIELDS: ItemFormFields = {
     param: PARAMS.DESCRIPTION,
     value: { type: 'string', fallback: DEFAULTS.DESCRIPTION, maxLength: 500 },
     read: readText,
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- items come from the backend; older items can lack this field
     format: (item) => item.description ?? DEFAULTS.DESCRIPTION,
     blank: DEFAULTS.DESCRIPTION,
   },
@@ -133,6 +138,7 @@ export const ITEM_FORM_FIELDS: ItemFormFields = {
     param: PARAMS.EXPIRY_DATE,
     value: { type: 'string', fallback: DEFAULTS.EXPIRY_DATE },
     read: readText,
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- items come from the backend; older items can lack this field
     format: (item) => item.expiry_date ?? DEFAULTS.EXPIRY_DATE,
     blank: DEFAULTS.EXPIRY_DATE,
   },
@@ -141,6 +147,7 @@ export const ITEM_FORM_FIELDS: ItemFormFields = {
     param: PARAMS.LOCATION,
     value: { type: 'string', fallback: DEFAULTS.LOCATION, maxLength: 50 },
     read: readText,
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- items come from the backend; older items can lack this field
     format: (item) => joined(item.locations, item.location ?? DEFAULTS.LOCATION),
     blank: DEFAULTS.LOCATION,
   },
@@ -149,6 +156,7 @@ export const ITEM_FORM_FIELDS: ItemFormFields = {
     param: PARAMS.NAME,
     value: { type: 'string', fallback: '', maxLength: 100 },
     read: readText,
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- items come from the backend; older items can lack this field
     format: (item) => item.name ?? '',
     blank: '',
   },
@@ -157,6 +165,7 @@ export const ITEM_FORM_FIELDS: ItemFormFields = {
     param: PARAMS.QUANTITY,
     value: { type: 'number', fallback: DEFAULTS.QUANTITY, max: 999_999 },
     read: readText,
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- items come from the backend; older items can lack this field
     format: (item) => (item.quantity ?? DEFAULTS.QUANTITY).toString(),
     blank: DEFAULTS.QUANTITY.toString(),
   },
@@ -165,6 +174,7 @@ export const ITEM_FORM_FIELDS: ItemFormFields = {
     param: PARAMS.TODO_LIST,
     value: { type: 'string', fallback: DEFAULTS.TODO_LIST, maxLength: 100 },
     read: readText,
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- items come from the backend; older items can lack this field
     format: (item) => item.todo_list ?? DEFAULTS.TODO_LIST,
     blank: DEFAULTS.TODO_LIST,
   },
@@ -189,6 +199,7 @@ export const ITEM_FORM_FIELDS: ItemFormFields = {
     param: PARAMS.UNIT,
     value: { type: 'string', fallback: DEFAULTS.UNIT, maxLength: 20 },
     read: readText,
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- items come from the backend; older items can lack this field
     format: (item) => item.unit ?? DEFAULTS.UNIT,
     blank: DEFAULTS.UNIT,
   },
@@ -233,6 +244,7 @@ export const ITEM_FORM_KEYS: readonly ItemFormKey[] =
  * Builds one record over every form key, in table order; `undefined` leaves the key out (only
  * the optional icon ever is). `T` is a shape keyed like `RawFormData`.
  */
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters -- callers name the record shape they build
 export function collectItemForm<T extends Partial<Record<ItemFormKey, unknown>>>(
   valueOf: (key: ItemFormKey) => unknown,
 ): T {

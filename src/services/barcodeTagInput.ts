@@ -121,12 +121,9 @@ export function initializeBarcodeTagInput(
           return;
         }
 
-        if (addBarcodeChip(value, hiddenInput, chipsContainer, translations, onBarcodeAdded)) {
-          visibleInput.value = '';
-        } else {
-          // Duplicate
-          visibleInput.value = '';
-        }
+        // A duplicate adds no chip, but the input is cleared either way.
+        addBarcodeChip(value, hiddenInput, chipsContainer, translations, onBarcodeAdded);
+        visibleInput.value = '';
       }
     });
     visibleInput.setAttribute('data-listeners-bound', 'true');
@@ -207,7 +204,7 @@ export function initializeBarcodeTagInput(
   };
   liveStarts.set(scannerContainer, startLive);
 
-  scanBtn.addEventListener('click', async () => {
+  const onScanClick = async (): Promise<void> => {
     const external = nativeScanner(getHass?.());
     if (external) {
       photo.hidden = true;
@@ -240,16 +237,20 @@ export function initializeBarcodeTagInput(
     }
 
     await startLive();
+  };
+  scanBtn.addEventListener('click', () => {
+    void onScanClick();
   });
 
-  photoBtn.addEventListener('click', async () => {
-    const error = await chooseBarcodePhoto((code) => {
+  photoBtn.addEventListener('click', () => {
+    void chooseBarcodePhoto((code) => {
       addChip(code);
       photo.hidden = true;
+    }).then((error) => {
+      if (error) {
+        offerPhoto(scannerText(translations, 'no_barcode'));
+      }
     });
-    if (error) {
-      offerPhoto(scannerText(translations, 'no_barcode'));
-    }
   });
 
   closeBtn.addEventListener('click', () => {

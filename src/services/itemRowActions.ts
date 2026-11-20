@@ -127,8 +127,9 @@ export class ItemRowActions {
         }
       }),
       [ACTIONS.REMOVE]: busy((_control, itemName) => itemActions.remove(itemName)),
-      [ACTIONS.OPEN_EDIT_MODAL]: busy(async (_control, itemName) => {
+      [ACTIONS.OPEN_EDIT_MODAL]: busy((_control, itemName) => {
         itemActions.openEdit(itemName);
+        return Promise.resolve();
       }),
       [ACTIONS.VIEW_HISTORY]: busy((_control, itemName) => itemActions.showHistory(itemName)),
     };

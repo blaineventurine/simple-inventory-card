@@ -354,7 +354,7 @@ describe('InventoryStore', () => {
 
     it('is not replaced by a held refresh when the UI closes', async () => {
       const release = store.hold('background', 'add sheet');
-      store.fetch(true); // held: a refresh is now pending
+      void store.fetch(true); // held: a refresh is now pending
       store.refreshAfterSave();
 
       release();
@@ -571,7 +571,7 @@ describe('InventoryStore', () => {
       const release = store.hold('background', 'history sheet');
       connection.push({ items: [item('Milk', 3)] });
       await vi.advanceTimersByTimeAsync(LIVE_UPDATE_DELAY_MS);
-      store.fetch(true);
+      void store.fetch(true);
       release();
       await vi.advanceTimersByTimeAsync(SAVE_REFRESH_DELAY_MS);
 

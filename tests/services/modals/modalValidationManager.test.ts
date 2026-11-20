@@ -11,7 +11,7 @@ describe('ModalValidationManager', () => {
   beforeEach(() => {
     mockElements = new Map();
     mockShadowRoot = {
-      getElementById: vi.fn((id: string) => mockElements.get(id) || null),
+      getElementById: vi.fn((id: string) => mockElements.get(id) ?? null),
     } as unknown as ShadowRoot;
 
     vi.useFakeTimers();

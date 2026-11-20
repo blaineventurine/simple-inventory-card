@@ -12,6 +12,29 @@ export type DecodeError = 'not_found';
  */
 export type ScanSupport = 'live' | 'photo' | 'insecure';
 
+/**
+ * What Quagga's detection callbacks may actually receive: its typings promise a full result, but
+ * a frame without a decode leaves `codeResult` (and its `decodedCodes`) undefined.
+ */
+type QuaggaResult =
+  | {
+      codeResult?: { code: string | null; decodedCodes?: { error?: number }[] };
+    }
+  | undefined;
+
+/** The browser's native `BarcodeDetector` (not in TypeScript's DOM lib yet). */
+interface BarcodeDetectorLike {
+  detect(source: ImageBitmapSource): Promise<{ rawValue: string }[]>;
+}
+type BarcodeDetectorConstructor = new (options: { formats: string[] }) => BarcodeDetectorLike;
+
+/** Quagga 1.x returns a promise here; earlier versions (and plain mocks) return nothing. */
+function stopQuagga(): void {
+  Promise.resolve(Quagga.stop()).catch((err: unknown) => {
+    console.warn('Quagga: error stopping the camera', err);
+  });
+}
+
 let active = false;
 /** Bumped by every start and stop: a start that finishes after a newer one or a stop is dropped. */
 let session = 0;
@@ -33,7 +56,7 @@ export function startScanner(
   // before we request it again. This prevents Firefox/iOS from failing
   // when the previous MediaStream was not properly torn down.
   if (active) {
-    Quagga.stop();
+    stopQuagga();
     Quagga.offDetected();
     active = false;
   }
@@ -56,7 +79,8 @@ function openCamera(
   targetElement.innerHTML = '';
 
   return new Promise((resolve) => {
-    Quagga.init(
+    // With a callback, init reports errors there and returns no promise.
+    void Quagga.init(
       {
         inputStream: {
           type: 'LiveStream',
@@ -92,7 +116,7 @@ function openCamera(
         // Stopped or superseded while the camera was opening (e.g. the card was detached):
         // release it before the next start opens one.
         if (mine !== session) {
-          Quagga.stop();
+          stopQuagga();
           resolve(null);
           return;
         }
@@ -100,7 +124,7 @@ function openCamera(
         // Register the detection handler *after* successful init,
         // so we never accumulate stale listeners from previous calls.
         Quagga.offDetected();
-        Quagga.onDetected((result) => {
+        Quagga.onDetected((result: QuaggaResult) => {
           const codeResult = result?.codeResult;
           if (!codeResult?.code) {
             return;
@@ -131,7 +155,7 @@ function openCamera(
 export function stopScanner(): void {
   session += 1;
   if (active) {
-    Quagga.stop();
+    stopQuagga();
     Quagga.offDetected();
     active = false;
   }
@@ -339,6 +363,7 @@ export function scanSupport(): ScanSupport {
     return 'insecure';
   }
   return typeof navigator !== 'undefined' &&
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- older webviews lack it despite the DOM typings
     !!navigator.mediaDevices &&
     typeof navigator.mediaDevices.getUserMedia === 'function'
     ? 'live'
@@ -427,12 +452,14 @@ export async function decodeFromFile(
   // Use the native BarcodeDetector API when available
   if ('BarcodeDetector' in window) {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const detector = new (window as any).BarcodeDetector({
+      const { BarcodeDetector } = window as unknown as {
+        BarcodeDetector: BarcodeDetectorConstructor;
+      };
+      const detector = new BarcodeDetector({
         formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128'],
       });
       const bitmap = await createImageBitmap(file);
-      const barcodes: { rawValue: string }[] = await detector.detect(bitmap);
+      const barcodes = await detector.detect(bitmap);
 
       bitmap.close();
 
@@ -454,40 +481,44 @@ export async function decodeFromFile(
       resizeToDataUrl(rawSrc, 1280)
         .then((src) => {
           try {
-            Quagga.decodeSingle(
-              {
-                src,
-                numOfWorkers: 0,
-                decoder: {
-                  readers: [
-                    'ean_reader',
-                    'ean_8_reader',
-                    'upc_reader',
-                    'upc_e_reader',
-                    'code_128_reader',
-                  ],
+            Promise.resolve(
+              Quagga.decodeSingle(
+                {
+                  src,
+                  numOfWorkers: 0,
+                  decoder: {
+                    readers: [
+                      'ean_reader',
+                      'ean_8_reader',
+                      'upc_reader',
+                      'upc_e_reader',
+                      'code_128_reader',
+                    ],
+                  },
+                  locate: true,
                 },
-                locate: true,
-              },
-              (result) => {
-                if (!result?.codeResult?.code) {
-                  resolve('not_found');
-                  return;
-                }
-                const errors = result.codeResult.decodedCodes
-                  ?.filter((d) => typeof d.error === 'number')
-                  .map((d) => d.error as number);
-                if (errors && errors.length > 0) {
-                  const avgError = errors.reduce((sum, e) => sum + e, 0) / errors.length;
-                  if (avgError >= 0.2) {
+                (result: QuaggaResult) => {
+                  if (!result?.codeResult?.code) {
                     resolve('not_found');
                     return;
                   }
-                }
-                onDetected(result.codeResult.code);
-                resolve(null);
-              },
-            );
+                  const errors = result.codeResult.decodedCodes
+                    ?.filter((d) => typeof d.error === 'number')
+                    .map((d) => d.error as number);
+                  if (errors && errors.length > 0) {
+                    const avgError = errors.reduce((sum, err) => sum + err, 0) / errors.length;
+                    if (avgError >= 0.2) {
+                      resolve('not_found');
+                      return;
+                    }
+                  }
+                  onDetected(result.codeResult.code);
+                  resolve(null);
+                },
+              ),
+            ).catch(() => {
+              resolve('not_found');
+            });
           } catch {
             resolve('not_found');
           }

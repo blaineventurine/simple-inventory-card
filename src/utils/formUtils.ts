@@ -12,7 +12,7 @@ interface ValidationResult {
 
 export const FormUtils = {
   parseNumber(value: unknown, defaultValue: number): number {
-    if ((typeof value === 'string' && !value?.trim()) || value === undefined) {
+    if ((typeof value === 'string' && !value.trim()) || value === undefined) {
       return defaultValue;
     }
 
@@ -37,14 +37,14 @@ export const FormUtils = {
     const localize = (key: string, fallback: string): string =>
       TranslationManager.localize(translations, key, undefined, fallback);
 
-    if (!formData.name?.trim()) {
+    if (!formData.name.trim()) {
       errors.push({
         field: 'name',
         message: localize('modal.validation_name_required', 'Item name is required'),
       });
     }
 
-    if (formData.quantity?.trim()) {
+    if (formData.quantity.trim()) {
       const quantityNumber = Number.parseFloat(formData.quantity);
       if (Number.isNaN(quantityNumber)) {
         errors.push({
@@ -60,7 +60,7 @@ export const FormUtils = {
     }
 
     if (formData.autoAddEnabled) {
-      if (formData.autoAddToListQuantity?.trim()) {
+      if (formData.autoAddToListQuantity.trim()) {
         const thresholdNumber = Number.parseFloat(formData.autoAddToListQuantity);
         if (Number.isNaN(thresholdNumber)) {
           errors.push({
@@ -86,7 +86,7 @@ export const FormUtils = {
         });
       }
 
-      if (!formData.todoList?.trim()) {
+      if (!formData.todoList.trim()) {
         errors.push({
           field: 'todoList',
           message: localize(
@@ -97,14 +97,14 @@ export const FormUtils = {
       }
     }
 
-    if (formData.expiryDate?.trim() && !DateUtils.isValidDate(formData.expiryDate)) {
+    if (formData.expiryDate.trim() && !DateUtils.isValidDate(formData.expiryDate)) {
       errors.push({
         field: 'expiryDate',
         message: localize('modal.validation_expiry_date_invalid', 'Invalid expiry date format'),
       });
     }
 
-    if (formData.expiryAlertDays?.trim()) {
+    if (formData.expiryAlertDays.trim()) {
       const alertDays = Number.parseFloat(formData.expiryAlertDays);
       if (Number.isNaN(alertDays)) {
         errors.push({
@@ -125,8 +125,8 @@ export const FormUtils = {
       }
     }
 
-    const hasExpiryDate = formData.expiryDate?.trim();
-    const hasThreshold = formData.expiryAlertDays?.trim();
+    const hasExpiryDate = formData.expiryDate.trim();
+    const hasThreshold = formData.expiryAlertDays.trim();
 
     if (hasThreshold && !hasExpiryDate) {
       errors.push({

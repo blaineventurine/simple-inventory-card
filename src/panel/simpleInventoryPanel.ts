@@ -52,7 +52,7 @@ function inventorySensorKey(hass: HomeAssistant): string {
   return Object.values(hass.states)
     .filter((state) => state.entity_id.startsWith('sensor.') && 'inventory_id' in state.attributes)
     .map((state) => state.entity_id)
-    .sort()
+    .sort((a, b) => (a < b ? -1 : a > b ? 1 : 0))
     .join(',');
 }
 
@@ -204,7 +204,9 @@ export class SimpleInventoryPanel extends LitElement {
   }
 
   // `panel` is set by HA too; nothing in it is used.
-  set panel(_panel: unknown) {}
+  set panel(_panel: unknown) {
+    // no-op: HA sets it, nothing in it is used
+  }
 
   /** Re-attached on Home or in search mode: the session stopped on detach starts again. */
   connectedCallback(): void {
@@ -753,7 +755,8 @@ export class SimpleInventoryPanel extends LitElement {
       this._openResult(open.inventoryId, open.name);
       return;
     }
-    const move = TAB_KEYS[event.key];
+    // Arbitrary keys miss the table.
+    const move = TAB_KEYS[event.key] as ((index: number, count: number) => number) | undefined;
     if (!move || !event.target.closest('.tab')) {
       return;
     }
