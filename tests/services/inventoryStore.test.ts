@@ -123,6 +123,23 @@ describe('InventoryStore', () => {
       expect(store.hass).toBe(hass);
     });
 
+    it('normalises fetched items, so every reader can trust the field types', async () => {
+      listItems.mockResolvedValue({
+        items: [{ name: 'Milk', quantity: 2 } as unknown as InventoryItem],
+      });
+      await start();
+
+      expect(store.items[0]).toMatchObject({
+        name: 'Milk',
+        quantity: 2,
+        unit: '',
+        category: '',
+        location: '',
+        expiry_date: '',
+        description: '',
+      });
+    });
+
     it('takes the capabilities from get_info and reports the check to the view', async () => {
       getInfo.mockResolvedValue({ version: '0.7.0', api_version: 3, features: ['transfers'] });
       await start();
@@ -354,7 +371,7 @@ describe('InventoryStore', () => {
 
     it('is not replaced by a held refresh when the UI closes', async () => {
       const release = store.hold('background', 'add sheet');
-      store.fetch(true); // held: a refresh is now pending
+      void store.fetch(true); // held: a refresh is now pending
       store.refreshAfterSave();
 
       release();
@@ -571,7 +588,7 @@ describe('InventoryStore', () => {
       const release = store.hold('background', 'history sheet');
       connection.push({ items: [item('Milk', 3)] });
       await vi.advanceTimersByTimeAsync(LIVE_UPDATE_DELAY_MS);
-      store.fetch(true);
+      void store.fetch(true);
       release();
       await vi.advanceTimersByTimeAsync(SAVE_REFRESH_DELAY_MS);
 

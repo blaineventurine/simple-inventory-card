@@ -247,7 +247,7 @@ describe('createActiveFiltersDisplay', () => {
 
     it('should handle empty arrays (should not display)', () => {
       const result = createActiveFiltersDisplay(baseFilters, mockTranslations);
-      const badgesContainer = result.match(/<div id="active-filters-list"[^>]*>([\s\S]*?)<\/div>/);
+      const badgesContainer = /<div id="active-filters-list"[^>]*>([\s\S]*?)<\/div>/.exec(result);
 
       expect(result).toContain('class="active-filters" hidden>');
       expect(badgesContainer).toBeTruthy();

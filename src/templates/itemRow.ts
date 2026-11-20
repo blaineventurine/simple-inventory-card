@@ -203,7 +203,7 @@ export function createItemRowTemplate(
         }
         ${description ? `<p class="item-description si-details__description">${Utilities.sanitizeHtml(description)}</p>` : ''}
         ${autoAddText ? `<div class="auto-add-info si-details__auto-add"><ha-icon icon="mdi:cart-arrow-down"></ha-icon><span>${Utilities.sanitizeHtml(autoAddText)}</span></div>` : ''}
-        ${showBatches ? createBatchPanel(item, translations, config, rowOptions?.transfers === true, rowOptions?.formatValue) : ''}
+        ${showBatches ? createBatchPanel(item, translations, config, rowOptions.transfers, rowOptions.formatValue) : ''}
       </div>`
     : '';
 

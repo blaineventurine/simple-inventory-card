@@ -282,7 +282,7 @@ describe('Renderer', () => {
         context: { id: 'test-context' },
         last_changed: '2023-01-01T00:00:00Z',
         last_updated: '2023-01-01T00:00:00Z',
-      } as HassEntity;
+      };
       const mockItems: InventoryItem[] = [];
 
       renderer.renderCard(
@@ -617,7 +617,7 @@ describe('Renderer', () => {
         searchText: 'query',
         showAdvanced: true,
       };
-      const mockTodoLists: TodoList[] = [{ id: '1', name: 'Test List' } as TodoList];
+      const mockTodoLists: TodoList[] = [{ id: '1', name: 'Test List' }];
 
       renderer.renderCard(
         mockState,
@@ -687,7 +687,7 @@ describe('Renderer', () => {
     it('should include correct CSS styling', () => {
       renderer.renderError('test');
 
-      expect(mockShadowRoot.innerHTML).toContain(`<style>${styles}</style>`);
+      expect(mockShadowRoot.innerHTML).toContain(`<style>${String(styles)}</style>`);
       expect(mockShadowRoot.innerHTML).toContain('color: var(--error-color)');
       expect(mockShadowRoot.innerHTML).toContain('padding: 16px');
       expect(mockShadowRoot.innerHTML).toContain('text-align: center');

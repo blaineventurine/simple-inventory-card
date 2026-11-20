@@ -23,7 +23,7 @@ function tileOf(html: string): HTMLElement {
 }
 
 /** `data-action` / `data-name` of every stepper button, in order. */
-function stepperActions(element: Element): Array<[string | null, string | null]> {
+function stepperActions(element: Element): [string | null, string | null][] {
   return Array.from(element.querySelectorAll('.si-stepper button'), (button) => [
     button.getAttribute('data-action'),
     button.getAttribute('data-name'),

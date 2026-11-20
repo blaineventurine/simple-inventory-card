@@ -1,5 +1,5 @@
 export interface HomeAssistant {
-  states: { [entityId: string]: HassEntity };
+  states: Record<string, HassEntity>;
   config: HassConfig;
   themes: unknown;
   selectedTheme: unknown;
@@ -179,13 +179,13 @@ export interface LovelaceCardEditor extends HTMLElement {
 
 declare global {
   interface Window {
-    customCards: Array<{
+    customCards: {
       type: string;
       name: string;
       description: string;
       preview?: boolean;
       documentationURL?: string;
-    }>;
+    }[];
     loadCardHelpers?: () => Promise<{
       createCardElement: (config: Record<string, unknown>) => HTMLElement | Promise<HTMLElement>;
     }>;

@@ -357,7 +357,9 @@ describe('ItemImageField', () => {
     class FakeSelector extends HTMLElement {}
     let mediaDefined = false;
     vi.mocked(customElements.get).mockImplementation((name: string) => {
-      if (name === 'ha-selector') return FakeSelector;
+      if (name === 'ha-selector') {
+        return FakeSelector;
+      }
       return name === 'ha-selector-media' && mediaDefined ? FakeMediaSelector : undefined;
     });
     let define: (element: CustomElementConstructor) => void = () => {};
@@ -401,7 +403,9 @@ describe('ItemImageField', () => {
   it('uses ha-media-item-picker (HA 2026.10+), where _pickMedia moved from ha-selector-media', async () => {
     class NewSelector extends HTMLElement {}
     vi.mocked(customElements.get).mockImplementation((name: string) => {
-      if (name === 'ha-selector-media') return NewSelector;
+      if (name === 'ha-selector-media') {
+        return NewSelector;
+      }
       return name === 'ha-media-item-picker' ? FakeMediaSelector : undefined;
     });
     field.open('edit', {}, milk);

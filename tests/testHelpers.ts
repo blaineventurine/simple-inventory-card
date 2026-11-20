@@ -116,7 +116,11 @@ export function fakeConnection(): FakeConnection {
       ready.delete(listener);
     },
     push: (event) => deliver?.(event),
-    reconnect: () => ready.forEach((listener) => listener()),
+    reconnect: () => {
+      ready.forEach((listener) => {
+        listener();
+      });
+    },
     readyListeners: () => ready.size,
   };
 }

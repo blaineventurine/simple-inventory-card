@@ -100,15 +100,23 @@ describe('SimpleInventoryCard', () => {
 
   describe('Configuration Management', () => {
     it('should require entity in config', () => {
-      expect(() => card.setConfig({} as InventoryConfig)).toThrow('Entity is required');
-      expect(() => card.setConfig({ entity: '' } as InventoryConfig)).toThrow('Entity is required');
-      expect(() => card.setConfig({ entity: null } as any)).toThrow('Entity is required');
+      expect(() => {
+        card.setConfig({} as InventoryConfig);
+      }).toThrow('Entity is required');
+      expect(() => {
+        card.setConfig({ entity: '' } as InventoryConfig);
+      }).toThrow('Entity is required');
+      expect(() => {
+        card.setConfig({ entity: null } as any);
+      }).toThrow('Entity is required');
     });
 
     it('should accept valid config', () => {
       const config = { entity: 'sensor.inventory' } as InventoryConfig;
 
-      expect(() => card.setConfig(config)).not.toThrow();
+      expect(() => {
+        card.setConfig(config);
+      }).not.toThrow();
       expect((card as any)._config).toBe(config);
     });
   });
@@ -155,15 +163,21 @@ describe('SimpleInventoryCard', () => {
       const renderSpy = renderCount();
 
       card.hass = mockHass;
-      await vi.waitFor(() => expect(TranslationManager.loadTranslations).toHaveBeenCalled());
+      await vi.waitFor(() => {
+        expect(TranslationManager.loadTranslations).toHaveBeenCalled();
+      });
 
       expect(TranslationManager.loadTranslations).toHaveBeenCalledWith('en');
-      await vi.waitFor(() => expect(renderSpy).toHaveBeenCalled());
+      await vi.waitFor(() => {
+        expect(renderSpy).toHaveBeenCalled();
+      });
     });
 
     it('reads the updated hass through the context and handles entity changes', async () => {
       card.hass = mockHass;
-      await vi.waitFor(() => expect(TranslationManager.loadTranslations).toHaveBeenCalled());
+      await vi.waitFor(() => {
+        expect(TranslationManager.loadTranslations).toHaveBeenCalled();
+      });
       vi.clearAllMocks();
       vi.mocked(InventoryResolver.getInventoryId).mockReturnValue('test-inventory-id');
 
@@ -177,14 +191,18 @@ describe('SimpleInventoryCard', () => {
       card.hass = updatedHass;
 
       expect(card['_getContext']().hass).toBe(updatedHass);
-      await vi.waitFor(() => expect(renderSpy).toHaveBeenCalled());
+      await vi.waitFor(() => {
+        expect(renderSpy).toHaveBeenCalled();
+      });
     });
 
     it('should use debounced render when user is interacting', async () => {
       vi.useFakeTimers();
       const services = mockLifecycleManager.getServices();
       card.hass = mockHass;
-      await vi.waitFor(() => expect(services.services.getItems).toHaveBeenCalled());
+      await vi.waitFor(() => {
+        expect(services.services.getItems).toHaveBeenCalled();
+      });
       services.services.getItems.mockClear();
 
       services.state.hasRealEntityChange.mockReturnValue(true);
@@ -212,21 +230,25 @@ describe('SimpleInventoryCard', () => {
       mockLifecycleManager.initialize.mockReturnValue(services);
       Object.defineProperty(card, 'renderRoot', { value: card.shadowRoot });
       card.hass = mockHass;
-      await vi.waitFor(() => expect(mockRenderingCoordinator.render).toHaveBeenCalled());
+      await vi.waitFor(() => {
+        expect(mockRenderingCoordinator.render).toHaveBeenCalled();
+      });
 
       const closeEditModal = hold('page', 'edit sheet');
       services.state.hasRealEntityChange.mockReturnValue(true);
       services.services.getItems.mockClear();
       mockRenderingCoordinator.render.mockClear();
 
-      card.hass = { ...mockHass } as HomeAssistant;
+      card.hass = { ...mockHass };
       card.render(); // e.g. the re-render after a late get_info answer
       await Promise.resolve();
       expect(services.services.getItems).not.toHaveBeenCalled();
       expect(mockRenderingCoordinator.render).not.toHaveBeenCalled();
 
       closeEditModal();
-      await vi.waitFor(() => expect(mockRenderingCoordinator.render).toHaveBeenCalledTimes(1));
+      await vi.waitFor(() => {
+        expect(mockRenderingCoordinator.render).toHaveBeenCalledTimes(1);
+      });
       expect(services.services.getItems).toHaveBeenCalledTimes(1);
 
       closeEditModal();
@@ -239,14 +261,16 @@ describe('SimpleInventoryCard', () => {
       mockLifecycleManager.initialize.mockReturnValue(services);
       Object.defineProperty(card, 'renderRoot', { value: card.shadowRoot });
       card.hass = mockHass;
-      await vi.waitFor(() => expect(mockRenderingCoordinator.render).toHaveBeenCalled());
+      await vi.waitFor(() => {
+        expect(mockRenderingCoordinator.render).toHaveBeenCalled();
+      });
 
       const closeImportSheet = hold('page', 'import result sheet');
       services.state.hasRealEntityChange.mockReturnValue(true);
       services.services.getItems.mockClear();
       mockRenderingCoordinator.render.mockClear();
 
-      card.hass = { ...mockHass } as HomeAssistant; // the import's own entity update
+      card.hass = { ...mockHass }; // the import's own entity update
       card.render();
       await Promise.resolve();
       expect(services.services.getItems).not.toHaveBeenCalled();
@@ -271,7 +295,9 @@ describe('SimpleInventoryCard', () => {
         mockLifecycleManager.initialize.mockReturnValue(services);
         Object.defineProperty(card, 'renderRoot', { value: card.shadowRoot });
         card.hass = mockHass;
-        await vi.waitFor(() => expect(mockRenderingCoordinator.render).toHaveBeenCalled());
+        await vi.waitFor(() => {
+          expect(mockRenderingCoordinator.render).toHaveBeenCalled();
+        });
         services.state.hasRealEntityChange.mockReturnValue(true);
         services.services.getItems.mockClear();
         mockRenderingCoordinator.render.mockClear();
@@ -282,13 +308,15 @@ describe('SimpleInventoryCard', () => {
         async (reason) => {
           const close = hold('background', reason);
 
-          card.hass = { ...mockHass } as HomeAssistant;
+          card.hass = { ...mockHass };
           await Promise.resolve();
           expect(services.services.getItems).not.toHaveBeenCalled();
           expect(mockRenderingCoordinator.render).not.toHaveBeenCalled();
 
           close();
-          await vi.waitFor(() => expect(mockRenderingCoordinator.render).toHaveBeenCalledTimes(1));
+          await vi.waitFor(() => {
+            expect(mockRenderingCoordinator.render).toHaveBeenCalledTimes(1);
+          });
           expect(services.services.getItems).toHaveBeenCalledTimes(1);
 
           close();
@@ -300,14 +328,16 @@ describe('SimpleInventoryCard', () => {
       it('keeps deferring while a second inline form is still open', async () => {
         const closeRestock = hold('background', 'restock form');
         const closeMove = hold('background', 'move form');
-        card.hass = { ...mockHass } as HomeAssistant;
+        card.hass = { ...mockHass };
 
         closeRestock();
         await vi.advanceTimersByTimeAsync(50);
         expect(services.services.getItems).not.toHaveBeenCalled();
 
         closeMove();
-        await vi.waitFor(() => expect(mockRenderingCoordinator.render).toHaveBeenCalledTimes(1));
+        await vi.waitFor(() => {
+          expect(mockRenderingCoordinator.render).toHaveBeenCalledTimes(1);
+        });
         expect(services.services.getItems).toHaveBeenCalledTimes(1);
       });
 
@@ -315,7 +345,7 @@ describe('SimpleInventoryCard', () => {
         hold('background', 'restock form');
         services.state.userInteracting = true;
 
-        card.hass = { ...mockHass } as HomeAssistant;
+        card.hass = { ...mockHass };
 
         expect(vi.getTimerCount()).toBe(0);
         await vi.advanceTimersByTimeAsync(100);
@@ -325,10 +355,10 @@ describe('SimpleInventoryCard', () => {
       it('defers the re-render after a language change while the history sheet is open', async () => {
         hold('background', 'history sheet');
 
-        card.hass = { ...mockHass, language: 'fr' } as HomeAssistant;
-        await vi.waitFor(() =>
-          expect(TranslationManager.loadTranslations).toHaveBeenCalledWith('fr'),
-        );
+        card.hass = { ...mockHass, language: 'fr' };
+        await vi.waitFor(() => {
+          expect(TranslationManager.loadTranslations).toHaveBeenCalledWith('fr');
+        });
         await Promise.resolve();
 
         expect(mockRenderingCoordinator.render).not.toHaveBeenCalled();
@@ -336,13 +366,15 @@ describe('SimpleInventoryCard', () => {
 
       it('does not defer a user-initiated render and drops the pending refresh it satisfies', async () => {
         const close = hold('background', 'restock form');
-        card.hass = { ...mockHass } as HomeAssistant; // deferred: a refresh is now pending
+        card.hass = { ...mockHass }; // deferred: a refresh is now pending
         await Promise.resolve();
         expect(services.services.getItems).not.toHaveBeenCalled();
 
         const renderCallback = mockLifecycleManager.initialize.mock.lastCall[1].render;
         renderCallback(); // a sort change, ± on another item, or a submit's own refresh
-        await vi.waitFor(() => expect(mockRenderingCoordinator.render).toHaveBeenCalledTimes(1));
+        await vi.waitFor(() => {
+          expect(mockRenderingCoordinator.render).toHaveBeenCalledTimes(1);
+        });
         expect(services.services.getItems).toHaveBeenCalledTimes(1);
 
         close();
@@ -356,7 +388,9 @@ describe('SimpleInventoryCard', () => {
         hold('background', 'restock form'); // a holder that forgot its release
 
         mockLifecycleManager.initialize.mock.lastCall[1].render();
-        await vi.waitFor(() => expect(mockRenderingCoordinator.render).toHaveBeenCalledTimes(1));
+        await vi.waitFor(() => {
+          expect(mockRenderingCoordinator.render).toHaveBeenCalledTimes(1);
+        });
 
         expect(card['_store'].holds()).toEqual([]);
         expect(warn).toHaveBeenCalledWith(
@@ -368,7 +402,7 @@ describe('SimpleInventoryCard', () => {
       it('leaves an already scheduled refresh in place when the UI closes', async () => {
         const close = hold('background', 'restock form');
         hold('background', 'move form'); // still open
-        card.hass = { ...mockHass } as HomeAssistant; // deferred: a refresh is now pending
+        card.hass = { ...mockHass }; // deferred: a refresh is now pending
         mockLifecycleManager.initialize.mock.lastCall[1].refreshAfterSave(); // e.g. a save's refresh
 
         close();
@@ -389,7 +423,9 @@ describe('SimpleInventoryCard', () => {
       ]);
 
       card.hass = mockHass;
-      await vi.waitFor(() => expect(TranslationManager.loadTranslations).toHaveBeenCalled());
+      await vi.waitFor(() => {
+        expect(TranslationManager.loadTranslations).toHaveBeenCalled();
+      });
 
       // Wait for any async operations
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -406,7 +442,9 @@ describe('SimpleInventoryCard', () => {
       };
 
       card.hass = hassWithLanguage;
-      await vi.waitFor(() => expect(TranslationManager.loadTranslations).toHaveBeenCalled());
+      await vi.waitFor(() => {
+        expect(TranslationManager.loadTranslations).toHaveBeenCalled();
+      });
 
       expect(TranslationManager.loadTranslations).toHaveBeenCalledWith('fr');
     });
@@ -415,7 +453,9 @@ describe('SimpleInventoryCard', () => {
       beforeEach(() => {
         vi.mocked(TranslationManager.localize).mockImplementation(
           (_translations, _key, params, fallback) =>
-            (fallback ?? '').replace(/\{(\w+)\}/g, (_m, name) => String(params?.[name] ?? '')),
+            (fallback ?? '').replace(/\{(\w+)\}/g, (_m, name) =>
+              String((params?.[name] as string | number | undefined) ?? ''),
+            ),
         );
         // The real renderer rebuilds the whole card on every render.
         mockRenderingCoordinator.render.mockImplementation(() => {
@@ -435,7 +475,9 @@ describe('SimpleInventoryCard', () => {
           .mockResolvedValue({ version: '0.7.0', api_version: 2, features: ['batches'] });
 
         card.hass = mockHass;
-        await vi.waitFor(() => expect(card.capabilities.batches).toBe(true));
+        await vi.waitFor(() => {
+          expect(card.capabilities.batches).toBe(true);
+        });
         card.hass = { ...mockHass };
         card.hass = { ...mockHass };
 
@@ -455,9 +497,9 @@ describe('SimpleInventoryCard', () => {
         });
 
         card.hass = mockHass;
-        await vi.waitFor(() =>
-          expect(card.shadowRoot?.querySelector('ha-card > #compat-banner')).not.toBeNull(),
-        );
+        await vi.waitFor(() => {
+          expect(card.shadowRoot?.querySelector('ha-card > #compat-banner')).not.toBeNull();
+        });
         expect(card.shadowRoot?.querySelector('#compat-banner')?.textContent).toContain(
           'update to 0.7.0 or newer',
         );
@@ -481,11 +523,11 @@ describe('SimpleInventoryCard', () => {
 
         card.hass = mockHass;
 
-        await vi.waitFor(() =>
+        await vi.waitFor(() => {
           expect(card.shadowRoot?.querySelector('#compat-banner')?.textContent).toContain(
             'integration 0.6.9 is too old',
-          ),
-        );
+          );
+        });
       });
 
       it('re-renders with batch UI when get_info reports batches after the first render', async () => {
@@ -501,15 +543,17 @@ describe('SimpleInventoryCard', () => {
           );
 
         card.hass = mockHass;
-        await vi.waitFor(() => expect(mockRenderingCoordinator.render).toHaveBeenCalled());
+        await vi.waitFor(() => {
+          expect(mockRenderingCoordinator.render).toHaveBeenCalled();
+        });
         expect(mockRenderingCoordinator.render.mock.lastCall[0].capabilities.batches).toBe(false);
-        const rendersBeforeInfo = mockRenderingCoordinator.render.mock.calls.length;
+        const rendersBeforeInfo: number = mockRenderingCoordinator.render.mock.calls.length;
 
         resolveInfo({ version: '0.7.0', api_version: 3, features: ['batches'] });
 
-        await vi.waitFor(() =>
-          expect(mockRenderingCoordinator.render.mock.lastCall[0].capabilities.batches).toBe(true),
-        );
+        await vi.waitFor(() => {
+          expect(mockRenderingCoordinator.render.mock.lastCall[0].capabilities.batches).toBe(true);
+        });
         await Promise.resolve();
         expect(mockRenderingCoordinator.render).toHaveBeenCalledTimes(rendersBeforeInfo + 1);
         expect(card.shadowRoot?.querySelector('#compat-banner')).toBeNull();
@@ -530,7 +574,9 @@ describe('SimpleInventoryCard', () => {
         const renderSpy = renderCount();
 
         card.hass = mockHass;
-        await vi.waitFor(() => expect(card.capabilities.batches).toBe(true));
+        await vi.waitFor(() => {
+          expect(card.capabilities.batches).toBe(true);
+        });
 
         expect(renderSpy).not.toHaveBeenCalled();
         expect(mockRenderingCoordinator.render).not.toHaveBeenCalled();
@@ -546,13 +592,15 @@ describe('SimpleInventoryCard', () => {
           );
 
         card.hass = mockHass;
-        await vi.waitFor(() => expect(mockRenderingCoordinator.render).toHaveBeenCalled());
+        await vi.waitFor(() => {
+          expect(mockRenderingCoordinator.render).toHaveBeenCalled();
+        });
         card.render();
 
         expect(card.capabilities.batches).toBe(false);
         expect(
           mockRenderingCoordinator.render.mock.calls.every(
-            (call: [CardContext]) => call[0].capabilities.batches === false,
+            (call: [CardContext]) => !call[0].capabilities.batches,
           ),
         ).toBe(true);
         expect(card.shadowRoot?.querySelector('#compat-banner')).toBeNull();
@@ -569,11 +617,11 @@ describe('SimpleInventoryCard', () => {
 
         card.hass = mockHass;
 
-        await vi.waitFor(() =>
+        await vi.waitFor(() => {
           expect(mockRenderingCoordinator.render.mock.lastCall[0].capabilities.transfers).toBe(
             true,
-          ),
-        );
+          );
+        });
         expect(card.capabilities.transfers).toBe(true);
       });
 
@@ -588,9 +636,9 @@ describe('SimpleInventoryCard', () => {
 
         card.hass = mockHass;
 
-        await vi.waitFor(() =>
-          expect(mockRenderingCoordinator.render.mock.lastCall[0].capabilities.batches).toBe(true),
-        );
+        await vi.waitFor(() => {
+          expect(mockRenderingCoordinator.render.mock.lastCall[0].capabilities.batches).toBe(true);
+        });
         expect(mockRenderingCoordinator.render.mock.lastCall[0].capabilities.transfers).toBe(false);
       });
 
@@ -607,11 +655,11 @@ describe('SimpleInventoryCard', () => {
 
         card.hass = mockHass;
 
-        await vi.waitFor(() =>
+        await vi.waitFor(() => {
           expect(mockRenderingCoordinator.render.mock.lastCall[0].capabilities.itemIcons).toBe(
             true,
-          ),
-        );
+          );
+        });
         expect(card.capabilities.itemIcons).toBe(true);
       });
 
@@ -629,11 +677,11 @@ describe('SimpleInventoryCard', () => {
 
         card.hass = mockHass;
 
-        await vi.waitFor(() =>
+        await vi.waitFor(() => {
           expect(mockRenderingCoordinator.render.mock.lastCall[0].capabilities.itemImages).toBe(
             true,
-          ),
-        );
+          );
+        });
         (card as any)._updateItemsOnly([], 'name');
         expect(
           mockRenderingCoordinator.updateItemsOnly.mock.lastCall[0].capabilities.itemImages,
@@ -653,11 +701,11 @@ describe('SimpleInventoryCard', () => {
 
         card.hass = mockHass;
 
-        await vi.waitFor(() =>
+        await vi.waitFor(() => {
           expect(mockRenderingCoordinator.render.mock.lastCall[0].capabilities.itemIcons).toBe(
             true,
-          ),
-        );
+          );
+        });
         expect(mockRenderingCoordinator.render.mock.lastCall[0].capabilities.itemImages).toBe(
           false,
         );
@@ -674,11 +722,11 @@ describe('SimpleInventoryCard', () => {
 
         card.hass = mockHass;
 
-        await vi.waitFor(() =>
+        await vi.waitFor(() => {
           expect(mockRenderingCoordinator.render.mock.lastCall[0].capabilities.transfers).toBe(
             true,
-          ),
-        );
+          );
+        });
         expect(mockRenderingCoordinator.render.mock.lastCall[0].capabilities.itemIcons).toBe(false);
       });
     });
@@ -699,7 +747,9 @@ describe('SimpleInventoryCard', () => {
       mockShadowRoot = document.createElement('div') as unknown as ShadowRoot;
       card.setConfig(config);
       card.hass = mockHass;
-      await vi.waitFor(() => expect(TranslationManager.loadTranslations).toHaveBeenCalled());
+      await vi.waitFor(() => {
+        expect(TranslationManager.loadTranslations).toHaveBeenCalled();
+      });
 
       Object.defineProperty(card, 'shadowRoot', {
         value: mockShadowRoot,
@@ -780,7 +830,9 @@ describe('SimpleInventoryCard', () => {
       card.hass = createMockHomeAssistant({
         'sensor.inventory': createMockHassEntity('sensor.inventory'),
       });
-      await vi.waitFor(() => expect(mockRenderingCoordinator.render).toHaveBeenCalledTimes(1));
+      await vi.waitFor(() => {
+        expect(mockRenderingCoordinator.render).toHaveBeenCalledTimes(1);
+      });
       expect(getItems).toHaveBeenCalledTimes(1);
 
       mockLifecycleManager.initialize.mock.lastCall[1].refreshAfterSave(); // a save's refresh
@@ -795,7 +847,9 @@ describe('SimpleInventoryCard', () => {
 
       card.connectedCallback();
       expect(mockLifecycleManager.resume).toHaveBeenCalledTimes(1);
-      await vi.waitFor(() => expect(mockRenderingCoordinator.render).toHaveBeenCalledTimes(2));
+      await vi.waitFor(() => {
+        expect(mockRenderingCoordinator.render).toHaveBeenCalledTimes(2);
+      });
       expect(getItems).toHaveBeenCalledTimes(2);
     });
 
@@ -814,7 +868,9 @@ describe('SimpleInventoryCard', () => {
 
   describe('Error Handling', () => {
     it('should handle missing dependencies gracefully', () => {
-      expect(() => card.render()).not.toThrow();
+      expect(() => {
+        card.render();
+      }).not.toThrow();
     });
 
     it('should handle hass updates without config', () => {
@@ -876,7 +932,9 @@ describe('SimpleInventoryCard', () => {
         }),
       });
 
-      await vi.waitFor(() => expect(listener).toHaveBeenCalled());
+      await vi.waitFor(() => {
+        expect(listener).toHaveBeenCalled();
+      });
       expect((listener.mock.calls[0][0] as CustomEvent).detail.message).toBe(
         'Failed to load inventory items: ws down',
       );

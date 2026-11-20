@@ -113,7 +113,9 @@ describe('card connect / disconnect / reconnect (integration)', () => {
 
   async function typeSearch(text: string): Promise<void> {
     const input = root.querySelector<HTMLInputElement>(`#${ELEMENTS.SEARCH_INPUT}`);
-    if (!input) throw new Error('no search input');
+    if (!input) {
+      throw new Error('no search input');
+    }
     input.value = text;
     input.dispatchEvent(new Event('input', { bubbles: true }));
     await vi.advanceTimersByTimeAsync(300);
@@ -249,7 +251,9 @@ describe('card connect / disconnect / reconnect (integration)', () => {
 
     // A full render (here a sort change) replaces the search box.
     const sort = root.querySelector<HTMLSelectElement>(`#${ELEMENTS.SORT_METHOD}`);
-    if (!sort) throw new Error('no sort select');
+    if (!sort) {
+      throw new Error('no sort select');
+    }
     sort.value = 'quantity';
     sort.dispatchEvent(new Event('change', { bubbles: true }));
     await vi.advanceTimersByTimeAsync(300);
@@ -270,7 +274,9 @@ describe('card connect / disconnect / reconnect (integration)', () => {
   it('drops a live search still waiting for a typing pause when detached', async () => {
     const updateList = vi.spyOn(RenderingCoordinator.prototype, 'updateItemsOnly');
     const input = root.querySelector<HTMLInputElement>(`#${ELEMENTS.SEARCH_INPUT}`);
-    if (!input) throw new Error('no search input');
+    if (!input) {
+      throw new Error('no search input');
+    }
     input.value = 'ban';
     input.dispatchEvent(new Event('input', { bubbles: true }));
 
@@ -284,7 +290,7 @@ describe('card connect / disconnect / reconnect (integration)', () => {
     let blobs: number;
     let revoked: Set<string>;
 
-    function thumbSources(): Array<string | null> {
+    function thumbSources(): (string | null)[] {
       return Array.from(root.querySelectorAll('.items-container .si-photo__img')).map((img) =>
         img.getAttribute('src'),
       );
@@ -353,7 +359,9 @@ describe('card connect / disconnect / reconnect (integration)', () => {
   describe('barcode scanner', () => {
     function button(id: string): HTMLElement {
       const el = root.querySelector<HTMLElement>(`#${id}`);
-      if (!el) throw new Error(`no #${id}`);
+      if (!el) {
+        throw new Error(`no #${id}`);
+      }
       return el;
     }
 

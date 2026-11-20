@@ -20,7 +20,7 @@ function summary(icon: string, tone: Tone, message: string): string {
 }
 
 function resultBody(result: ImportResult, translations: TranslationData): string {
-  const errors = result.errors ?? [];
+  const { errors } = result;
   const counts = TranslationManager.localize(
     translations,
     'actions.import_result',

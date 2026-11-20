@@ -70,6 +70,7 @@ describe('sheet lifecycle', () => {
     vi.useRealTimers();
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters -- callers pick the element type
   function element<T extends HTMLElement = HTMLElement>(id: string): T {
     const found = root.getElementById(id);
     if (!found) {
@@ -331,7 +332,13 @@ describe('sheet lifecycle', () => {
     openEdit();
     const modal = element(ELEMENTS.EDIT_MODAL);
     const name = element(`edit-${ELEMENTS.NAME}`);
-    name.addEventListener('keydown', (event) => event.preventDefault(), { once: true });
+    name.addEventListener(
+      'keydown',
+      (event) => {
+        event.preventDefault();
+      },
+      { once: true },
+    );
 
     name.dispatchEvent(
       new KeyboardEvent('keydown', {

@@ -14,9 +14,11 @@ import { BackendInfo } from '@/types/backendInfo';
 import { BatchMove, BatchTarget, BatchUpdate, RestockOptions } from '@/types/batchOptions';
 
 export function extractErrorMessage(error: unknown): string {
-  if (error instanceof Error) return error.message;
+  if (error instanceof Error) {
+    return error.message;
+  }
   if (error !== null && typeof error === 'object' && 'message' in error) {
-    return String((error as { message: unknown }).message);
+    return String(error.message);
   }
   return String(error);
 }
@@ -427,9 +429,15 @@ export class Services {
       type: WS_COMMANDS.GET_HISTORY,
       inventory_id: inventoryId,
     };
-    if (options?.itemName) msg.item_name = options.itemName;
-    if (options?.eventType) msg.event_type = options.eventType;
-    if (options?.limit) msg.limit = options.limit;
+    if (options?.itemName) {
+      msg.item_name = options.itemName;
+    }
+    if (options?.eventType) {
+      msg.event_type = options.eventType;
+    }
+    if (options?.limit) {
+      msg.limit = options.limit;
+    }
     const result = await this.hass.callWS<{ events: HistoryEvent[] }>(msg);
     return result.events;
   }
@@ -444,7 +452,9 @@ export class Services {
       inventory_id: inventoryId,
       item_name: itemName,
     };
-    if (windowDays !== null) msg.window_days = windowDays;
+    if (windowDays !== null) {
+      msg.window_days = windowDays;
+    }
     return this.hass.callWS<ItemConsumptionRates>(msg);
   }
 

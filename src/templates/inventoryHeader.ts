@@ -32,7 +32,7 @@ export function createInventoryHeader(
         <div class="header-content">
           <h2 class="inventory-title">${Utilities.sanitizeHtml(inventoryName)}</h2>
           ${
-            description && description.trim()
+            description?.trim()
               ? `<p class="inventory-description">${Utilities.sanitizeHtml(description)}</p>`
               : ''
           }
@@ -140,7 +140,7 @@ function expiryIndicators(
 
 function getExpiringItemsCount(items: InventoryItem[]): number {
   return items.filter((item) => {
-    if (!item.expiry_date || (item.quantity ?? 0) <= 0) {
+    if (!item.expiry_date || item.quantity <= 0) {
       return false;
     }
     const threshold = item.expiry_alert_days ?? DEFAULTS.EXPIRY_ALERT_DAYS;
@@ -150,7 +150,7 @@ function getExpiringItemsCount(items: InventoryItem[]): number {
 
 function getExpiredItemsCount(items: InventoryItem[]): number {
   return items.filter((item) => {
-    if (!item.expiry_date || (item.quantity ?? 0) <= 0) {
+    if (!item.expiry_date || item.quantity <= 0) {
       return false;
     }
     return DateUtils.isExpired(item.expiry_date);

@@ -63,7 +63,7 @@ describe('SimpleInventoryCard.openItem (integration)', () => {
   let card: SimpleInventoryCard;
   let root: HTMLElement;
   /** Resolves the pending list_items calls, in order. */
-  let releaseLoads: Array<() => void>;
+  let releaseLoads: (() => void)[];
 
   function makeHass(): HomeAssistant {
     const hass = createMockHomeAssistant({
@@ -76,7 +76,9 @@ describe('SimpleInventoryCard.openItem (integration)', () => {
       if (msg.type === WS_COMMANDS.LIST_ITEMS) {
         // Promise.withResolvers() is unavailable under this project's TS lib target (< ES2024).
         return new Promise((resolve) => {
-          releaseLoads.push(() => resolve({ items: [item('Apples'), item('Bananas')] }));
+          releaseLoads.push(() => {
+            resolve({ items: [item('Apples'), item('Bananas')] });
+          });
         });
       }
       return Promise.resolve({ version: '0.7.0', api_version: 2, features: [] });

@@ -81,7 +81,11 @@ export class DuplicateBatchOffer {
       return;
     }
     nameInput.setAttribute('data-batch-offer-bound', 'true');
-    quantityInput.addEventListener('input', () => this.updateLabel());
-    nameInput.addEventListener('input', () => this.hide());
+    quantityInput.addEventListener('input', () => {
+      this.updateLabel();
+    });
+    nameInput.addEventListener('input', () => {
+      this.hide();
+    });
   }
 }

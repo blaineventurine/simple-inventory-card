@@ -69,10 +69,8 @@ export class LifecycleManager {
       return this.services;
     }
 
-    const { hass, config } = getContext();
-    if (!hass || !config || !this.renderRoot) {
-      return undefined;
-    }
+    // Throws (as before) when called before the card has hass and config.
+    getContext();
     const { render, refreshAfterSave, updateItems, hold } = callbacks;
 
     try {
@@ -133,7 +131,9 @@ export class LifecycleManager {
           getContext,
           historyHandler: eventHandler.historyHandler,
           imageLoader,
-          formsReplaced: () => eventHandler.rowsReplaced(),
+          formsReplaced: () => {
+            eventHandler.rowsReplaced();
+          },
         }),
       };
 
@@ -200,9 +200,9 @@ export class LifecycleManager {
 
   cleanup(): void {
     if (this.services) {
-      this.services.eventHandler?.cleanupEventListeners();
-      this.services.state?.cleanup();
-      this.services.modals?.destroy();
+      this.services.eventHandler.cleanupEventListeners();
+      this.services.state.cleanup();
+      this.services.modals.destroy();
     }
 
     this.services = undefined;

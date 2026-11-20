@@ -101,7 +101,9 @@ describe('barcodeTagInput', () => {
   it('should do nothing if elements are missing', () => {
     const root = document.createElement('div');
     (root as any).getElementById = () => null;
-    expect(() => initializeBarcodeTagInput(root as unknown as ShadowRoot, 'add', {})).not.toThrow();
+    expect(() => {
+      initializeBarcodeTagInput(root as unknown as ShadowRoot, 'add', {});
+    }).not.toThrow();
   });
 
   it('should render initial chips from hidden input value', () => {
@@ -195,7 +197,9 @@ describe('barcodeTagInput', () => {
     initializeBarcodeTagInput(root, 'add', { modal: { remove_value: 'Entfernen {value}' } });
 
     const removeBtn = (root as unknown as HTMLElement).querySelector('.barcode-chip-remove');
-    if (!(removeBtn instanceof HTMLButtonElement)) throw new Error('remove × is not a button');
+    if (!(removeBtn instanceof HTMLButtonElement)) {
+      throw new Error('remove × is not a button');
+    }
     expect(removeBtn.type).toBe('button');
     expect(removeBtn.getAttribute('aria-label')).toBe('Entfernen ABC');
     removeBtn.focus();
@@ -290,7 +294,9 @@ describe('barcodeTagInput', () => {
   });
 
   it('should allow stopAllBarcodeScanners to be called without error when no scanner is active', () => {
-    expect(() => stopAllBarcodeScanners()).not.toThrow();
+    expect(() => {
+      stopAllBarcodeScanners();
+    }).not.toThrow();
   });
 
   describe('duplicate initialization safety (modal reopen)', () => {
@@ -604,7 +610,9 @@ describe('resumeBarcodeScanner (card re-attached; the pause stopped the camera)'
 
   function element(root: ShadowRoot, id: string): HTMLElement {
     const el = root.getElementById(id);
-    if (!(el instanceof HTMLElement)) throw new Error(`no #${id}`);
+    if (!(el instanceof HTMLElement)) {
+      throw new Error(`no #${id}`);
+    }
     return el;
   }
 
@@ -640,7 +648,9 @@ describe('resumeBarcodeScanner (card re-attached; the pause stopped the camera)'
   it('does nothing without the scanner in the sheet', () => {
     const root = createMockShadowRoot('add');
 
-    expect(() => resumeBarcodeScanner(root, 'add')).not.toThrow();
+    expect(() => {
+      resumeBarcodeScanner(root, 'add');
+    }).not.toThrow();
     expect(startScanner).not.toHaveBeenCalled();
   });
 });

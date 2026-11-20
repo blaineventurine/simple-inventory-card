@@ -24,18 +24,21 @@ export class State {
 
   public hasRealEntityChange(hass: HomeAssistant, entityId: string): boolean {
     const currentState = hass.states[entityId];
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- the entity may be missing from hass.states
     if (!currentState) {
       return false;
     }
 
     const prev = this._lastEntityState;
     this._lastEntityState = currentState;
-    if (!prev) return true;
+    if (!prev) {
+      return true;
+    }
 
     return (
       prev.last_changed !== currentState.last_changed ||
-      prev.attributes?.total_items !== currentState.attributes?.total_items ||
-      prev.attributes?.total_quantity !== currentState.attributes?.total_quantity
+      prev.attributes.total_items !== currentState.attributes.total_items ||
+      prev.attributes.total_quantity !== currentState.attributes.total_quantity
     );
   }
 

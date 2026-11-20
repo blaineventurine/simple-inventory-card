@@ -208,7 +208,7 @@ export class Modals {
           this.localize(
             'modal.duplicate_name_error',
             `An item named "${itemData.name}" already exists in this inventory.`,
-            { name: itemData.name ?? '' },
+            { name: itemData.name },
           ),
           true,
         );
@@ -346,7 +346,7 @@ export class Modals {
           this.localize(
             'modal.duplicate_name_error',
             `An item named "${itemData.name}" already exists in this inventory.`,
-            { name: itemData.name ?? '' },
+            { name: itemData.name },
           ),
           false,
         );

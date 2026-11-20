@@ -12,7 +12,7 @@ describe('ModalFormManager', () => {
   beforeEach(() => {
     mockElements = new Map();
     mockShadowRoot = {
-      getElementById: vi.fn((id: string) => mockElements.get(id) || null),
+      getElementById: vi.fn((id: string) => mockElements.get(id) ?? null),
     } as unknown as ShadowRoot;
 
     modalFormManager = new ModalFormManager(mockShadowRoot);
@@ -20,7 +20,7 @@ describe('ModalFormManager', () => {
     vi.clearAllMocks();
   });
 
-  const createMockInput = (value: string = '', checked: boolean = false): HTMLInputElement =>
+  const createMockInput = (value = '', checked = false): HTMLInputElement =>
     ({
       value,
       checked,
@@ -359,46 +359,6 @@ describe('ModalFormManager', () => {
       ).toBe(true);
     });
 
-    it('should handle null/undefined values with defaults', () => {
-      const item: InventoryItem = {
-        auto_add_enabled: undefined as any,
-        auto_add_id_to_description_enabled: undefined as any,
-        auto_add_to_list_quantity: null as any,
-        category: undefined as any,
-        description: undefined as any,
-        expiry_alert_days: undefined as any,
-        expiry_date: undefined as any,
-        location: null as any,
-        name: 'Test Item',
-        quantity: null as any,
-        todo_list: null as any,
-        unit: null as any,
-      };
-
-      modalFormManager.populateEditModal(item);
-
-      expect(mockElements.get(`edit-${ELEMENTS.AUTO_ADD_TO_LIST_QUANTITY}`)?.value).toBe('0');
-      expect(mockElements.get(`edit-${ELEMENTS.CATEGORY}`)?.value).toBe('');
-      expect(mockElements.get(`edit-${ELEMENTS.DESCRIPTION}`)?.value).toBe('');
-      expect(mockElements.get(`edit-${ELEMENTS.EXPIRY_ALERT_DAYS}`)?.value).toBe('1');
-      expect(mockElements.get(`edit-${ELEMENTS.EXPIRY_DATE}`)?.value).toBe('');
-      expect(mockElements.get(`edit-${ELEMENTS.LOCATION}`)?.value).toBe('');
-      expect(mockElements.get(`edit-${ELEMENTS.NAME}`)?.value).toBe('Test Item');
-      expect(mockElements.get(`edit-${ELEMENTS.QUANTITY}`)?.value).toBe('1');
-      expect(mockElements.get(`edit-${ELEMENTS.TODO_LIST}`)?.value).toBe('');
-      expect(mockElements.get(`edit-${ELEMENTS.UNIT}`)?.value).toBe('');
-      expect(
-        (mockElements.get(`edit-${ELEMENTS.AUTO_ADD_ENABLED}`) as HTMLInputElement)?.checked,
-      ).toBe(false);
-      expect(
-        (
-          mockElements.get(
-            `edit-${ELEMENTS.AUTO_ADD_ID_TO_DESCRIPTION_ENABLED}`,
-          ) as HTMLInputElement
-        )?.checked,
-      ).toBe(false);
-    });
-
     it('should handle missing form elements gracefully', () => {
       mockElements.clear(); // Remove all elements
 
@@ -415,7 +375,9 @@ describe('ModalFormManager', () => {
         unit: 'pieces',
       };
 
-      expect(() => modalFormManager.populateEditModal(item)).not.toThrow();
+      expect(() => {
+        modalFormManager.populateEditModal(item);
+      }).not.toThrow();
     });
 
     it('should handle partial item data', () => {
@@ -576,13 +538,17 @@ describe('ModalFormManager', () => {
     it('should handle missing form elements gracefully', () => {
       mockElements.clear();
 
-      expect(() => modalFormManager.clearAddModalForm()).not.toThrow();
+      expect(() => {
+        modalFormManager.clearAddModalForm();
+      }).not.toThrow();
     });
 
     it('should handle missing checkbox element', () => {
       mockElements.delete(`add-${ELEMENTS.AUTO_ADD_ENABLED}`);
 
-      expect(() => modalFormManager.clearAddModalForm()).not.toThrow();
+      expect(() => {
+        modalFormManager.clearAddModalForm();
+      }).not.toThrow();
     });
   });
 

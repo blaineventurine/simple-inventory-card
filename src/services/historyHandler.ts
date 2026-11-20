@@ -97,12 +97,16 @@ export class HistoryHandler {
     try {
       history = await this.loadHistory(itemName);
     } catch (error) {
-      if (this.renders.get(container) !== render) return;
+      if (this.renders.get(container) !== render) {
+        return;
+      }
       console.error('Error fetching history:', error);
       container.innerHTML = `<p class="consumption-empty">${Utilities.sanitizeHtml(this.failureMessage(error))}</p>`;
       return;
     }
-    if (this.renders.get(container) !== render) return;
+    if (this.renders.get(container) !== render) {
+      return;
+    }
     container.innerHTML = createHistoryAndConsumptionView(
       history.displayEvents,
       this.getContext().translations,

@@ -52,7 +52,7 @@ export function getExpiryStatus(
       ),
     };
   } else {
-    return { class: 'expiry-safe', label: `${expiryDate}` };
+    return { class: 'expiry-safe', label: expiryDate };
   }
 }
 

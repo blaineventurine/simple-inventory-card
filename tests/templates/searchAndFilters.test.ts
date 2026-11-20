@@ -253,7 +253,7 @@ describe('createSearchRow + createFilterPanel', () => {
           expect(result).toContain(`<span>${category}</span>`);
         });
 
-        const checkboxCount = (result.match(/<input type="checkbox"/g) || []).length;
+        const checkboxCount = (result.match(/<input type="checkbox"/g) ?? []).length;
         expect(checkboxCount).toBeGreaterThanOrEqual(categories.length);
       });
 

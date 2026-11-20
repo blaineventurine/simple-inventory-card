@@ -35,9 +35,12 @@ export class BarcodeProductHandler {
         const foundResults = result.results.filter(
           (r): r is FoundBarcodeProduct => r.found && r.product !== undefined,
         );
-        const [first] = foundResults;
-        if (first === undefined) return;
+        const first = foundResults.at(0);
+        if (first === undefined) {
+          return;
+        }
         // The integration saves the first found result's photo, in lookup order: offer that one.
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- providers omit image_url when they have no photo
         const imageUrl = foundResults.find((r) => r.product.image_url?.trim())?.product.image_url;
         const photo = imageUrl ? { barcode, imageUrl } : undefined;
 
@@ -57,7 +60,9 @@ export class BarcodeProductHandler {
     const translations = this.getTranslations();
     const picker = this.renderRoot.getElementById(`${prefix}-${ELEMENTS.PRODUCT_PICKER}`);
     const list = this.renderRoot.getElementById(`${prefix}-${ELEMENTS.PRODUCT_PICKER_LIST}`);
-    if (!picker || !list) return;
+    if (!picker || !list) {
+      return;
+    }
 
     list.innerHTML = results
       .map((r, i) => {
@@ -69,8 +74,12 @@ export class BarcodeProductHandler {
           r.provider,
         );
         const details: string[] = [];
-        if (product.brand) details.push(product.brand);
-        if (product.category) details.push(product.category);
+        if (product.brand) {
+          details.push(product.brand);
+        }
+        if (product.category) {
+          details.push(product.category);
+        }
 
         return `
         <div class="product-picker-item" data-product-index="${i}">
@@ -87,8 +96,8 @@ export class BarcodeProductHandler {
     list.querySelectorAll('.product-picker-item').forEach((item) => {
       item.addEventListener('click', () => {
         const index = parseInt((item as HTMLElement).dataset.productIndex || '0', 10);
-        const selected = results[index];
-        if (selected?.product) {
+        const selected = results[index] as FoundBarcodeProduct | undefined;
+        if (selected) {
           this.selectProduct(prefix, selected.product, photo);
           this.hideProductPicker(prefix);
         }
@@ -98,15 +107,21 @@ export class BarcodeProductHandler {
 
   hideProductPicker(prefix: string): void {
     const picker = this.renderRoot.getElementById(`${prefix}-${ELEMENTS.PRODUCT_PICKER}`);
-    if (picker) picker.hidden = true;
+    if (picker) {
+      picker.hidden = true;
+    }
   }
 
   /** Fill the sheet's empty fields from `product`; the lookup's `photo` goes to the offer. */
   selectProduct(prefix: string, product: Record<string, string>, photo?: ProductPhoto): void {
     this.autoFillIfEmpty(`${prefix}-name`, product.name);
     const descParts: string[] = [];
-    if (product.brand) descParts.push(product.brand);
-    if (product.description) descParts.push(product.description);
+    if (product.brand) {
+      descParts.push(product.brand);
+    }
+    if (product.description) {
+      descParts.push(product.description);
+    }
     if (descParts.length > 0) {
       this.autoFillIfEmpty(`${prefix}-description`, descParts.join(' - '));
     }
@@ -123,7 +138,9 @@ export class BarcodeProductHandler {
   }
 
   private autoFillIfEmpty(elementId: string, value: string | undefined): void {
-    if (!value) return;
+    if (!value) {
+      return;
+    }
     const el = this.renderRoot.getElementById(elementId) as HTMLInputElement | null;
     if (el && !el.value.trim()) {
       el.value = value;

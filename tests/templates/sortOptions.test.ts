@@ -204,8 +204,8 @@ describe('createSortOptions', () => {
     it('should have proper label-select association', () => {
       const result = createSortOptions('category', mockTranslations);
 
-      const labelFor = result.match(/for="([^"]*)"/)?.[1];
-      const selectId = result.match(/select id="([^"]*)"/)?.[1];
+      const labelFor = /for="([^"]*)"/.exec(result)?.[1];
+      const selectId = /select id="([^"]*)"/.exec(result)?.[1];
 
       expect(labelFor).toBe(selectId);
       expect(labelFor).toBe(ELEMENTS.SORT_METHOD);

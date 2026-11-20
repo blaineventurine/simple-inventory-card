@@ -10,7 +10,7 @@ export type Tone = 'primary' | 'warning' | 'error' | 'disabled' | 'success';
 export type Attrs = Record<string, string | number | boolean | undefined>;
 
 /** Joins the non-empty class names, escaped for a double-quoted attribute. */
-function classes(...names: Array<string | false | undefined>): string {
+function classes(...names: (string | false | undefined)[]): string {
   return Utilities.sanitizeHtml(
     names.filter((name): name is string => typeof name === 'string' && name !== '').join(' '),
   );
@@ -101,7 +101,7 @@ export function chip(o: {
 }): string {
   const a = o.attrs ?? {};
   const tag =
-    o.remove === undefined && (a['data-action'] !== undefined || a['id'] !== undefined)
+    o.remove === undefined && (a['data-action'] !== undefined || a.id !== undefined)
       ? 'button'
       : 'span';
   const type = tag === 'button' ? ' type="button"' : '';

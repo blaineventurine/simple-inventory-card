@@ -265,7 +265,9 @@ describe('EventHandler', () => {
       const onInput = vi
         .mocked(mockRenderRoot.addEventListener)
         .mock.calls.find((call) => call[0] === 'input')?.[1];
-      if (typeof onInput !== 'function') throw new Error('no input listener');
+      if (typeof onInput !== 'function') {
+        throw new Error('no input listener');
+      }
       const search = document.createElement('input');
       search.id = ELEMENTS.SEARCH_INPUT;
       search.value = 'mil';
@@ -1394,9 +1396,15 @@ describe('EventHandler', () => {
       const mockActionSelect = { value: 'increment' } as HTMLSelectElement;
       const mockAmountInput = { value: '2' } as HTMLInputElement;
       (mockRenderRoot as any).getElementById = vi.fn((id: string) => {
-        if (id === ELEMENTS.SCAN_ACTION_SELECT) return mockActionSelect;
-        if (id === ELEMENTS.SCAN_AMOUNT_INPUT) return mockAmountInput;
-        if (id === ELEMENTS.SCAN_PANEL) return { style: {} };
+        if (id === ELEMENTS.SCAN_ACTION_SELECT) {
+          return mockActionSelect;
+        }
+        if (id === ELEMENTS.SCAN_AMOUNT_INPUT) {
+          return mockAmountInput;
+        }
+        if (id === ELEMENTS.SCAN_PANEL) {
+          return { style: {} };
+        }
         return null;
       });
 
@@ -1420,15 +1428,33 @@ describe('EventHandler', () => {
       const mockAddBtn = { hidden: false } as any;
 
       (mockRenderRoot as any).getElementById = vi.fn((id: string) => {
-        if (id === `${ELEMENTS.SCAN_VIEWPORT}-container`) return { style: {} };
-        if (id === ELEMENTS.SCAN_ACTION_BAR) return { style: {} };
-        if (id === 'scan-barcode-label') return { textContent: '' };
-        if (id === 'scan-panel-error') return { style: {}, textContent: '' };
-        if (id === ELEMENTS.SCAN_AMOUNT_INPUT) return { value: '1' };
-        if (id === ELEMENTS.SCAN_ACTION_SELECT) return { value: 'increment' };
-        if (id === ELEMENTS.SCAN_ITEM_NAME) return mockItemNameEl;
-        if (id === ELEMENTS.SCAN_EXISTING_CONTROLS) return mockExistingControls;
-        if (id === ELEMENTS.SCAN_ADD_BTN) return mockAddBtn;
+        if (id === `${ELEMENTS.SCAN_VIEWPORT}-container`) {
+          return { style: {} };
+        }
+        if (id === ELEMENTS.SCAN_ACTION_BAR) {
+          return { style: {} };
+        }
+        if (id === 'scan-barcode-label') {
+          return { textContent: '' };
+        }
+        if (id === 'scan-panel-error') {
+          return { style: {}, textContent: '' };
+        }
+        if (id === ELEMENTS.SCAN_AMOUNT_INPUT) {
+          return { value: '1' };
+        }
+        if (id === ELEMENTS.SCAN_ACTION_SELECT) {
+          return { value: 'increment' };
+        }
+        if (id === ELEMENTS.SCAN_ITEM_NAME) {
+          return mockItemNameEl;
+        }
+        if (id === ELEMENTS.SCAN_EXISTING_CONTROLS) {
+          return mockExistingControls;
+        }
+        if (id === ELEMENTS.SCAN_ADD_BTN) {
+          return mockAddBtn;
+        }
         return null;
       });
 
@@ -1450,15 +1476,33 @@ describe('EventHandler', () => {
       const mockAddBtn = { hidden: true } as any;
 
       (mockRenderRoot as any).getElementById = vi.fn((id: string) => {
-        if (id === `${ELEMENTS.SCAN_VIEWPORT}-container`) return { style: {} };
-        if (id === ELEMENTS.SCAN_ACTION_BAR) return { style: {} };
-        if (id === 'scan-barcode-label') return { textContent: '' };
-        if (id === 'scan-panel-error') return { style: {}, textContent: '' };
-        if (id === ELEMENTS.SCAN_AMOUNT_INPUT) return { value: '1' };
-        if (id === ELEMENTS.SCAN_ACTION_SELECT) return { value: 'increment' };
-        if (id === ELEMENTS.SCAN_ITEM_NAME) return mockItemNameEl;
-        if (id === ELEMENTS.SCAN_EXISTING_CONTROLS) return mockExistingControls;
-        if (id === ELEMENTS.SCAN_ADD_BTN) return mockAddBtn;
+        if (id === `${ELEMENTS.SCAN_VIEWPORT}-container`) {
+          return { style: {} };
+        }
+        if (id === ELEMENTS.SCAN_ACTION_BAR) {
+          return { style: {} };
+        }
+        if (id === 'scan-barcode-label') {
+          return { textContent: '' };
+        }
+        if (id === 'scan-panel-error') {
+          return { style: {}, textContent: '' };
+        }
+        if (id === ELEMENTS.SCAN_AMOUNT_INPUT) {
+          return { value: '1' };
+        }
+        if (id === ELEMENTS.SCAN_ACTION_SELECT) {
+          return { value: 'increment' };
+        }
+        if (id === ELEMENTS.SCAN_ITEM_NAME) {
+          return mockItemNameEl;
+        }
+        if (id === ELEMENTS.SCAN_EXISTING_CONTROLS) {
+          return mockExistingControls;
+        }
+        if (id === ELEMENTS.SCAN_ADD_BTN) {
+          return mockAddBtn;
+        }
         return null;
       });
 
@@ -1499,9 +1543,15 @@ describe('EventHandler', () => {
 
       const mockErrorEl = { textContent: '', hidden: true };
       (mockRenderRoot as any).getElementById = vi.fn((id: string) => {
-        if (id === ELEMENTS.SCAN_ACTION_SELECT) return { value: 'increment' };
-        if (id === ELEMENTS.SCAN_AMOUNT_INPUT) return { value: '1' };
-        if (id === 'scan-panel-error') return mockErrorEl;
+        if (id === ELEMENTS.SCAN_ACTION_SELECT) {
+          return { value: 'increment' };
+        }
+        if (id === ELEMENTS.SCAN_AMOUNT_INPUT) {
+          return { value: '1' };
+        }
+        if (id === 'scan-panel-error') {
+          return mockErrorEl;
+        }
         return null;
       });
 
@@ -1526,10 +1576,18 @@ describe('EventHandler', () => {
       const mockUnitEl = { value: '', dispatchEvent: vi.fn() } as any;
 
       (mockRenderRoot as any).getElementById = vi.fn((id: string) => {
-        if (id === 'add-name') return mockNameEl;
-        if (id === 'add-description') return mockDescEl;
-        if (id === 'add-category') return mockCatEl;
-        if (id === 'add-unit') return mockUnitEl;
+        if (id === 'add-name') {
+          return mockNameEl;
+        }
+        if (id === 'add-description') {
+          return mockDescEl;
+        }
+        if (id === 'add-category') {
+          return mockCatEl;
+        }
+        if (id === 'add-unit') {
+          return mockUnitEl;
+        }
         return null;
       });
 
@@ -1561,8 +1619,12 @@ describe('EventHandler', () => {
       } as any;
 
       (mockRenderRoot as any).getElementById = vi.fn((id: string) => {
-        if (id === 'add-product-picker') return mockPicker;
-        if (id === 'add-product-picker-list') return mockList;
+        if (id === 'add-product-picker') {
+          return mockPicker;
+        }
+        if (id === 'add-product-picker-list') {
+          return mockList;
+        }
         return null;
       });
 
@@ -1611,11 +1673,21 @@ describe('EventHandler', () => {
       const mockPicker = { hidden: false } as any;
 
       (mockRenderRoot as any).getElementById = vi.fn((id: string) => {
-        if (id === 'add-name') return mockNameEl;
-        if (id === 'add-description') return mockDescEl;
-        if (id === 'add-category') return mockCatEl;
-        if (id === 'add-unit') return mockUnitEl;
-        if (id === 'add-product-picker') return mockPicker;
+        if (id === 'add-name') {
+          return mockNameEl;
+        }
+        if (id === 'add-description') {
+          return mockDescEl;
+        }
+        if (id === 'add-category') {
+          return mockCatEl;
+        }
+        if (id === 'add-unit') {
+          return mockUnitEl;
+        }
+        if (id === 'add-product-picker') {
+          return mockPicker;
+        }
         return null;
       });
 
@@ -1639,7 +1711,9 @@ describe('EventHandler', () => {
     it('should hide the picker element', () => {
       const mockPicker = { hidden: false } as any;
       (mockRenderRoot as any).getElementById = vi.fn((id: string) => {
-        if (id === 'add-product-picker') return mockPicker;
+        if (id === 'add-product-picker') {
+          return mockPicker;
+        }
         return null;
       });
 

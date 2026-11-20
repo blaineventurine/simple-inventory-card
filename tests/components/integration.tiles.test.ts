@@ -150,7 +150,9 @@ describe('tile layout (integration)', () => {
     callService = vi.fn<HomeAssistant['callService']>(
       () =>
         new Promise<ServiceCallResponse>((resolve) => {
-          finishCall = () => resolve({});
+          finishCall = () => {
+            resolve({});
+          };
         }),
     );
   });

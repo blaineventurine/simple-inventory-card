@@ -55,7 +55,7 @@ export function generateCardHTML(
 
   // The list view (header to items) and the item page swap; the sheets serve both.
   return `
-    <style>${styles}</style>
+    <style>${styles.cssText}</style>
     <ha-card>
       <div class="si-list">
         ${showHeader ? createInventoryHeader(inventoryName, allItems as InventoryItem[], translations, description) : ''}

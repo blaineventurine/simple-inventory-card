@@ -1,11 +1,11 @@
 import { html, TemplateResult } from 'lit-element';
-import { HomeAssistant } from '@/types/homeAssistant';
+import { HassEntity, HomeAssistant } from '@/types/homeAssistant';
 import { InventoryConfig } from '@/types/inventory';
 import { TranslationManager } from '@/services/translationManager';
 import { TranslationData } from '@/types/translatableComponent';
 
 export function createEntitySelector(
-  entityOptions: Array<{ value: string; label: string }>,
+  entityOptions: { value: string; label: string }[],
   selectedEntity: string,
   onEntitySelected: (entityId: string) => void,
   translations: TranslationData,
@@ -25,7 +25,11 @@ export function createEntitySelector(
             'Inventory Entity (Required)',
           )}
         </span>
-        <select @change=${(e: Event) => onEntitySelected((e.target as HTMLSelectElement).value)}>
+        <select
+          @change=${(e: Event) => {
+            onEntitySelected((e.target as HTMLSelectElement).value);
+          }}
+        >
           ${selectedEntity ? '' : html`<option value="" disabled selected></option>`}
           ${options.map(
             (option) =>
@@ -44,9 +48,9 @@ export function createEntityInfo(
   entityId: string,
   translations: TranslationData,
 ): TemplateResult {
-  const state = hass.states[entityId];
-  const friendlyName = state?.attributes?.friendly_name || entityId;
-  const itemCount = state?.attributes?.total_items || 0;
+  const state = hass.states[entityId] as HassEntity | undefined;
+  const friendlyName = state?.attributes.friendly_name || entityId;
+  const itemCount = state?.attributes.total_items || 0;
 
   return html`
     <div class="entity-info">
@@ -144,8 +148,9 @@ export function createVisibilityToggles(
               <ha-switch
                 aria-label=${label}
                 .checked=${config[key] !== false}
-                @change=${(e: Event) =>
-                  onToggleChanged(key, (e.target as HTMLInputElement).checked)}
+                @change=${(e: Event) => {
+                  onToggleChanged(key, (e.target as HTMLInputElement).checked);
+                }}
               ></ha-switch>
               <span>${label}</span>
             </label>

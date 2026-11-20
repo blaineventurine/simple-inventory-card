@@ -57,7 +57,9 @@ export class ScanOverlay {
   constructor(private readonly deps: ScanOverlayDeps) {
     deps.host.hidden = true;
     deps.host.addEventListener('click', (event) => {
-      if (!(event.target instanceof Element)) return;
+      if (!(event.target instanceof Element)) {
+        return;
+      }
       if (event.target.closest('.scan-overlay__close')) {
         this.close();
       } else if (event.target.closest('.scan-overlay__file')) {
@@ -71,7 +73,9 @@ export class ScanOverlay {
   }
 
   open(): void {
-    if (this._open) return;
+    if (this._open) {
+      return;
+    }
     this._open = true;
     this.session += 1;
     const session = this.session;
@@ -82,13 +86,19 @@ export class ScanOverlay {
     if (external) {
       // The app draws its own scanner: the overlay shows only for its "Choose a photo".
       startNativeScanner(external, nativeScanTexts(translations), {
-        onDetected: (code) => this.detected(code, session),
+        onDetected: (code) => {
+          this.detected(code, session);
+        },
         onChoosePhoto: () => {
-          if (session !== this.session) return;
+          if (session !== this.session) {
+            return;
+          }
           this.show(translations, photoButton(scannerText(translations, 'choose_photo')));
         },
         onCancel: () => {
-          if (session === this.session) this.close();
+          if (session === this.session) {
+            this.close();
+          }
         },
       });
       return;
@@ -118,9 +128,15 @@ export class ScanOverlay {
       return;
     }
     const viewport = host.querySelector<HTMLElement>('.scan-overlay__viewport');
-    if (!viewport) return;
-    void startScanner(viewport, (code) => this.detected(code, session)).then((error) => {
-      if (session !== this.session) return;
+    if (!viewport) {
+      return;
+    }
+    void startScanner(viewport, (code) => {
+      this.detected(code, session);
+    }).then((error) => {
+      if (session !== this.session) {
+        return;
+      }
       host.querySelector('.scan-overlay__loading')?.remove();
       if (error) {
         const texts = this.deps.getTranslations();
@@ -132,7 +148,9 @@ export class ScanOverlay {
 
   /** Stops the camera, hides the overlay and returns the focus; nothing when it is not open. */
   close(): void {
-    if (!this._open) return;
+    if (!this._open) {
+      return;
+    }
     this.hide();
     this.deps.returnFocus()?.focus();
   }
@@ -156,7 +174,9 @@ export class ScanOverlay {
   /** Opens the photo picker; the chosen photo is decoded. */
   private pickFile(): void {
     const session = this.session;
-    void chooseBarcodePhoto((code) => this.detected(code, session)).then((error) => {
+    void chooseBarcodePhoto((code) => {
+      this.detected(code, session);
+    }).then((error) => {
       if (error && session === this.session) {
         this.showError(scannerText(this.deps.getTranslations(), 'no_barcode'));
       }
@@ -164,14 +184,18 @@ export class ScanOverlay {
   }
 
   private detected(code: string, session: number): void {
-    if (session !== this.session) return;
+    if (session !== this.session) {
+      return;
+    }
     this.hide();
     this.deps.onCode(code);
   }
 
   private showError(message: string): void {
     const error = this.deps.host.querySelector<HTMLElement>('.scan-overlay__error');
-    if (!error) return;
+    if (!error) {
+      return;
+    }
     error.textContent = message;
     error.hidden = false;
   }

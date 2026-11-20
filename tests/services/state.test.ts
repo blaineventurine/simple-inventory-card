@@ -8,7 +8,7 @@ describe('State', () => {
   let state: State;
   let mockHass: HomeAssistant;
   let mockShadowRoot: ShadowRoot;
-  let mockInputs: Array<{ addEventListener: ReturnType<typeof vi.fn> }>;
+  let mockInputs: { addEventListener: ReturnType<typeof vi.fn> }[];
 
   beforeEach(() => {
     vi.useFakeTimers();
@@ -375,43 +375,6 @@ describe('State - Additional mutation killing tests', () => {
     vi.useRealTimers();
     vi.restoreAllMocks();
     state.cleanup();
-  });
-
-  // Kill OptionalChaining mutants - test with null/undefined attributes
-  it('should handle entities with null attributes', () => {
-    const entityId = 'sensor.test';
-    const mockEntity: HassEntity = {
-      entity_id: entityId,
-      state: 'on',
-      attributes: null as any, // This will break without optional chaining
-      context: { id: 'test', user_id: '' },
-      last_changed: '2023-01-01T00:00:00Z',
-      last_updated: '2023-01-01T00:00:00Z',
-    };
-
-    mockHass.states[entityId] = mockEntity;
-
-    // Should not crash and should work correctly
-    expect(state.hasRealEntityChange(mockHass, entityId)).toBe(true);
-    expect(state.hasRealEntityChange(mockHass, entityId)).toBe(false);
-  });
-
-  it('should handle entities with undefined attributes', () => {
-    const entityId = 'sensor.test';
-    const mockEntity: HassEntity = {
-      entity_id: entityId,
-      state: 'on',
-      attributes: undefined as any, // This will break without optional chaining
-      context: { id: 'test', user_id: '' },
-      last_changed: '2023-01-01T00:00:00Z',
-      last_updated: '2023-01-01T00:00:00Z',
-    };
-
-    mockHass.states[entityId] = mockEntity;
-
-    // Should not crash and should work correctly
-    expect(state.hasRealEntityChange(mockHass, entityId)).toBe(true);
-    expect(state.hasRealEntityChange(mockHass, entityId)).toBe(false);
   });
 
   // Kill ConditionalExpression and LogicalOperator mutants

@@ -15,7 +15,9 @@ describe('bundle entries', () => {
     vi.stubGlobal('customElements', {
       get: (name: string) => registry.get(name),
       define: vi.fn((name: string, ctor: CustomElementConstructor) => {
-        if (registry.has(name)) throw new Error(`${name} already defined`);
+        if (registry.has(name)) {
+          throw new Error(`${name} already defined`);
+        }
         registry.set(name, ctor);
       }),
       whenDefined: vi.fn(),

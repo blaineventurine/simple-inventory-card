@@ -83,7 +83,9 @@ export function createItemsByCategory(
   rowOptions?: RowOptions,
 ): string {
   const grouped = Utilities.groupItemsByCategory(items);
-  const sortedCategories = Object.keys(grouped).sort();
+  const sortedCategories = Object.keys(grouped).sort((a, b) =>
+    a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }),
+  );
 
   return sortedCategories
     .map((category) => {
@@ -106,7 +108,9 @@ export function createItemsByLocation(
   rowOptions?: RowOptions,
 ): string {
   const grouped = Utilities.groupItemsByLocation(items);
-  const sortedLocations = Object.keys(grouped).sort();
+  const sortedLocations = Object.keys(grouped).sort((a, b) =>
+    a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }),
+  );
   return sortedLocations
     .map((location) => {
       const safeLocation = Utilities.sanitizeHtml(location);

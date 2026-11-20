@@ -29,7 +29,9 @@ function axisLabels(start: number, end: number, yMax: number, language: string):
 }
 
 export function renderStockChart(series: StockSeries, labels: ChartLabels): string {
-  if (series.points.length === 0) return '';
+  if (series.points.length === 0) {
+    return '';
+  }
   const yMax = Math.max(series.maxQuantity, 1);
   const span = Math.max(series.end - series.start, 1);
 
@@ -64,10 +66,14 @@ export function renderStockChart(series: StockSeries, labels: ChartLabels): stri
 }
 
 export function renderBarChart(buckets: ConsumptionBucket[], labels: ChartLabels): string {
-  if (buckets.length === 0) return '';
+  if (buckets.length === 0) {
+    return '';
+  }
   let maxTotal = 0;
   for (const bucket of buckets) {
-    if (bucket.total > maxTotal) maxTotal = bucket.total;
+    if (bucket.total > maxTotal) {
+      maxTotal = bucket.total;
+    }
   }
   const yMax = Math.max(maxTotal, 1);
   const slot = WIDTH / buckets.length;

@@ -75,7 +75,7 @@ describe('HomeMode', () => {
   });
 
   it('drops the answer of a fetch a later one superseded', async () => {
-    const answers: Array<(result: OverviewResult) => void> = [];
+    const answers: ((result: OverviewResult) => void)[] = [];
     fetch.mockImplementation(
       () =>
         new Promise((resolve) => {

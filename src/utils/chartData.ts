@@ -44,7 +44,9 @@ export function buildStockSeries(
   now: number,
 ): StockSeries | null {
   const sorted = parseAndSort(events);
-  if (sorted.length === 0) return null;
+  if (sorted.length === 0) {
+    return null;
+  }
 
   const start = windowDays !== null ? now - windowDays * DAY_MS : sorted[0].timeMs;
   // Events after `now` (host/browser clock skew) are clamped to now rather than dropped.
@@ -64,7 +66,9 @@ export function buildStockSeries(
 
   let maxQuantity = 0;
   for (const point of points) {
-    if (point.quantity > maxQuantity) maxQuantity = point.quantity;
+    if (point.quantity > maxQuantity) {
+      maxQuantity = point.quantity;
+    }
   }
 
   return { points, start, end: now, maxQuantity };
@@ -77,8 +81,12 @@ function bucketEnd(today: Date, unit: BucketUnit, k: number): number {
   const y = today.getFullYear();
   const m = today.getMonth();
   const d = today.getDate();
-  if (unit === 'day') return new Date(y, m, d + 1 - k).getTime();
-  if (unit === 'week') return new Date(y, m, d + 1 - 7 * k).getTime();
+  if (unit === 'day') {
+    return new Date(y, m, d + 1 - k).getTime();
+  }
+  if (unit === 'week') {
+    return new Date(y, m, d + 1 - 7 * k).getTime();
+  }
   return new Date(y, m + 1 - k, 1).getTime();
 }
 
@@ -113,11 +121,15 @@ export function buildConsumptionBuckets(
   for (let k = 0; ; k++) {
     const bucketStart = bucketEnd(today, unit, k + 1);
     buckets.unshift({ start: bucketStart, end: bucketEnd(today, unit, k), total: 0 });
-    if (bucketStart <= start) break;
+    if (bucketStart <= start) {
+      break;
+    }
   }
 
   for (const event of decrements) {
-    if (event.timeMs < start) continue;
+    if (event.timeMs < start) {
+      continue;
+    }
     const index = buckets.findIndex((bucket) => event.timeMs < bucket.end);
     // Events after the last bucket (clock skew) are clamped into today.
     buckets[index === -1 ? buckets.length - 1 : index].total += event.amount;
@@ -132,9 +144,15 @@ export function isTruncated(
   windowDays: number | null,
   now: number,
 ): boolean {
-  if (events.length < requestedLimit) return false;
-  if (windowDays === null) return true;
+  if (events.length < requestedLimit) {
+    return false;
+  }
+  if (windowDays === null) {
+    return true;
+  }
   const sorted = parseAndSort(events);
-  if (sorted.length === 0) return false;
+  if (sorted.length === 0) {
+    return false;
+  }
   return sorted[0].timeMs > now - windowDays * DAY_MS;
 }
