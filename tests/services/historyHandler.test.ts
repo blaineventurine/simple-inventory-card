@@ -242,7 +242,9 @@ describe('HistoryHandler', () => {
       await handler.showItemHistory('Bread');
       expect(holds.holds()).toHaveLength(1);
       const modal = renderRoot.getElementById(ELEMENTS.HISTORY_MODAL);
-      if (!modal) throw new Error('history sheet missing');
+      if (!modal) {
+        throw new Error('history sheet missing');
+      }
       hideSheet(modal);
       expect(holds.holds()).toEqual([]);
     });
@@ -520,7 +522,9 @@ describe('HistoryHandler', () => {
     let state: HistoryViewState;
     const tab = (id: string): HTMLElement => {
       const found = container.querySelector<HTMLElement>(`#${id}`);
-      if (!found) throw new Error(`no ${id}`);
+      if (!found) {
+        throw new Error(`no ${id}`);
+      }
       return found;
     };
 

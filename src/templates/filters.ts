@@ -6,7 +6,7 @@ import { chip } from './primitives';
 
 /** One removable chip per active filter; `data-filter-remove` carries the filter key. */
 export function createFilterBadges(filters: FilterState, translations: TranslationData): string[] {
-  const badges: Array<{ key: string; text: string }> = [];
+  const badges: { key: string; text: string }[] = [];
 
   if (filters.searchText) {
     const searchLabel = TranslationManager.localize(

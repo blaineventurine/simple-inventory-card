@@ -36,7 +36,9 @@ describe('aliasTagInput', () => {
   it('should do nothing if elements are missing', () => {
     const root = document.createElement('div');
     (root as any).getElementById = () => null;
-    expect(() => initializeAliasTagInput(root as unknown as ShadowRoot, 'add', {})).not.toThrow();
+    expect(() => {
+      initializeAliasTagInput(root as unknown as ShadowRoot, 'add', {});
+    }).not.toThrow();
   });
 
   it('should render initial chips from hidden input value', () => {
@@ -154,7 +156,9 @@ describe('aliasTagInput', () => {
     initializeAliasTagInput(root, 'add', { modal: { remove_value: 'Retirer {value}' } });
 
     const removeBtn = (root as unknown as HTMLElement).querySelector('.alias-chip-remove');
-    if (!(removeBtn instanceof HTMLButtonElement)) throw new Error('remove × is not a button');
+    if (!(removeBtn instanceof HTMLButtonElement)) {
+      throw new Error('remove × is not a button');
+    }
     expect(removeBtn.type).toBe('button');
     expect(removeBtn.getAttribute('aria-label')).toBe('Retirer oats');
     removeBtn.focus();

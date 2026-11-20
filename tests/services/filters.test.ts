@@ -1154,7 +1154,9 @@ describe('Filters', () => {
         vi.advanceTimersByTime(300);
 
         expect(onFilterChange).not.toHaveBeenCalled();
-        expect(() => filters.cancelScheduledSearch()).not.toThrow();
+        expect(() => {
+          filters.cancelScheduledSearch();
+        }).not.toThrow();
       });
     });
 

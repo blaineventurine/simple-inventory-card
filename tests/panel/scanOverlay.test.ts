@@ -277,7 +277,9 @@ describe('ScanOverlay', () => {
   it('a read code leaves the focus to its receiver, not the scan button', async () => {
     const field = document.createElement('input');
     document.body.append(field);
-    onCode.mockImplementation(() => field.focus());
+    onCode.mockImplementation(() => {
+      field.focus();
+    });
     overlay.open();
     await vi.advanceTimersByTimeAsync(0);
 

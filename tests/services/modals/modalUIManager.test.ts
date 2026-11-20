@@ -154,7 +154,7 @@ describe('ModalUIManager', () => {
     }) as unknown as HTMLElement;
 
   // Helper function to create mock input element
-  const createMockInput = (value: string = ''): HTMLInputElement =>
+  const createMockInput = (value = ''): HTMLInputElement =>
     ({
       value,
       disabled: false,
@@ -232,7 +232,9 @@ describe('ModalUIManager', () => {
     });
 
     it('should handle missing add modal element', () => {
-      expect(() => modalUIManager.closeAddModal()).not.toThrow();
+      expect(() => {
+        modalUIManager.closeAddModal();
+      }).not.toThrow();
     });
   });
 
@@ -370,7 +372,9 @@ describe('ModalUIManager', () => {
     });
 
     it('should handle missing edit modal element', () => {
-      expect(() => modalUIManager.closeEditModal()).not.toThrow();
+      expect(() => {
+        modalUIManager.closeEditModal();
+      }).not.toThrow();
     });
   });
 
@@ -603,9 +607,9 @@ describe('ModalUIManager', () => {
     });
 
     it('should handle missing expiry input', () => {
-      expect(() =>
-        modalUIManager['setupExpiryThresholdFieldForModal'](true, mockTranslations),
-      ).not.toThrow();
+      expect(() => {
+        modalUIManager['setupExpiryThresholdFieldForModal'](true, mockTranslations);
+      }).not.toThrow();
     });
   });
 
@@ -668,9 +672,9 @@ describe('ModalUIManager', () => {
     });
 
     it('should handle missing elements', () => {
-      expect(() =>
-        modalUIManager['updateExpiryThresholdState'](true, mockTranslations),
-      ).not.toThrow();
+      expect(() => {
+        modalUIManager['updateExpiryThresholdState'](true, mockTranslations);
+      }).not.toThrow();
     });
   });
 
@@ -797,7 +801,9 @@ describe('ModalUIManager', () => {
     it('should handle destroy when no handler exists', () => {
       modalUIManager['boundEscHandler'] = undefined;
 
-      expect(() => modalUIManager.destroy()).not.toThrow();
+      expect(() => {
+        modalUIManager.destroy();
+      }).not.toThrow();
     });
   });
 

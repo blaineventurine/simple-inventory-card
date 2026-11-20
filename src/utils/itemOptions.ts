@@ -8,7 +8,9 @@ export interface ItemOptions {
 function addTrimmed(target: Set<string>, values: readonly (string | undefined)[]): void {
   values.forEach((value) => {
     const trimmed = value?.trim();
-    if (trimmed) target.add(trimmed);
+    if (trimmed) {
+      target.add(trimmed);
+    }
   });
 }
 

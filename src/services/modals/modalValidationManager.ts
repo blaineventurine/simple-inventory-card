@@ -68,7 +68,7 @@ export class ModalValidationManager {
   /**
    * Shows validation error message in the modal
    */
-  showError(message: string, isAddModal: boolean = true): void {
+  showError(message: string, isAddModal = true): void {
     const prefix = isAddModal ? 'add' : 'edit';
     const validationMessage = this.getElement<HTMLElement>(`${prefix}-validation-message`);
     const validationText = validationMessage?.querySelector('.validation-text');
@@ -95,7 +95,7 @@ export class ModalValidationManager {
   /**
    * Clears validation error message from the modal
    */
-  clearError(isAddModal: boolean = true): void {
+  clearError(isAddModal = true): void {
     const prefix = isAddModal ? 'add' : 'edit';
     const validationMessage = this.getElement<HTMLElement>(`${prefix}-validation-message`);
 

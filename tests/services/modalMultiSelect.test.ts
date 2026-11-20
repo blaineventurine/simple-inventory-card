@@ -72,7 +72,9 @@ function checkboxFor(container: HTMLElement, value: string): HTMLInputElement {
     container.querySelectorAll<HTMLInputElement>('input[type="checkbox"]'),
   );
   const match = checkboxes.find((cb) => cb.value === value);
-  if (!match) throw new Error(`checkbox for "${value}" not found`);
+  if (!match) {
+    throw new Error(`checkbox for "${value}" not found`);
+  }
   return match;
 }
 
@@ -85,9 +87,9 @@ describe('modalMultiSelect', () => {
       });
       const root = container as unknown as ShadowRoot;
 
-      expect(() =>
-        initializeModalMultiSelect({ id: 'missing', options: ['a'], shadowRoot: root }),
-      ).not.toThrow();
+      expect(() => {
+        initializeModalMultiSelect({ id: 'missing', options: ['a'], shadowRoot: root });
+      }).not.toThrow();
     });
   });
 
@@ -95,9 +97,9 @@ describe('modalMultiSelect', () => {
     it('does not throw and skips chip rendering/removal wiring when the chips container is absent', () => {
       const { root, container } = createShadowRoot('ms', { omit: ['chips'] });
 
-      expect(() =>
-        initializeModalMultiSelect({ id: 'ms', options: ['Alpha', 'Beta'], shadowRoot: root }),
-      ).not.toThrow();
+      expect(() => {
+        initializeModalMultiSelect({ id: 'ms', options: ['Alpha', 'Beta'], shadowRoot: root });
+      }).not.toThrow();
 
       const hiddenInput = container.querySelector('#ms') as HTMLInputElement;
       const alphaCheckbox = checkboxFor(container, 'Alpha');
@@ -139,9 +141,9 @@ describe('modalMultiSelect', () => {
     it('skips add-button wiring when the add button is absent', () => {
       const { root, container } = createShadowRoot('ms', { omit: ['addBtn'] });
 
-      expect(() =>
-        initializeModalMultiSelect({ id: 'ms', options: ['Alpha'], shadowRoot: root }),
-      ).not.toThrow();
+      expect(() => {
+        initializeModalMultiSelect({ id: 'ms', options: ['Alpha'], shadowRoot: root });
+      }).not.toThrow();
       expect(container.querySelector('#ms-add-btn')).toBeNull();
 
       // Enter in the new-option input still works independently of the button.

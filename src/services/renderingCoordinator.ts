@@ -23,7 +23,7 @@ export class RenderingCoordinator {
   /** Full render of the card from `context`. */
   render(
     context: CardContext,
-    todoLists: Array<{ id: string; name: string }>,
+    todoLists: { id: string; name: string }[],
     validateItemsCallback: (items: InventoryItem[]) => InventoryItem[],
   ): void {
     const { config, hass, translations, items } = context;
@@ -111,7 +111,7 @@ export class RenderingCoordinator {
     context: CardContext,
     items: InventoryItem[],
     sortMethod: string,
-    todoLists: Array<{ id: string; name: string }>,
+    todoLists: { id: string; name: string }[],
   ): void {
     if (!this.renderRoot) {
       return;

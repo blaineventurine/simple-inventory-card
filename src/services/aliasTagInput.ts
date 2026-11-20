@@ -57,7 +57,9 @@ function addAliasChip(
   translations: TranslationData,
 ): boolean {
   const current = getAliases(hiddenInput);
-  if (current.includes(value)) return false;
+  if (current.includes(value)) {
+    return false;
+  }
 
   current.push(value);
   updateHiddenInput(hiddenInput, current);
@@ -76,7 +78,7 @@ export function initializeAliasTagInput(
   const visibleInput = shadowRoot.getElementById(
     `${prefix}-${ELEMENTS.ALIASES}-input`,
   ) as HTMLInputElement | null;
-  const chipsContainer = shadowRoot.getElementById(`${prefix}-alias-chips`) as HTMLElement | null;
+  const chipsContainer = shadowRoot.getElementById(`${prefix}-alias-chips`);
 
   if (!hiddenInput || !visibleInput || !chipsContainer) {
     return;
@@ -96,11 +98,15 @@ export function initializeAliasTagInput(
     if (e.key === 'Enter') {
       e.preventDefault();
       const value = visibleInput.value.trim();
-      if (!value) return;
+      if (!value) {
+        return;
+      }
 
       for (const part of value.split(',')) {
         const alias = part.trim();
-        if (alias) addAliasChip(alias, hiddenInput, chipsContainer, translations);
+        if (alias) {
+          addAliasChip(alias, hiddenInput, chipsContainer, translations);
+        }
       }
       visibleInput.value = '';
     }

@@ -65,7 +65,9 @@ describe('initializeIconField', () => {
   });
 
   it('does nothing without the field or for the icon picker', () => {
-    expect(() => initializeIconField(renderIconField('add', ''), 'add')).not.toThrow();
+    expect(() => {
+      initializeIconField(renderIconField('add', ''), 'add');
+    }).not.toThrow();
 
     const pickerRoot = renderIconField('add', '<ha-icon-picker id="add-icon"></ha-icon-picker>');
     initializeIconField(pickerRoot, 'add');

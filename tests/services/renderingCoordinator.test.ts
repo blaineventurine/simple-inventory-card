@@ -23,7 +23,7 @@ describe('RenderingCoordinator', () => {
   let mockRenderRoot: ShadowRoot;
   let mockHass: HomeAssistant;
   let mockConfig: InventoryConfig;
-  let mockTodoLists: Array<{ id: string; name: string }>;
+  let mockTodoLists: { id: string; name: string }[];
   let mockValidateItemsCallback: (items: InventoryItem[]) => InventoryItem[];
   let mockTranslations: TranslationData;
 

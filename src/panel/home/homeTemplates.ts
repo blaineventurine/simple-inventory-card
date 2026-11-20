@@ -121,7 +121,7 @@ function sectionRows(
   overview: Overview,
   section: HomeSection,
   translations: TranslationData,
-): Array<{ entry: OverviewEntry<unknown>; reason: SecondaryPart[] }> {
+): { entry: OverviewEntry<unknown>; reason: SecondaryPart[] }[] {
   switch (section) {
     case 'expired':
       return overview.expired.map((entry) => ({

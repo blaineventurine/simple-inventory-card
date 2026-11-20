@@ -6,10 +6,10 @@ import { TranslationData } from '@/types/translatableComponent';
 // in private static members with no public reset API. Tests need to clear
 // this module-level state between runs, so we reach into it via a narrow,
 // explicitly-typed view of the private internals rather than a bare `any`.
-type TranslationManagerInternals = {
+interface TranslationManagerInternals {
   _cache: Map<string, TranslationData>;
   _loadingPromises: Map<string, Promise<TranslationData>>;
-};
+}
 const internals = TranslationManager as unknown as TranslationManagerInternals;
 
 function mockResponse(ok: boolean, json?: unknown, status = 200): Response {

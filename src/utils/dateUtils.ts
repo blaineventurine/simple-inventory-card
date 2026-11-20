@@ -42,7 +42,7 @@ export const DateUtils = {
     return days !== null && days < 0;
   },
 
-  isExpiringSoon(expiryDate: string, threshold: number = 7): boolean {
+  isExpiringSoon(expiryDate: string, threshold = 7): boolean {
     const days = DateUtils.daysUntilExpiry(expiryDate);
     return days !== null && days >= 0 && days <= threshold;
   },

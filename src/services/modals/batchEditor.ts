@@ -361,7 +361,9 @@ export class BatchEditor {
   private watchMergeInputs(container: HTMLElement): void {
     // The item's price and locations are the defaults of a blank price / location (D4).
     const scope = container.closest(`#${ELEMENTS.EDIT_MODAL}`) ?? container;
-    const update = (): void => this.updateMergeNotes();
+    const update = (): void => {
+      this.updateMergeNotes();
+    };
     scope.addEventListener('input', update);
     scope.addEventListener('change', update);
     this.stopWatching = () => {

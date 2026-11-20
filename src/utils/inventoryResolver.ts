@@ -46,7 +46,7 @@ export const InventoryResolver = {
     return parts.length > 1 ? parts[1] : entityId;
   },
 
-  extractTodoLists(hass: HomeAssistant): Array<{ id: string; name: string }> {
+  extractTodoLists(hass: HomeAssistant): { id: string; name: string }[] {
     return Object.keys(hass.states)
       .filter((entityId) => entityId.startsWith('todo.'))
       .map((entityId) => ({

@@ -20,7 +20,7 @@ describe('ModalFormManager', () => {
     vi.clearAllMocks();
   });
 
-  const createMockInput = (value: string = '', checked: boolean = false): HTMLInputElement =>
+  const createMockInput = (value = '', checked = false): HTMLInputElement =>
     ({
       value,
       checked,
@@ -415,7 +415,9 @@ describe('ModalFormManager', () => {
         unit: 'pieces',
       };
 
-      expect(() => modalFormManager.populateEditModal(item)).not.toThrow();
+      expect(() => {
+        modalFormManager.populateEditModal(item);
+      }).not.toThrow();
     });
 
     it('should handle partial item data', () => {
@@ -576,13 +578,17 @@ describe('ModalFormManager', () => {
     it('should handle missing form elements gracefully', () => {
       mockElements.clear();
 
-      expect(() => modalFormManager.clearAddModalForm()).not.toThrow();
+      expect(() => {
+        modalFormManager.clearAddModalForm();
+      }).not.toThrow();
     });
 
     it('should handle missing checkbox element', () => {
       mockElements.delete(`add-${ELEMENTS.AUTO_ADD_ENABLED}`);
 
-      expect(() => modalFormManager.clearAddModalForm()).not.toThrow();
+      expect(() => {
+        modalFormManager.clearAddModalForm();
+      }).not.toThrow();
     });
   });
 

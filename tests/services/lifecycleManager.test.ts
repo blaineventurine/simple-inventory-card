@@ -482,7 +482,9 @@ describe('LifecycleManager', () => {
     });
 
     it('should handle cleanup when services is null', () => {
-      expect(() => lifecycleManager.cleanup()).not.toThrow();
+      expect(() => {
+        lifecycleManager.cleanup();
+      }).not.toThrow();
     });
 
     it('should handle missing service methods gracefully', () => {
@@ -493,7 +495,9 @@ describe('LifecycleManager', () => {
       must(lifecycleManager['services']).state = null as any;
       must(lifecycleManager['services']).modals = null as any;
 
-      expect(() => lifecycleManager.cleanup()).not.toThrow();
+      expect(() => {
+        lifecycleManager.cleanup();
+      }).not.toThrow();
     });
 
     it('should reset instance state after cleanup', () => {

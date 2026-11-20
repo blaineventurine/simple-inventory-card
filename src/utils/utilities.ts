@@ -2,9 +2,7 @@ import { DEFAULTS } from './constants';
 import { InventoryItem } from '../types/inventory';
 import { FilterState } from '../types/filterState';
 
-interface InputValues {
-  [id: string]: string | boolean | number;
-}
+type InputValues = Record<string, string | boolean | number>;
 
 export const Utilities = {
   /**

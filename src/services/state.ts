@@ -30,7 +30,9 @@ export class State {
 
     const prev = this._lastEntityState;
     this._lastEntityState = currentState;
-    if (!prev) return true;
+    if (!prev) {
+      return true;
+    }
 
     return (
       prev.last_changed !== currentState.last_changed ||

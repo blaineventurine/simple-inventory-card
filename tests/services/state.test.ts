@@ -8,7 +8,7 @@ describe('State', () => {
   let state: State;
   let mockHass: HomeAssistant;
   let mockShadowRoot: ShadowRoot;
-  let mockInputs: Array<{ addEventListener: ReturnType<typeof vi.fn> }>;
+  let mockInputs: { addEventListener: ReturnType<typeof vi.fn> }[];
 
   beforeEach(() => {
     vi.useFakeTimers();

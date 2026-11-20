@@ -94,11 +94,21 @@ export class ItemRowActions {
       };
 
     return {
-      [ACTIONS.TOGGLE_BATCHES]: flip((control, itemName) => this.toggleDetails(control, itemName)),
-      [ACTIONS.OPEN_RESTOCK]: flip((control) => this.setRestockFormOpen(control, true)),
-      [ACTIONS.CANCEL_RESTOCK]: flip((control) => this.setRestockFormOpen(control, false)),
-      [ACTIONS.OPEN_MOVE]: flip((control) => this.setMoveFormOpen(control, true)),
-      [ACTIONS.CANCEL_MOVE]: flip((control) => this.setMoveFormOpen(control, false)),
+      [ACTIONS.TOGGLE_BATCHES]: flip((control, itemName) => {
+        this.toggleDetails(control, itemName);
+      }),
+      [ACTIONS.OPEN_RESTOCK]: flip((control) => {
+        this.setRestockFormOpen(control, true);
+      }),
+      [ACTIONS.CANCEL_RESTOCK]: flip((control) => {
+        this.setRestockFormOpen(control, false);
+      }),
+      [ACTIONS.OPEN_MOVE]: flip((control) => {
+        this.setMoveFormOpen(control, true);
+      }),
+      [ACTIONS.CANCEL_MOVE]: flip((control) => {
+        this.setMoveFormOpen(control, false);
+      }),
       [ACTIONS.VIEW_IMAGE]: flip((control, itemName) => itemActions.viewImage(itemName, control)),
       [ACTIONS.INCREMENT]: busy((_control, itemName) => itemActions.increment(itemName)),
       [ACTIONS.DECREMENT]: busy((_control, itemName) => itemActions.decrement(itemName)),

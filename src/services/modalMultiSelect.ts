@@ -10,7 +10,9 @@ export function initializeModalMultiSelect(config: ModalMultiSelectInitConfig): 
   const addBtn = root.getElementById(`${config.id}-add-btn`) as HTMLElement;
   const chipsContainer = root.getElementById(`${config.id}-chips`) as HTMLElement;
 
-  if (!hiddenInput || !trigger || !dropdown || !optionsContainer) return;
+  if (!hiddenInput || !trigger || !dropdown || !optionsContainer) {
+    return;
+  }
 
   let isOpen = false;
   const allOptions = new Set(config.options);
@@ -28,7 +30,9 @@ export function initializeModalMultiSelect(config: ModalMultiSelectInitConfig): 
   // Parse initial value from hidden input
   function getSelected(): string[] {
     const val = hiddenInput.value.trim();
-    if (!val) return [];
+    if (!val) {
+      return [];
+    }
     return val
       .split(',')
       .map((s) => s.trim())
@@ -42,17 +46,23 @@ export function initializeModalMultiSelect(config: ModalMultiSelectInitConfig): 
   }
 
   function renderChips(): void {
-    if (!chipsContainer) return;
+    if (!chipsContainer) {
+      return;
+    }
     const selected = getSelected();
     const label = trigger.querySelector('.modal-multi-select-label') as HTMLElement;
 
     if (selected.length === 0) {
       chipsContainer.innerHTML = '';
-      if (label) label.hidden = false;
+      if (label) {
+        label.hidden = false;
+      }
       return;
     }
 
-    if (label) label.hidden = true;
+    if (label) {
+      label.hidden = true;
+    }
     chipsContainer.innerHTML = '';
     for (const value of selected) {
       const chip = document.createElement('span');
@@ -140,7 +150,9 @@ export function initializeModalMultiSelect(config: ModalMultiSelectInitConfig): 
   // Handle checkbox changes
   optionsContainer.addEventListener('change', (e) => {
     const target = e.target as HTMLInputElement;
-    if (target.type !== 'checkbox') return;
+    if (target.type !== 'checkbox') {
+      return;
+    }
 
     const selected = getSelected();
     if (target.checked) {
@@ -149,7 +161,9 @@ export function initializeModalMultiSelect(config: ModalMultiSelectInitConfig): 
       }
     } else {
       const idx = selected.indexOf(target.value);
-      if (idx >= 0) selected.splice(idx, 1);
+      if (idx >= 0) {
+        selected.splice(idx, 1);
+      }
     }
     updateHiddenInput(selected);
     renderChips();
@@ -162,9 +176,13 @@ export function initializeModalMultiSelect(config: ModalMultiSelectInitConfig): 
 
   // Add new option
   function addNewOption(): void {
-    if (!newInput) return;
+    if (!newInput) {
+      return;
+    }
     const val = newInput.value.trim();
-    if (!val) return;
+    if (!val) {
+      return;
+    }
 
     allOptions.add(val);
     const selected = getSelected();

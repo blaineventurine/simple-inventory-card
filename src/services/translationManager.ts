@@ -1,8 +1,8 @@
 import { TranslationData } from '@/types/translatableComponent';
 
 export class TranslationManager {
-  private static _cache: Map<string, TranslationData> = new Map();
-  private static _loadingPromises: Map<string, Promise<TranslationData>> = new Map();
+  private static _cache = new Map<string, TranslationData>();
+  private static _loadingPromises = new Map<string, Promise<TranslationData>>();
   private static _cardName = 'simple-inventory-card';
 
   static async loadTranslations(language: string): Promise<TranslationData> {

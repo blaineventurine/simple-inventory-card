@@ -273,17 +273,23 @@ export class InventoryStore {
    */
   async fetch(background = false): Promise<void> {
     const hass = this._hass;
-    if (!hass || !this.entityId) return;
+    if (!hass || !this.entityId) {
+      return;
+    }
     if (this._paused) {
       this.resumeRefresh = true;
       return;
     }
-    if (this.deferIfBlocked(background ? 'background' : 'page')) return;
+    if (this.deferIfBlocked(background ? 'background' : 'page')) {
+      return;
+    }
     // This refresh supersedes any held work; a render deferred below holds it again.
     this.pending = 'none';
     this.heldPush = undefined;
     const inventoryId = InventoryResolver.getInventoryId(hass, this.entityId);
-    if (!inventoryId) return;
+    if (!inventoryId) {
+      return;
+    }
     try {
       this._items = await this.services.getItems(inventoryId);
       this._loaded = true;
@@ -303,7 +309,9 @@ export class InventoryStore {
       }
     }
     // The user may have opened a form while the items were loading.
-    if (background && this.deferIfBlocked('background')) return;
+    if (background && this.deferIfBlocked('background')) {
+      return;
+    }
     this.render();
   }
 

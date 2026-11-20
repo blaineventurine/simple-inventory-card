@@ -53,7 +53,9 @@ export class SearchMode {
   }
 
   start(): void {
-    this.stopListening = this.deps.listen(() => this.schedule());
+    this.stopListening = this.deps.listen(() => {
+      this.schedule();
+    });
     this.setQuery(this._query);
   }
 

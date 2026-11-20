@@ -67,7 +67,9 @@ const ITEM_FROM_TAB = 'simpleInventoryItemFrom';
 
 /** A string field of an event's or history entry's object, if it has one. */
 function stringField(source: unknown, field: string): string | undefined {
-  if (source === null || typeof source !== 'object') return undefined;
+  if (source === null || typeof source !== 'object') {
+    return undefined;
+  }
   const value: unknown = Reflect.get(source, field);
   return typeof value === 'string' && value !== '' ? value : undefined;
 }
@@ -143,14 +145,26 @@ export class SimpleInventoryPanel extends LitElement {
       host: overlay,
       getTranslations: () => this._translations,
       getHass: () => this._hass,
-      onCode: (code) => this._scanned(code),
+      onCode: (code) => {
+        this._scanned(code);
+      },
       returnFocus: () => this._chrome.querySelector<HTMLElement>('.search-scan-btn'),
     });
-    root.addEventListener('click', (event) => this._onClick(event));
-    root.addEventListener('keydown', (event) => this._onKeydown(event));
-    root.addEventListener('input', (event) => this._onInput(event));
-    root.addEventListener(ITEM_EVENTS.OPEN, (event) => this._openItemPage(event));
-    root.addEventListener(ITEM_EVENTS.CLOSE, (event) => this._closeItemPage(event));
+    root.addEventListener('click', (event) => {
+      this._onClick(event);
+    });
+    root.addEventListener('keydown', (event) => {
+      this._onKeydown(event);
+    });
+    root.addEventListener('input', (event) => {
+      this._onInput(event);
+    });
+    root.addEventListener(ITEM_EVENTS.OPEN, (event) => {
+      this._openItemPage(event);
+    });
+    root.addEventListener(ITEM_EVENTS.CLOSE, (event) => {
+      this._closeItemPage(event);
+    });
     this._render();
   }
 
@@ -231,7 +245,9 @@ export class SimpleInventoryPanel extends LitElement {
 
   private async _load(): Promise<void> {
     const hass = this._hass;
-    if (!hass) return;
+    if (!hass) {
+      return;
+    }
     if (this._result?.status !== 'ok') {
       this._result = undefined;
       this._render();
@@ -267,7 +283,9 @@ export class SimpleInventoryPanel extends LitElement {
   /** The item id of an item page route, else undefined. */
   private _itemId(): string | undefined {
     const [, segment, id] = this._route.path.replace(/^\//, '').split('/');
-    if (segment !== ITEM_SEGMENT || !id) return undefined;
+    if (segment !== ITEM_SEGMENT || !id) {
+      return undefined;
+    }
     try {
       return decodeURIComponent(id);
     } catch {
@@ -346,7 +364,9 @@ export class SimpleInventoryPanel extends LitElement {
     }
     if (!active) {
       // A panel HA already removed must not pull the user back to it.
-      if (this.isConnected) this._navigate(home ? HOME_ID : result.inventories[0].id, true);
+      if (this.isConnected) {
+        this._navigate(home ? HOME_ID : result.inventories[0].id, true);
+      }
       return false;
     }
 
@@ -402,7 +422,9 @@ export class SimpleInventoryPanel extends LitElement {
   private _renderHome(): void {
     this._showView(HOME_ID);
     // Never start a session while detached (a load answered after HA removed the panel).
-    if (!this._homeMode && !this.isConnected) return;
+    if (!this._homeMode && !this.isConnected) {
+      return;
+    }
     this._homeMode ??= this._startHome();
     this._renderHomeView();
   }
@@ -411,7 +433,9 @@ export class SimpleInventoryPanel extends LitElement {
     const home = new HomeMode({
       fetch: () => fetchOverview(this._currentHass()),
       listen: (onUpdate) => this._updates.listen(onUpdate),
-      onChange: () => this._renderHomeView(),
+      onChange: () => {
+        this._renderHomeView();
+      },
     });
     this._homeMode = home;
     home.start();
@@ -420,7 +444,9 @@ export class SimpleInventoryPanel extends LitElement {
 
   /** Stops the Home session (its re-fetches; expanded sections are forgotten). */
   private _leaveHome(): void {
-    if (!this._homeMode) return;
+    if (!this._homeMode) {
+      return;
+    }
     this._homeMode.stop();
     this._homeMode = undefined;
     this._home.innerHTML = '';
@@ -428,7 +454,9 @@ export class SimpleInventoryPanel extends LitElement {
 
   private _renderHomeView(): void {
     const home = this._homeMode;
-    if (!home) return;
+    if (!home) {
+      return;
+    }
     const images = this._hasFeature(BACKEND_FEATURES.ITEM_IMAGES) ? this._images : undefined;
     this._home.innerHTML = homeView(this._translations, home.state, {
       expanded: home.expanded,
@@ -451,7 +479,9 @@ export class SimpleInventoryPanel extends LitElement {
   private _renderSearch(inventories: InventorySummary[], narrow: boolean): void {
     // A deep link (or back to the results) starts a session with the URL's query; never while
     // detached (a load answered after HA removed the panel).
-    if (!this._search && !this.isConnected) return;
+    if (!this._search && !this.isConnected) {
+      return;
+    }
     const search =
       this._search ?? this._startSearch(new URLSearchParams(location.search).get('q') ?? '');
     const focused = this._searchField()?.matches(':focus') === true;
@@ -478,7 +508,9 @@ export class SimpleInventoryPanel extends LitElement {
       query,
       search: (text) => searchItems(this._currentHass(), text),
       listen: (onUpdate) => this._updates.listen(onUpdate),
-      onChange: () => this._renderResults(),
+      onChange: () => {
+        this._renderResults();
+      },
     });
     this._search = search;
     search.start();
@@ -488,14 +520,18 @@ export class SimpleInventoryPanel extends LitElement {
   /** Stops the search session (its timers, its share of the updates) and the scanner. */
   private _leaveSearch(): void {
     this._scan.close();
-    if (!this._search) return;
+    if (!this._search) {
+      return;
+    }
     this._search.stop();
     this._search = undefined;
   }
 
   private _renderResults(): void {
     const search = this._search;
-    if (!search) return;
+    if (!search) {
+      return;
+    }
     const images = this._hasFeature(BACKEND_FEATURES.ITEM_IMAGES) ? this._images : undefined;
     this._state.innerHTML = searchResults(this._translations, search.state, images);
     if (images) {
@@ -545,7 +581,9 @@ export class SimpleInventoryPanel extends LitElement {
   /** Typing in the search field. */
   private _onInput(event: Event): void {
     const field = event.target;
-    if (!(field instanceof HTMLInputElement) || !field.matches('.search-field')) return;
+    if (!(field instanceof HTMLInputElement) || !field.matches('.search-field')) {
+      return;
+    }
     this._setQuery(field.value);
   }
 
@@ -573,7 +611,9 @@ export class SimpleInventoryPanel extends LitElement {
   private _stepResult(control: HTMLElement): void {
     const inventoryId = control.closest<HTMLElement>('.search-result')?.dataset.inventory;
     const name = control.dataset.name;
-    if (!inventoryId || !name || control.hasAttribute('data-processing')) return;
+    if (!inventoryId || !name || control.hasAttribute('data-processing')) {
+      return;
+    }
     const increment = control.dataset.action === 'increment';
     // A failed call needs nothing more: HA's frontend toasts it; the live re-query shows the rest.
     void withBusy(control, () =>
@@ -602,7 +642,9 @@ export class SimpleInventoryPanel extends LitElement {
     for (const [id, { card }] of this._cards) {
       const hidden = id !== activeId;
       // Only real changes: the card reacts to its `hidden` attribute (camera, Escape).
-      if (card.hidden !== hidden) card.hidden = hidden;
+      if (card.hidden !== hidden) {
+        card.hidden = hidden;
+      }
     }
   }
 
@@ -624,7 +666,9 @@ export class SimpleInventoryPanel extends LitElement {
     const detail: unknown = event instanceof CustomEvent ? event.detail : undefined;
     const inventoryId = stringField(detail, 'inventory_id');
     const itemId = stringField(detail, 'item_id');
-    if (!inventoryId || !itemId) return;
+    if (!inventoryId || !itemId) {
+      return;
+    }
     this._navigate(`${inventoryId}/${ITEM_SEGMENT}/${encodeURIComponent(itemId)}`, false, {
       [ITEM_FROM_TAB]: inventoryId,
     });
@@ -637,7 +681,9 @@ export class SimpleInventoryPanel extends LitElement {
   private _closeItemPage(event: Event): void {
     const detail: unknown = event instanceof CustomEvent ? event.detail : undefined;
     const inventoryId = stringField(detail, 'inventory_id');
-    if (!inventoryId) return;
+    if (!inventoryId) {
+      return;
+    }
     if (stringField(history.state, ITEM_FROM_TAB) === inventoryId) {
       history.back();
     } else {
@@ -646,7 +692,9 @@ export class SimpleInventoryPanel extends LitElement {
   }
 
   private _onClick(event: Event): void {
-    if (!(event.target instanceof Element)) return;
+    if (!(event.target instanceof Element)) {
+      return;
+    }
     const tab = event.target.closest<HTMLElement>('.tab');
     const open = this._openTarget(event.target);
     const step = event.target.closest<HTMLElement>('.search-result .control-btn');
@@ -686,7 +734,9 @@ export class SimpleInventoryPanel extends LitElement {
   }
 
   private _onKeydown(event: Event): void {
-    if (!(event instanceof KeyboardEvent) || !(event.target instanceof Element)) return;
+    if (!(event instanceof KeyboardEvent) || !(event.target instanceof Element)) {
+      return;
+    }
     if (event.key === 'Escape' && this._scan.isOpen) {
       event.preventDefault();
       this._scan.close();
@@ -704,7 +754,9 @@ export class SimpleInventoryPanel extends LitElement {
       return;
     }
     const move = TAB_KEYS[event.key];
-    if (!move || !event.target.closest('.tab')) return;
+    if (!move || !event.target.closest('.tab')) {
+      return;
+    }
     const ids = this._tabIds();
     const index = ids.indexOf(this._activeId());
     const next = ids.at(move(index, ids.length));

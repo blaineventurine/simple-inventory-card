@@ -189,9 +189,9 @@ export class EventHandler {
     this.boundInputHandler = (event: Event) => {
       const target = event.target;
       if (target instanceof HTMLInputElement && target.id === ELEMENTS.SEARCH_INPUT) {
-        this.filters.scheduleSearch(this.getContext().config.entity, target.value, () =>
-          this.handleSearchChange(),
-        );
+        this.filters.scheduleSearch(this.getContext().config.entity, target.value, () => {
+          this.handleSearchChange();
+        });
       }
     };
 
@@ -350,7 +350,9 @@ export class EventHandler {
   private handleSearchChange(): void {
     const { hass, config } = this.getContext();
     const state = hass.states[config.entity];
-    if (!state) return;
+    if (!state) {
+      return;
+    }
 
     this.applyFiltersWithoutRender();
     this.filters.updateFilterIndicators(
@@ -361,8 +363,12 @@ export class EventHandler {
 
   private headerActions(): ActionGroup<HeaderAction> {
     return {
-      [ACTIONS.OPEN_ADD_MODAL]: () => this.openAddModal(),
-      [ACTIONS.TOGGLE_OVERFLOW_MENU]: () => this.toggleOverflowMenu(),
+      [ACTIONS.OPEN_ADD_MODAL]: () => {
+        this.openAddModal();
+      },
+      [ACTIONS.TOGGLE_OVERFLOW_MENU]: () => {
+        this.toggleOverflowMenu();
+      },
       [ACTIONS.EXPORT_INVENTORY]: async () => {
         this.closeOverflowMenu();
         await this.importExportHandler.handleExport();
@@ -376,24 +382,38 @@ export class EventHandler {
           this.applyExpiryBadgeFilter(control.dataset.expiry);
         }
       },
-      [ACTIONS.TOGGLE_ADVANCED_FILTERS]: () => this.toggleAdvancedFilters(),
-      [ACTIONS.CLEAR_FILTERS]: () => this.clearFilters(),
+      [ACTIONS.TOGGLE_ADVANCED_FILTERS]: () => {
+        this.toggleAdvancedFilters();
+      },
+      [ACTIONS.CLEAR_FILTERS]: () => {
+        this.clearFilters();
+      },
       [ACTIONS.REMOVE_FILTER]: (control) => {
         if (control.dataset.filterRemove) {
           this.removeFilter(control.dataset.filterRemove);
         }
       },
-      [ACTIONS.TOGGLE_FILTER_DROPDOWN]: (control) => this.toggleMultiSelectDropdown(control),
-      [ACTIONS.TOGGLE_LAYOUT]: (control) => this.toggleLayout(control),
-      [ACTIONS.DETAIL_BACK]: (control) => this.closeItemPage(control),
-      [ACTIONS.OPEN_ITEM]: (control) => this.openItemPage(control),
+      [ACTIONS.TOGGLE_FILTER_DROPDOWN]: (control) => {
+        this.toggleMultiSelectDropdown(control);
+      },
+      [ACTIONS.TOGGLE_LAYOUT]: (control) => {
+        this.toggleLayout(control);
+      },
+      [ACTIONS.DETAIL_BACK]: (control) => {
+        this.closeItemPage(control);
+      },
+      [ACTIONS.OPEN_ITEM]: (control) => {
+        this.openItemPage(control);
+      },
     };
   }
 
   private scanActions(): ActionGroup<ScanAction> {
     return {
       [ACTIONS.OPEN_SCAN]: () => this.scanHandler.showScanPanel(),
-      [ACTIONS.CLOSE_SCAN]: () => this.scanHandler.hideScanPanel(),
+      [ACTIONS.CLOSE_SCAN]: () => {
+        this.scanHandler.hideScanPanel();
+      },
       [ACTIONS.SCAN_CHOOSE_PHOTO]: () => this.scanHandler.choosePhoto(),
       [ACTIONS.SCAN_GO]: () => this.scanHandler.handleScanGo(),
       [ACTIONS.SCAN_ADD_ITEM]: () => this.handleScanAddItem(),
@@ -402,8 +422,12 @@ export class EventHandler {
 
   private sheetActions(): ActionGroup<SheetAction> {
     return {
-      [ACTIONS.CLOSE_ADD_MODAL]: () => this.modals.closeAddModal(),
-      [ACTIONS.CLOSE_EDIT_MODAL]: () => this.modals.closeEditModal(),
+      [ACTIONS.CLOSE_ADD_MODAL]: () => {
+        this.modals.closeAddModal();
+      },
+      [ACTIONS.CLOSE_EDIT_MODAL]: () => {
+        this.modals.closeEditModal();
+      },
       [ACTIONS.ADD_ITEM]: (control) => withBusy(control, () => this.handleAddItem()),
       [ACTIONS.ADD_AS_BATCH]: async (control) => {
         control.setAttribute('data-processing', 'true');
@@ -423,7 +447,9 @@ export class EventHandler {
 
   private batchEditorActions(): ActionGroup<BatchEditorAction> {
     return {
-      [ACTIONS.ADD_BATCH_ROW]: () => this.modals.addBatchRow(),
+      [ACTIONS.ADD_BATCH_ROW]: () => {
+        this.modals.addBatchRow();
+      },
       [ACTIONS.DISCARD_BATCH_ROW]: (control) => {
         if (control.dataset.batchDiscard) {
           this.modals.discardBatchRow(control.dataset.batchDiscard);
@@ -628,7 +654,9 @@ export class EventHandler {
    */
   private openItemPage(control: HTMLElement): void {
     const { name, itemId } = control.dataset;
-    if (!name) return;
+    if (!name) {
+      return;
+    }
     if (!itemId || !this.renderRoot.host.hasAttribute('embedded')) {
       this.itemActions.openEdit(name);
       return;
@@ -648,14 +676,18 @@ export class EventHandler {
 
   private async handleEditModalHistory(): Promise<void> {
     const itemName = this.modals.getCurrentEditingItem();
-    if (!itemName) return;
+    if (!itemName) {
+      return;
+    }
     this.modals.closeEditModal();
     await this.historyHandler.showItemHistory(itemName);
   }
 
   private async handleEditModalDelete(): Promise<void> {
     const itemName = this.modals.getCurrentEditingItem();
-    if (!itemName) return;
+    if (!itemName) {
+      return;
+    }
     const confirmMessage = TranslationManager.localize(
       this.getContext().translations,
       'actions.confirm_remove',
@@ -677,7 +709,9 @@ export class EventHandler {
 
   private toggleOverflowMenu(): void {
     const menu = this.renderRoot.getElementById(ELEMENTS.OVERFLOW_MENU);
-    if (!menu) return;
+    if (!menu) {
+      return;
+    }
     const isVisible = !menu.hidden;
     this.setOverflowMenuOpen(menu, !isVisible);
     if (!isVisible) {
@@ -712,9 +746,9 @@ export class EventHandler {
   /** Opens the add sheet with the inventory's locations and categories and barcode lookups. */
   private openAddModal(): void {
     const { locations, categories } = itemOptions(this.getContext().items);
-    this.modals.openAddModal(this.getContext().translations, locations, categories, (barcode) =>
-      this.barcodeProductHandler.handleBarcodeProductLookup(barcode),
-    );
+    this.modals.openAddModal(this.getContext().translations, locations, categories, (barcode) => {
+      this.barcodeProductHandler.handleBarcodeProductLookup(barcode);
+    });
   }
 
   private async handleScanAddItem(): Promise<void> {
@@ -727,9 +761,7 @@ export class EventHandler {
         const hiddenInput = this.renderRoot.getElementById(
           `add-${ELEMENTS.BARCODE}`,
         ) as HTMLInputElement | null;
-        const chipsContainer = this.renderRoot.getElementById(
-          'add-barcode-chips',
-        ) as HTMLElement | null;
+        const chipsContainer = this.renderRoot.getElementById('add-barcode-chips');
 
         if (hiddenInput) {
           hiddenInput.value = barcode;

@@ -10,7 +10,6 @@ import { FormUtils } from '../../src/utils/formUtils';
 import { HomeAssistant } from '../../src/types/homeAssistant';
 import { InventoryConfig, InventoryItem } from '../../src/types/inventory';
 import { RawFormData, ItemData } from '../../src/types/inventoryItem';
-import { ValidationError } from '../../src/types/validationError';
 
 import { createMockCardContext, createMockHomeAssistant } from '../testHelpers';
 import { TranslationData } from '@/types/translatableComponent';
@@ -266,7 +265,7 @@ describe('Modals (Integration)', () => {
     it('should handle validation errors', async () => {
       const mockValidation = {
         isValid: false,
-        errors: [{ field: 'name', message: 'Name is required' } as ValidationError],
+        errors: [{ field: 'name', message: 'Name is required' }],
       };
 
       vi.mocked(FormUtils.validateRawFormData).mockReturnValue(mockValidation);
@@ -509,7 +508,7 @@ describe('Modals (Integration)', () => {
 
       const mockValidation = {
         isValid: false,
-        errors: [{ field: 'quantity', message: 'Invalid quantity' } as ValidationError],
+        errors: [{ field: 'quantity', message: 'Invalid quantity' }],
       };
 
       vi.mocked(FormUtils.validateRawFormData).mockReturnValue(mockValidation);
@@ -625,7 +624,7 @@ describe('Modals (Integration)', () => {
 
     beforeEach(() => {
       vi.mocked(mockUIManager.openEditModal).mockReturnValue({ found: true, item: milk });
-      vi.mocked(mockFormManager.getRawEditModalData).mockReturnValue({} as RawFormData);
+      vi.mocked(mockFormManager.getRawEditModalData).mockReturnValue({});
       vi.mocked(FormUtils.validateRawFormData).mockReturnValue({ isValid: true, errors: [] });
       vi.mocked(FormUtils.convertRawFormDataToItemData).mockReturnValue(wholeMilk);
       vi.mocked(mockServices.updateItem).mockResolvedValue({ success: true });

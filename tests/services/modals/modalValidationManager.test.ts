@@ -24,7 +24,7 @@ describe('ModalValidationManager', () => {
     vi.useRealTimers();
   });
 
-  const createMockInput = (id: string, type: string = 'text'): HTMLInputElement => {
+  const createMockInput = (id: string, type = 'text'): HTMLInputElement => {
     const attributes = new Map<string, string>();
     return {
       id,
@@ -194,7 +194,9 @@ describe('ModalValidationManager', () => {
 
       const errors: ValidationError[] = [];
 
-      expect(() => modalValidationManager.highlightInvalidFields(errors, true)).not.toThrow();
+      expect(() => {
+        modalValidationManager.highlightInvalidFields(errors, true);
+      }).not.toThrow();
     });
 
     it('should handle unknown field names gracefully', () => {
@@ -202,7 +204,9 @@ describe('ModalValidationManager', () => {
 
       const errors: ValidationError[] = [{ field: 'unknownField', message: 'Unknown field error' }];
 
-      expect(() => modalValidationManager.highlightInvalidFields(errors, true)).not.toThrow();
+      expect(() => {
+        modalValidationManager.highlightInvalidFields(errors, true);
+      }).not.toThrow();
     });
 
     it('should handle missing elements gracefully', () => {
@@ -210,7 +214,9 @@ describe('ModalValidationManager', () => {
 
       const errors: ValidationError[] = [{ field: 'name', message: 'Name is required' }];
 
-      expect(() => modalValidationManager.highlightInvalidFields(errors, true)).not.toThrow();
+      expect(() => {
+        modalValidationManager.highlightInvalidFields(errors, true);
+      }).not.toThrow();
     });
   });
 
@@ -248,7 +254,9 @@ describe('ModalValidationManager', () => {
     });
 
     it('should handle missing modal element', () => {
-      expect(() => modalValidationManager.clearFieldErrors(true)).not.toThrow();
+      expect(() => {
+        modalValidationManager.clearFieldErrors(true);
+      }).not.toThrow();
     });
   });
 
@@ -365,7 +373,9 @@ describe('ModalValidationManager', () => {
     });
 
     it('should handle missing validation message element', () => {
-      expect(() => modalValidationManager.clearError(true)).not.toThrow();
+      expect(() => {
+        modalValidationManager.clearError(true);
+      }).not.toThrow();
     });
   });
 
@@ -514,7 +524,9 @@ describe('ModalValidationManager', () => {
     it('should handle missing form fields gracefully', () => {
       // Don't setup any elements
 
-      expect(() => modalValidationManager['setupClearErrorsForModal'](true)).not.toThrow();
+      expect(() => {
+        modalValidationManager['setupClearErrorsForModal'](true);
+      }).not.toThrow();
     });
   });
 

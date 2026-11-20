@@ -129,7 +129,9 @@ describe('background refreshes and open in-card UI (integration)', () => {
     const target = root.querySelector<HTMLElement>(
       `[data-action="${actionName}"][data-name="${name}"]`,
     );
-    if (!target) throw new Error(`no ${actionName} for ${name}`);
+    if (!target) {
+      throw new Error(`no ${actionName} for ${name}`);
+    }
     return target;
   }
 
@@ -140,7 +142,9 @@ describe('background refreshes and open in-card UI (integration)', () => {
     const form = action(name, ACTIONS.OPEN_RESTOCK)
       .closest('.batch-panel')
       ?.querySelector<HTMLElement>('.restock-form');
-    if (!form || form.hidden) throw new Error('restock form did not open');
+    if (!form || form.hidden) {
+      throw new Error('restock form did not open');
+    }
     return form;
   }
 
@@ -175,7 +179,9 @@ describe('background refreshes and open in-card UI (integration)', () => {
     const amount = form.querySelector<HTMLInputElement>(
       `[data-batch-field="${BATCH_FIELDS.AMOUNT}"]`,
     );
-    if (!amount) throw new Error('no amount field');
+    if (!amount) {
+      throw new Error('no amount field');
+    }
     amount.value = '5';
     const before = listCalls();
 
@@ -219,7 +225,9 @@ describe('background refreshes and open in-card UI (integration)', () => {
   it('does not hold back a render the user asked for while a form is open', async () => {
     const form = await openRestock('Apples');
     const sort = root.querySelector<HTMLSelectElement>(`#${ELEMENTS.SORT_METHOD}`);
-    if (!sort) throw new Error('no sort select');
+    if (!sort) {
+      throw new Error('no sort select');
+    }
 
     sort.value = 'quantity';
     sort.dispatchEvent(new Event('change', { bubbles: true }));
@@ -275,7 +283,9 @@ describe('background refreshes and open in-card UI (integration)', () => {
     expect(listCalls()).toBe(before);
 
     const search = root.querySelector<HTMLInputElement>(`#${ELEMENTS.SEARCH_INPUT}`);
-    if (!search) throw new Error('no search input');
+    if (!search) {
+      throw new Error('no search input');
+    }
     search.value = 'an';
     search.dispatchEvent(new Event('input', { bubbles: true }));
     await vi.advanceTimersByTimeAsync(600);

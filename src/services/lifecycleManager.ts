@@ -133,7 +133,9 @@ export class LifecycleManager {
           getContext,
           historyHandler: eventHandler.historyHandler,
           imageLoader,
-          formsReplaced: () => eventHandler.rowsReplaced(),
+          formsReplaced: () => {
+            eventHandler.rowsReplaced();
+          },
         }),
       };
 

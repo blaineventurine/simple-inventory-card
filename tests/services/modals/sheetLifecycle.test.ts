@@ -331,7 +331,13 @@ describe('sheet lifecycle', () => {
     openEdit();
     const modal = element(ELEMENTS.EDIT_MODAL);
     const name = element(`edit-${ELEMENTS.NAME}`);
-    name.addEventListener('keydown', (event) => event.preventDefault(), { once: true });
+    name.addEventListener(
+      'keydown',
+      (event) => {
+        event.preventDefault();
+      },
+      { once: true },
+    );
 
     name.dispatchEvent(
       new KeyboardEvent('keydown', {

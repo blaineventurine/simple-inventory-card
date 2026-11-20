@@ -11,7 +11,13 @@ const THUMB = '/api/simple_inventory/image/abc?thumb=1&v=1';
 /** Resolves on the next `popstate`, i.e. once a history traversal finished. */
 function nextPopState(): Promise<void> {
   return new Promise((resolve) => {
-    window.addEventListener('popstate', () => resolve(), { once: true });
+    window.addEventListener(
+      'popstate',
+      () => {
+        resolve();
+      },
+      { once: true },
+    );
   });
 }
 

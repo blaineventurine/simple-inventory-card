@@ -233,7 +233,7 @@ export const ITEM_FORM_KEYS: readonly ItemFormKey[] =
  * Builds one record over every form key, in table order; `undefined` leaves the key out (only
  * the optional icon ever is). `T` is a shape keyed like `RawFormData`.
  */
-export function collectItemForm<T extends { [K in ItemFormKey]?: unknown }>(
+export function collectItemForm<T extends Partial<Record<ItemFormKey, unknown>>>(
   valueOf: (key: ItemFormKey) => unknown,
 ): T {
   const entries = ITEM_FORM_KEYS.map((key) => [key, valueOf(key)] as const).filter(

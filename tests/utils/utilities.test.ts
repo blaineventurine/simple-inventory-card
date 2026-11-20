@@ -179,7 +179,7 @@ describe('Utilities', () => {
 
   describe('preserveInputValues and restoreInputValues', () => {
     let mockShadowRoot: ShadowRoot;
-    let mockElements: { [id: string]: HTMLInputElement };
+    let mockElements: Record<string, HTMLInputElement>;
 
     beforeEach(() => {
       mockElements = {};
@@ -216,7 +216,9 @@ describe('Utilities', () => {
 
     it('should handle missing elements and undefined values', () => {
       expect(Utilities.preserveInputValues(mockShadowRoot, ['nonexistent'])).toEqual({});
-      expect(() => Utilities.restoreInputValues(mockShadowRoot, undefined)).not.toThrow();
+      expect(() => {
+        Utilities.restoreInputValues(mockShadowRoot, undefined);
+      }).not.toThrow();
     });
   });
 
@@ -617,7 +619,7 @@ describe('Utilities', () => {
         { input: 123, maxLength: 10, expected: '' },
         { input: 'short', maxLength: 10, expected: 'short' },
       ])('should sanitize strings: $input → $expected', ({ input, maxLength, expected }) => {
-        const result = FormUtils.sanitizeString(input as any, maxLength);
+        const result = FormUtils.sanitizeString(input, maxLength);
         expect(result).toBe(expected);
       });
     });

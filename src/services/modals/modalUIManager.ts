@@ -444,7 +444,7 @@ export class ModalUIManager {
    */
   private focusOnOpen(modal: HTMLElement, fieldId: string | undefined): void {
     setTimeout(() => {
-      const coarse = globalThis.matchMedia?.('(pointer: coarse)').matches === true;
+      const coarse = globalThis.matchMedia?.('(pointer: coarse)').matches;
       const field = fieldId && !coarse ? this.getElement<HTMLElement>(fieldId) : undefined;
       (field ?? modal.querySelector<HTMLElement>(`.${CSS_CLASSES.MODAL_CONTENT}`))?.focus();
     }, TIMING.MODAL_FOCUS_DELAY);

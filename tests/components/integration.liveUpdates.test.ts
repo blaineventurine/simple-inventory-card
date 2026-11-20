@@ -100,10 +100,14 @@ describe('live updates via simple_inventory/subscribe (integration)', () => {
       wsTypes.push(msg.type);
       switch (msg.type) {
         case WS_COMMANDS.GET_INFO:
-          if (infoError) throw infoError;
+          if (infoError) {
+            throw infoError;
+          }
           return { version: '0.7.0', api_version: 2, features: ['batches', 'transfers'] };
         case WS_COMMANDS.LIST_ITEMS:
-          if (listError) throw listError;
+          if (listError) {
+            throw listError;
+          }
           return { items };
         default:
           return {};
@@ -137,7 +141,9 @@ describe('live updates via simple_inventory/subscribe (integration)', () => {
     const target = root.querySelector<HTMLElement>(
       `[data-action="${actionName}"][data-name="${name}"]`,
     );
-    if (!target) throw new Error(`no ${actionName} for ${name}`);
+    if (!target) {
+      throw new Error(`no ${actionName} for ${name}`);
+    }
     return target;
   }
 
@@ -243,7 +249,9 @@ describe('live updates via simple_inventory/subscribe (integration)', () => {
     const restock = action('Apples', ACTIONS.OPEN_RESTOCK)
       .closest('.batch-panel')
       ?.querySelector<HTMLElement>('.restock-form');
-    if (!restock || restock.hidden) throw new Error('restock form did not open');
+    if (!restock || restock.hidden) {
+      throw new Error('restock form did not open');
+    }
     const before = listCalls();
 
     await push([item('Apples', 3), item('Bananas', 7)]);
@@ -392,7 +400,9 @@ describe('live updates via simple_inventory/subscribe (integration)', () => {
   it('holds pushed items while the scanner is open and renders them when it closes', async () => {
     await start();
     const panel = root.querySelector<HTMLElement>(`#${ELEMENTS.SCAN_PANEL}`);
-    if (!panel) throw new Error('no scan panel');
+    if (!panel) {
+      throw new Error('no scan panel');
+    }
     panel.hidden = false;
 
     await push([item('Apples', 3), item('Bananas', 7)]);
@@ -410,7 +420,9 @@ describe('live updates via simple_inventory/subscribe (integration)', () => {
     const sheet = root.querySelector<HTMLElement>(`#${ELEMENTS.ADD_MODAL}`);
     expect(sheet?.classList.contains(CSS_CLASSES.SHOW)).toBe(true);
     const name = root.querySelector<HTMLInputElement>(`#add-${ELEMENTS.NAME}`);
-    if (!name) throw new Error('no name field');
+    if (!name) {
+      throw new Error('no name field');
+    }
     name.value = 'Cherries';
 
     await push([item('Apples', 3), item('Bananas', 7)]);

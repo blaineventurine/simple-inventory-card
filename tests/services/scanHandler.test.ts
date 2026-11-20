@@ -503,7 +503,9 @@ describe('ScanHandler', () => {
     it('does not throw when the panel element is missing', () => {
       build([ELEMENTS.SCAN_PANEL]);
 
-      expect(() => scanHandler.hideScanPanel()).not.toThrow();
+      expect(() => {
+        scanHandler.hideScanPanel();
+      }).not.toThrow();
       expect(stopScanner).toHaveBeenCalled();
     });
   });
@@ -940,7 +942,9 @@ describe('ScanHandler', () => {
     });
 
     it('does nothing when the card was rendered without batch details', () => {
-      expect(() => scanHandler.syncBatchFieldsVisibility()).not.toThrow();
+      expect(() => {
+        scanHandler.syncBatchFieldsVisibility();
+      }).not.toThrow();
     });
   });
 

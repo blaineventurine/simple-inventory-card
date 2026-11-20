@@ -73,7 +73,9 @@ describe('ImportExportHandler', () => {
     vi.restoreAllMocks();
     vi.clearAllMocks();
     // Clean up any leftover file inputs created by handleImport
-    document.querySelectorAll('input[type="file"]').forEach((el) => el.remove());
+    document.querySelectorAll('input[type="file"]').forEach((el) => {
+      el.remove();
+    });
   });
 
   describe('handleExport', () => {
@@ -82,9 +84,7 @@ describe('ImportExportHandler', () => {
       vi.mocked(mockServices.exportInventory).mockResolvedValue({ data: exportedData });
 
       const objectUrl = 'blob:mock-url';
-      const createObjectURLSpy = vi
-        .spyOn(URL, 'createObjectURL')
-        .mockReturnValue(objectUrl as unknown as string);
+      const createObjectURLSpy = vi.spyOn(URL, 'createObjectURL').mockReturnValue(objectUrl);
       const revokeObjectURLSpy = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
 
       let capturedAnchor: HTMLAnchorElement | undefined;
@@ -159,9 +159,9 @@ describe('ImportExportHandler', () => {
       renderRoot.querySelector<HTMLElement>(`#${ELEMENTS.IMPORT_RESULT_MODAL}`);
 
     const waitForResultSheet = async (): Promise<HTMLElement> => {
-      await vi.waitFor(() =>
-        expect(resultSheet()?.classList.contains(CSS_CLASSES.SHOW)).toBe(true),
-      );
+      await vi.waitFor(() => {
+        expect(resultSheet()?.classList.contains(CSS_CLASSES.SHOW)).toBe(true);
+      });
       const sheetElement = resultSheet();
       if (!sheetElement) {
         throw new Error('import result sheet not shown');

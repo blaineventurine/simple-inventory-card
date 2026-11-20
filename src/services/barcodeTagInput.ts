@@ -72,7 +72,9 @@ function addBarcodeChip(
   onBarcodeAdded?: (barcode: string) => void,
 ): boolean {
   const current = getBarcodes(hiddenInput);
-  if (current.includes(code)) return false;
+  if (current.includes(code)) {
+    return false;
+  }
 
   current.push(code);
   updateHiddenInput(hiddenInput, current);
@@ -97,7 +99,7 @@ export function initializeBarcodeTagInput(
   const visibleInput = shadowRoot.getElementById(
     `${prefix}-${ELEMENTS.BARCODE}-input`,
   ) as HTMLInputElement | null;
-  const chipsContainer = shadowRoot.getElementById(`${prefix}-barcode-chips`) as HTMLElement | null;
+  const chipsContainer = shadowRoot.getElementById(`${prefix}-barcode-chips`);
 
   if (!hiddenInput || !visibleInput || !chipsContainer) {
     return;
@@ -115,7 +117,9 @@ export function initializeBarcodeTagInput(
       if (e.key === 'Enter') {
         e.preventDefault();
         const value = visibleInput.value.trim();
-        if (!value) return;
+        if (!value) {
+          return;
+        }
 
         if (addBarcodeChip(value, hiddenInput, chipsContainer, translations, onBarcodeAdded)) {
           visibleInput.value = '';
@@ -132,12 +136,8 @@ export function initializeBarcodeTagInput(
   const scanBtn = shadowRoot.getElementById(
     `${prefix}-${ELEMENTS.BARCODE_SCAN_BTN}`,
   ) as HTMLButtonElement | null;
-  const scannerContainer = shadowRoot.getElementById(
-    `${prefix}-${ELEMENTS.BARCODE_SCANNER}`,
-  ) as HTMLElement | null;
-  const viewport = shadowRoot.getElementById(
-    `${prefix}-${ELEMENTS.BARCODE_VIEWPORT}`,
-  ) as HTMLElement | null;
+  const scannerContainer = shadowRoot.getElementById(`${prefix}-${ELEMENTS.BARCODE_SCANNER}`);
+  const viewport = shadowRoot.getElementById(`${prefix}-${ELEMENTS.BARCODE_VIEWPORT}`);
   const closeBtn = shadowRoot.getElementById(
     `${prefix}-${ELEMENTS.BARCODE_SCANNER_CLOSE}`,
   ) as HTMLButtonElement | null;
@@ -168,13 +168,17 @@ export function initializeBarcodeTagInput(
 
   const showError = (message: string): void => {
     const existing = scannerContainer.parentElement?.querySelector('.barcode-scanner-error');
-    if (existing) existing.remove();
+    if (existing) {
+      existing.remove();
+    }
 
     const errorEl = document.createElement('div');
     errorEl.className = 'barcode-scanner-error';
     errorEl.textContent = message;
     scannerContainer.insertAdjacentElement('afterend', errorEl);
-    setTimeout(() => errorEl.remove(), 3000);
+    setTimeout(() => {
+      errorEl.remove();
+    }, 3000);
   };
 
   /** Offers "Choose a photo" instead of the camera, saying why (`message`). */
@@ -209,7 +213,9 @@ export function initializeBarcodeTagInput(
       photo.hidden = true;
       startNativeScanner(external, nativeScanTexts(translations), {
         onDetected: addChip,
-        onChoosePhoto: () => offerPhoto(''),
+        onChoosePhoto: () => {
+          offerPhoto('');
+        },
       });
       return;
     }
@@ -278,6 +284,8 @@ export function closeBarcodeScanner(shadowRoot: ShadowRoot, prefix: string): voi
   stopScanner();
   for (const id of [ELEMENTS.BARCODE_SCANNER, ELEMENTS.BARCODE_PHOTO]) {
     const el = shadowRoot.getElementById(`${prefix}-${id}`);
-    if (el) el.hidden = true;
+    if (el) {
+      el.hidden = true;
+    }
   }
 }
