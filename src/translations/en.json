@@ -4,23 +4,8 @@
   },
   "common": {
     "loading": "Loading...",
-    "name": "My Custom Card",
-    "off": "Off",
-    "on": "On",
     "uncategorized": "Uncategorized",
-    "no_location": "No Location",
-    "unknown": "Unknown"
-  },
-  "editor": {
-    "entity": "Entity",
-    "name": "Name (Optional)",
-    "show_icon": "Show Icon",
-    "show_state": "Show State"
-  },
-  "state": {
-    "active": "Active",
-    "inactive": "Inactive",
-    "unavailable": "Unavailable"
+    "no_location": "No Location"
   },
   "expiry": {
     "expired_day_ago": "Expired {days} day ago",
@@ -31,12 +16,22 @@
   },
   "items": {
     "auto_add_info": "Auto-add at ≤ {quantity} → {list}",
-    "no_items": "No items in inventory"
+    "auto_add_desired_info": "Auto-add at ≤ {quantity}, up to {desired} → {list}",
+    "no_items": "No items in inventory",
+    "decrement": "Decrease {name}",
+    "increment": "Increase {name}",
+    "toggle_details": "Details for {name}",
+    "image_alt": "Photo of {name}",
+    "no_results": "No items match your filters",
+    "low_stock": "Low stock"
   },
   "header": {
     "items_expired": "{count} item{count, plural, one {} other {s}} expired",
     "items_expiring_soon": "{count} item{count, plural, one {} other {s}} expiring soon",
-    "scan_barcode": "Scan Barcode"
+    "scan_barcode": "Scan Barcode",
+    "more_options": "More options",
+    "export": "Export",
+    "import": "Import"
   },
   "scanner": {
     "increment": "Increment",
@@ -48,19 +43,22 @@
     "barcode_not_found": "No item found for this barcode",
     "no_barcode_found": "No barcode found in photo",
     "in_stock": "In stock: {quantity}",
-    "scan_success": "Updated {name}",
-    "add_new_item": "Add Item"
+    "add_new_item": "Add Item",
+    "choose_photo": "Choose a photo",
+    "insecure_connection": "The camera needs a secure (HTTPS) connection to Home Assistant",
+    "native_title": "Scan barcode",
+    "native_description": "Point the camera at the item's barcode"
   },
   "modal": {
     "add_item": "Add Item",
     "auto_add_id_to_description": "Append inventory ID to item description",
     "aliases": "Aliases",
     "aliases_input_placeholder": "Type an alias and press Enter",
+    "remove_value": "Remove {value}",
     "auto_add_settings": "Auto-add Settings",
     "auto_add_when_low": "Auto-add to todo list when low",
     "barcode": "Barcode",
     "barcode_input_placeholder": "Type barcode and press Enter",
-    "barcode_placeholder": "UPC, EAN, etc.",
     "cancel": "Cancel",
     "description": "Description",
     "description_placeholder": "Item description",
@@ -78,6 +76,8 @@
     "expiry_threshold_placeholder": "Days before expiry to alert (default: 0)",
     "minimum_quantity": "Minimum quantity",
     "name_required": "Name *",
+    "icon": "Icon",
+    "icon_help": "Any Material Design icon, e.g. mdi:apple. Leave empty for the default icon.",
     "quantity": "Quantity",
     "quantity_threshold": "Quantity Threshold",
     "save_changes": "Save Changes",
@@ -100,7 +100,33 @@
     "provider_openfoodfacts": "Open Food Facts",
     "provider_openbeautyfacts": "Open Beauty Facts",
     "provider_inventory": "Existing Item",
-    "provider_openpetfoodfacts": "Open Pet Food Facts"
+    "provider_openpetfoodfacts": "Open Pet Food Facts",
+    "section_details": "Details",
+    "section_barcodes": "Barcodes & names",
+    "section_stock": "Stock",
+    "section_where": "Where & what",
+    "section_expiry": "Expiry",
+    "section_shopping": "Shopping list",
+    "more_actions": "More actions",
+    "close": "Close",
+    "view_history": "View history",
+    "delete_item": "Delete item",
+    "duplicate_name_hint": "Duplicate name",
+    "duplicate_name_error": "An item named \"{name}\" already exists in this inventory.",
+    "add_item_failed": "Error adding item: {error}",
+    "update_item_failed": "Error updating item: {error}",
+    "add_item_exception": "An error occurred while adding the item",
+    "update_item_exception": "An error occurred while updating the item",
+    "validation_name_required": "Item name is required",
+    "validation_quantity_invalid": "Quantity must be a valid number",
+    "validation_quantity_negative": "Quantity cannot be negative",
+    "validation_threshold_invalid": "Quantity threshold must be a valid number",
+    "validation_threshold_required": "Quantity threshold is required when auto-add is enabled",
+    "validation_todo_list_required": "Todo list selection is required when auto-add is enabled",
+    "validation_expiry_date_invalid": "Invalid expiry date format",
+    "validation_expiry_alert_invalid": "Expiry alert days must be a valid number",
+    "validation_expiry_alert_negative": "Expiry alert days cannot be negative",
+    "validation_expiry_threshold_requires_date": "Expiry threshold requires an expiry date to be set"
   },
   "filters": {
     "all_categories": "All Categories",
@@ -120,7 +146,8 @@
     "non_zero": "Non-zero",
     "quantity": "Quantity",
     "search_placeholder": "Search items...",
-    "zero": "Zero"
+    "zero": "Zero",
+    "apply": "Apply"
   },
   "sort": {
     "category": "Category",
@@ -130,15 +157,17 @@
     "quantity_high": "Quantity (High)",
     "quantity_low": "Quantity (Low)",
     "sort_by": "Sort by:",
-    "zero_last": "Zero Last"
+    "zero_last": "Zero Last",
+    "chip_label": "Sort: {method}"
   },
   "active_filters": {
     "category": "Category",
     "location": "Location",
     "expiry": "Expiry",
-    "label": "Active filters:",
     "quantity": "Quantity",
-    "search": "Search"
+    "search": "Search",
+    "remove": "Remove {filter}",
+    "selected": "selected"
   },
   "config": {
     "inventory_entity_required": "Inventory Entity (Required)",
@@ -155,10 +184,22 @@
     "show_category": "Show category",
     "show_expiry": "Show expiry date",
     "show_auto_add_info": "Show auto-add info",
-    "show_price": "Show total value"
+    "show_price": "Show total value",
+    "show_icon": "Show item icons",
+    "layout_tiles": "Show items as tiles"
+  },
+  "layout": {
+    "show_tiles": "Show as tiles",
+    "show_list": "Show as list",
+    "tiles_label": "Tile layout"
   },
   "actions": {
-    "confirm_remove": "Remove {name} from inventory?"
+    "confirm_remove": "Remove {name} from inventory?",
+    "import_result": "Import complete: {added} added, {updated} updated, {skipped} skipped",
+    "import_errors": "{count} errors:",
+    "import_errors_more": "…and {count} more",
+    "import_failed": "Import failed: {error}",
+    "import_title": "Import"
   },
   "analytics": {
     "tab_history": "History",
@@ -172,7 +213,6 @@
     "insufficient_data": "Not enough data yet",
     "insufficient_data_detail": "Need at least 2 consumption events to calculate rates.",
     "per_day": "/day",
-    "days": "days",
     "window_30": "30d",
     "window_60": "60d",
     "window_90": "90d",
@@ -181,11 +221,150 @@
     "load_error": "Failed to load consumption data.",
     "daily_spend": "Daily Spend",
     "weekly_spend": "Weekly Spend",
-    "total_spend": "Total Spend"
+    "total_spend": "Total Spend",
+    "per_week": "/wk",
+    "insufficient_data_progress": "{count} of 2 consumption events recorded — decrement this item to start tracking.",
+    "stock_level": "Stock Level",
+    "consumption_over_time": "Consumption",
+    "no_consumption_in_window": "No consumption in this window.",
+    "showing_recent_history": "Showing recent history only",
+    "runs_out": "Runs out ~{date}"
   },
   "errors": {
     "clear_filters_error": "Error clearing filters. Please try again.",
-    "duplicate_name": "An item named \"{name}\" already exists in this inventory.",
-    "update_failed": "Failed to update item. Please try again."
+    "load_items_failed": "Failed to load inventory items: {error}",
+    "history_failed": "Failed to load history: {error}",
+    "export_failed": "Export failed: {error}"
+  },
+  "compatibility": {
+    "backend_outdated": "Simple Inventory integration {version} is too old for this card; update to {minimum} or newer.",
+    "unknown_version": "older than {minimum}"
+  },
+  "batches": {
+    "list_label": "Batches of {name}",
+    "unit_price": "{price} each",
+    "use_from_batch": "Use from batch: {batch}",
+    "restock": "Restock…",
+    "restock_submit": "Restock",
+    "location_placeholder": "Default: first usual location",
+    "purchased_at": "Purchased",
+    "details": "Batch details",
+    "editor_title": "Batches",
+    "editor_empty": "No stock. Use Restock… on the item row to add a batch.",
+    "remove": "Remove batch",
+    "undo_remove": "Keep batch",
+    "invalid_quantity": "Batch quantity must be a number of 0 or more",
+    "invalid_unit_price": "Batch unit price must be a number of 0 or more",
+    "invalid_purchased_at": "Purchase date can't be empty",
+    "update_failed": "Error updating batch: {error}",
+    "restock_failed": "Restock failed: {error}",
+    "move_from_batch": "Move from batch: {batch}",
+    "move_to": "Move to",
+    "move_submit": "Move",
+    "move_failed": "Move failed: {error}",
+    "move_destination_required": "Choose where to move it",
+    "move_invalid_amount": "Enter an amount greater than 0",
+    "quantity_readonly": "Total of all batches — edit quantities in the batch list below",
+    "add_batch": "+ Add batch",
+    "discard_new": "Discard new batch",
+    "merge_note": "Will be added to the existing batch ({quantity}, {expiry}, {location})",
+    "merge_expires": "expires {date}",
+    "merge_no_expiry": "no expiry",
+    "merge_no_location": "no location",
+    "invalid_new_quantity": "New batch quantity must be greater than 0",
+    "invalid_date": "Enter a valid date (YYYY-MM-DD)",
+    "add_failed": "Error adding batch: {error}",
+    "add_as_batch": "Add {quantity} as a new batch of {name}",
+    "add_as_batch_note": "Only the quantity, expiry date, first location and unit price are used. Description, category, barcode, aliases and auto-add settings are not changed."
+  },
+  "image": {
+    "label": "Image",
+    "choose": "Photo",
+    "media": "Media",
+    "remove": "Remove image",
+    "use_product_photo": "Use product photo",
+    "pending_photo": "The new photo is saved when you save.",
+    "pending_media": "The image from media is saved when you save.",
+    "pending_product_photo": "The product photo is saved when you save.",
+    "pending_remove": "The image is removed when you save.",
+    "not_an_image": "Choose an image file.",
+    "too_large": "The image is larger than 10 MB.",
+    "invalid": "The file could not be read as an image.",
+    "item_not_found": "The item no longer exists.",
+    "save_failed": "{name} was saved, but its image was not: {error}",
+    "view_photo": "View photo of {name}",
+    "view_photo_unnamed": "View photo",
+    "viewer_unnamed": "Photo"
+  },
+  "detail": {
+    "back": "Back",
+    "back_to_list": "Back to the list",
+    "edit": "Edit",
+    "out_of_stock": "Out of stock",
+    "locations": "Locations",
+    "categories": "Categories",
+    "price_value": "{price} each · {total} in total",
+    "auto_add_title": "Auto-add",
+    "auto_add": "At {threshold} or less, add to {list}",
+    "auto_add_desired": "At {threshold} or less, add up to {desired} to {list}",
+    "barcodes": "Barcodes",
+    "section_batches": "Batches",
+    "section_history": "History",
+    "history_loading": "Loading history…",
+    "gone": "This item no longer exists"
+  },
+  "panel": {
+    "title": "Inventory",
+    "tabs_label": "Inventories",
+    "open_sidebar": "Open the sidebar",
+    "loading": "Loading inventories…",
+    "empty": "No inventories yet. Add one under Settings → Devices & services → Simple Inventory.",
+    "empty_link": "Open Simple Inventory settings",
+    "outdated": "This Simple Inventory integration is too old for the panel; update it and restart Home Assistant.",
+    "error": "Could not load the inventories: {message}",
+    "retry": "Retry",
+    "sensor_unavailable": "The sensor of this inventory is unavailable.",
+    "search": {
+      "open": "Search all inventories",
+      "placeholder": "Search all inventories…",
+      "close": "Close search",
+      "scan": "Scan a barcode",
+      "scan_title": "Scan a barcode",
+      "scan_file": "Take or choose a photo",
+      "scan_close": "Close the scanner",
+      "hint": "Type at least 2 characters",
+      "no_results": "No items match \"{query}\"",
+      "truncated": "Showing the first {count} matches; refine your search",
+      "error": "Search failed: {message}",
+      "retry": "Retry",
+      "reason_alias": "alias: {value}",
+      "reason_barcode": "barcode: {value}",
+      "reason_category": "category",
+      "reason_location": "location",
+      "reason_description": "description",
+      "reason_unit": "unit"
+    },
+    "home": {
+      "tab": "Home",
+      "loading": "Loading the overview…",
+      "error": "Could not load the overview: {message}",
+      "items": "{count} item{count, plural, one {} other {s}}",
+      "need_attention": "{count} need attention",
+      "title_expired": "Expired",
+      "title_expiring": "Expiring soon",
+      "title_out_of_stock": "Out of stock",
+      "title_low_stock": "Low stock",
+      "expired_today": "Expired today",
+      "expired_one_day": "Expired 1 day ago",
+      "expired_days": "Expired {n} days ago",
+      "expires_today": "Expires today",
+      "expires_tomorrow": "Expires tomorrow",
+      "expires_days": "Expires in {n} days",
+      "batches": "{k} of {m} batches",
+      "out_of_stock": "Out of stock",
+      "low": "Low: {quantity} left, need {needed}",
+      "show_all": "Show all ({count})",
+      "empty": "Everything is stocked and fresh"
+    }
   }
 }

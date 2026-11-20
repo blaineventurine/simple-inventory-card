@@ -4,6 +4,11 @@ export interface BarcodeProduct {
   product?: Record<string, string>;
 }
 
+/** A lookup result that found the product. */
+export interface FoundBarcodeProduct extends BarcodeProduct {
+  product: Record<string, string>;
+}
+
 export interface BarcodeProductLookupResult {
   barcode: string;
   results: BarcodeProduct[];

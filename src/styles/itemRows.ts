@@ -4,193 +4,176 @@ export const itemRowStyles: CSSResult = css`
   .item-row {
     display: flex;
     flex-direction: column;
-    padding: 12px;
-    margin-bottom: 8px;
-    border: 1px solid var(--divider-color, #e8e8e8);
-    border-radius: 8px;
-    gap: 8px;
+    margin-bottom: var(--si-space-1);
+    border-radius: var(--si-radius);
+    transition: background-color var(--si-motion) ease;
+  }
+
+  @media (hover: hover) {
+    .item-row:hover {
+      background: color-mix(in srgb, var(--primary-text-color) 4%, transparent);
+    }
   }
 
   .item-row.zero-quantity {
     opacity: 0.6;
-    background: var(--secondary-background-color, #f5f5f5);
   }
 
-  .item-row.auto-add-enabled {
-    border-left: 4px solid var(--success-color, #4caf50);
-  }
-
-  .item-info {
-    flex: 1;
-    min-width: 0;
-    max-width: calc(100% - 200px); /* Reserve space for buttons */
-  }
-
-  .item-header {
+  .si-row__main {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    width: 100%;
+    gap: var(--si-space-1);
+    min-height: 56px;
+    padding: var(--si-space-2);
+    box-sizing: border-box;
   }
 
-  .item-name {
-    font-weight: bold;
-    font-size: 1.1em;
+  /* show_icon: false, or a photo in the circle — the status colour the icon circle carried
+     becomes a short bar at the row's left edge, for expired and expiring/low rows only. */
+  .si-row--no-icon .si-row__main,
+  .si-row--photo .si-row__main {
+    position: relative;
+  }
+
+  .si-row--no-icon .si-row__main {
+    padding-left: var(--si-space-3);
+  }
+
+  .si-row--no-icon[data-status='expired'] .si-row__main::before,
+  .si-row--no-icon[data-status='warning'] .si-row__main::before,
+  .si-row--photo[data-status='expired'] .si-row__main::before,
+  .si-row--photo[data-status='warning'] .si-row__main::before {
+    position: absolute;
+    top: var(--si-space-2);
+    bottom: var(--si-space-2);
+    left: 0;
+    width: 3px;
+    border-radius: 3px;
+    background: var(--si-status-bar);
+    content: '';
+  }
+
+  .si-row--no-icon[data-status='expired'],
+  .si-row--photo[data-status='expired'] {
+    --si-status-bar: var(--error-color, #db4437);
+  }
+
+  .si-row--no-icon[data-status='warning'],
+  .si-row--photo[data-status='warning'] {
+    --si-status-bar: var(--warning-color, #ffa600);
+  }
+
+  .si-row__open {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    gap: var(--si-space-3);
+    min-width: 0;
+    border-radius: var(--si-radius);
     cursor: pointer;
   }
 
-  .category {
-    font-style: italic;
-    font-size: 0.9em;
-    opacity: 0.7;
+  /* The whole icon + text area is one open_edit target: route inner clicks to it. */
+  .si-row__open * {
+    pointer-events: none;
   }
 
-  .location {
-    font-size: 0.9em;
-    font-style: italic;
-    opacity: 0.7;
+  .si-row__open:active {
+    background: color-mix(in srgb, var(--primary-text-color) 8%, transparent);
   }
 
-  .location-category {
-    font-size: 0.9em;
-    font-style: italic;
-    opacity: 0.7;
+  .si-row__open:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
   }
 
-  .item-footer {
+  .si-row__text {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  /* Names wrap to two lines before truncating: the stepper keeps its width, so on
+     phones and narrow columns a single line left only a few characters. */
+  .si-row__name {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    color: var(--primary-text-color);
+    font-size: var(--si-font-name);
+    font-weight: 500;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+  }
+
+  .si-row__chevron {
+    color: var(--secondary-text-color);
+  }
+
+  .si-row__chevron ha-icon {
+    transition: transform var(--si-motion) ease;
+  }
+
+  .si-row__chevron[aria-expanded='true'] ha-icon {
+    transform: rotate(180deg);
+  }
+
+  .si-details {
     display: flex;
     flex-direction: column;
+    gap: var(--si-space-2);
+    padding: 0 var(--si-space-2) var(--si-space-2)
+      calc(var(--si-space-2) + 40px + var(--si-space-3));
+  }
+
+  /* The details image opens the photo viewer. */
+  .si-details__image-btn {
+    align-self: flex-start;
     width: 100%;
-    gap: 4px;
+    max-width: 160px;
+    padding: 0;
+    border: none;
+    border-radius: var(--si-radius);
+    background: none;
+    cursor: zoom-in;
   }
 
-  .item-footer-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  .si-details__image-btn * {
+    pointer-events: none;
+  }
+
+  .si-details__image-btn:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+  }
+
+  .si-details__image {
+    display: block;
     width: 100%;
-    gap: 8px;
+    max-width: 160px;
+    height: auto;
+    border-radius: var(--si-radius);
   }
 
-  .item-name-line {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 4px;
-    max-width: 100%;
+  .si-details__image:not([src]) {
+    display: none;
   }
 
-  .item-name-line .item-name {
-    flex: 0 1 auto;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .item-name-line .category {
-    flex-shrink: 0;
-    font-size: 0.9em;
-    opacity: 0.7;
-    font-style: italic;
-    white-space: nowrap;
-    margin-left: auto;
-  }
-
-  .item-details {
+  .si-details__description {
+    margin: 0;
     color: var(--secondary-text-color);
-    font-size: 0.9em;
+    font-size: var(--si-font-secondary);
+  }
+
+  .si-details__auto-add {
     display: flex;
     align-items: center;
-    gap: 8px;
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-  }
-
-  .item-controls {
-    display: flex;
-    gap: 8px;
-    flex-shrink: 0;
-    align-items: center;
-  }
-
-  .quantity {
-    font-weight: bold;
-    background: var(--primary-color);
-    color: white;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 0.85em;
-  }
-
-  .item-price {
-    font-weight: 500;
-    font-size: 0.85em;
-    color: var(--secondary-text-color, #666);
-  }
-
-  .expiry {
-    font-weight: 500;
-    padding: 2px 6px;
-    border-radius: 4px;
-  }
-
-  .expiry.expired {
-    color: var(--error-color, #dc3545);
-    background-color: rgba(220, 53, 69, 0.1);
-  }
-
-  .expiry.expires-today {
-    color: var(--warning-color, #ff9800);
-    background-color: rgba(255, 152, 0, 0.1);
-    font-weight: 600;
-  }
-
-  .expiry.expiring-soon {
-    color: var(--warning-color, #ff9800);
-    background-color: rgba(255, 152, 0, 0.05);
-  }
-
-  .expiry.expiry-safe {
-    color: var(--success-color, #4caf50);
-    background-color: rgba(76, 175, 80, 0.05);
-  }
-
-  .auto-add-info {
-    font-size: 0.8em;
-    color: var(--success-color);
-    font-weight: bold;
-    width: 100%;
-  }
-
-  .category-group {
-    margin-bottom: 20px;
-  }
-
-  .location-group {
-    margin-bottom: 20px;
-  }
-
-  .category-header {
-    font-weight: bold;
-    font-size: 1.1em;
-    color: var(--primary-color);
-    margin-bottom: 8px;
-    padding: 8px 12px;
-    background: var(--secondary-background-color, #f5f5f5);
-    border-radius: 6px;
-    border-left: 4px solid var(--primary-color);
-  }
-
-  .location-header {
-    font-weight: bold;
-    font-size: 1.1em;
-    color: var(--primary-color);
-    margin-bottom: 8px;
-    padding: 8px 12px;
-    background: var(--secondary-background-color, #f5f5f5);
-    border-radius: 6px;
-    border-left: 4px solid var(--primary-color);
+    gap: var(--si-space-1);
+    color: var(--secondary-text-color);
+    font-size: var(--si-font-secondary);
+    --mdc-icon-size: 16px;
   }
 `;

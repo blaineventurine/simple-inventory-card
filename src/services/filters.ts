@@ -1,7 +1,8 @@
-import { FILTER_VALUES, STORAGE_KEYS, ELEMENTS, SORT_METHODS } from '../utils/constants';
-import { InventoryItem } from '@/types/homeAssistant';
+import { FILTER_VALUES, STORAGE_KEYS, ELEMENTS, SORT_METHODS, TIMING } from '../utils/constants';
+import { InventoryItem } from '@/types/inventory';
 import { Utilities } from '../utils/utilities';
 import { DateUtils } from '../utils/dateUtils';
+import { foldCase } from '../utils/foldCase';
 import { DEFAULTS } from '../utils/constants';
 import { FilterState } from '@/types/filterState';
 import { TranslationData } from '@/types/translatableComponent';
@@ -10,7 +11,6 @@ import { createFilterBadges } from '@/templates/filters';
 
 export class Filters {
   private searchTimeout: ReturnType<typeof setTimeout> | undefined = undefined;
-  private boundSearchHandler: ((event: Event) => void) | undefined = undefined;
 
   constructor(private shadowRoot: ShadowRoot) {}
 
@@ -100,10 +100,12 @@ export class Filters {
       }
 
       if (filters.location && filters.location.length > 0) {
-        const itemLocations =
+        const usualLocations =
           Array.isArray(item.locations) && item.locations.length > 0
             ? item.locations
             : [item.location || ''];
+        // Stock can sit somewhere that isn't a usual location (e.g. after a move).
+        const itemLocations = [...usualLocations, ...(item.stocked_locations ?? [])];
         if (!itemLocations.some((l) => filters.location.includes(l))) {
           return false;
         }
@@ -129,17 +131,27 @@ export class Filters {
     });
   }
 
+  /** Case-insensitive substring match on the item's texts, case folded like the integration. */
   private matchesTextSearch(item: InventoryItem, searchText: string): boolean {
-    const search = searchText.toLowerCase();
-    const itemName = (item.name ?? '').toLowerCase();
-    const itemUnit = (item.unit ?? '').toLowerCase();
+    const search = foldCase(searchText);
+    const itemName = foldCase(item.name ?? '');
+    const itemUnit = foldCase(item.unit ?? '');
+    const itemDescription = foldCase(item.description ?? '');
 
-    if (itemName.includes(search) || itemUnit.includes(search)) {
+    if (
+      itemName.includes(search) ||
+      itemUnit.includes(search) ||
+      itemDescription.includes(search)
+    ) {
+      return true;
+    }
+
+    if ((item.barcodes ?? []).some((barcode) => foldCase(barcode).includes(search))) {
       return true;
     }
 
     const aliasTexts = Array.isArray(item.aliases) ? item.aliases : [];
-    if (aliasTexts.some((a) => a.toLowerCase().includes(search))) {
+    if (aliasTexts.some((a) => foldCase(a).includes(search))) {
       return true;
     }
 
@@ -147,7 +159,7 @@ export class Filters {
       Array.isArray(item.categories) && item.categories.length > 0
         ? item.categories
         : [item.category ?? ''];
-    if (categoryTexts.some((c) => c.toLowerCase().includes(search))) {
+    if (categoryTexts.some((c) => foldCase(c).includes(search))) {
       return true;
     }
 
@@ -155,7 +167,7 @@ export class Filters {
       Array.isArray(item.locations) && item.locations.length > 0
         ? item.locations
         : [item.location ?? ''];
-    if (locationTexts.some((l) => l.toLowerCase().includes(search))) {
+    if (locationTexts.some((l) => foldCase(l).includes(search))) {
       return true;
     }
 
@@ -176,8 +188,6 @@ export class Filters {
   }
 
   private matchesExpiryFilter(item: InventoryItem, expiryFilter: string[]): boolean {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
     return expiryFilter.some((filter) => {
       switch (filter) {
         case FILTER_VALUES.EXPIRY.NONE: {
@@ -206,12 +216,9 @@ export class Filters {
             return false;
           }
 
-          const futureDate = new Date(item.expiry_date);
+          const days = DateUtils.daysUntilExpiry(item.expiry_date);
           const itemThreshold2 = item.expiry_alert_days ?? DEFAULTS.EXPIRY_ALERT_DAYS;
-          const thresholdDate = new Date(today);
-          thresholdDate.setDate(today.getDate() + itemThreshold2);
-
-          return futureDate > thresholdDate;
+          return days !== null && days > itemThreshold2;
         }
 
         default: {
@@ -371,95 +378,53 @@ export class Filters {
     });
   }
 
-  setupSearchInput(entityId: string, onFilterChange: () => void): void {
-    const searchInput = this.shadowRoot.getElementById(
-      ELEMENTS.SEARCH_INPUT,
-    ) as HTMLInputElement | null;
-
-    if (searchInput) {
-      searchInput.removeEventListener('input', this.boundSearchHandler as any);
-
-      this.boundSearchHandler = (event: Event) => {
-        const target = event.target as HTMLInputElement;
-        const value = target.value;
-
-        if (this.searchTimeout) {
-          clearTimeout(this.searchTimeout);
-        }
-
-        this.searchTimeout = setTimeout(() => {
-          const filters = this.getCurrentFilters(entityId);
-          filters.searchText = value;
-          this.saveFilters(entityId, filters);
-          onFilterChange();
-        }, 300);
-      };
-
-      searchInput.addEventListener('input', this.boundSearchHandler);
+  /**
+   * Live search: saves `value` as the search text and calls `onFilterChange` once typing has
+   * paused for 300ms. Fed by the card's delegated `input` listener, so it serves whichever
+   * search box the latest render created.
+   */
+  scheduleSearch(entityId: string, value: string, onFilterChange: () => void): void {
+    if (this.searchTimeout) {
+      clearTimeout(this.searchTimeout);
     }
-    // this.searchListenerSetup = true;
+    this.searchTimeout = setTimeout(() => {
+      const filters = this.getCurrentFilters(entityId);
+      filters.searchText = value;
+      this.saveFilters(entityId, filters);
+      onFilterChange();
+    }, TIMING.SEARCH_DEBOUNCE);
+  }
+
+  /** Drops a live search still waiting for the typing pause (the card was detached). */
+  cancelScheduledSearch(): void {
+    clearTimeout(this.searchTimeout);
+    this.searchTimeout = undefined;
   }
 
   updateFilterIndicators(filters: FilterState, translations: TranslationData): void {
-    const advancedToggle = this.shadowRoot.getElementById(
-      ELEMENTS.ADVANCED_SEARCH_TOGGLE,
-    ) as HTMLElement | null;
+    const advancedToggle = this.shadowRoot.getElementById(ELEMENTS.ADVANCED_SEARCH_TOGGLE);
 
     if (advancedToggle) {
-      if (Utilities.hasActiveFilters(filters)) {
-        const hideText = TranslationManager.localize(
-          translations,
-          'filters.hide_filters',
-          undefined,
-          'Hide Filters',
-        );
-        const filtersText = TranslationManager.localize(
-          translations,
-          'filters.filters',
-          undefined,
-          'Filters',
-        );
-        const text = filters.showAdvanced ? `${hideText} ●` : `${filtersText} ●`;
-        advancedToggle.textContent = text;
-        advancedToggle.style.background = 'var(--warning-color, #ff9800)';
-      } else {
-        const hideText = TranslationManager.localize(
-          translations,
-          'filters.hide_filters',
-          undefined,
-          'Hide Filters',
-        );
-        const filtersText = TranslationManager.localize(
-          translations,
-          'filters.filters',
-          undefined,
-          'Filters',
-        );
-        const text = filters.showAdvanced ? hideText : filtersText;
-        advancedToggle.textContent = text;
-        advancedToggle.style.background = 'var(--primary-color)';
-      }
+      advancedToggle.classList.toggle('has-active-filters', Utilities.hasActiveFilters(filters));
+      advancedToggle.setAttribute('aria-expanded', String(filters.showAdvanced));
     }
 
     this.updateActiveFiltersDisplay(filters, translations);
   }
 
   private updateActiveFiltersDisplay(filters: FilterState, translations: TranslationData): void {
-    const activeFiltersDiv = this.shadowRoot.getElementById(
-      ELEMENTS.ACTIVE_FILTERS,
-    ) as HTMLElement | null;
-    const activeFiltersList = this.shadowRoot.getElementById(
-      ELEMENTS.ACTIVE_FILTERS_LIST,
-    ) as HTMLElement | null;
+    const activeFiltersDiv = this.shadowRoot.getElementById(ELEMENTS.ACTIVE_FILTERS);
+    const activeFiltersList = this.shadowRoot.getElementById(ELEMENTS.ACTIVE_FILTERS_LIST);
 
     if (activeFiltersDiv && activeFiltersList) {
       const filterBadges = createFilterBadges(filters, translations);
+      activeFiltersList.innerHTML = filterBadges.join('');
+      activeFiltersDiv.hidden = filterBadges.length === 0;
 
-      if (filterBadges.length > 0) {
-        activeFiltersList.innerHTML = filterBadges.join('');
-        activeFiltersDiv.style.display = 'block';
-      } else {
-        activeFiltersDiv.style.display = 'none';
+      // The toolbar chip row also holds the sort chip; hide it only when it would be empty.
+      const chipRow = activeFiltersDiv.parentElement;
+      if (chipRow?.classList.contains('si-chip-row')) {
+        chipRow.hidden = filterBadges.length === 0 && !chipRow.querySelector('.si-sort-chip');
       }
     }
   }

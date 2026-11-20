@@ -3,13 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { itemAlias } from '../../src/templates/modalPartials/itemAlias';
 import { TranslationData } from '@/types/translatableComponent';
 
-vi.mock('../../src/services/translationManager', () => ({
-  TranslationManager: {
-    localize: vi.fn((_translations: any, _key: string, _params: any, fallback: string) => {
-      return fallback;
-    }),
-  },
-}));
+vi.mock('../../src/services/translationManager', () => import('../mocks/translationManager'));
 
 vi.mock('../../src/utils/constants', () => ({
   ELEMENTS: {

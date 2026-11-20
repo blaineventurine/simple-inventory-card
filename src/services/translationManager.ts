@@ -8,12 +8,14 @@ export class TranslationManager {
   static async loadTranslations(language: string): Promise<TranslationData> {
     const cacheKey = `${this._cardName}-${language}`;
 
-    if (this._cache.has(cacheKey)) {
-      return this._cache.get(cacheKey)!;
+    const cached = this._cache.get(cacheKey);
+    if (cached !== undefined) {
+      return cached;
     }
 
-    if (this._loadingPromises.has(cacheKey)) {
-      return this._loadingPromises.get(cacheKey)!;
+    const loading = this._loadingPromises.get(cacheKey);
+    if (loading !== undefined) {
+      return loading;
     }
 
     const loadingPromise = this._loadTranslationsInternal(language);
@@ -60,7 +62,7 @@ export class TranslationManager {
   static localize(
     translations: TranslationData,
     key: string,
-    params?: Record<string, any>,
+    params?: Record<string, unknown>,
     fallback?: string,
   ): string {
     const keys = key.split('.');
@@ -77,8 +79,15 @@ export class TranslationManager {
     let result = typeof value === 'string' ? value : fallback || key;
 
     if (params) {
+      // `{name, plural, one {…} other {…}}`: the one branch for exactly 1, otherwise other.
+      result = result.replace(
+        /\{(\w+), plural, one \{([^}]*)\} other \{([^}]*)\}\}/g,
+        (block: string, param: string, one: string, other: string) =>
+          param in params ? (Number(params[param]) === 1 ? one : other) : block,
+      );
       Object.entries(params).forEach(([param, val]) => {
-        result = result.replace(new RegExp(`{${param}}`, 'g'), String(val));
+        // A replacer function: `$&`, `$'` and `$$` in a value (e.g. a search query) stay literal.
+        result = result.replace(new RegExp(`{${param}}`, 'g'), () => String(val));
       });
     }
 

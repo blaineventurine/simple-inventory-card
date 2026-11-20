@@ -4,7 +4,7 @@ import { TranslationData } from '@/types/translatableComponent';
 
 export function itemAlias(prefix: string, translations: TranslationData): string {
   return `
-    <div class="form-group">
+    <div class="form-group si-field">
       <label for="${prefix}-${ELEMENTS.ALIASES}-input" class="form-label">
         ${TranslationManager.localize(translations, 'modal.aliases', undefined, 'Aliases')}
       </label>

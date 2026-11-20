@@ -1,16 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createSearchAndFilters } from '../../src/templates/searchAndFilters';
+import { createFilterPanel, createSearchRow } from '../../src/templates/searchAndFilters';
 import { FilterState } from '../../src/types/filterState';
 import { ELEMENTS } from '../../src/utils/constants';
 import { TranslationData } from '@/types/translatableComponent';
 
-vi.mock('../../src/services/translationManager', () => ({
-  TranslationManager: {
-    localize: vi.fn((_translations: any, _key: string, _params: any, fallback: string) => {
-      return fallback;
-    }),
-  },
-}));
+vi.mock('../../src/services/translationManager', () => import('../mocks/translationManager'));
 
 const filters: FilterState = {
   category: [],
@@ -24,7 +18,20 @@ const filters: FilterState = {
 const categories = ['Food', 'Drinks'];
 const locations = ['Pantry', 'Fridge'];
 
-describe('createSearchAndFilters', () => {
+/** The card renders the search row and the filter panel separately; most tests check both. */
+function createSearchAndFilters(
+  filterState: FilterState,
+  categoryOptions: string[],
+  locationOptions: string[],
+  translations: TranslationData,
+): string {
+  return (
+    createSearchRow(filterState, translations) +
+    createFilterPanel(filterState, categoryOptions, locationOptions, translations)
+  );
+}
+
+describe('createSearchRow + createFilterPanel', () => {
   let mockTranslations: TranslationData;
 
   beforeEach(() => {
@@ -111,7 +118,7 @@ describe('createSearchAndFilters', () => {
       const result = createSearchAndFilters(filters, categories, locations, mockTranslations);
 
       expect(result).toContain(`id="${ELEMENTS.ADVANCED_SEARCH_TOGGLE}"`);
-      expect(result).toContain('class="toggle-btn');
+      expect(result).toContain('class="si-icon-btn si-filter-btn');
     });
   });
 
@@ -119,8 +126,7 @@ describe('createSearchAndFilters', () => {
     it('should hide advanced filters when showAdvanced is false', () => {
       const result = createSearchAndFilters(filters, categories, locations, mockTranslations);
 
-      expect(result).toContain('style="display: none"');
-      expect(result).toContain('id="advanced-filters"');
+      expect(result).toContain('id="advanced-filters" class="advanced-filters" hidden>');
     });
 
     it('should show advanced filters when showAdvanced is true', () => {
@@ -131,8 +137,7 @@ describe('createSearchAndFilters', () => {
 
       const result = createSearchAndFilters(_filters, categories, locations, mockTranslations);
 
-      expect(result).toContain('style="display: block"');
-      expect(result).toContain('class="advanced-filters"');
+      expect(result).toContain('id="advanced-filters" class="advanced-filters">');
     });
   });
 
@@ -444,7 +449,11 @@ describe('createSearchAndFilters', () => {
       const result = createSearchAndFilters(_filters, categories, locations, mockTranslations);
 
       expect(result).toContain(`id="${ELEMENTS.CLEAR_FILTERS}"`);
-      expect(result).toContain('class="clear-only-btn"');
+      const host = document.createElement('div');
+      host.innerHTML = result;
+      expect(
+        host.querySelector(`#${ELEMENTS.CLEAR_FILTERS}`)?.classList.contains('si-text-btn'),
+      ).toBe(true);
       expect(result).toContain('Clear All Filters');
     });
   });
@@ -537,7 +546,7 @@ describe('createSearchAndFilters', () => {
 
       const result = createSearchAndFilters(_filters, categories, locations, mockTranslations);
 
-      expect(result).toContain('value="search "with quotes""');
+      expect(result).toContain('value="search &quot;with quotes&quot;"');
       expect(result).toContain('class="search-input has-value"');
     });
 
@@ -576,7 +585,7 @@ describe('createSearchAndFilters', () => {
       expect(result).toContain('Zero');
       expect(result).toContain('<input type="checkbox" value="expired" checked>');
       expect(result).toContain('Expired');
-      expect(result).toContain('style="display: block"');
+      expect(result).toContain('id="advanced-filters" class="advanced-filters">');
       expect(result).toContain('<input type="checkbox" value="Pantry" checked>');
     });
 
@@ -606,6 +615,71 @@ describe('createSearchAndFilters', () => {
       expect(result).toContain('<input type="checkbox" value="Drinks" >');
       expect(result).toContain('Drinks');
       expect(result).toContain('<input type="checkbox" value="Pantry" >');
+    });
+  });
+
+  describe('restyled toolbar parts', () => {
+    it('renders the search field as a pill with a magnify icon and an accessible name', () => {
+      const result = createSearchRow(filters, mockTranslations);
+
+      expect(result).toContain('class="si-search"');
+      expect(result).toContain('icon="mdi:magnify"');
+      expect(result).toContain('aria-label="Search"');
+    });
+
+    it('renders the filter toggle as an icon button reflecting the panel state', () => {
+      const closed = createSearchRow(filters, mockTranslations);
+      expect(closed).toContain(`id="${ELEMENTS.ADVANCED_SEARCH_TOGGLE}"`);
+      expect(closed).toContain('icon="mdi:filter-variant"');
+      expect(closed).toContain('aria-label="Filters"');
+      expect(closed).toContain('aria-expanded="false"');
+      expect(closed).toContain('aria-controls="advanced-filters"');
+
+      const open = createSearchRow({ ...filters, showAdvanced: true }, mockTranslations);
+      expect(open).toContain('aria-label="Hide Filters"');
+      expect(open).toContain('aria-expanded="true"');
+    });
+
+    it('marks the filter toggle while filters are active', () => {
+      expect(createSearchRow(filters, mockTranslations)).not.toContain('has-active-filters');
+      expect(createSearchRow({ ...filters, category: ['Food'] }, mockTranslations)).toContain(
+        'class="si-icon-btn si-filter-btn has-active-filters"',
+      );
+    });
+
+    it('renders Apply (tonal) and Clear (text) in the filter panel', () => {
+      const host = document.createElement('div');
+      host.innerHTML = createFilterPanel(
+        { ...filters, showAdvanced: true },
+        categories,
+        locations,
+        mockTranslations,
+      );
+
+      const apply = host.querySelector(`#${ELEMENTS.APPLY_FILTERS}`);
+      const clear = host.querySelector(`#${ELEMENTS.CLEAR_FILTERS}`);
+      expect(apply?.classList.contains('si-tonal-btn')).toBe(true);
+      expect(apply?.textContent?.trim()).toBe('Apply');
+      expect(clear?.classList.contains('si-text-btn')).toBe(true);
+      expect(clear?.textContent?.trim()).toBe('Clear All Filters');
+    });
+
+    it('renders filter options as toggle chips inside the dropdowns', () => {
+      const host = document.createElement('div');
+      host.innerHTML = createFilterPanel(
+        { ...filters, category: ['Drinks'], showAdvanced: true },
+        categories,
+        locations,
+        mockTranslations,
+      );
+
+      const chips = host.querySelectorAll(
+        `#${ELEMENTS.FILTER_CATEGORY}-dropdown > label.si-chip.si-toggle-chip`,
+      );
+      expect(chips).toHaveLength(2);
+      expect(chips[1].querySelector<HTMLInputElement>('input[type="checkbox"]')?.checked).toBe(
+        true,
+      );
     });
   });
 });

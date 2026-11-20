@@ -3,13 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { productPicker } from '../../src/templates/modalPartials/productPicker';
 import { TranslationData } from '@/types/translatableComponent';
 
-vi.mock('../../src/services/translationManager', () => ({
-  TranslationManager: {
-    localize: vi.fn((_translations: any, _key: string, _params: any, fallback: string) => {
-      return fallback;
-    }),
-  },
-}));
+vi.mock('../../src/services/translationManager', () => import('../mocks/translationManager'));
 
 vi.mock('../../src/utils/constants', () => ({
   ELEMENTS: {
@@ -38,7 +32,7 @@ describe('productPicker', () => {
 
   it('should be hidden by default', () => {
     const html = productPicker('add', mockTranslations);
-    expect(html).toContain('style="display:none;"');
+    expect(html).toContain('class="product-picker" id="add-product-picker" hidden>');
   });
 
   it('should contain the label text', () => {

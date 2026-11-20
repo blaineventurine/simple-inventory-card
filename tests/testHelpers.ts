@@ -1,5 +1,6 @@
-import { vi } from 'vitest';
-import { HomeAssistant, HassEntity, HassConfig } from '../src/types/homeAssistant';
+import { vi, type Mock } from 'vitest';
+import { HomeAssistant, HassConnection, HassEntity, HassConfig } from '../src/types/homeAssistant';
+import { CardContext, NO_CAPABILITIES } from '../src/types/cardContext';
 
 export const createMockHassEntity = (
   entityId: string,
@@ -68,3 +69,54 @@ export const createMockHomeAssistant = (
   sendWS: vi.fn(),
   callWS: vi.fn(),
 });
+
+/** A card context: an empty hass, a `sensor.test_inventory` config, no items or capabilities. */
+export const createMockCardContext = (overrides: Partial<CardContext> = {}): CardContext => ({
+  hass: createMockHomeAssistant(),
+  config: { type: 'custom:simple-inventory-card', entity: 'sensor.test_inventory' },
+  translations: {},
+  items: [],
+  capabilities: NO_CAPABILITIES,
+  ...overrides,
+});
+
+/** `value`, failing the test with `message` when it is null or undefined. */
+export function must<T>(value: T | null | undefined, message = 'expected a value'): T {
+  if (value === null || value === undefined) {
+    throw new Error(message);
+  }
+  return value;
+}
+
+/** A websocket connection double: `push` delivers a subscription event, `reconnect` fires `ready`. */
+export interface FakeConnection extends HassConnection {
+  subscribeMessage: Mock<HassConnection['subscribeMessage']>;
+  unsubscribe: Mock<() => Promise<void>>;
+  push(event: unknown): void;
+  reconnect(): void;
+  readyListeners(): number;
+}
+
+export function fakeConnection(): FakeConnection {
+  let deliver: ((event: unknown) => void) | undefined;
+  const ready = new Set<() => void>();
+  const unsubscribe = vi.fn<() => Promise<void>>(async () => {
+    deliver = undefined;
+  });
+  return {
+    unsubscribe,
+    subscribeMessage: vi.fn<HassConnection['subscribeMessage']>(async (callback) => {
+      deliver = callback;
+      return unsubscribe;
+    }),
+    addEventListener: (_event, listener) => {
+      ready.add(listener);
+    },
+    removeEventListener: (_event, listener) => {
+      ready.delete(listener);
+    },
+    push: (event) => deliver?.(event),
+    reconnect: () => ready.forEach((listener) => listener()),
+    readyListeners: () => ready.size,
+  };
+}

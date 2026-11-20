@@ -9,7 +9,7 @@ export function itemLocation(
   locations: string[] = [],
 ): string {
   return `
-    <div class="input-group">
+    <div class="input-group si-field">
       <label for="${prefix}-${ELEMENTS.LOCATION}" class="form-label">
         ${TranslationManager.localize(translations, 'modal.location', undefined, 'Location')}
       </label>
@@ -21,7 +21,8 @@ export function itemLocation(
           undefined,
           'Pantry, Garage Shelf, etc.',
         ),
-        options: locations.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' })),
+        // Already sorted by itemOptions; the multi-select re-sorts when values are added.
+        options: locations,
       })}
     </div>
   `;

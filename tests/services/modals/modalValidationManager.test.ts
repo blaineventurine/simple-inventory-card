@@ -273,6 +273,15 @@ describe('ModalValidationManager', () => {
       expect(modalContent.scrollTop).toBe(0);
     });
 
+    it('scrolls the sheet body back to the banner', () => {
+      const { validationMessage, modalContent } = setupModalElements(true);
+      modalContent.scrollTop = 240;
+
+      modalValidationManager.showError('Test error message', true);
+
+      expect(validationMessage.closest).toHaveBeenCalledWith('.si-sheet__body');
+      expect(modalContent.scrollTop).toBe(0);
+    });
     it('should auto-clear error after 5 seconds', () => {
       setupModalElements(true);
 

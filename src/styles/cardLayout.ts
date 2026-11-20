@@ -5,65 +5,57 @@ export const cardLayoutStyles: CSSResult = css`
     padding: 16px;
   }
 
-  .inventory-title {
-    margin: 0;
-    font-size: 1.3em;
-    font-weight: bold;
-    color: var(--primary-text-color);
+  /* Inside the Inventory panel the page is the frame. */
+  :host([embedded]) ha-card {
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    background: none;
   }
 
-  .no-items {
-    text-align: center;
-    color: var(--secondary-text-color);
-    padding: 20px;
-  }
-
-  .active-filters {
-    display: block;
-    padding: 8px 16px;
-  }
-
-  .filter-badges-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-
-  .filter-badge {
-    display: inline-block;
-    padding: 4px 12px;
-    margin: 2px;
-    color: white;
-    border-radius: 12px;
-    font-size: 0.875rem;
+  .compat-banner {
+    margin: -16px -16px 12px;
+    padding: 10px 16px;
+    background: var(--warning-color, #ff9800);
+    color: var(--text-primary-color, #fff);
     font-weight: 500;
+    border-radius: var(--ha-card-border-radius, 12px) var(--ha-card-border-radius, 12px) 0 0;
   }
 
-  .filter-badge.search {
-    background: var(--purple-color, #9c27b0);
+  .category-group,
+  .location-group {
+    margin-bottom: var(--si-space-2);
   }
 
-  .filter-badge.category {
-    background: var(--orange-color, #ff9800);
+  .category-header,
+  .location-header {
+    display: flex;
+    align-items: baseline;
+    gap: var(--si-space-1);
+    padding: var(--si-space-3) var(--si-space-1) var(--si-space-1);
+    color: var(--secondary-text-color);
+    font-size: var(--si-font-secondary);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
   }
 
-  .filter-badge.location {
-    background: var(--blue-color, #2196f3);
+  .si-group__count::before {
+    content: '· ';
   }
 
-  .filter-badge.category,
-  .filter-badge.location {
-    font-style: normal !important;
-    opacity: 1 !important;
+  .si-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--si-space-3);
+    padding: 32px var(--si-space-4);
+    color: var(--secondary-text-color);
+    text-align: center;
   }
 
-  .filter-badge.quantity {
-    background: var(--green-color, #4caf50);
-    color: white !important;
-  }
-
-  .filter-badge.expiry {
-    background: var(--red-color, #ff5722);
-    border-radius: 12px !important;
+  .si-empty__text {
+    margin: 0;
+    font-size: var(--si-font-name);
   }
 `;

@@ -227,7 +227,7 @@ describe('modalMultiSelect', () => {
       expect(removeButtons.length).toBe(2);
 
       const label = container.querySelector('.modal-multi-select-label') as HTMLElement;
-      expect(label.style.display).toBe('none');
+      expect(label.hidden).toBe(true);
     });
 
     it('hides chips entirely and re-shows the trigger label when selection is empty', () => {
@@ -237,7 +237,7 @@ describe('modalMultiSelect', () => {
       const chipsContainer = container.querySelector('#ms-chips') as HTMLElement;
       expect(chipsContainer.innerHTML).toBe('');
       const label = container.querySelector('.modal-multi-select-label') as HTMLElement;
-      expect(label.style.display).toBe('');
+      expect(label.hidden).toBe(false);
     });
   });
 
@@ -250,10 +250,10 @@ describe('modalMultiSelect', () => {
       const dropdown = container.querySelector('#ms-dropdown') as HTMLElement;
 
       trigger.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-      expect(dropdown.style.display).toBe('block');
+      expect(dropdown.hidden).toBe(false);
 
       trigger.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-      expect(dropdown.style.display).toBe('none');
+      expect(dropdown.hidden).toBe(true);
     });
 
     it('closes every other open modal-multi-select-dropdown on the page', () => {
@@ -274,12 +274,12 @@ describe('modalMultiSelect', () => {
 
       // Open the first dropdown.
       triggerOne.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-      expect(dropdownOne.style.display).toBe('block');
+      expect(dropdownOne.hidden).toBe(false);
 
       // Opening the second dropdown must close the first (it's an "other" dropdown).
       triggerTwo.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-      expect(dropdownTwo.style.display).toBe('block');
-      expect(dropdownOne.style.display).toBe('none');
+      expect(dropdownTwo.hidden).toBe(false);
+      expect(dropdownOne.hidden).toBe(true);
 
       document.body.removeChild(wrapper);
     });
@@ -458,10 +458,10 @@ describe('modalMultiSelect', () => {
       const dropdown = container.querySelector('#ms-dropdown') as HTMLElement;
 
       trigger.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-      expect(dropdown.style.display).toBe('block');
+      expect(dropdown.hidden).toBe(false);
 
       dropdown.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-      expect(dropdown.style.display).toBe('block');
+      expect(dropdown.hidden).toBe(false);
     });
   });
 
@@ -474,7 +474,7 @@ describe('modalMultiSelect', () => {
       const dropdown = container.querySelector('#ms-dropdown') as HTMLElement;
 
       trigger.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-      expect(dropdown.style.display).toBe('block');
+      expect(dropdown.hidden).toBe(false);
 
       // Note: chipsContainer itself has its own click handler that calls
       // stopPropagation, so it can't be used to exercise the outside-click
@@ -483,7 +483,7 @@ describe('modalMultiSelect', () => {
       container.appendChild(outsideEl);
       outsideEl.dispatchEvent(new MouseEvent('click', { bubbles: true }));
 
-      expect(dropdown.style.display).toBe('none');
+      expect(dropdown.hidden).toBe(true);
     });
 
     it('does not close the dropdown when the click target is a descendant of the trigger', () => {
@@ -501,7 +501,7 @@ describe('modalMultiSelect', () => {
       // would immediately re-close the dropdown it just opened.
       label.dispatchEvent(new MouseEvent('click', { bubbles: true }));
 
-      expect(dropdown.style.display).toBe('block');
+      expect(dropdown.hidden).toBe(false);
     });
 
     it('does not close the dropdown when the click target is a descendant of the dropdown', () => {
@@ -513,14 +513,14 @@ describe('modalMultiSelect', () => {
       const optionsContainer = container.querySelector('#ms-options') as HTMLElement;
 
       trigger.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-      expect(dropdown.style.display).toBe('block');
+      expect(dropdown.hidden).toBe(false);
 
       // A click inside the dropdown never reaches root at all because the
       // dropdown's own listener calls stopPropagation — this proves the
       // dropdown stays open for clicks on its descendants either way.
       optionsContainer.dispatchEvent(new MouseEvent('click', { bubbles: true }));
 
-      expect(dropdown.style.display).toBe('block');
+      expect(dropdown.hidden).toBe(false);
     });
   });
 
@@ -556,7 +556,7 @@ describe('modalMultiSelect', () => {
       // A single dispatch therefore toggles the dropdown exactly once, not twice
       // (which would cancel back out to closed).
       trigger.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-      expect(dropdown.style.display).toBe('block');
+      expect(dropdown.hidden).toBe(false);
     });
 
     it('still resyncs checkboxes and chips on a second call (e.g. editing a different item)', () => {

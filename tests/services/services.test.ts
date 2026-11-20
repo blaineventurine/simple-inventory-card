@@ -29,7 +29,7 @@ describe('Services', () => {
       callWS: vi.fn(),
     };
 
-    services = new Services(mockHass);
+    services = new Services(() => mockHass);
 
     vi.spyOn(console, 'error').mockImplementation(() => {});
   });
@@ -40,8 +40,23 @@ describe('Services', () => {
 
   describe('constructor', () => {
     it('should store the HomeAssistant instance', () => {
-      const newServices = new Services(mockHass);
+      const newServices = new Services(() => mockHass);
       expect(newServices).toBeInstanceOf(Services);
+    });
+
+    it('calls through the hass current at call time, not the one at construction', async () => {
+      let current: HomeAssistant = mockHass;
+      const reading = new Services(() => current);
+      const later: HomeAssistant = {
+        ...mockHass,
+        callService: vi.fn().mockResolvedValue(undefined),
+      };
+      current = later;
+
+      await reading.incrementItem('inv', 'Milk');
+
+      expect(later.callService).toHaveBeenCalled();
+      expect(mockHass.callService).not.toHaveBeenCalled();
     });
   });
 
@@ -60,7 +75,29 @@ describe('Services', () => {
       quantity: 5,
       todoList: 'todo.shopping',
       unit: 'pieces',
+      aliases: '',
+      barcode: '',
+      desiredQuantity: 0,
+      price: 0,
+      todoQuantityPlacement: 'name',
     };
+
+    it('sends the icon when the form carries one (item_icons)', async () => {
+      await services.addItem(inventoryId, { ...itemData, icon: ' mdi:apple ' });
+
+      expect(mockHass.callService).toHaveBeenCalledWith(
+        DOMAIN,
+        SERVICES.ADD_ITEM,
+        expect.objectContaining({ [PARAMS.ICON]: 'mdi:apple' }),
+      );
+    });
+
+    it('never sends an icon key without the icon field', async () => {
+      await services.addItem(inventoryId, itemData);
+
+      const [, , data] = vi.mocked(mockHass.callService).mock.calls[0];
+      expect(data).not.toHaveProperty(PARAMS.ICON);
+    });
 
     it('should successfully add item with all data', async () => {
       const result = await services.addItem(inventoryId, itemData);
@@ -99,22 +136,13 @@ describe('Services', () => {
     });
 
     it('should use default values for undefined properties', async () => {
-      const minimalItemData: ItemData = {
-        autoAddEnabled: undefined as any,
-        autoAddIdToDescriptionEnabled: undefined as any,
-        autoAddToListQuantity: undefined as any,
-        category: undefined as any,
-        description: undefined as any,
-        expiryAlertDays: undefined as any,
-        expiryDate: undefined as any,
-        location: undefined as any,
+      const minimalItemData: Partial<ItemData> = {
         name: 'Minimal Item',
         quantity: 1,
-        todoList: undefined as any,
-        unit: undefined as any,
       };
 
-      const result = await services.addItem(inventoryId, minimalItemData);
+      // Untyped callers: the service boundary fills whatever is missing with defaults.
+      const result = await services.addItem(inventoryId, minimalItemData as ItemData);
 
       expect(result).toEqual({ success: true });
       expect(mockHass.callService).toHaveBeenCalledWith(DOMAIN, SERVICES.ADD_ITEM, {
@@ -178,6 +206,11 @@ describe('Services', () => {
         quantity: 0,
         todoList: '',
         unit: null as any,
+        aliases: '',
+        barcode: '',
+        desiredQuantity: 0,
+        price: 0,
+        todoQuantityPlacement: 'name',
       };
 
       const result = await services.addItem(inventoryId, itemDataWithNulls);
@@ -365,7 +398,29 @@ describe('Services', () => {
       quantity: 10,
       todoList: 'todo.updated',
       unit: 'kg',
+      aliases: '',
+      barcode: '',
+      desiredQuantity: 0,
+      price: 0,
+      todoQuantityPlacement: 'name',
     };
+
+    it('sends an emptied icon so the item goes back to the default icon', async () => {
+      await services.updateItem(inventoryId, oldName, { ...itemData, icon: '' });
+
+      expect(mockHass.callService).toHaveBeenCalledWith(
+        DOMAIN,
+        SERVICES.UPDATE_ITEM,
+        expect.objectContaining({ [PARAMS.ICON]: '' }),
+      );
+    });
+
+    it('never sends an icon key on update without the icon field', async () => {
+      await services.updateItem(inventoryId, oldName, itemData);
+
+      const [, , data] = vi.mocked(mockHass.callService).mock.calls[0];
+      expect(data).not.toHaveProperty(PARAMS.ICON);
+    });
 
     it('should successfully update item with all data', async () => {
       const result = await services.updateItem(inventoryId, oldName, itemData);
@@ -407,22 +462,13 @@ describe('Services', () => {
     });
 
     it('should use default values for undefined properties', async () => {
-      const minimalItemData: ItemData = {
-        autoAddEnabled: undefined as any,
-        autoAddIdToDescriptionEnabled: undefined as any,
-        autoAddToListQuantity: undefined as any,
-        category: undefined as any,
-        description: undefined as any,
-        expiryAlertDays: undefined as any,
-        expiryDate: undefined as any,
-        location: undefined as any,
+      const minimalItemData: Partial<ItemData> = {
         name: 'Updated Name',
         quantity: 5,
-        todoList: undefined as any,
-        unit: undefined as any,
       };
 
-      const result = await services.updateItem(inventoryId, oldName, minimalItemData);
+      // Untyped callers: the service boundary fills whatever is missing with defaults.
+      const result = await services.updateItem(inventoryId, oldName, minimalItemData as ItemData);
 
       expect(result).toEqual({ success: true });
       expect(mockHass.callService).toHaveBeenCalledWith(DOMAIN, SERVICES.UPDATE_ITEM, {
@@ -462,6 +508,11 @@ describe('Services', () => {
         quantity: 0,
         todoList: '',
         unit: '',
+        aliases: '',
+        barcode: '',
+        desiredQuantity: 0,
+        price: 0,
+        todoQuantityPlacement: 'name',
       };
 
       const result = await services.updateItem(inventoryId, oldName, falsyItemData);
@@ -558,6 +609,33 @@ describe('Services', () => {
       expect(result).toEqual({
         success: false,
         error: 'false',
+      });
+    });
+
+    it.each([
+      ['addItem', (s: Services) => s.addItem('inv', { name: 'Milk' } as ItemData)],
+      ['removeItem', (s: Services) => s.removeItem('inv', 'Milk')],
+      ['incrementItem', (s: Services) => s.incrementItem('inv', 'Milk')],
+      ['decrementItem', (s: Services) => s.decrementItem('inv', 'Milk')],
+      ['updateItem', (s: Services) => s.updateItem('inv', 'Milk', { name: 'Milk' } as ItemData)],
+      ['scanBarcode', (s: Services) => s.scanBarcode('inv', '123', 'increment')],
+      ['updateBatch', (s: Services) => s.updateBatch('inv', 'b1', { quantity: 1 })],
+      ['removeBatch', (s: Services) => s.removeBatch('inv', 'b1')],
+    ])('%s preserves the backend translation_key as errorCode', async (_name, call) => {
+      mockHass.callService = vi.fn().mockRejectedValue({
+        code: 'service_validation_error',
+        message: "Validation error: No item found for barcode '123'",
+        translation_key: 'barcode_not_found',
+        translation_domain: 'simple_inventory',
+        translation_placeholders: { barcode: '123' },
+      });
+
+      const result = await call(services);
+
+      expect(result).toEqual({
+        success: false,
+        error: "Validation error: No item found for barcode '123'",
+        errorCode: 'barcode_not_found',
       });
     });
   });
@@ -666,6 +744,310 @@ describe('Services', () => {
       const result = await services.lookupByBarcode('bad');
 
       expect(result).toEqual({ items: [] });
+    });
+  });
+
+  describe('getInfo', () => {
+    it('calls simple_inventory/get_info and returns the backend info', async () => {
+      const info = { version: '0.7.0', api_version: 2, features: [] };
+      mockHass.callWS = vi.fn().mockResolvedValue(info);
+
+      await expect(services.getInfo()).resolves.toEqual(info);
+      expect(mockHass.callWS).toHaveBeenCalledWith({ type: 'simple_inventory/get_info' });
+    });
+
+    it('rethrows failures so callers can tell unknown_command from other errors', async () => {
+      const error = { code: 'unknown_command', message: 'Unknown command.' };
+      mockHass.callWS = vi.fn().mockRejectedValue(error);
+
+      await expect(services.getInfo()).rejects.toBe(error);
+    });
+  });
+
+  describe('batch parameters', () => {
+    it('sends every restock field with an increment', async () => {
+      await services.incrementItem('inv', 'Milk', 2, {
+        expiryDate: '2026-11-01',
+        location: 'Garage',
+        purchasedAt: '2026-10-25',
+        price: 1.25,
+      });
+
+      expect(mockHass.callService).toHaveBeenCalledWith(DOMAIN, SERVICES.INCREMENT_ITEM, {
+        [PARAMS.INVENTORY_ID]: 'inv',
+        [PARAMS.NAME]: 'Milk',
+        [PARAMS.AMOUNT]: 2,
+        [PARAMS.EXPIRY_DATE]: '2026-11-01',
+        [PARAMS.LOCATION]: 'Garage',
+        [PARAMS.PURCHASED_AT]: '2026-10-25',
+        [PARAMS.PRICE]: 1.25,
+      });
+    });
+
+    it('omits unset restock fields so pre-batch integrations accept the call', async () => {
+      await services.incrementItem('inv', 'Milk', 1, { location: 'Garage' });
+
+      expect(mockHass.callService).toHaveBeenCalledWith(DOMAIN, SERVICES.INCREMENT_ITEM, {
+        [PARAMS.INVENTORY_ID]: 'inv',
+        [PARAMS.NAME]: 'Milk',
+        [PARAMS.AMOUNT]: 1,
+        [PARAMS.LOCATION]: 'Garage',
+      });
+    });
+
+    it('targets a batch or a location on decrement', async () => {
+      await services.decrementItem('inv', 'Milk', 0.5, { batchId: 'b1' });
+      await services.decrementItem('inv', 'Milk', 1, { location: 'Fridge' });
+
+      expect(mockHass.callService).toHaveBeenNthCalledWith(1, DOMAIN, SERVICES.DECREMENT_ITEM, {
+        [PARAMS.INVENTORY_ID]: 'inv',
+        [PARAMS.NAME]: 'Milk',
+        [PARAMS.AMOUNT]: 0.5,
+        [PARAMS.BATCH_ID]: 'b1',
+      });
+      expect(mockHass.callService).toHaveBeenNthCalledWith(2, DOMAIN, SERVICES.DECREMENT_ITEM, {
+        [PARAMS.INVENTORY_ID]: 'inv',
+        [PARAMS.NAME]: 'Milk',
+        [PARAMS.AMOUNT]: 1,
+        [PARAMS.LOCATION]: 'Fridge',
+      });
+    });
+
+    it('passes restock fields through scan_barcode', async () => {
+      await services.scanBarcode('inv', '123', 'increment', 1, { expiryDate: '2026-11-01' });
+
+      expect(mockHass.callService).toHaveBeenCalledWith(DOMAIN, SERVICES.SCAN_BARCODE, {
+        [PARAMS.INVENTORY_ID]: 'inv',
+        [PARAMS.BARCODE]: '123',
+        action: 'increment',
+        [PARAMS.AMOUNT]: 1,
+        [PARAMS.EXPIRY_DATE]: '2026-11-01',
+      });
+    });
+  });
+
+  describe('updateBatch', () => {
+    it('sends only the fields being changed, including cleared ones', async () => {
+      const result = await services.updateBatch('inv', 'b1', {
+        quantity: 0.5,
+        expiryDate: '',
+        location: '',
+        unitPrice: 2,
+        purchasedAt: '2026-10-01',
+      });
+
+      expect(result).toEqual({ success: true });
+      expect(mockHass.callService).toHaveBeenCalledWith(DOMAIN, SERVICES.UPDATE_BATCH, {
+        [PARAMS.INVENTORY_ID]: 'inv',
+        [PARAMS.BATCH_ID]: 'b1',
+        [PARAMS.QUANTITY]: 0.5,
+        [PARAMS.EXPIRY_DATE]: '',
+        [PARAMS.LOCATION]: '',
+        [PARAMS.UNIT_PRICE]: 2,
+        [PARAMS.PURCHASED_AT]: '2026-10-01',
+      });
+    });
+
+    it('never sends a blank purchase date', async () => {
+      await services.updateBatch('inv', 'b1', { purchasedAt: '' });
+
+      expect(mockHass.callService).toHaveBeenCalledWith(DOMAIN, SERVICES.UPDATE_BATCH, {
+        [PARAMS.INVENTORY_ID]: 'inv',
+        [PARAMS.BATCH_ID]: 'b1',
+      });
+    });
+
+    it('sends just the batch id for an empty change', async () => {
+      await services.updateBatch('inv', 'b1', {});
+
+      expect(mockHass.callService).toHaveBeenCalledWith(DOMAIN, SERVICES.UPDATE_BATCH, {
+        [PARAMS.INVENTORY_ID]: 'inv',
+        [PARAMS.BATCH_ID]: 'b1',
+      });
+    });
+  });
+
+  describe('removeBatch', () => {
+    it('calls remove_batch with the batch id', async () => {
+      const result = await services.removeBatch('inv', 'b1');
+
+      expect(result).toEqual({ success: true });
+      expect(mockHass.callService).toHaveBeenCalledWith(DOMAIN, SERVICES.REMOVE_BATCH, {
+        [PARAMS.INVENTORY_ID]: 'inv',
+        [PARAMS.BATCH_ID]: 'b1',
+      });
+    });
+  });
+
+  describe('transferItem', () => {
+    it('moves an amount of one batch to the destination', async () => {
+      const result = await services.transferItem('inv', 'Milk', {
+        batchId: 'b1',
+        amount: 2,
+        toLocation: 'Garage',
+      });
+
+      expect(result).toEqual({ success: true });
+      expect(mockHass.callService).toHaveBeenCalledWith(DOMAIN, SERVICES.TRANSFER_ITEM, {
+        [PARAMS.INVENTORY_ID]: 'inv',
+        [PARAMS.NAME]: 'Milk',
+        [PARAMS.BATCH_ID]: 'b1',
+        [PARAMS.AMOUNT]: 2,
+        [PARAMS.TO_LOCATION]: 'Garage',
+      });
+    });
+
+    it('returns the message and the backend error code when the move is refused', async () => {
+      vi.mocked(mockHass.callService).mockRejectedValueOnce({
+        message: 'Only 1 of Milk available at Fridge; nothing was moved',
+        translation_key: 'insufficient_stock',
+      });
+
+      const result = await services.transferItem('inv', 'Milk', {
+        batchId: 'b1',
+        amount: 2,
+        toLocation: 'Garage',
+      });
+
+      expect(result).toEqual({
+        success: false,
+        error: 'Only 1 of Milk available at Fridge; nothing was moved',
+        errorCode: 'insufficient_stock',
+      });
+    });
+  });
+
+  describe('item images', () => {
+    function jsonResponse(status: number, body: unknown): Response {
+      return new Response(JSON.stringify(body), {
+        status,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    it('fetches an image with the auth header as a blob', async () => {
+      vi.mocked(mockHass.fetchWithAuth).mockResolvedValueOnce(
+        new Response('img', { status: 200, headers: { 'Content-Type': 'image/webp' } }),
+      );
+
+      const blob = await services.fetchImage('/api/simple_inventory/image/abc?thumb=1&v=1');
+
+      expect(mockHass.fetchWithAuth).toHaveBeenCalledWith(
+        '/api/simple_inventory/image/abc?thumb=1&v=1',
+      );
+      expect(await blob.text()).toBe('img');
+    });
+
+    it('rejects an image fetch the server refuses', async () => {
+      vi.mocked(mockHass.fetchWithAuth).mockResolvedValueOnce(
+        jsonResponse(404, { code: 'image_not_found' }),
+      );
+
+      await expect(services.fetchImage('/api/simple_inventory/image/abc?v=1')).rejects.toThrow(
+        'HTTP 404',
+      );
+    });
+
+    it('uploads the file as multipart field "file" and returns the new stamp', async () => {
+      vi.mocked(mockHass.fetchWithAuth).mockResolvedValueOnce(
+        jsonResponse(200, { image: '18f3a2' }),
+      );
+      const file = new File(['png'], 'milk.png', { type: 'image/png' });
+
+      const result = await services.uploadItemImage('a/b', file);
+
+      expect(result).toEqual({ success: true, image: '18f3a2' });
+      const [path, init] = vi.mocked(mockHass.fetchWithAuth).mock.calls[0];
+      expect(path).toBe('/api/simple_inventory/image/a%2Fb');
+      expect(init?.method).toBe('POST');
+      expect(init?.body).toBeInstanceOf(FormData);
+      const sent = init?.body instanceof FormData ? init.body.get('file') : null;
+      expect(sent).toBeInstanceOf(File);
+    });
+
+    it('returns the server error code when an upload is refused', async () => {
+      vi.mocked(mockHass.fetchWithAuth).mockResolvedValueOnce(
+        jsonResponse(413, { code: 'image_too_large' }),
+      );
+
+      const result = await services.uploadItemImage('abc', new Blob(['x']));
+
+      expect(result).toEqual({ success: false, error: 'HTTP 413', errorCode: 'image_too_large' });
+    });
+
+    it('returns a failure when the upload request itself fails', async () => {
+      vi.mocked(mockHass.fetchWithAuth).mockRejectedValueOnce(new Error('offline'));
+
+      const result = await services.uploadItemImage('abc', new Blob(['x']));
+
+      expect(result).toEqual({ success: false, error: 'offline' });
+    });
+
+    it('deletes the image with DELETE', async () => {
+      vi.mocked(mockHass.fetchWithAuth).mockResolvedValueOnce(jsonResponse(200, { image: '' }));
+
+      const result = await services.deleteItemImage('abc');
+
+      expect(result).toEqual({ success: true, image: '' });
+      expect(mockHass.fetchWithAuth).toHaveBeenCalledWith('/api/simple_inventory/image/abc', {
+        method: 'DELETE',
+      });
+    });
+
+    it('sets the image from the barcode lookup, naming the lookup barcode when given', async () => {
+      await services.setItemImageFromBarcode('inv', 'Milk', '4006381333931');
+      await services.setItemImageFromBarcode('inv', 'Milk');
+
+      expect(mockHass.callService).toHaveBeenNthCalledWith(
+        1,
+        DOMAIN,
+        SERVICES.SET_ITEM_IMAGE_FROM_BARCODE,
+        {
+          [PARAMS.INVENTORY_ID]: 'inv',
+          [PARAMS.NAME]: 'Milk',
+          [PARAMS.LOOKUP_BARCODE]: '4006381333931',
+        },
+      );
+      expect(mockHass.callService).toHaveBeenNthCalledWith(
+        2,
+        DOMAIN,
+        SERVICES.SET_ITEM_IMAGE_FROM_BARCODE,
+        { [PARAMS.INVENTORY_ID]: 'inv', [PARAMS.NAME]: 'Milk' },
+      );
+    });
+
+    it('returns the backend error code when the product has no photo', async () => {
+      vi.mocked(mockHass.callService).mockRejectedValueOnce({
+        message: 'No product photo',
+        translation_key: 'image_not_found',
+      });
+
+      const result = await services.setItemImageFromBarcode('inv', 'Milk');
+
+      expect(result).toEqual({
+        success: false,
+        error: 'No product photo',
+        errorCode: 'image_not_found',
+      });
+    });
+
+    it('sets the image from a media source id', async () => {
+      const result = await services.setItemImageFromMedia(
+        'inv',
+        'Milk',
+        'media-source://media_source/local/milk.jpg',
+      );
+
+      expect(result).toEqual({ success: true });
+      expect(mockHass.callService).toHaveBeenCalledWith(
+        DOMAIN,
+        SERVICES.SET_ITEM_IMAGE_FROM_MEDIA,
+        {
+          [PARAMS.INVENTORY_ID]: 'inv',
+          [PARAMS.NAME]: 'Milk',
+          [PARAMS.MEDIA_CONTENT_ID]: 'media-source://media_source/local/milk.jpg',
+        },
+      );
     });
   });
 });

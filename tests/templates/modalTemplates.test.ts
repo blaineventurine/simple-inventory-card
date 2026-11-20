@@ -9,19 +9,14 @@ import { TodoList } from '../../src/types/todoList';
 import { ModalConfig } from '../../src/types/modalConfig';
 import { TranslationData } from '@/types/translatableComponent';
 
-vi.mock('../../src/services/translationManager', () => ({
-  TranslationManager: {
-    localize: vi.fn((_translations: any, _key: string, _params: any, fallback: string) => {
-      return fallback;
-    }),
-  },
-}));
+vi.mock('../../src/services/translationManager', () => import('../mocks/translationManager'));
 
 vi.mock('../../src/utils/constants', () => ({
   ELEMENTS: {
     ADD_MODAL: 'add-modal',
     EDIT_MODAL: 'edit-modal',
     NAME: 'name',
+    ICON: 'icon',
     QUANTITY: 'quantity',
     UNIT: 'unit',
     CATEGORY: 'category',
@@ -31,15 +26,23 @@ vi.mock('../../src/utils/constants', () => ({
     AUTO_ADD_TO_LIST_QUANTITY: 'auto-add-quantity',
     TODO_LIST: 'todo-list',
     ADD_ITEM_BTN: 'add-item-btn',
+    EDIT_BATCH_EDITOR: 'edit-batch-editor',
+    EDIT_HISTORY_BTN: 'edit-history-btn',
+    EDIT_DELETE_BTN: 'edit-delete-btn',
+    ADD_DUPLICATE_BATCH: 'add-duplicate-batch',
   },
   CSS_CLASSES: {
+    CANCEL_BTN: 'cancel-btn',
     CLOSE_BTN: 'close-btn',
+    DELETE_BTN: 'delete-btn',
+    HISTORY_LINK: 'history-link',
+    MODAL_CONTENT: 'modal-content',
+    SAVE_BTN: 'save-btn',
   },
   ACTIONS: {
     CLOSE_ADD_MODAL: 'close_add_modal',
   },
 }));
-
 describe('modalTemplates', () => {
   let mockTodoLists: TodoList[];
   let mockTranslations: TranslationData;
@@ -98,11 +101,11 @@ describe('modalTemplates', () => {
         const result = createUnifiedModal(mockTodoLists, config, mockTranslations);
 
         expect(result).toContain('id="test-modal"');
-        expect(result).toContain('class="modal"');
-        expect(result).toContain('class="modal-content"');
-        expect(result).toContain('class="modal-header"');
-        expect(result).toContain('class="modal-body"');
-        expect(result).toContain('class="modal-buttons"');
+        expect(result).toContain('class="modal si-sheet"');
+        expect(result).toContain('class="modal-content si-sheet__panel"');
+        expect(result).toContain('class="si-sheet__header"');
+        expect(result).toContain('class="si-sheet__body"');
+        expect(result).toContain('class="si-sheet__actions"');
       });
 
       it('should include modal title', () => {
@@ -114,9 +117,9 @@ describe('modalTemplates', () => {
 
         const result = createUnifiedModal(mockTodoLists, config, mockTranslations);
 
-        expect(result).toContain('<h3>');
-        expect(result).toContain('Custom Title');
-        expect(result).toContain('</h3>');
+        expect(result).toContain(
+          '<h3 id="test-modal-title" class="si-sheet__title">Custom Title</h3>',
+        );
       });
 
       it('should include close button with CSS class', () => {
@@ -128,8 +131,9 @@ describe('modalTemplates', () => {
 
         const result = createUnifiedModal(mockTodoLists, config, mockTranslations);
 
-        expect(result).toContain('class="close-btn"');
-        expect(result).toContain('×');
+        expect(result).toContain('class="si-icon-btn close-btn"');
+        expect(result).toContain('aria-label="Close"');
+        expect(result).toContain('icon="mdi:close"');
         expect(result).toContain('</button>');
       });
 
@@ -142,7 +146,7 @@ describe('modalTemplates', () => {
 
         const result = createUnifiedModal(mockTodoLists, config, mockTranslations);
 
-        expect(result).toContain('class="save-btn"');
+        expect(result).toContain('class="si-filled-btn save-btn"');
         expect(result).toContain('Custom Save');
         expect(result).toContain('</button>');
       });
@@ -156,7 +160,7 @@ describe('modalTemplates', () => {
 
         const result = createUnifiedModal(mockTodoLists, config, mockTranslations);
 
-        expect(result).toContain('class="cancel-btn"');
+        expect(result).toContain('class="si-tonal-btn cancel-btn"');
         expect(result).toContain('Cancel');
         expect(result).toContain('</button>');
       });
@@ -426,8 +430,8 @@ describe('modalTemplates', () => {
       );
 
       // Both should have modal structure
-      expect(addResult).toContain('class="modal"');
-      expect(editResult).toContain('class="modal"');
+      expect(addResult).toContain('class="modal si-sheet"');
+      expect(editResult).toContain('class="modal si-sheet"');
 
       // Different IDs
       expect(addResult).toContain('id="add-modal"');
@@ -466,6 +470,191 @@ describe('modalTemplates', () => {
         expect(editResult).toContain(`value="${list.id}"`);
         expect(editResult).toContain(list.name);
       });
+    });
+  });
+
+  describe('batches', () => {
+    it('renders the batch editor container only in the edit modal with batches enabled', () => {
+      expect(
+        createEditModal(mockTodoLists, mockTranslations, mockCategories, mockLocations),
+      ).not.toContain('id="edit-batch-editor"');
+      expect(
+        createEditModal(mockTodoLists, mockTranslations, mockCategories, mockLocations, true),
+      ).toContain('id="edit-batch-editor"');
+      expect(
+        createAddModal(mockTodoLists, mockTranslations, mockCategories, mockLocations),
+      ).not.toContain('batch-editor');
+    });
+
+    it('wraps the expiry date in a group the batch editor can hide', () => {
+      expect(
+        createEditModal(mockTodoLists, mockTranslations, mockCategories, mockLocations),
+      ).toContain('id="edit-expiry-date-group"');
+    });
+  });
+
+  describe('item icon field', () => {
+    const addConfig: ModalConfig = {
+      id: 'add-modal',
+      title: 'Add Item',
+      primaryButtonText: 'Add Item',
+    };
+
+    it('renders no icon field without showIconField', () => {
+      const result = createUnifiedModal(mockTodoLists, addConfig, mockTranslations);
+
+      expect(result).not.toContain('id="add-icon"');
+    });
+
+    it('renders the icon field between name and description with showIconField', () => {
+      const result = createUnifiedModal(
+        mockTodoLists,
+        { ...addConfig, showIconField: true },
+        mockTranslations,
+      );
+      const name = result.indexOf('id="add-name"');
+      const icon = result.indexOf('id="add-icon"');
+      const description = result.indexOf('<textarea');
+
+      expect(name).toBeGreaterThan(-1);
+      expect(icon).toBeGreaterThan(name);
+      expect(description).toBeGreaterThan(icon);
+    });
+
+    it('passes the item icons flag through createAddModal and createEditModal', () => {
+      expect(createAddModal(mockTodoLists, mockTranslations, [], [], false, true)).toContain(
+        'id="add-icon"',
+      );
+      expect(createEditModal(mockTodoLists, mockTranslations, [], [], false, true)).toContain(
+        'id="edit-icon"',
+      );
+      expect(createAddModal(mockTodoLists, mockTranslations, [], [])).not.toContain(
+        'id="add-icon"',
+      );
+      expect(createEditModal(mockTodoLists, mockTranslations, [], [])).not.toContain(
+        'id="edit-icon"',
+      );
+    });
+  });
+
+  describe('sheet layout', () => {
+    function parse(html: string): HTMLElement {
+      const container = document.createElement('div');
+      container.innerHTML = html;
+      return container;
+    }
+
+    function sectionOf(element: Element | null | undefined): string | undefined {
+      return element
+        ?.closest('.si-form-section')
+        ?.querySelector('.si-form-section__label')
+        ?.textContent?.trim();
+    }
+
+    it('labels the fields in their existing order', () => {
+      const form = parse(
+        createEditModal(mockTodoLists, mockTranslations, mockCategories, mockLocations, true),
+      );
+
+      expect(
+        [...form.querySelectorAll('.si-form-section__label')].map((label) =>
+          label.textContent?.trim(),
+        ),
+      ).toEqual([
+        'Details',
+        'Barcodes & names',
+        'Stock',
+        'Where & what',
+        'Expiry',
+        'Batches',
+        'Shopping list',
+      ]);
+      expect(sectionOf(form.querySelector('#edit-name'))).toBe('Details');
+      expect(sectionOf(form.querySelector('textarea'))).toBe('Details');
+      expect(sectionOf(form.querySelector('.barcode-tag-container'))).toBe('Barcodes & names');
+      expect(sectionOf(form.querySelector('.alias-tag-container'))).toBe('Barcodes & names');
+      expect(sectionOf(form.querySelector('.auto-add-id-container'))).toBe('Barcodes & names');
+      expect(sectionOf(form.querySelector('#edit-quantity'))).toBe('Stock');
+      expect(sectionOf(form.querySelector('input[step="0.01"]'))).toBe('Stock');
+      expect(sectionOf(form.querySelector('#edit-category'))).toBe('Where & what');
+      expect(sectionOf(form.querySelectorAll('.modal-multi-select-container')[1])).toBe(
+        'Where & what',
+      );
+      expect(sectionOf(form.querySelector('#edit-expiry-alert-days'))).toBe('Expiry');
+      expect(sectionOf(form.querySelector('#edit-batch-editor'))).toBe('Batches');
+      expect(sectionOf(form.querySelector('#edit-todo-list'))).toBe('Shopping list');
+    });
+
+    it('keeps short pairs side by side and category/location full width', () => {
+      const form = parse(
+        createEditModal(mockTodoLists, mockTranslations, mockCategories, mockLocations),
+      );
+      const pairOf = (selector: string): Element | null | undefined =>
+        form.querySelector(selector)?.closest('.si-field-row');
+
+      expect(pairOf('#edit-quantity')).not.toBeNull();
+      expect(pairOf('#edit-quantity')).toBe(pairOf('#edit-unit'));
+      expect(pairOf('#edit-expiry-date')).not.toBeNull();
+      expect(pairOf('#edit-expiry-date')).toBe(pairOf('#edit-expiry-alert-days'));
+      expect(pairOf('#edit-category')).toBeNull();
+    });
+
+    it('renders checkboxes as switches next to the auto-add controls they reveal', () => {
+      const form = parse(
+        createAddModal(mockTodoLists, mockTranslations, mockCategories, mockLocations),
+      );
+      const autoAdd = form.querySelector('#add-auto-add-enabled');
+
+      expect(autoAdd?.classList.contains('si-switch')).toBe(true);
+      expect(autoAdd?.getAttribute('role')).toBe('switch');
+      expect(autoAdd?.parentElement?.querySelector(':scope > .auto-add-controls')).not.toBeNull();
+      const appendId = form.querySelector('.auto-add-id-container input[type="checkbox"]');
+      expect(appendId?.classList.contains('si-switch')).toBe(true);
+      expect(appendId?.getAttribute('role')).toBe('switch');
+    });
+
+    it('shows the validation banner first in the body', () => {
+      const form = parse(
+        createAddModal(mockTodoLists, mockTranslations, mockCategories, mockLocations),
+      );
+      const banner = form.querySelector('#add-validation-message');
+
+      expect(form.querySelector('.si-sheet__body')?.firstElementChild).toBe(banner);
+      expect(banner?.getAttribute('role')).toBe('alert');
+      expect(banner?.querySelector('.validation-text')).not.toBeNull();
+    });
+
+    it('gives the add sheet Cancel and Add, without a menu', () => {
+      const form = parse(
+        createAddModal(mockTodoLists, mockTranslations, mockCategories, mockLocations),
+      );
+      const buttons = [...form.querySelectorAll('.si-sheet__actions > button')];
+
+      expect(buttons.map((button) => button.className)).toEqual([
+        'si-tonal-btn cancel-btn',
+        'si-filled-btn save-btn',
+      ]);
+      expect(buttons[0].getAttribute('data-action')).toBe('close_add_modal');
+      expect(buttons[1].id).toBe('add-item-btn');
+      expect(form.querySelector('.si-sheet__menu')).toBeNull();
+    });
+
+    it('moves View history and Delete into the edit sheet ⋮ menu', () => {
+      const form = parse(
+        createEditModal(mockTodoLists, mockTranslations, mockCategories, mockLocations),
+      );
+      const menu = form.querySelector('#edit-modal-menu');
+
+      expect(menu?.querySelector('summary')?.getAttribute('aria-label')).toBe('More actions');
+      const history = menu?.querySelector('#edit-history-btn');
+      expect(history?.classList.contains('history-link')).toBe(true);
+      expect(history?.textContent?.trim()).toBe('View history');
+      const remove = menu?.querySelector('#edit-delete-btn');
+      expect(remove?.classList.contains('delete-btn')).toBe(true);
+      expect(remove?.textContent?.trim()).toBe('Delete item');
+      expect(
+        [...form.querySelectorAll('.si-sheet__actions > button')].map((button) => button.className),
+      ).toEqual(['si-tonal-btn cancel-btn', 'si-filled-btn save-btn']);
     });
   });
 });

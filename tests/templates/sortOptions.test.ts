@@ -3,13 +3,7 @@ import { createSortOptions } from '../../src/templates/sortOptions';
 import { ELEMENTS } from '../../src/utils/constants';
 import { TranslationData } from '@/types/translatableComponent';
 
-vi.mock('../../src/services/translationManager', () => ({
-  TranslationManager: {
-    localize: vi.fn((_translations: any, _key: string, _params: any, fallback: string) => {
-      return fallback;
-    }),
-  },
-}));
+vi.mock('../../src/services/translationManager', () => import('../mocks/translationManager'));
 
 describe('createSortOptions', () => {
   let mockTranslations: TranslationData;
@@ -307,6 +301,43 @@ describe('createSortOptions', () => {
         'expiry',
         'zero-last',
       ]);
+    });
+  });
+
+  describe('sort chip', () => {
+    it('wraps the native select in a primary-tinted chip', () => {
+      const host = document.createElement('div');
+      host.innerHTML = createSortOptions('name', mockTranslations);
+
+      const chip = host.querySelector('.si-chip.si-tone-primary.si-sort-chip');
+      expect(chip).not.toBeNull();
+      expect(chip?.querySelector(`select#${ELEMENTS.SORT_METHOD}`)).not.toBeNull();
+      expect(chip?.querySelector('ha-icon[icon="mdi:menu-down"]')).not.toBeNull();
+    });
+
+    it('shows the current sort method in the chip label', () => {
+      const host = document.createElement('div');
+      host.innerHTML = createSortOptions('category', mockTranslations);
+
+      expect(host.querySelector('.si-sort-chip__label')?.textContent).toBe('Sort: Category');
+    });
+
+    it('falls back to the first option label for an unknown sort method', () => {
+      const host = document.createElement('div');
+      host.innerHTML = createSortOptions('bogus', mockTranslations);
+
+      expect(host.querySelector('.si-sort-chip__label')?.textContent).toBe('Sort: Name');
+    });
+
+    it('keeps "Sort by:" as the select accessible label', () => {
+      const host = document.createElement('div');
+      host.innerHTML = createSortOptions('name', mockTranslations);
+
+      const label = host.querySelector(`label[for="${ELEMENTS.SORT_METHOD}"]`);
+      expect(label?.querySelector('.si-sort-chip__a11y')?.textContent).toBe('Sort by:');
+      expect(label?.querySelector('.si-sort-chip__label')?.getAttribute('aria-hidden')).toBe(
+        'true',
+      );
     });
   });
 });

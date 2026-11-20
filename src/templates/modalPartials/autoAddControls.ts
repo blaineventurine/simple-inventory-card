@@ -18,9 +18,9 @@ export function autoAddControls(
         'Auto-add Settings',
       )}</div>
 
-      <div class="form-row">
+      <div class="form-row si-field-row">
 
-        <div class="input-group">
+        <div class="input-group si-field">
           <label for="${prefix}-${ELEMENTS.AUTO_ADD_TO_LIST_QUANTITY}">
             ${TranslationManager.localize(
               translations,
@@ -43,7 +43,7 @@ export function autoAddControls(
           />
         </div>
 
-        <div class="input-group">
+        <div class="input-group si-field">
           <label for="${prefix}-${ELEMENTS.TODO_LIST}">${TranslationManager.localize(
             translations,
             'modal.todo_list',
@@ -63,9 +63,9 @@ export function autoAddControls(
 
       </div>
 
-      <div class="form-row">
+      <div class="form-row si-field-row">
 
-        <div class="input-group">
+        <div class="input-group si-field">
           <label for="${prefix}-${ELEMENTS.DESIRED_QUANTITY}">
             ${TranslationManager.localize(
               translations,
@@ -87,7 +87,7 @@ export function autoAddControls(
           />
         </div>
 
-        <div class="input-group">
+        <div class="input-group si-field">
           <label for="${prefix}-${ELEMENTS.TODO_QUANTITY_PLACEMENT}">
             ${TranslationManager.localize(
               translations,

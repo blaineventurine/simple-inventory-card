@@ -1,5 +1,5 @@
 import { DEFAULTS } from './constants';
-import { InventoryItem } from '../types/homeAssistant';
+import { InventoryItem } from '../types/inventory';
 import { FilterState } from '../types/filterState';
 
 interface InputValues {
@@ -17,31 +17,6 @@ export const Utilities = {
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#39;');
-  },
-
-  /**
-   * Creates a debounced function
-   */
-  debounce<T extends (...arguments_: any[]) => any>(
-    function_: T,
-    wait: number,
-  ): (...arguments_: Parameters<T>) => void {
-    let timeout: ReturnType<typeof setTimeout> | undefined = undefined;
-
-    return function executedFunction(...arguments_: Parameters<T>): void {
-      const later = () => {
-        if (timeout) {
-          clearTimeout(timeout);
-          timeout = undefined;
-        }
-        function_(...arguments_);
-      };
-
-      if (timeout) {
-        clearTimeout(timeout);
-      }
-      timeout = setTimeout(later, wait);
-    };
   },
 
   /**

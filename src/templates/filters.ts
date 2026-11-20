@@ -1,10 +1,12 @@
-import { ELEMENTS } from '../utils/constants';
+import { ACTIONS, ELEMENTS } from '../utils/constants';
 import { FilterState } from '../types/filterState';
 import { TranslationManager } from '@/services/translationManager';
 import { TranslationData } from '@/types/translatableComponent';
+import { chip } from './primitives';
 
+/** One removable chip per active filter; `data-filter-remove` carries the filter key. */
 export function createFilterBadges(filters: FilterState, translations: TranslationData): string[] {
-  const filterBadges: string[] = [];
+  const badges: Array<{ key: string; text: string }> = [];
 
   if (filters.searchText) {
     const searchLabel = TranslationManager.localize(
@@ -13,57 +15,68 @@ export function createFilterBadges(filters: FilterState, translations: Translati
       undefined,
       'Search',
     );
-    filterBadges.push(
-      `<span class="filter-badge search">
-        ${searchLabel}: "${filters.searchText}"
-      </span>`,
-    );
+    badges.push({ key: 'search', text: `${searchLabel}: "${filters.searchText}"` });
   }
 
   const addMultiSelectBadge = (
-    filterArray: string[] | undefined,
+    values: string[] | undefined,
+    key: string,
     labelKey: string,
-    className: string,
     defaultLabel: string,
+    valueLabel: (value: string) => string,
   ) => {
-    if (filterArray && filterArray.length > 0) {
+    if (values && values.length > 0) {
       const label = TranslationManager.localize(translations, labelKey, undefined, defaultLabel);
       const text =
-        filterArray.length > 1
-          ? `${label}: ${filterArray.length} ${TranslationManager.localize(translations, 'active_filters.selected', undefined, 'selected')}`
-          : `${label}: ${filterArray[0]}`;
-      filterBadges.push(`<span class="filter-badge ${className}">${text}</span>`);
+        values.length > 1
+          ? `${label}: ${values.length} ${TranslationManager.localize(translations, 'active_filters.selected', undefined, 'selected')}`
+          : `${label}: ${valueLabel(values[0])}`;
+      badges.push({ key, text });
     }
   };
+  const rawValue = (value: string) => value;
 
-  addMultiSelectBadge(filters.category, 'active_filters.category', 'category', 'Category');
-  addMultiSelectBadge(filters.location, 'active_filters.location', 'location', 'Location');
-  addMultiSelectBadge(filters.quantity, 'active_filters.quantity', 'quantity', 'Quantity');
+  addMultiSelectBadge(
+    filters.category,
+    'category',
+    'active_filters.category',
+    'Category',
+    rawValue,
+  );
+  addMultiSelectBadge(
+    filters.location,
+    'location',
+    'active_filters.location',
+    'Location',
+    rawValue,
+  );
+  addMultiSelectBadge(
+    filters.quantity,
+    'quantity',
+    'active_filters.quantity',
+    'Quantity',
+    rawValue,
+  );
+  addMultiSelectBadge(filters.expiry, 'expiry', 'active_filters.expiry', 'Expiry', (value) =>
+    TranslationManager.localize(translations, `filters.${value}`, undefined, value),
+  );
 
-  // Expiry needs special handling for translation
-  if (filters.expiry && filters.expiry.length > 0) {
-    const expiryLabel = TranslationManager.localize(
-      translations,
-      'active_filters.expiry',
-      undefined,
-      'Expiry',
-    );
-    let expiryText: string;
-    if (filters.expiry.length > 1) {
-      expiryText = `${expiryLabel}: ${filters.expiry.length} ${TranslationManager.localize(translations, 'active_filters.selected', undefined, 'selected')}`;
-    } else {
-      const expiryValue = TranslationManager.localize(
-        translations,
-        `filters.${filters.expiry[0]}`,
-        undefined,
-        filters.expiry[0],
-      );
-      expiryText = `${expiryLabel}: ${expiryValue}`;
-    }
-    filterBadges.push(`<span class="filter-badge expiry">${expiryText}</span>`);
-  }
-
-  return filterBadges;
+  return badges.map(({ key, text }) =>
+    chip({
+      label: text,
+      tone: 'primary',
+      className: `filter-badge ${key}`,
+      remove: {
+        label: TranslationManager.localize(
+          translations,
+          'active_filters.remove',
+          { filter: text },
+          `Remove ${text}`,
+        ),
+        attrs: { 'data-action': ACTIONS.REMOVE_FILTER, 'data-filter-remove': key },
+      },
+    }),
+  );
 }
 
 export function createActiveFiltersDisplay(
@@ -74,7 +87,7 @@ export function createActiveFiltersDisplay(
   const shouldShow = filterBadges.length > 0;
 
   return `
-    <div id="${ELEMENTS.ACTIVE_FILTERS}" class="active-filters" style="display: ${shouldShow ? 'block' : 'none'};">
+    <div id="${ELEMENTS.ACTIVE_FILTERS}" class="active-filters"${shouldShow ? '' : ' hidden'}>
       <div id="${ELEMENTS.ACTIVE_FILTERS_LIST}" class="filter-badges-container">
         ${filterBadges.join('')}
       </div>

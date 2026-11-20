@@ -1,11 +1,17 @@
 import { ELEMENTS } from '../utils/constants';
+import { TranslationData } from '@/types/translatableComponent';
+import type { HomeAssistant } from '@/types/homeAssistant';
+import { TranslationManager } from './translationManager';
 import {
+  chooseBarcodePhoto,
+  isScannerActive,
+  nativeScanner,
+  scanSupport,
+  startNativeScanner,
   startScanner,
   stopScanner,
-  isScannerActive,
-  isLiveScanAvailable,
-  decodeFromFile,
 } from './barcodeScanner';
+import { nativeScanTexts, scannerText } from './scannerText';
 
 function getBarcodes(hiddenInput: HTMLInputElement): string[] {
   return hiddenInput.value
@@ -18,10 +24,14 @@ function updateHiddenInput(hiddenInput: HTMLInputElement, barcodes: string[]): v
   hiddenInput.value = barcodes.join(', ');
 }
 
+/** Each sheet scanner's live camera start, keyed by its container, for `resumeBarcodeScanner`. */
+const liveStarts = new WeakMap<HTMLElement, () => Promise<void>>();
+
 function renderChips(
   container: HTMLElement,
   barcodes: string[],
   hiddenInput: HTMLInputElement,
+  translations: TranslationData,
 ): void {
   container.innerHTML = '';
   for (const barcode of barcodes) {
@@ -29,14 +39,24 @@ function renderChips(
     chip.className = 'barcode-chip';
     chip.textContent = barcode;
 
-    const removeBtn = document.createElement('span');
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
     removeBtn.className = 'barcode-chip-remove';
     removeBtn.textContent = '\u00d7';
+    removeBtn.setAttribute(
+      'aria-label',
+      TranslationManager.localize(
+        translations,
+        'modal.remove_value',
+        { value: barcode },
+        `Remove ${barcode}`,
+      ),
+    );
     removeBtn.addEventListener('click', () => {
       const current = getBarcodes(hiddenInput);
       const updated = current.filter((b) => b !== barcode);
       updateHiddenInput(hiddenInput, updated);
-      renderChips(container, updated, hiddenInput);
+      renderChips(container, updated, hiddenInput, translations);
     });
 
     chip.appendChild(removeBtn);
@@ -48,6 +68,7 @@ function addBarcodeChip(
   code: string,
   hiddenInput: HTMLInputElement,
   chipsContainer: HTMLElement,
+  translations: TranslationData,
   onBarcodeAdded?: (barcode: string) => void,
 ): boolean {
   const current = getBarcodes(hiddenInput);
@@ -55,7 +76,7 @@ function addBarcodeChip(
 
   current.push(code);
   updateHiddenInput(hiddenInput, current);
-  renderChips(chipsContainer, current, hiddenInput);
+  renderChips(chipsContainer, current, hiddenInput, translations);
   if (onBarcodeAdded) {
     onBarcodeAdded(code);
   }
@@ -65,7 +86,10 @@ function addBarcodeChip(
 export function initializeBarcodeTagInput(
   shadowRoot: ShadowRoot,
   prefix: string,
+  translations: TranslationData,
   onBarcodeAdded?: (barcode: string) => void,
+  /** The card's current hass, for the companion app's scanner. */
+  getHass?: () => HomeAssistant | undefined,
 ): void {
   const hiddenInput = shadowRoot.getElementById(
     `${prefix}-${ELEMENTS.BARCODE}`,
@@ -80,7 +104,7 @@ export function initializeBarcodeTagInput(
   }
 
   const initial = getBarcodes(hiddenInput);
-  renderChips(chipsContainer, initial, hiddenInput);
+  renderChips(chipsContainer, initial, hiddenInput, translations);
 
   // The add/edit modal DOM is persistent and reopened without being
   // recreated, so guard against re-registering listeners on repeat opens.
@@ -93,7 +117,7 @@ export function initializeBarcodeTagInput(
         const value = visibleInput.value.trim();
         if (!value) return;
 
-        if (addBarcodeChip(value, hiddenInput, chipsContainer, onBarcodeAdded)) {
+        if (addBarcodeChip(value, hiddenInput, chipsContainer, translations, onBarcodeAdded)) {
           visibleInput.value = '';
         } else {
           // Duplicate
@@ -117,8 +141,19 @@ export function initializeBarcodeTagInput(
   const closeBtn = shadowRoot.getElementById(
     `${prefix}-${ELEMENTS.BARCODE_SCANNER_CLOSE}`,
   ) as HTMLButtonElement | null;
+  const photo = shadowRoot.getElementById(`${prefix}-${ELEMENTS.BARCODE_PHOTO}`);
+  const photoMessage = shadowRoot.getElementById(`${prefix}-${ELEMENTS.BARCODE_PHOTO_MESSAGE}`);
+  const photoBtn = shadowRoot.getElementById(`${prefix}-${ELEMENTS.BARCODE_PHOTO_BTN}`);
 
-  if (!scanBtn || !scannerContainer || !viewport || !closeBtn) {
+  if (
+    !scanBtn ||
+    !scannerContainer ||
+    !viewport ||
+    !closeBtn ||
+    !photo ||
+    !photoMessage ||
+    !photoBtn
+  ) {
     return;
   }
 
@@ -128,7 +163,7 @@ export function initializeBarcodeTagInput(
 
   const hideScanner = (): void => {
     stopScanner();
-    scannerContainer.style.display = 'none';
+    scannerContainer.hidden = true;
   };
 
   const showError = (message: string): void => {
@@ -142,32 +177,54 @@ export function initializeBarcodeTagInput(
     setTimeout(() => errorEl.remove(), 3000);
   };
 
-  scanBtn.addEventListener('click', async () => {
-    if (!isLiveScanAvailable()) {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = 'image/*';
-      input.capture = 'environment';
-      input.style.position = 'fixed';
-      input.style.top = '-9999px';
-      input.style.left = '-9999px';
-      input.style.width = '0';
-      input.style.height = '0';
-      input.style.opacity = '0';
-      document.body.appendChild(input);
-      input.addEventListener('change', async () => {
-        const file = input.files?.[0];
-        document.body.removeChild(input);
+  /** Offers "Choose a photo" instead of the camera, saying why (`message`). */
+  const offerPhoto = (message: string): void => {
+    photoMessage.textContent = message;
+    photoMessage.hidden = message === '';
+    photo.hidden = false;
+  };
 
-        if (!file) return;
-        const error = await decodeFromFile(file, (code) => {
-          addBarcodeChip(code, hiddenInput, chipsContainer, onBarcodeAdded);
-        });
-        if (error) {
-          showError(scanBtn.dataset['scanner.no_barcode_found'] ?? 'No barcode found in photo');
-        }
+  const addChip = (code: string): void => {
+    addBarcodeChip(code, hiddenInput, chipsContainer, translations, onBarcodeAdded);
+  };
+
+  const startLive = async (): Promise<void> => {
+    photo.hidden = true;
+    scannerContainer.hidden = false;
+    const error = await startScanner(viewport, (code: string) => {
+      addChip(code);
+      hideScanner();
+    });
+
+    if (error) {
+      hideScanner();
+      offerPhoto(scannerText(translations, error));
+    }
+  };
+  liveStarts.set(scannerContainer, startLive);
+
+  scanBtn.addEventListener('click', async () => {
+    const external = nativeScanner(getHass?.());
+    if (external) {
+      photo.hidden = true;
+      startNativeScanner(external, nativeScanTexts(translations), {
+        onDetected: addChip,
+        onChoosePhoto: () => offerPhoto(''),
       });
-      input.click();
+      return;
+    }
+
+    const support = scanSupport();
+    if (support === 'photo') {
+      const error = await chooseBarcodePhoto(addChip);
+      if (error) {
+        showError(scannerText(translations, 'no_barcode'));
+      }
+      return;
+    }
+
+    if (support === 'insecure') {
+      offerPhoto(scannerText(translations, 'insecure'));
       return;
     }
 
@@ -176,24 +233,16 @@ export function initializeBarcodeTagInput(
       return;
     }
 
-    scannerContainer.style.display = 'block';
-    const error = await startScanner(viewport, (code: string) => {
-      addBarcodeChip(code, hiddenInput, chipsContainer, onBarcodeAdded);
-      hideScanner();
-    });
+    await startLive();
+  });
 
+  photoBtn.addEventListener('click', async () => {
+    const error = await chooseBarcodePhoto((code) => {
+      addChip(code);
+      photo.hidden = true;
+    });
     if (error) {
-      hideScanner();
-      const errorKey =
-        error === 'permission_denied'
-          ? 'modal.camera_permission_denied'
-          : 'modal.camera_not_available';
-      // Use a simple fallback since we don't have translations reference here
-      const fallback =
-        error === 'permission_denied' ? 'Camera access denied' : 'Camera not available';
-      // Try to find a localized message from a data attribute, otherwise use fallback
-      const localizedMsg = scanBtn.dataset[errorKey] || fallback;
-      showError(localizedMsg);
+      offerPhoto(scannerText(translations, 'no_barcode'));
     }
   });
 
@@ -204,8 +253,31 @@ export function initializeBarcodeTagInput(
   scanBtn.setAttribute('data-listeners-bound', 'true');
 }
 
+/**
+ * Card re-attached (the pause stopped the camera): the `prefix` sheet's scanner, if it was
+ * showing its camera, starts it again. The caller decides whether that sheet is open.
+ */
+export function resumeBarcodeScanner(shadowRoot: ShadowRoot, prefix: string): void {
+  const scannerContainer = shadowRoot.getElementById(`${prefix}-${ELEMENTS.BARCODE_SCANNER}`);
+  if (!scannerContainer || scannerContainer.hidden) {
+    return;
+  }
+  void liveStarts.get(scannerContainer)?.();
+}
+
+/** Stops the camera, one still opening included (the card was detached). */
 export function stopAllBarcodeScanners(): void {
-  if (isScannerActive()) {
-    stopScanner();
+  stopScanner();
+}
+
+/**
+ * The `prefix` sheet closed: stop its camera and hide its scanner, so a later re-open (and a
+ * re-attach of the card) starts without it.
+ */
+export function closeBarcodeScanner(shadowRoot: ShadowRoot, prefix: string): void {
+  stopScanner();
+  for (const id of [ELEMENTS.BARCODE_SCANNER, ELEMENTS.BARCODE_PHOTO]) {
+    const el = shadowRoot.getElementById(`${prefix}-${id}`);
+    if (el) el.hidden = true;
   }
 }

@@ -1,5 +1,6 @@
 import { html, TemplateResult } from 'lit-element';
-import { HomeAssistant, InventoryConfig } from '@/types/homeAssistant';
+import { HomeAssistant } from '@/types/homeAssistant';
+import { InventoryConfig } from '@/types/inventory';
 import { TranslationManager } from '@/services/translationManager';
 import { TranslationData } from '@/types/translatableComponent';
 
@@ -92,6 +93,7 @@ const VISIBILITY_TOGGLE_KEYS = [
   'show_expiry',
   'show_auto_add_info',
   'show_price',
+  'show_icon',
 ] as const;
 
 const VISIBILITY_TOGGLE_FALLBACKS: Record<string, string> = {
@@ -105,6 +107,7 @@ const VISIBILITY_TOGGLE_FALLBACKS: Record<string, string> = {
   show_expiry: 'Show expiry date',
   show_auto_add_info: 'Show auto-add info',
   show_price: 'Show price',
+  show_icon: 'Show item icons',
 };
 
 export function createVisibilityToggles(
@@ -142,6 +145,40 @@ export function createVisibilityToggles(
           `,
         )}
       </div>
+    </div>
+  `;
+}
+
+/**
+ * "Show items as tiles": the `layout` option (`tiles` when on, `list` when off), below the
+ * visibility switches. A layout picked with the card's toolbar toggle still wins in that browser.
+ */
+export function createLayoutToggle(
+  config: InventoryConfig,
+  onLayoutChanged: (tiles: boolean) => void,
+  translations: TranslationData,
+): TemplateResult {
+  return html`
+    <div class="visibility-toggles layout-toggle">
+      <ha-formfield
+        .label=${TranslationManager.localize(
+          translations,
+          'config.layout_tiles',
+          undefined,
+          'Show items as tiles',
+        )}
+      >
+        <ha-switch
+          .checked=${config.layout === 'tiles'}
+          @change=${(e: Event) => {
+            // ha-switch is a custom element with a boolean `checked`, not an <input>.
+            const target = e.target;
+            if (target && 'checked' in target && typeof target.checked === 'boolean') {
+              onLayoutChanged(target.checked);
+            }
+          }}
+        ></ha-switch>
+      </ha-formfield>
     </div>
   `;
 }

@@ -1,18 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { generateCardHTML } from '../../src/templates/inventoryCard';
-import { InventoryItem } from '../../src/types/homeAssistant';
+import { InventoryConfig, InventoryItem } from '../../src/types/inventory';
 import { FilterState } from '../../src/types/filterState';
 import { TodoList } from '../../src/types/todoList';
 import { TranslationData } from '@/types/translatableComponent';
 import { ELEMENTS } from '../../src/utils/constants';
+import { createAddModal, createEditModal } from '../../src/templates/modalTemplates';
+import { createEmptyState, createItemsList } from '../../src/templates/itemList';
+import { ImageLoader } from '../../src/services/imageLoader';
 
-vi.mock('../../src/services/translationManager', () => ({
-  TranslationManager: {
-    localize: vi.fn((_translations: any, _key: string, _params: any, fallback: string) => {
-      return fallback;
-    }),
-  },
-}));
+vi.mock('../../src/services/translationManager', () => import('../mocks/translationManager'));
 
 vi.mock('../../src/templates/inventoryHeader', () => ({
   createInventoryHeader: vi.fn(
@@ -22,8 +19,10 @@ vi.mock('../../src/templates/inventoryHeader', () => ({
 }));
 
 vi.mock('../../src/templates/searchAndFilters', () => ({
-  createSearchAndFilters: vi.fn(
-    (_, categories, _translations) => `<mock-search-filters categories="${categories.length}" />`,
+  createSearchRow: vi.fn(() => '<mock-search-row />'),
+  createFilterPanel: vi.fn(
+    (_, categories, _locations, _translations) =>
+      `<mock-search-filters categories="${categories.length}" />`,
   ),
 }));
 
@@ -41,6 +40,7 @@ vi.mock('../../src/templates/itemList', () => ({
     (items, sortMethod, todoLists, _translations) =>
       `<mock-items-list items="${items.length}" sort="${sortMethod}" todos="${todoLists.length}" />`,
   ),
+  createEmptyState: vi.fn((kind) => `<mock-empty kind="${kind}" />`),
 }));
 
 vi.mock('../../src/templates/sortOptions', () => ({
@@ -154,8 +154,8 @@ describe('generateCardHTML', () => {
       expect(result).toContain('<style>mock-styles-content</style>');
       expect(result).toContain('<ha-card>');
       expect(result).toContain('</ha-card>');
-      expect(result).toContain('class="controls-row"');
-      expect(result).toContain('class="search-controls"');
+      expect(result).toContain('class="si-toolbar"');
+      expect(result).toContain('<mock-search-row />');
       expect(result).toContain('class="items-container"');
     });
 
@@ -198,8 +198,8 @@ describe('generateCardHTML', () => {
       );
 
       expect(result).toContain(`id="${ELEMENTS.OPEN_ADD_MODAL}"`);
-      expect(result).toContain('class="add-new-btn"');
-      expect(result).toContain('+ Add Item');
+      expect(result).toContain('class="si-icon-btn si-add-btn si-tint si-tone-primary"');
+      expect(result).toContain('aria-label="Add Item"');
     });
   });
 
@@ -218,8 +218,8 @@ describe('generateCardHTML', () => {
         mockTranslations,
       );
 
-      expect(result).toContain('class="empty-state"');
-      expect(result).toContain('No items in inventory');
+      expect(result).toContain('<mock-empty kind="empty" />');
+      expect(createEmptyState).toHaveBeenCalledWith('empty', mockTranslations);
       expect(result).not.toContain('<mock-items-list');
     });
 
@@ -237,9 +237,27 @@ describe('generateCardHTML', () => {
         mockTranslations,
       );
 
-      expect(result).toContain('<div class="empty-state">');
-      expect(result).toContain('No items in inventory');
+      expect(result).toContain('<mock-empty kind="empty" />');
+      expect(createEmptyState).toHaveBeenCalledWith('empty', mockTranslations);
       expect(result).not.toContain('mock-items-list');
+    });
+
+    it('should show the no-results state when filters hide every item', () => {
+      const result = generateCardHTML(
+        'Test',
+        [],
+        { ...mockFilters, searchText: 'zzz' },
+        'name',
+        mockCategories,
+        mockLocations,
+        mockTodoLists,
+        [],
+        undefined,
+        mockTranslations,
+      );
+
+      expect(result).toContain('<mock-empty kind="no_results" />');
+      expect(createEmptyState).toHaveBeenCalledWith('no_results', mockTranslations);
     });
 
     it('should still include all other sections when empty', () => {
@@ -417,10 +435,10 @@ describe('generateCardHTML', () => {
         mockTranslations,
       );
 
-      expect(result).toContain('class="controls-row"');
-      expect(result).toContain('class="sorting-controls"');
-      expect(result).toContain('class="add-new-btn"');
-      expect(result).toContain('class="search-controls"');
+      expect(result).toContain('class="si-toolbar"');
+      expect(result).toContain('class="si-toolbar__row"');
+      expect(result).toContain('class="si-chip-row"');
+      expect(result).toContain('class="si-icon-btn si-add-btn si-tint si-tone-primary"');
       expect(result).toContain('class="items-container"');
     });
   });
@@ -441,7 +459,7 @@ describe('generateCardHTML', () => {
       );
 
       expect(result).toContain('<mock-items-list items="2"');
-      expect(result).not.toContain('class="empty-state"');
+      expect(result).not.toContain('<mock-empty');
     });
 
     it('should use empty state when items.length === 0', () => {
@@ -459,7 +477,7 @@ describe('generateCardHTML', () => {
       );
 
       expect(result).not.toContain('<mock-items-list');
-      expect(result).toContain('class="empty-state"');
+      expect(result).toContain('<mock-empty');
     });
 
     it('should handle single item correctly', () => {
@@ -478,7 +496,7 @@ describe('generateCardHTML', () => {
       );
 
       expect(result).toContain('<mock-items-list items="1"');
-      expect(result).not.toContain('class="empty-state"');
+      expect(result).not.toContain('<mock-empty');
     });
   });
 
@@ -579,10 +597,10 @@ describe('generateCardHTML', () => {
       );
 
       expect(result).toContain('<mock-header');
-      expect(result).toContain('class="controls-row"');
-      expect(result).toContain('class="sorting-controls"');
-      expect(result).toContain('class="add-new-btn"');
-      expect(result).toContain('class="search-controls"');
+      expect(result).toContain('class="si-toolbar"');
+      expect(result).toContain('<mock-sort-options');
+      expect(result).toContain('si-add-btn');
+      expect(result).toContain('<mock-search-row />');
       expect(result).toContain('<mock-active-filters');
     });
 
@@ -608,8 +626,8 @@ describe('generateCardHTML', () => {
 
       expect(result).not.toContain('<mock-header');
       // Other sections should still be present
-      expect(result).toContain('class="controls-row"');
-      expect(result).toContain('class="search-controls"');
+      expect(result).toContain('class="si-toolbar"');
+      expect(result).toContain('<mock-search-row />');
     });
 
     it('should omit search controls and active filters when show_search is false', () => {
@@ -632,11 +650,12 @@ describe('generateCardHTML', () => {
         config,
       );
 
-      expect(result).not.toContain('class="search-controls"');
+      expect(result).not.toContain('<mock-search-row');
+      expect(result).not.toContain('<mock-search-filters');
       expect(result).not.toContain('<mock-active-filters');
       // Other sections should still be present
       expect(result).toContain('<mock-header');
-      expect(result).toContain('class="controls-row"');
+      expect(result).toContain('class="si-toolbar"');
     });
 
     it('should omit sort dropdown but keep add button when show_sort is false', () => {
@@ -659,9 +678,9 @@ describe('generateCardHTML', () => {
         config,
       );
 
-      expect(result).not.toContain('class="sorting-controls"');
-      expect(result).toContain('class="add-new-btn"');
-      expect(result).toContain('class="controls-row"');
+      expect(result).not.toContain('<mock-sort-options');
+      expect(result).toContain('si-add-btn');
+      expect(result).toContain('class="si-toolbar"');
     });
 
     it('should omit add button but keep sort when show_add_button is false', () => {
@@ -684,12 +703,12 @@ describe('generateCardHTML', () => {
         config,
       );
 
-      expect(result).toContain('class="sorting-controls"');
-      expect(result).not.toContain('class="add-new-btn"');
-      expect(result).toContain('class="controls-row"');
+      expect(result).toContain('<mock-sort-options');
+      expect(result).not.toContain('si-add-btn');
+      expect(result).toContain('class="si-toolbar"');
     });
 
-    it('should omit entire controls row when both sort and add button are hidden', () => {
+    it('should hide the chip row when sort and add are hidden and no filter is active', () => {
       const config = {
         type: 'custom:simple-inventory-card',
         entity: 'sensor.test',
@@ -710,9 +729,60 @@ describe('generateCardHTML', () => {
         config,
       );
 
-      expect(result).not.toContain('class="controls-row"');
-      expect(result).not.toContain('class="sorting-controls"');
-      expect(result).not.toContain('class="add-new-btn"');
+      expect(result).not.toContain('<mock-sort-options');
+      expect(result).not.toContain('si-add-btn');
+      expect(result).toContain('<div class="si-chip-row" hidden>');
+      expect(result).toContain('<mock-search-row />');
+    });
+
+    it('should keep the chip row visible for active filters when sort is hidden', () => {
+      const config = {
+        type: 'custom:simple-inventory-card',
+        entity: 'sensor.test',
+        show_sort: false,
+      } as InventoryConfig;
+      const result = generateCardHTML(
+        'Test',
+        mockItems,
+        { ...mockFilters, category: ['Fruit'] },
+        'name',
+        mockCategories,
+        mockLocations,
+        mockTodoLists,
+        mockItems,
+        undefined,
+        mockTranslations,
+        config,
+      );
+
+      expect(result).toContain('<div class="si-chip-row">');
+      expect(result).toContain('<mock-active-filters');
+    });
+
+    it('should omit the whole toolbar when search, sort and add are hidden', () => {
+      const config = {
+        type: 'custom:simple-inventory-card',
+        entity: 'sensor.test',
+        show_search: false,
+        show_sort: false,
+        show_add_button: false,
+      } as InventoryConfig;
+      const result = generateCardHTML(
+        'Test',
+        mockItems,
+        mockFilters,
+        'name',
+        mockCategories,
+        mockLocations,
+        mockTodoLists,
+        mockItems,
+        undefined,
+        mockTranslations,
+        config,
+      );
+
+      expect(result).not.toContain('si-toolbar');
+      expect(result).toContain('class="items-container"');
     });
   });
 
@@ -744,7 +814,11 @@ describe('generateCardHTML', () => {
         mockTranslations,
         'Test description',
       );
-      expect(searchAndFiltersModule.createSearchAndFilters).toHaveBeenCalledWith(
+      expect(searchAndFiltersModule.createSearchRow).toHaveBeenCalledWith(
+        mockFilters,
+        mockTranslations,
+      );
+      expect(searchAndFiltersModule.createFilterPanel).toHaveBeenCalledWith(
         mockFilters,
         mockCategories,
         mockLocations,
@@ -764,18 +838,181 @@ describe('generateCardHTML', () => {
         mockTodoLists,
         mockTranslations,
         undefined,
+        undefined,
       );
       expect(modalTemplatesModule.createAddModal).toHaveBeenCalledWith(
         mockTodoLists,
         mockTranslations,
         mockCategories,
         mockLocations,
+        false,
+        false,
+        false,
       );
       expect(modalTemplatesModule.createEditModal).toHaveBeenCalledWith(
         mockTodoLists,
         mockTranslations,
         mockCategories,
         mockLocations,
+        false,
+        false,
+        false,
+      );
+    });
+  });
+
+  describe('batches', () => {
+    const render = (rowOptions?: {
+      batches: boolean;
+      expanded: Set<string>;
+      transfers: boolean;
+    }): string =>
+      generateCardHTML(
+        'Test Inventory',
+        mockItems,
+        mockFilters,
+        'name',
+        mockCategories,
+        mockLocations,
+        mockTodoLists,
+        mockItems,
+        undefined,
+        mockTranslations,
+        undefined,
+        rowOptions,
+      );
+
+    it('adds no batch markup without the batches feature', () => {
+      const result = render();
+
+      expect(result).not.toContain(`id="${ELEMENTS.BATCH_LOCATION_OPTIONS}"`);
+      expect(result).not.toContain(`id="${ELEMENTS.SCAN_BATCH_FIELDS}"`);
+      expect(vi.mocked(createEditModal)).toHaveBeenLastCalledWith(
+        mockTodoLists,
+        mockTranslations,
+        mockCategories,
+        mockLocations,
+        false,
+        false,
+        false,
+      );
+    });
+
+    it('adds the location datalist, scan batch details and batch editor with the feature', () => {
+      const rowOptions = { batches: true, expanded: new Set<string>(), transfers: false };
+      const result = render(rowOptions);
+
+      expect(result).toContain(`id="${ELEMENTS.BATCH_LOCATION_OPTIONS}"`);
+      expect(result).toContain('<option value="Kitchen"></option>');
+      expect(result).toContain(`id="${ELEMENTS.SCAN_BATCH_FIELDS}"`);
+      expect(vi.mocked(createEditModal)).toHaveBeenLastCalledWith(
+        mockTodoLists,
+        mockTranslations,
+        mockCategories,
+        mockLocations,
+        true,
+        false,
+        false,
+      );
+      expect(vi.mocked(createAddModal)).toHaveBeenLastCalledWith(
+        mockTodoLists,
+        mockTranslations,
+        mockCategories,
+        mockLocations,
+        true,
+        false,
+        false,
+      );
+      expect(vi.mocked(createItemsList)).toHaveBeenLastCalledWith(
+        mockItems,
+        'name',
+        mockTodoLists,
+        mockTranslations,
+        undefined,
+        rowOptions,
+      );
+    });
+  });
+
+  describe('item icons', () => {
+    it('passes the item icons flag to both item sheets', () => {
+      generateCardHTML(
+        'Test Inventory',
+        mockItems,
+        mockFilters,
+        'name',
+        mockCategories,
+        mockLocations,
+        mockTodoLists,
+        mockItems,
+        undefined,
+        mockTranslations,
+        undefined,
+        undefined,
+        true,
+      );
+
+      expect(vi.mocked(createAddModal)).toHaveBeenLastCalledWith(
+        mockTodoLists,
+        mockTranslations,
+        mockCategories,
+        mockLocations,
+        false,
+        true,
+        false,
+      );
+      expect(vi.mocked(createEditModal)).toHaveBeenLastCalledWith(
+        mockTodoLists,
+        mockTranslations,
+        mockCategories,
+        mockLocations,
+        false,
+        true,
+        false,
+      );
+    });
+  });
+
+  describe('item images', () => {
+    it('renders both item sheets with the image field when the rows get images', () => {
+      generateCardHTML(
+        'Test Inventory',
+        mockItems,
+        mockFilters,
+        'name',
+        mockCategories,
+        mockLocations,
+        mockTodoLists,
+        mockItems,
+        undefined,
+        mockTranslations,
+        undefined,
+        {
+          batches: true,
+          expanded: new Set<string>(),
+          transfers: true,
+          images: new ImageLoader(vi.fn<(path: string) => Promise<Blob>>()),
+        },
+        true,
+      );
+
+      expect(vi.mocked(createAddModal)).toHaveBeenLastCalledWith(
+        mockTodoLists,
+        mockTranslations,
+        mockCategories,
+        mockLocations,
+        true,
+        true,
+        true,
+      );
+      expect(vi.mocked(createEditModal)).toHaveBeenLastCalledWith(
+        mockTodoLists,
+        mockTranslations,
+        mockCategories,
+        mockLocations,
+        true,
+        true,
+        true,
       );
     });
   });

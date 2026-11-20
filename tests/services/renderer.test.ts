@@ -4,7 +4,8 @@ import { Utilities } from '../../src/utils/utilities';
 import { InventoryResolver } from '../../src/utils/inventoryResolver';
 import { styles } from '../../src/styles/styles';
 import { generateCardHTML } from '../../src/templates/inventoryCard';
-import { HassEntity, InventoryItem } from '../../src/types/homeAssistant';
+import { HassEntity } from '../../src/types/homeAssistant';
+import { InventoryItem } from '../../src/types/inventory';
 import { FilterState } from '../../src/types/filterState';
 import { TodoList } from '../../src/types/todoList';
 import { TranslationData } from '@/types/translatableComponent';
@@ -73,6 +74,141 @@ describe('Renderer', () => {
   });
 
   describe('renderCard', () => {
+    it('forwards the row options to the card template', () => {
+      const rowOptions = { batches: true, expanded: new Set(['Test Item']), transfers: false };
+      const state: HassEntity = {
+        entity_id: 'test.entity',
+        state: 'unknown',
+        attributes: {},
+        context: { id: 'test-context' },
+        last_changed: '2023-01-01T00:00:00Z',
+        last_updated: '2023-01-01T00:00:00Z',
+      };
+
+      renderer.renderCard(
+        state,
+        'test.entity',
+        mockItems,
+        mockItems,
+        mockFilters,
+        'name',
+        mockTodoLists,
+        mockTranslations,
+        undefined,
+        rowOptions,
+      );
+
+      expect(generateCardHTML).toHaveBeenCalledWith(
+        'Test Inventory',
+        mockItems,
+        mockFilters,
+        'name',
+        ['Test Category'],
+        ['Test Location'],
+        mockTodoLists,
+        mockItems,
+        'Test Description',
+        mockTranslations,
+        undefined,
+        rowOptions,
+        false,
+      );
+    });
+
+    it('forwards the item icons flag to the card template', () => {
+      const state: HassEntity = {
+        entity_id: 'test.entity',
+        state: 'unknown',
+        attributes: {},
+        context: { id: 'test-context' },
+        last_changed: '2023-01-01T00:00:00Z',
+        last_updated: '2023-01-01T00:00:00Z',
+      };
+
+      renderer.renderCard(
+        state,
+        'test.entity',
+        mockItems,
+        mockItems,
+        mockFilters,
+        'name',
+        mockTodoLists,
+        mockTranslations,
+        undefined,
+        undefined,
+        true,
+      );
+
+      expect(vi.mocked(generateCardHTML).mock.lastCall?.[12]).toBe(true);
+    });
+
+    it('offers locations that only hold stock as location options', () => {
+      const state: HassEntity = {
+        entity_id: 'test.entity',
+        state: 'unknown',
+        attributes: {},
+        context: { id: 'test-context' },
+        last_changed: '2023-01-01T00:00:00Z',
+        last_updated: '2023-01-01T00:00:00Z',
+      };
+      const items: InventoryItem[] = [
+        { ...mockItems[0], locations: ['Pantry'], stocked_locations: ['Garage', ' Pantry '] },
+      ];
+
+      renderer.renderCard(
+        state,
+        'test.entity',
+        items,
+        items,
+        mockFilters,
+        'name',
+        mockTodoLists,
+        mockTranslations,
+      );
+
+      expect(vi.mocked(generateCardHTML).mock.lastCall?.[5]).toEqual(['Garage', 'Pantry']);
+    });
+
+    it('lists the visible items but takes header data and filter options from all items', () => {
+      const state: HassEntity = {
+        entity_id: 'test.entity',
+        state: 'unknown',
+        attributes: {},
+        context: { id: 'test-context' },
+        last_changed: '2023-01-01T00:00:00Z',
+        last_updated: '2023-01-01T00:00:00Z',
+      };
+      const milk: InventoryItem = {
+        ...mockItems[0],
+        name: 'Milk',
+        categories: ['Dairy'],
+        locations: ['Fridge'],
+      };
+      const hammer: InventoryItem = {
+        ...mockItems[0],
+        name: 'Hammer',
+        categories: ['Tools'],
+        locations: ['Garage'],
+      };
+
+      renderer.renderCard(
+        state,
+        'test.entity',
+        [milk],
+        [milk, hammer],
+        mockFilters,
+        'name',
+        [],
+        {},
+      );
+
+      const call = vi.mocked(generateCardHTML).mock.lastCall;
+      expect(call?.[1]).toEqual([milk]);
+      expect(call?.[4]).toEqual(['Dairy', 'Tools']);
+      expect(call?.[5]).toEqual(['Fridge', 'Garage']);
+      expect(call?.[7]).toEqual([milk, hammer]);
+    });
+
     it('should render card with valid state and items', () => {
       const mockState: HassEntity = {
         entity_id: 'test.entity',
@@ -111,6 +247,7 @@ describe('Renderer', () => {
         mockState,
         'test.entity',
         mockItems,
+        mockItems,
         mockFilters,
         'name',
         mockTodoLists,
@@ -131,6 +268,8 @@ describe('Renderer', () => {
         'Test Description',
         mockTranslations,
         undefined,
+        undefined,
+        false,
       );
       expect(mockShadowRoot.innerHTML).toBe('<div>Generated Card HTML</div>');
     });
@@ -150,6 +289,7 @@ describe('Renderer', () => {
         mockState,
         'test.entity',
         mockItems,
+        mockItems,
         mockFilters,
         'name',
         mockTodoLists,
@@ -168,6 +308,8 @@ describe('Renderer', () => {
         'Test Description',
         mockTranslations,
         undefined,
+        undefined,
+        false,
       );
     });
 
@@ -185,6 +327,7 @@ describe('Renderer', () => {
       renderer.renderCard(
         mockState,
         'test.entity',
+        mockItems,
         mockItems,
         mockFilters,
         'name',
@@ -204,6 +347,8 @@ describe('Renderer', () => {
         'Test Description',
         mockTranslations,
         undefined,
+        undefined,
+        false,
       );
     });
 
@@ -213,6 +358,7 @@ describe('Renderer', () => {
       renderer.renderCard(
         null as any,
         'test.entity',
+        mockItems,
         mockItems,
         mockFilters,
         'name',
@@ -232,6 +378,8 @@ describe('Renderer', () => {
         'Test Description',
         mockTranslations,
         undefined,
+        undefined,
+        false,
       );
     });
 
@@ -302,6 +450,7 @@ describe('Renderer', () => {
         mockState,
         'test.entity',
         mockState.attributes.items as InventoryItem[],
+        mockState.attributes.items as InventoryItem[],
         mockFilters,
         'name',
         mockTodoLists,
@@ -320,6 +469,8 @@ describe('Renderer', () => {
         'Test Description',
         mockTranslations,
         undefined,
+        undefined,
+        false,
       );
     });
 
@@ -385,6 +536,7 @@ describe('Renderer', () => {
         mockState,
         'test.entity',
         mockState.attributes.items as InventoryItem[],
+        mockState.attributes.items as InventoryItem[],
         mockFilters,
         'name',
         mockTodoLists,
@@ -403,6 +555,8 @@ describe('Renderer', () => {
         'Test Description',
         mockTranslations,
         undefined,
+        undefined,
+        false,
       );
     });
 
@@ -422,6 +576,7 @@ describe('Renderer', () => {
         mockState,
         'test.entity',
         [],
+        [],
         mockFilters,
         'name',
         mockTodoLists,
@@ -440,6 +595,8 @@ describe('Renderer', () => {
         'Test Description',
         mockTranslations,
         undefined,
+        undefined,
+        false,
       );
     });
 
@@ -466,6 +623,7 @@ describe('Renderer', () => {
         mockState,
         'custom.entity',
         mockItems,
+        mockItems,
         mockFilters,
         'category',
         mockTodoLists,
@@ -484,6 +642,8 @@ describe('Renderer', () => {
         'Test Description',
         mockTranslations,
         undefined,
+        undefined,
+        false,
       );
     });
   });
@@ -534,25 +694,6 @@ describe('Renderer', () => {
     });
   });
 
-  describe('renderLoading', () => {
-    it('should render loading message', () => {
-      renderer.renderLoading();
-
-      expect(mockShadowRoot.innerHTML).toContain('Loading');
-      expect(mockShadowRoot.innerHTML).toContain('loading-container');
-      expect(mockShadowRoot.innerHTML).toContain('<ha-card>');
-      expect(mockShadowRoot.innerHTML).toContain(styles);
-    });
-
-    it('should include correct CSS styling', () => {
-      renderer.renderLoading();
-
-      expect(mockShadowRoot.innerHTML).toContain(`<style>${styles}</style>`);
-      expect(mockShadowRoot.innerHTML).toContain('padding: 16px');
-      expect(mockShadowRoot.innerHTML).toContain('text-align: center');
-    });
-  });
-
   describe('edge cases', () => {
     it('should handle very long category names', () => {
       const longCategoryName = 'A'.repeat(1000);
@@ -581,6 +722,7 @@ describe('Renderer', () => {
         mockState,
         'test.entity',
         mockState.attributes.items as InventoryItem[],
+        mockState.attributes.items as InventoryItem[],
         mockFilters,
         'name',
         [],
@@ -599,6 +741,8 @@ describe('Renderer', () => {
         expect.any(String),
         expect.any(Object),
         undefined,
+        undefined,
+        false,
       );
     });
 
@@ -630,6 +774,7 @@ describe('Renderer', () => {
         mockState,
         'test.entity',
         mockState.attributes.items as InventoryItem[],
+        mockState.attributes.items as InventoryItem[],
         mockFilters,
         'name',
         [],
@@ -648,6 +793,8 @@ describe('Renderer', () => {
         expect.any(String),
         expect.any(Object),
         undefined,
+        undefined,
+        false,
       );
     });
 
@@ -695,6 +842,7 @@ describe('Renderer', () => {
         mockState,
         'test.entity',
         mockState.attributes.items as InventoryItem[],
+        mockState.attributes.items as InventoryItem[],
         mockFilters,
         'name',
         [],
@@ -714,6 +862,8 @@ describe('Renderer', () => {
         expect.any(String), // description
         expect.any(Object), // translations
         undefined,
+        undefined,
+        false,
       );
     });
   });

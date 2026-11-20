@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createInventoryHeader } from '../../src/templates/inventoryHeader';
-import { InventoryItem } from '../../src/types/homeAssistant';
+import { InventoryItem } from '../../src/types/inventory';
 import { TranslationData } from '@/types/translatableComponent';
 import { Utilities } from '../../src/utils/utilities';
 import { DateUtils } from '../../src/utils/dateUtils';
@@ -17,11 +17,12 @@ vi.mock('../../src/services/translationManager', () => ({
   },
 }));
 
-vi.mock('../../src/utils/utilities', () => ({
-  Utilities: {
-    sanitizeHtml: vi.fn((str: string) => `sanitized(${str})`),
-  },
-}));
+vi.mock('../../src/utils/utilities', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../src/utils/utilities')>();
+  return {
+    Utilities: { ...actual.Utilities, sanitizeHtml: vi.fn(actual.Utilities.sanitizeHtml) },
+  };
+});
 
 vi.mock('../../src/utils/dateUtils');
 
@@ -31,7 +32,6 @@ describe('createInventoryHeader', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(Utilities.sanitizeHtml).mockImplementation((str: string) => `sanitized(${str})`);
     vi.mocked(DateUtils.isExpired).mockReturnValue(false);
     vi.mocked(DateUtils.isExpiringSoon).mockReturnValue(false);
 
@@ -95,7 +95,7 @@ describe('createInventoryHeader', () => {
 
       expect(result).toContain('class="card-header"');
       expect(result).toContain('class="inventory-title"');
-      expect(result).toContain('sanitized(Kitchen Pantry)');
+      expect(result).toContain('>Kitchen Pantry</h2>');
       expect(Utilities.sanitizeHtml).toHaveBeenCalledWith('Kitchen Pantry');
     });
 
@@ -114,7 +114,7 @@ describe('createInventoryHeader', () => {
       );
 
       expect(Utilities.sanitizeHtml).toHaveBeenCalledWith('Test & "Special" <script>');
-      expect(result).toContain('sanitized(Test & "Special" <script>)');
+      expect(result).toContain('Test &amp; &quot;Special&quot; &lt;script&gt;');
     });
   });
 
@@ -123,14 +123,41 @@ describe('createInventoryHeader', () => {
       const result = createInventoryHeader('Test', mockItems, mockTranslations);
 
       expect(result).toContain('id="header-scan-btn"');
-      expect(result).toContain('class="header-scan-btn"');
+      expect(result).toContain('class="si-icon-btn header-scan-btn"');
     });
 
-    it('should include scan button SVG icon', () => {
+    it('should use the mdi barcode-scan icon instead of an inline svg', () => {
       const result = createInventoryHeader('Test', mockItems, mockTranslations);
 
-      expect(result).toContain('<svg');
-      expect(result).toContain('viewBox="0 0 24 24"');
+      expect(result).toContain('icon="mdi:barcode-scan"');
+      expect(result).not.toContain('<svg');
+    });
+
+    it('should render the overflow trigger as a labelled icon button', () => {
+      const result = createInventoryHeader('Test', mockItems, mockTranslations);
+
+      expect(result).toContain('id="overflow-menu-btn"');
+      expect(result).toContain('class="si-icon-btn overflow-menu-btn"');
+      expect(result).toContain('icon="mdi:dots-vertical"');
+      expect(result).toContain('aria-label="More options"');
+      expect(result).not.toContain('&#8942;');
+    });
+
+    it('should render export and import as icon menu items', () => {
+      const host = document.createElement('div');
+      host.innerHTML = createInventoryHeader('Test', mockItems, mockTranslations);
+
+      const menu = host.querySelector('#overflow-menu');
+      expect(menu?.getAttribute('role')).toBe('menu');
+      expect(menu?.hasAttribute('hidden')).toBe(true);
+      const items = [...(menu?.querySelectorAll('button.overflow-menu-item') ?? [])];
+      expect(items.map((item) => item.id)).toEqual(['export-inventory', 'import-inventory']);
+      expect(items.map((item) => item.getAttribute('role'))).toEqual(['menuitem', 'menuitem']);
+      expect(items.map((item) => item.querySelector('ha-icon')?.getAttribute('icon'))).toEqual([
+        'mdi:export',
+        'mdi:import',
+      ]);
+      expect(items.map((item) => item.textContent?.trim())).toEqual(['Export', 'Import']);
     });
   });
 
@@ -144,7 +171,7 @@ describe('createInventoryHeader', () => {
       );
 
       expect(result).toContain('class="inventory-description"');
-      expect(result).toContain('sanitized(Kitchen inventory items)');
+      expect(result).toContain('>Kitchen inventory items</p>');
       expect(Utilities.sanitizeHtml).toHaveBeenCalledWith('Kitchen inventory items');
     });
 
@@ -187,6 +214,26 @@ describe('createInventoryHeader', () => {
   });
 
   describe('expiry indicators', () => {
+    it('should render the expiry counts as labelled chips that keep their ids', () => {
+      vi.mocked(DateUtils.isExpired).mockImplementation(
+        (date: string | undefined) => date === '2024-01-01',
+      );
+      vi.mocked(DateUtils.isExpiringSoon).mockImplementation(
+        (date: string) => date === '2024-12-31',
+      );
+      const host = document.createElement('div');
+      host.innerHTML = createInventoryHeader('Test', mockItems, mockTranslations);
+
+      const expired = host.querySelector('#header-expired-badge');
+      const expiring = host.querySelector('#header-expiring-badge');
+      expect(expired?.tagName).toBe('BUTTON');
+      expect(expired?.getAttribute('aria-label')).toBe('1 items expired');
+      expect(expired?.textContent?.trim()).toBe('1');
+      expect(expiring?.tagName).toBe('BUTTON');
+      expect(expiring?.getAttribute('aria-label')).toBe('1 items expiring soon');
+      expect(expiring?.textContent?.trim()).toBe('1');
+    });
+
     it('should not show expiry indicators when no expired or expiring items', () => {
       vi.mocked(DateUtils.isExpired).mockReturnValue(false);
       vi.mocked(DateUtils.isExpiringSoon).mockReturnValue(false);
@@ -194,8 +241,8 @@ describe('createInventoryHeader', () => {
       const result = createInventoryHeader('Test', mockItems, mockTranslations);
 
       expect(result).not.toContain('class="expiry-indicators"');
-      expect(result).not.toContain('class="expired-badge"');
-      expect(result).not.toContain('class="expiring-badge"');
+      expect(result).not.toContain('class="si-chip si-tone-error expired-badge"');
+      expect(result).not.toContain('class="si-chip si-tone-warning expiring-badge"');
     });
 
     it('should show expired badge when items are expired', () => {
@@ -208,10 +255,12 @@ describe('createInventoryHeader', () => {
       const result = createInventoryHeader('Test', mockItems, mockTranslations);
 
       expect(result).toContain('class="expiry-indicators"');
-      expect(result).toContain('class="expired-badge"');
+      expect(result).toContain('class="si-chip si-tone-error expired-badge"');
       expect(result).toContain('1 items expired');
       expect(result).toContain('mdi:calendar-remove');
-      expect(result).toMatch(/<button[^>]*class="expired-badge"[^>]*>[\s\S]*?1[\s\S]*?<\/button>/);
+      expect(result).toMatch(
+        /<button[^>]*class="si-chip si-tone-error expired-badge"[^>]*>[\s\S]*?1[\s\S]*?<\/button>/,
+      );
     });
 
     it('should show expiring badge when items are expiring soon', () => {
@@ -224,10 +273,12 @@ describe('createInventoryHeader', () => {
       const result = createInventoryHeader('Test', mockItems, mockTranslations);
 
       expect(result).toContain('class="expiry-indicators"');
-      expect(result).toContain('class="expiring-badge"');
+      expect(result).toContain('class="si-chip si-tone-warning expiring-badge"');
       expect(result).toContain('1 items expiring soon');
       expect(result).toContain('mdi:calendar-alert');
-      expect(result).toMatch(/<button[^>]*class="expiring-badge"[^>]*>[\s\S]*?1[\s\S]*?<\/button>/);
+      expect(result).toMatch(
+        /<button[^>]*class="si-chip si-tone-warning expiring-badge"[^>]*>[\s\S]*?1[\s\S]*?<\/button>/,
+      );
     });
 
     it('should show both badges when both expired and expiring items exist', () => {
@@ -242,8 +293,8 @@ describe('createInventoryHeader', () => {
       const result = createInventoryHeader('Test', mockItems, mockTranslations);
 
       expect(result).toContain('class="expiry-indicators"');
-      expect(result).toContain('class="expired-badge"');
-      expect(result).toContain('class="expiring-badge"');
+      expect(result).toContain('class="si-chip si-tone-error expired-badge"');
+      expect(result).toContain('class="si-chip si-tone-warning expiring-badge"');
       expect(result).toContain('1 items expired');
       expect(result).toContain('1 items expiring soon');
     });
@@ -275,7 +326,9 @@ describe('createInventoryHeader', () => {
       const result = createInventoryHeader('Test', multipleExpiredItems, mockTranslations);
 
       expect(result).toContain('2 items expired');
-      expect(result).toMatch(/<button[^>]*class="expired-badge"[^>]*>[\s\S]*?2[\s\S]*?<\/button>/);
+      expect(result).toMatch(
+        /<button[^>]*class="si-chip si-tone-error expired-badge"[^>]*>[\s\S]*?2[\s\S]*?<\/button>/,
+      );
     });
   });
 
@@ -426,7 +479,7 @@ describe('createInventoryHeader', () => {
     it('should handle empty items array', () => {
       const result = createInventoryHeader('Empty Inventory', [], mockTranslations);
 
-      expect(result).toContain('sanitized(Empty Inventory)');
+      expect(result).toContain('>Empty Inventory</h2>');
       expect(result).not.toContain('class="expiry-indicators"');
     });
 
@@ -490,7 +543,7 @@ describe('createInventoryHeader', () => {
 
       expect(result).toContain('999 items expired');
       expect(result).toMatch(
-        /<button[^>]*class="expired-badge"[^>]*>[\s\S]*?999[\s\S]*?<\/button>/,
+        /<button[^>]*class="si-chip si-tone-error expired-badge"[^>]*>[\s\S]*?999[\s\S]*?<\/button>/,
       );
     });
   });
@@ -513,7 +566,7 @@ describe('createInventoryHeader', () => {
 
       const result = createInventoryHeader('Test', mockItems, mockTranslations);
 
-      expect(result).toContain('<ha-icon icon="mdi:calendar-remove"></ha-icon>');
+      expect(result).toContain('icon="mdi:calendar-remove"');
       expect(result).toContain('title="1 items expired"');
     });
   });
@@ -543,8 +596,8 @@ describe('createInventoryHeader', () => {
 
       // Kill mutants: verify > 0 conditions work correctly for 0 values
       expect(result).not.toContain('class="expiry-indicators"');
-      expect(result).not.toContain('class="expired-badge"');
-      expect(result).not.toContain('class="expiring-badge"');
+      expect(result).not.toContain('class="si-chip si-tone-error expired-badge"');
+      expect(result).not.toContain('class="si-chip si-tone-warning expiring-badge"');
       expect(result).not.toContain('Stryker was here!');
     });
 
@@ -558,8 +611,8 @@ describe('createInventoryHeader', () => {
 
       // Kill mutants: verify expired badge is not shown when count is 0
       expect(result).toContain('class="expiry-indicators"'); // Should show indicators
-      expect(result).toContain('class="expiring-badge"'); // Should show expiring badge
-      expect(result).not.toContain('class="expired-badge"'); // Should NOT show expired badge
+      expect(result).toContain('class="si-chip si-tone-warning expiring-badge"'); // Should show expiring badge
+      expect(result).not.toContain('class="si-chip si-tone-error expired-badge"'); // Should NOT show expired badge
       expect(result).not.toContain('mdi:calendar-remove'); // Should not show expired icon
       expect(result).not.toContain('expired'); // Should not show expired text except in class names
     });
@@ -574,8 +627,8 @@ describe('createInventoryHeader', () => {
 
       // Kill mutants: verify expiring badge is not shown when count is 0
       expect(result).toContain('class="expiry-indicators"'); // Should show indicators
-      expect(result).toContain('class="expired-badge"'); // Should show expired badge
-      expect(result).not.toContain('class="expiring-badge"'); // Should NOT show expiring badge
+      expect(result).toContain('class="si-chip si-tone-error expired-badge"'); // Should show expired badge
+      expect(result).not.toContain('class="si-chip si-tone-warning expiring-badge"'); // Should NOT show expiring badge
       expect(result).not.toContain('mdi:calendar-alert'); // Should not show expiring icon
       expect(result).not.toContain('expiring soon'); // Should not show expiring text
     });
@@ -607,7 +660,7 @@ describe('createInventoryHeader', () => {
 
     // Kill mutants: verify that 0 count doesn't trigger > 0 condition
     expect(result).not.toContain('class="expiry-indicators"');
-    expect(result).not.toContain('class="expired-badge"');
+    expect(result).not.toContain('class="si-chip si-tone-error expired-badge"');
   });
 
   it('should verify conditional boundaries: expiring count > 0 vs >= 0', () => {
@@ -636,7 +689,7 @@ describe('createInventoryHeader', () => {
 
     // Kill mutants: verify that 0 count doesn't trigger > 0 condition
     expect(result).not.toContain('class="expiry-indicators"');
-    expect(result).not.toContain('class="expiring-badge"');
+    expect(result).not.toContain('class="si-chip si-tone-warning expiring-badge"');
   });
 
   it('should not include any expiry indicator content when no items qualify', () => {

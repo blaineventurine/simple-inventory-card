@@ -3,14 +3,9 @@ import { createActiveFiltersDisplay } from '../../src/templates/filters';
 import { FilterState } from '../../src/types/filterState';
 import { ELEMENTS } from '../../src/utils/constants';
 import { TranslationData } from '@/types/translatableComponent';
+import { must } from '../testHelpers';
 
-vi.mock('../../src/services/translationManager', () => ({
-  TranslationManager: {
-    localize: vi.fn((_translations: any, _key: string, _params: any, fallback: string) => {
-      return fallback;
-    }),
-  },
-}));
+vi.mock('../../src/services/translationManager', () => import('../mocks/translationManager'));
 
 const baseFilters: FilterState = {
   category: [],
@@ -52,7 +47,7 @@ describe('createActiveFiltersDisplay', () => {
     it('should hide display when no filters are active', () => {
       const result = createActiveFiltersDisplay(baseFilters, mockTranslations);
 
-      expect(result).toContain('style="display: none;">');
+      expect(result).toContain('class="active-filters" hidden>');
       expect(result).toContain(`id="${ELEMENTS.ACTIVE_FILTERS}"`);
       expect(result).toContain('class="active-filters"');
     });
@@ -65,7 +60,7 @@ describe('createActiveFiltersDisplay', () => {
 
       const result = createActiveFiltersDisplay(filters, mockTranslations);
 
-      expect(result).toContain('style="display: block;">');
+      expect(result).toContain('class="active-filters">');
     });
 
     it('should include active filters list element', () => {
@@ -90,10 +85,10 @@ describe('createActiveFiltersDisplay', () => {
 
       const result = createActiveFiltersDisplay(filters, mockTranslations);
 
-      expect(result).toContain('<span class="filter-badge search">');
-      expect(result).toContain('Search: "banana"');
+      expect(result).toContain('<span class="si-chip si-tone-primary filter-badge search">');
+      expect(result).toContain('Search: &quot;banana&quot;');
       expect(result).toContain('</span>');
-      expect(result).toContain('style="display: block;">');
+      expect(result).toContain('class="active-filters">');
     });
 
     it('should display single category filter badge', () => {
@@ -104,7 +99,7 @@ describe('createActiveFiltersDisplay', () => {
 
       const result = createActiveFiltersDisplay(filters, mockTranslations);
 
-      expect(result).toContain('<span class="filter-badge category">');
+      expect(result).toContain('<span class="si-chip si-tone-primary filter-badge category">');
       expect(result).toContain('Category: Fruit');
       expect(result).toContain('</span>');
     });
@@ -117,7 +112,7 @@ describe('createActiveFiltersDisplay', () => {
 
       const result = createActiveFiltersDisplay(filters, mockTranslations);
 
-      expect(result).toContain('<span class="filter-badge category">');
+      expect(result).toContain('<span class="si-chip si-tone-primary filter-badge category">');
       expect(result).toContain('Category: 2 selected');
       expect(result).toContain('</span>');
     });
@@ -130,7 +125,7 @@ describe('createActiveFiltersDisplay', () => {
 
       const result = createActiveFiltersDisplay(filters, mockTranslations);
 
-      expect(result).toContain('<span class="filter-badge quantity">');
+      expect(result).toContain('<span class="si-chip si-tone-primary filter-badge quantity">');
       expect(result).toContain('Quantity: zero');
       expect(result).toContain('</span>');
     });
@@ -143,7 +138,7 @@ describe('createActiveFiltersDisplay', () => {
 
       const result = createActiveFiltersDisplay(filters, mockTranslations);
 
-      expect(result).toContain('<span class="filter-badge quantity">');
+      expect(result).toContain('<span class="si-chip si-tone-primary filter-badge quantity">');
       expect(result).toContain('Quantity: 2 selected');
       expect(result).toContain('</span>');
     });
@@ -156,7 +151,7 @@ describe('createActiveFiltersDisplay', () => {
 
       const result = createActiveFiltersDisplay(filters, mockTranslations);
 
-      expect(result).toContain('<span class="filter-badge expiry">');
+      expect(result).toContain('<span class="si-chip si-tone-primary filter-badge expiry">');
       expect(result).toContain('Expiry: expired'); // Note: translated value
       expect(result).toContain('</span>');
     });
@@ -169,7 +164,7 @@ describe('createActiveFiltersDisplay', () => {
 
       const result = createActiveFiltersDisplay(filters, mockTranslations);
 
-      expect(result).toContain('<span class="filter-badge location">');
+      expect(result).toContain('<span class="si-chip si-tone-primary filter-badge location">');
       expect(result).toContain('Location: Pantry');
       expect(result).toContain('</span>');
     });
@@ -185,11 +180,11 @@ describe('createActiveFiltersDisplay', () => {
 
       const result = createActiveFiltersDisplay(filters, mockTranslations);
 
-      expect(result).toContain('<span class="filter-badge search">');
-      expect(result).toContain('Search: "apple"');
-      expect(result).toContain('<span class="filter-badge category">');
+      expect(result).toContain('<span class="si-chip si-tone-primary filter-badge search">');
+      expect(result).toContain('Search: &quot;apple&quot;');
+      expect(result).toContain('<span class="si-chip si-tone-primary filter-badge category">');
       expect(result).toContain('Category: Fruit');
-      expect(result).toContain('style="display: block;">');
+      expect(result).toContain('class="active-filters">');
     });
 
     it('should display all filter types when active', () => {
@@ -205,15 +200,15 @@ describe('createActiveFiltersDisplay', () => {
 
       const result = createActiveFiltersDisplay(filters, mockTranslations);
 
-      expect(result).toContain('<span class="filter-badge search">');
-      expect(result).toContain('Search: "test"');
-      expect(result).toContain('<span class="filter-badge category">');
+      expect(result).toContain('<span class="si-chip si-tone-primary filter-badge search">');
+      expect(result).toContain('Search: &quot;test&quot;');
+      expect(result).toContain('<span class="si-chip si-tone-primary filter-badge category">');
       expect(result).toContain('Category: Food');
-      expect(result).toContain('<span class="filter-badge location">');
+      expect(result).toContain('<span class="si-chip si-tone-primary filter-badge location">');
       expect(result).toContain('Location: Pantry');
-      expect(result).toContain('<span class="filter-badge quantity">');
+      expect(result).toContain('<span class="si-chip si-tone-primary filter-badge quantity">');
       expect(result).toContain('Quantity: zero');
-      expect(result).toContain('<span class="filter-badge expiry">');
+      expect(result).toContain('<span class="si-chip si-tone-primary filter-badge expiry">');
       expect(result).toContain('Expiry: soon'); // Translated
     });
 
@@ -230,7 +225,7 @@ describe('createActiveFiltersDisplay', () => {
 
       const result = createActiveFiltersDisplay(filters, mockTranslations);
 
-      expect(result).toContain('Search: "milk"');
+      expect(result).toContain('Search: &quot;milk&quot;');
       expect(result).toContain('Category: 3 selected');
       expect(result).toContain('Location: Pantry');
       expect(result).toContain('Quantity: 2 selected');
@@ -246,18 +241,18 @@ describe('createActiveFiltersDisplay', () => {
 
       const result = createActiveFiltersDisplay(filters, mockTranslations);
 
-      expect(result).toContain('<span class="filter-badge search">');
-      expect(result).toContain('Search: "coffee & cream "special""');
+      expect(result).toContain('<span class="si-chip si-tone-primary filter-badge search">');
+      expect(result).toContain('Search: &quot;coffee &amp; cream &quot;special&quot;&quot;');
     });
 
     it('should handle empty arrays (should not display)', () => {
       const result = createActiveFiltersDisplay(baseFilters, mockTranslations);
       const badgesContainer = result.match(/<div id="active-filters-list"[^>]*>([\s\S]*?)<\/div>/);
 
-      expect(result).toContain('style="display: none;">');
+      expect(result).toContain('class="active-filters" hidden>');
       expect(badgesContainer).toBeTruthy();
-      expect(badgesContainer![1].trim()).toBe('');
-      expect(result).not.toMatch(/<span class="filter-badge[^"]*">/);
+      expect(must(badgesContainer)[1].trim()).toBe('');
+      expect(result).not.toContain('si-chip');
     });
 
     it('should handle whitespace-only filters (should display)', () => {
@@ -268,9 +263,9 @@ describe('createActiveFiltersDisplay', () => {
 
       const result = createActiveFiltersDisplay(filters, mockTranslations);
 
-      expect(result).toContain('<span class="filter-badge search">');
-      expect(result).toContain('Search: "   "');
-      expect(result).toContain('style="display: block;">');
+      expect(result).toContain('<span class="si-chip si-tone-primary filter-badge search">');
+      expect(result).toContain('Search: &quot;   &quot;');
+      expect(result).toContain('class="active-filters">');
     });
   });
 
@@ -284,12 +279,10 @@ describe('createActiveFiltersDisplay', () => {
 
       const result = createActiveFiltersDisplay(filters, mockTranslations);
 
-      expect(result).toMatch(
-        /<div id="[^"]*" class="active-filters" style="display: block;">[\s\S]*<\/div>/,
-      );
+      expect(result).toMatch(/<div id="[^"]*" class="active-filters">[\s\S]*<\/div>/);
 
       expect(result).toContain('class="filter-badges-container"');
-      expect(result).toContain('<span class="filter-badge');
+      expect(result).toContain('<span class="si-chip si-tone-primary filter-badge');
     });
 
     it('should use correct element IDs from constants', () => {
@@ -327,16 +320,61 @@ describe('createActiveFiltersDisplay', () => {
       };
 
       const result = createActiveFiltersDisplay(filters, mockTranslations);
-      const searchIndex = result.indexOf('class="filter-badge search"');
-      const categoryIndex = result.indexOf('class="filter-badge category"');
-      const quantityIndex = result.indexOf('class="filter-badge quantity"');
-      const expiryIndex = result.indexOf('class="filter-badge expiry"');
-      const locationIndex = result.indexOf('class="filter-badge location"');
+      const searchIndex = result.indexOf('filter-badge search"');
+      const categoryIndex = result.indexOf('filter-badge category"');
+      const quantityIndex = result.indexOf('filter-badge quantity"');
+      const expiryIndex = result.indexOf('filter-badge expiry"');
+      const locationIndex = result.indexOf('filter-badge location"');
 
       expect(searchIndex).toBeLessThan(categoryIndex);
       expect(categoryIndex).toBeLessThan(locationIndex);
       expect(locationIndex).toBeLessThan(quantityIndex);
       expect(quantityIndex).toBeLessThan(expiryIndex);
+    });
+  });
+
+  describe('removable chips', () => {
+    it('gives every active filter chip a remove button keyed by filter', () => {
+      const host = document.createElement('div');
+      host.innerHTML = createActiveFiltersDisplay(
+        {
+          ...baseFilters,
+          searchText: 'milk',
+          category: ['Fruit'],
+          location: ['Pantry'],
+          quantity: ['zero'],
+          expiry: ['soon'],
+        },
+        mockTranslations,
+      );
+
+      const keys = [...host.querySelectorAll<HTMLElement>('[data-filter-remove]')].map(
+        (button) => button.dataset.filterRemove,
+      );
+      expect(keys).toEqual(['search', 'category', 'location', 'quantity', 'expiry']);
+    });
+
+    it('labels the remove button with the chip text', () => {
+      const host = document.createElement('div');
+      host.innerHTML = createActiveFiltersDisplay(
+        { ...baseFilters, category: ['Fruit'] },
+        mockTranslations,
+      );
+
+      const remove = host.querySelector('[data-filter-remove="category"]');
+      expect(remove?.tagName).toBe('BUTTON');
+      expect(remove?.classList.contains('si-chip__remove')).toBe(true);
+      expect(remove?.getAttribute('aria-label')).toBe('Remove Category: Fruit');
+    });
+
+    it('escapes the search text inside the chip', () => {
+      const result = createActiveFiltersDisplay(
+        { ...baseFilters, searchText: '<img src=x onerror=alert(1)>' },
+        mockTranslations,
+      );
+
+      expect(result).not.toContain('<img');
+      expect(result).toContain('&lt;img src=x onerror=alert(1)&gt;');
     });
   });
 });

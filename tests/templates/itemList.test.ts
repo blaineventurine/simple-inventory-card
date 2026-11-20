@@ -1,21 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
+  createEmptyState,
   createItemsList,
   createItemsByCategory,
   createItemsByLocation,
 } from '../../src/templates/itemList';
-import { InventoryItem } from '../../src/types/homeAssistant';
+import { InventoryItem } from '../../src/types/inventory';
 import { TodoList } from '../../src/types/todoList';
 import { TranslationData } from '@/types/translatableComponent';
 import { Utilities } from '../../src/utils/utilities';
 import { createItemRowTemplate } from '../../src/templates/itemRow';
-vi.mock('../../src/services/translationManager', () => ({
-  TranslationManager: {
-    localize: vi.fn((_translations: any, _key: string, _params: any, fallback: string) => {
-      return fallback;
-    }),
-  },
-}));
+import { createItemTileTemplate } from '../../src/templates/itemTile';
+import { RowOptions } from '../../src/types/rowOptions';
+vi.mock('../../src/services/translationManager', () => import('../mocks/translationManager'));
 
 vi.mock('../../src/utils/utilities', () => ({
   Utilities: {
@@ -29,6 +26,12 @@ vi.mock('../../src/templates/itemRow', () => ({
   createItemRowTemplate: vi.fn(
     (item: InventoryItem, todoLists: TodoList[], _translations: any, _config?: any) =>
       `<mock-item-row name="${item.name}" todos="${todoLists.length}" />`,
+  ),
+}));
+
+vi.mock('../../src/templates/itemTile', () => ({
+  createItemTileTemplate: vi.fn(
+    (item: InventoryItem) => `<div class="mock-tile" data-name="${item.name}"></div>`,
   ),
 }));
 
@@ -108,18 +111,18 @@ describe('itemList', () => {
 
   describe('createItemsList', () => {
     describe('empty items handling', () => {
-      it('should return no-items message when items array is empty', () => {
+      it('should return the empty-state message when items array is empty', () => {
         const result = createItemsList([], 'name', mockTodoLists, mockTranslations);
 
-        expect(result).toContain('class="no-items"');
-        expect(result).toContain('No items in inventory');
+        expect(result).toContain('class="si-empty"');
+        expect(result).toContain('No items match your filters');
       });
 
       it('should use translation for empty state', () => {
         const result = createItemsList([], 'category', mockTodoLists, mockTranslations);
 
-        expect(result).toContain('No items in inventory');
-        expect(result).toContain('class="no-items"');
+        expect(result).toContain('No items match your filters');
+        expect(result).toContain('class="si-empty"');
       });
 
       it('should not call any item rendering functions when empty', () => {
@@ -190,17 +193,20 @@ describe('itemList', () => {
           mockTodoLists,
           mockTranslations,
           undefined,
+          undefined,
         );
         expect(vi.mocked(createItemRowTemplate)).toHaveBeenCalledWith(
           mockItems[1],
           mockTodoLists,
           mockTranslations,
           undefined,
+          undefined,
         );
         expect(vi.mocked(createItemRowTemplate)).toHaveBeenCalledWith(
           mockItems[2],
           mockTodoLists,
           mockTranslations,
+          undefined,
           undefined,
         );
         expect(Utilities.groupItemsByCategory).not.toHaveBeenCalled();
@@ -239,17 +245,20 @@ describe('itemList', () => {
           customTodoLists,
           mockTranslations,
           undefined,
+          undefined,
         );
         expect(vi.mocked(createItemRowTemplate)).toHaveBeenCalledWith(
           mockItems[1],
           customTodoLists,
           mockTranslations,
           undefined,
+          undefined,
         );
         expect(vi.mocked(createItemRowTemplate)).toHaveBeenCalledWith(
           mockItems[2],
           customTodoLists,
           mockTranslations,
+          undefined,
           undefined,
         );
       });
@@ -261,6 +270,7 @@ describe('itemList', () => {
           mockItems[0],
           [],
           mockTranslations,
+          undefined,
           undefined,
         );
       });
@@ -319,17 +329,20 @@ describe('itemList', () => {
           mockTodoLists,
           mockTranslations,
           undefined,
+          undefined,
         );
         expect(vi.mocked(createItemRowTemplate)).toHaveBeenCalledWith(
           mockItems[1],
           mockTodoLists,
           mockTranslations,
           undefined,
+          undefined,
         );
         expect(vi.mocked(createItemRowTemplate)).toHaveBeenCalledWith(
           mockItems[2],
           mockTodoLists,
           mockTranslations,
+          undefined,
           undefined,
         );
       });
@@ -559,6 +572,154 @@ describe('itemList', () => {
 
       expect(result).not.toContain(maliciousLocation);
       expect(result).toContain('&lt;img src=x onerror=alert(1)&gt;');
+    });
+  });
+
+  describe('row options', () => {
+    it('hands the row options to every row in every grouping', () => {
+      const rowOptions = { batches: true, expanded: new Set(['Apple']), transfers: false };
+      vi.mocked(Utilities.groupItemsByCategory).mockReturnValue({ Fruit: mockItems });
+      vi.mocked(Utilities.groupItemsByLocation).mockReturnValue({ Fridge: mockItems });
+
+      for (const sortMethod of ['name', 'category', 'location']) {
+        vi.mocked(createItemRowTemplate).mockClear();
+        createItemsList(
+          mockItems,
+          sortMethod,
+          mockTodoLists,
+          mockTranslations,
+          undefined,
+          rowOptions,
+        );
+        expect(createItemRowTemplate).toHaveBeenCalledWith(
+          mockItems[0],
+          mockTodoLists,
+          mockTranslations,
+          undefined,
+          rowOptions,
+        );
+      }
+    });
+  });
+
+  describe('group headings and empty states', () => {
+    it('shows the item count next to each category heading', () => {
+      vi.mocked(Utilities.groupItemsByCategory).mockReturnValue({
+        Fruit: [mockItems[0], mockItems[1]],
+        Dairy: [mockItems[2]],
+      });
+
+      const result = createItemsByCategory(mockItems, mockTodoLists, mockTranslations);
+
+      expect(result).toContain(
+        '<div class="category-header"><span class="si-group__name">Fruit</span><span class="si-group__count">2</span></div>',
+      );
+      expect(result).toContain(
+        '<span class="si-group__name">Dairy</span><span class="si-group__count">1</span>',
+      );
+    });
+
+    it('shows the item count next to each location heading', () => {
+      vi.mocked(Utilities.groupItemsByLocation).mockReturnValue({
+        Fridge: [mockItems[0], mockItems[1], mockItems[2]],
+      });
+
+      const result = createItemsByLocation(mockItems, mockTodoLists, mockTranslations);
+
+      expect(result).toContain(
+        '<div class="location-header"><span class="si-group__name">Fridge</span><span class="si-group__count">3</span></div>',
+      );
+    });
+
+    it('renders the empty-inventory state with an icon', () => {
+      const result = createEmptyState('empty', mockTranslations);
+
+      expect(result).toContain('class="si-empty"');
+      expect(result).toContain('mdi:package-variant-closed');
+      expect(result).toContain('No items in inventory');
+    });
+
+    it('renders the no-results state with an icon', () => {
+      const result = createEmptyState('no_results', mockTranslations);
+
+      expect(result).toContain('class="si-empty"');
+      expect(result).toContain('mdi:filter-remove-outline');
+      expect(result).toContain('No items match your filters');
+    });
+  });
+
+  describe('tile layout', () => {
+    const tiles: RowOptions = {
+      batches: false,
+      expanded: new Set<string>(),
+      transfers: false,
+      layout: 'tiles',
+    };
+    const parse = (html: string): HTMLElement => {
+      const container = document.createElement('div');
+      container.innerHTML = html;
+      return container;
+    };
+    const tileNames = (element: Element): string[] =>
+      Array.from(
+        element.querySelectorAll('.mock-tile'),
+        (tile) => tile.getAttribute('data-name') ?? '',
+      );
+
+    it('wraps the ungrouped list in one tile grid', () => {
+      const html = createItemsList(
+        mockItems,
+        'name',
+        mockTodoLists,
+        mockTranslations,
+        undefined,
+        tiles,
+      );
+      const list = parse(html);
+
+      expect(list.children).toHaveLength(1);
+      expect(list.children[0]?.classList).toContain('si-tiles');
+      expect(tileNames(list)).toEqual(['Apple', 'Banana', 'Milk']);
+      expect(createItemRowTemplate).not.toHaveBeenCalled();
+      expect(createItemTileTemplate).toHaveBeenCalledWith(
+        mockItems[0],
+        mockTodoLists,
+        mockTranslations,
+        undefined,
+        tiles,
+      );
+    });
+
+    it('puts a tile grid under each category and location heading', () => {
+      vi.mocked(Utilities.groupItemsByCategory).mockReturnValue({
+        Fruit: [mockItems[0], mockItems[1]],
+        Dairy: [mockItems[2]],
+      });
+      vi.mocked(Utilities.groupItemsByLocation).mockReturnValue({
+        Fridge: [mockItems[0], mockItems[2]],
+        Pantry: [mockItems[1]],
+      });
+
+      const byCategory = parse(
+        createItemsList(mockItems, 'category', mockTodoLists, mockTranslations, undefined, tiles),
+      );
+      const byLocation = parse(
+        createItemsList(mockItems, 'location', mockTodoLists, mockTranslations, undefined, tiles),
+      );
+
+      const groups = (root: HTMLElement, kind: 'category' | 'location'): unknown[] =>
+        Array.from(root.querySelectorAll(`.${kind}-group`), (group) => [
+          group.querySelector(`:scope > .${kind}-header .si-group__name`)?.textContent,
+          Array.from(group.querySelectorAll(':scope > .si-tiles'), tileNames),
+        ]);
+      expect(groups(byCategory, 'category')).toEqual([
+        ['Dairy', [['Milk']]],
+        ['Fruit', [['Apple', 'Banana']]],
+      ]);
+      expect(groups(byLocation, 'location')).toEqual([
+        ['Fridge', [['Apple', 'Milk']]],
+        ['Pantry', [['Banana']]],
+      ]);
     });
   });
 });

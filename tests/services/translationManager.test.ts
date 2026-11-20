@@ -200,6 +200,14 @@ describe('TranslationManager', () => {
       expect(result).toBe('Deep Value');
     });
 
+    it("inserts a value with replacement patterns ($&, $', $$) literally", () => {
+      const result = TranslationManager.localize(translations, 'modal.greeting', {
+        name: "a$&b$'c$$d",
+        count: 2,
+      });
+      expect(result).toBe("Hello a$&b$'c$$d, you have 2 items and 2 pending");
+    });
+
     it('returns the fallback when a path segment is missing', () => {
       const result = TranslationManager.localize(
         translations,
@@ -278,6 +286,31 @@ describe('TranslationManager', () => {
       const data: TranslationData = { msg: 'Hello {name}' };
       const result = TranslationManager.localize(data, 'msg');
       expect(result).toBe('Hello {name}');
+    });
+
+    it.each([
+      [1, '1 item expired'],
+      [0, '0 items expired'],
+      [3, '3 items expired'],
+    ])('picks the one/other plural branch for count %s', (count, expected) => {
+      const data: TranslationData = {
+        msg: '{count} item{count, plural, one {} other {s}} expired',
+      };
+      expect(TranslationManager.localize(data, 'msg', { count })).toBe(expected);
+    });
+
+    it('resolves several plural blocks in one string', () => {
+      const data: TranslationData = {
+        msg: '{n} oggett{n, plural, one {o} other {i}} scadut{n, plural, one {o} other {i}}',
+      };
+      expect(TranslationManager.localize(data, 'msg', { n: 2 })).toBe('2 oggetti scaduti');
+    });
+
+    it('leaves a plural block untouched when its parameter is missing', () => {
+      const data: TranslationData = { msg: 'item{count, plural, one {} other {s}}' };
+      expect(TranslationManager.localize(data, 'msg', {})).toBe(
+        'item{count, plural, one {} other {s}}',
+      );
     });
   });
 });

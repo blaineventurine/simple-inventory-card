@@ -3,13 +3,18 @@ import { ModalUIManager } from '../../../src/services/modals/modalUIManager';
 import { ModalFormManager } from '../../../src/services/modals/modalFormManager';
 import { ModalValidationManager } from '../../../src/services/modals/modalValidationManager';
 import { ELEMENTS, CSS_CLASSES, TIMING } from '../../../src/utils/constants';
-import { HomeAssistant, InventoryItem, InventoryConfig } from '../../../src/types/homeAssistant';
+import { HomeAssistant } from '../../../src/types/homeAssistant';
+import { InventoryItem, InventoryConfig } from '../../../src/types/inventory';
 import { createMockHomeAssistant, createMockHassEntity } from '../../testHelpers';
 import { TranslationData } from '@/types/translatableComponent';
 import { initializeAliasTagInput } from '../../../src/services/aliasTagInput';
+import { initializeIconField } from '../../../src/services/iconFieldInput';
 
 vi.mock('../../../src/services/modals/modalFormManager');
 vi.mock('../../../src/services/modals/modalValidationManager');
+vi.mock('../../../src/services/iconFieldInput', () => ({
+  initializeIconField: vi.fn(),
+}));
 vi.mock('../../../src/services/aliasTagInput', () => ({
   initializeAliasTagInput: vi.fn(),
 }));
@@ -99,11 +104,9 @@ describe('ModalUIManager', () => {
       entity: 'sensor.test_inventory',
     };
 
-    // Mock global document
-    globalThis.document = {
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-    } as unknown as Document;
+    // The manager's document listeners are recorded, not attached (the document stays real).
+    vi.spyOn(document, 'addEventListener').mockImplementation(() => {});
+    vi.spyOn(document, 'removeEventListener').mockImplementation(() => {});
 
     // Mock timers
     vi.useFakeTimers();
@@ -116,7 +119,23 @@ describe('ModalUIManager', () => {
   afterEach(() => {
     vi.useRealTimers();
     modalUIManager.destroy();
+    vi.restoreAllMocks();
   });
+
+  /** The press that starts a click; the manager records it from a document listener. */
+  function pressOn(target: unknown): void {
+    const listener = vi
+      .mocked(document.addEventListener)
+      .mock.calls.filter(([type]) => type === 'pointerdown')
+      .at(-1)?.[1];
+    if (typeof listener !== 'function') {
+      throw new Error('no pointerdown listener');
+    }
+    listener({ composedPath: () => [target] } as unknown as Event);
+  }
+
+  // Sheet panel (.modal-content) of every mock modal: the focus target on open
+  const mockPanel = { focus: vi.fn() } as unknown as HTMLElement;
 
   // Helper function to create mock modal element
   const createMockModal = (id: string): HTMLElement =>
@@ -128,6 +147,10 @@ describe('ModalUIManager', () => {
         contains: vi.fn(),
       },
       closest: vi.fn(),
+      dispatchEvent: vi.fn(),
+      querySelector: vi.fn((selector: string) =>
+        selector === `.${CSS_CLASSES.MODAL_CONTENT}` ? mockPanel : null,
+      ),
     }) as unknown as HTMLElement;
 
   // Helper function to create mock input element
@@ -160,14 +183,15 @@ describe('ModalUIManager', () => {
       const mockModal = createMockModal(ELEMENTS.ADD_MODAL);
       const mockNameInput = createMockInput();
       mockElements.set(ELEMENTS.ADD_MODAL, mockModal);
-      mockElements.set(ELEMENTS.NAME, mockNameInput);
+      mockElements.set(`add-${ELEMENTS.NAME}`, mockNameInput);
 
       modalUIManager.openAddModal(mockTranslations);
 
       expect(mockValidationManager.clearError).toHaveBeenCalledWith(true);
       expect(mockModal.classList.add).toHaveBeenCalledWith(CSS_CLASSES.SHOW);
       expect(mockValidationManager.setupValidationListeners).toHaveBeenCalled();
-      expect(initializeAliasTagInput).toHaveBeenCalledWith(mockShadowRoot, 'add');
+      expect(initializeAliasTagInput).toHaveBeenCalledWith(mockShadowRoot, 'add', mockTranslations);
+      expect(initializeIconField).toHaveBeenCalledWith(mockShadowRoot, 'add');
 
       // Test focus with delay
       vi.advanceTimersByTime(TIMING.MODAL_FOCUS_DELAY);
@@ -217,7 +241,7 @@ describe('ModalUIManager', () => {
       const mockModal = createMockModal(ELEMENTS.EDIT_MODAL);
       const mockNameInput = createMockInput();
       mockElements.set(ELEMENTS.EDIT_MODAL, mockModal);
-      mockElements.set(ELEMENTS.NAME, mockNameInput);
+      mockElements.set(`edit-${ELEMENTS.NAME}`, mockNameInput);
 
       const result = modalUIManager.openEditModal(
         'Test Item',
@@ -235,12 +259,18 @@ describe('ModalUIManager', () => {
       expect(mockValidationManager.clearError).toHaveBeenCalledWith(false);
       expect(mockModal.classList.add).toHaveBeenCalledWith(CSS_CLASSES.SHOW);
       expect(mockValidationManager.setupValidationListeners).toHaveBeenCalled();
-      expect(initializeAliasTagInput).toHaveBeenCalledWith(mockShadowRoot, 'edit');
+      expect(initializeAliasTagInput).toHaveBeenCalledWith(
+        mockShadowRoot,
+        'edit',
+        mockTranslations,
+      );
+      expect(initializeIconField).toHaveBeenCalledWith(mockShadowRoot, 'edit');
 
-      // Test focus with delay and select all
+      // The sheet itself takes focus: no keyboard, no selected name
       vi.advanceTimersByTime(TIMING.MODAL_FOCUS_DELAY);
-      expect(mockNameInput.focus).toHaveBeenCalled();
-      expect(mockNameInput.select).toHaveBeenCalled();
+      expect(mockPanel.focus).toHaveBeenCalled();
+      expect(mockNameInput.focus).not.toHaveBeenCalled();
+      expect(mockNameInput.select).not.toHaveBeenCalled();
     });
 
     it('should handle missing entity', () => {
@@ -358,8 +388,10 @@ describe('ModalUIManager', () => {
 
   describe('handleModalClick', () => {
     it('should close add modal on backdrop click', () => {
+      const backdrop = { id: ELEMENTS.ADD_MODAL };
+      pressOn(backdrop);
       const mockEvent = {
-        target: { id: ELEMENTS.ADD_MODAL },
+        target: backdrop,
         preventDefault: vi.fn(),
         stopPropagation: vi.fn(),
       } as unknown as MouseEvent;
@@ -375,8 +407,10 @@ describe('ModalUIManager', () => {
     });
 
     it('should close edit modal on backdrop click', () => {
+      const backdrop = { id: ELEMENTS.EDIT_MODAL };
+      pressOn(backdrop);
       const mockEvent = {
-        target: { id: ELEMENTS.EDIT_MODAL },
+        target: backdrop,
         preventDefault: vi.fn(),
         stopPropagation: vi.fn(),
       } as unknown as MouseEvent;
@@ -389,7 +423,29 @@ describe('ModalUIManager', () => {
       expect(closeEditSpy).toHaveBeenCalled();
     });
 
-    it('should close add modal on close button click', () => {
+    it('ignores a backdrop click whose press started elsewhere', () => {
+      const backdrop = {
+        id: ELEMENTS.ADD_MODAL,
+        dataset: {},
+        classList: { contains: vi.fn() },
+        closest: vi.fn(),
+      };
+      pressOn({ id: 'add-name' });
+      const closeAddSpy = vi.spyOn(modalUIManager, 'closeAddModal');
+
+      const result = modalUIManager.handleModalClick({
+        target: backdrop,
+        preventDefault: vi.fn(),
+        stopPropagation: vi.fn(),
+      } as unknown as MouseEvent);
+
+      expect(result).toBe(false);
+      expect(closeAddSpy).not.toHaveBeenCalled();
+    });
+
+    // Cancel is a data-action control: the EventHandler's action registry closes the sheet
+    // (eventHandler.test.ts "closes the add sheet from its Cancel").
+    it('leaves a data-action Cancel click to the action registry', () => {
       const mockEvent = {
         target: {
           dataset: { action: 'close_add_modal' },
@@ -404,8 +460,8 @@ describe('ModalUIManager', () => {
 
       const result = modalUIManager.handleModalClick(mockEvent);
 
-      expect(result).toBe(true);
-      expect(closeAddSpy).toHaveBeenCalled();
+      expect(result).toBe(false);
+      expect(closeAddSpy).not.toHaveBeenCalled();
     });
 
     it('should close add modal on close button class', () => {
@@ -481,7 +537,9 @@ describe('ModalUIManager', () => {
           id: 'some-input',
           dataset: {},
           classList: { contains: vi.fn().mockReturnValue(false) },
-          closest: vi.fn().mockReturnValue(mockModalContent),
+          closest: vi.fn((selector: string) =>
+            selector === `.${CSS_CLASSES.MODAL_CONTENT}` ? mockModalContent : null,
+          ),
         },
       } as unknown as MouseEvent;
 
@@ -617,6 +675,17 @@ describe('ModalUIManager', () => {
   });
 
   describe('handleEscapeKey', () => {
+    it('does nothing while the card host is hidden (an inactive panel tab)', () => {
+      const host = document.createElement('div');
+      host.hidden = true;
+      Object.assign(mockShadowRoot, { host });
+      const closeAllSpy = vi.spyOn(modalUIManager, 'closeAllModals');
+
+      modalUIManager['handleEscapeKey'](new KeyboardEvent('keydown', { key: 'Escape' }));
+
+      expect(closeAllSpy).not.toHaveBeenCalled();
+    });
+
     it('should close all modals on escape key', () => {
       const closeAllSpy = vi.spyOn(modalUIManager, 'closeAllModals');
       const mockEvent = { key: 'Escape' } as KeyboardEvent;
@@ -636,36 +705,59 @@ describe('ModalUIManager', () => {
     });
   });
 
-  describe('focusElementWithDelay', () => {
-    it('should focus element after delay', () => {
+  describe('focusOnOpen', () => {
+    afterEach(() => {
+      vi.unstubAllGlobals();
+    });
+
+    function stubPointer(coarse: boolean): void {
+      vi.stubGlobal(
+        'matchMedia',
+        vi.fn((query: string) => ({ matches: coarse && query === '(pointer: coarse)' })),
+      );
+    }
+
+    it('focuses the field after the delay on a fine pointer', () => {
+      stubPointer(false);
       const mockElement = createMockInput();
       mockElements.set('test-element', mockElement);
 
-      modalUIManager['focusElementWithDelay']('test-element');
-
+      modalUIManager['focusOnOpen'](createMockModal('test-modal'), 'test-element');
+      expect(mockElement.focus).not.toHaveBeenCalled();
       vi.advanceTimersByTime(TIMING.MODAL_FOCUS_DELAY);
 
       expect(mockElement.focus).toHaveBeenCalled();
+      expect(mockPanel.focus).not.toHaveBeenCalled();
     });
 
-    it('should focus and select all text when specified', () => {
+    it('focuses the sheet panel instead of the field on a coarse pointer', () => {
+      stubPointer(true);
       const mockElement = createMockInput();
       mockElements.set('test-element', mockElement);
 
-      modalUIManager['focusElementWithDelay']('test-element', true);
-
+      modalUIManager['focusOnOpen'](createMockModal('test-modal'), 'test-element');
       vi.advanceTimersByTime(TIMING.MODAL_FOCUS_DELAY);
 
-      expect(mockElement.focus).toHaveBeenCalled();
-      expect(mockElement.select).toHaveBeenCalled();
+      expect(mockElement.focus).not.toHaveBeenCalled();
+      expect(mockPanel.focus).toHaveBeenCalled();
     });
 
-    it('should handle missing element', () => {
-      modalUIManager['focusElementWithDelay']('nonexistent-element');
+    it('focuses the sheet panel when no field is given', () => {
+      stubPointer(false);
 
+      modalUIManager['focusOnOpen'](createMockModal('test-modal'), undefined);
       vi.advanceTimersByTime(TIMING.MODAL_FOCUS_DELAY);
 
-      // Should not throw
+      expect(mockPanel.focus).toHaveBeenCalled();
+    });
+
+    it('falls back to the panel when the field is missing', () => {
+      stubPointer(false);
+
+      modalUIManager['focusOnOpen'](createMockModal('test-modal'), 'nonexistent-element');
+      vi.advanceTimersByTime(TIMING.MODAL_FOCUS_DELAY);
+
+      expect(mockPanel.focus).toHaveBeenCalled();
     });
   });
 
@@ -714,7 +806,7 @@ describe('ModalUIManager', () => {
       const mockModal = createMockModal(ELEMENTS.ADD_MODAL);
       const mockNameInput = createMockInput();
       mockElements.set(ELEMENTS.ADD_MODAL, mockModal);
-      mockElements.set(ELEMENTS.NAME, mockNameInput);
+      mockElements.set(`add-${ELEMENTS.NAME}`, mockNameInput);
 
       // Open modal
       modalUIManager.openAddModal(mockTranslations);
@@ -729,7 +821,7 @@ describe('ModalUIManager', () => {
       const mockModal = createMockModal(ELEMENTS.EDIT_MODAL);
       const mockNameInput = createMockInput();
       mockElements.set(ELEMENTS.EDIT_MODAL, mockModal);
-      mockElements.set(ELEMENTS.NAME, mockNameInput);
+      mockElements.set(`edit-${ELEMENTS.NAME}`, mockNameInput);
 
       // Open modal
       const result = modalUIManager.openEditModal(

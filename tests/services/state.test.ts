@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { State } from '../../src/services/state';
-import { HomeAssistant, HassEntity, InventoryItem } from '../../src/types/homeAssistant';
+import { HomeAssistant, HassEntity } from '../../src/types/homeAssistant';
+import { InventoryItem } from '../../src/types/inventory';
+import { must } from '../testHelpers';
 
 describe('State', () => {
   let state: State;
@@ -73,9 +75,9 @@ describe('State', () => {
       expect(state.userInteracting).toBe(false);
 
       // Simulate focus event
-      const focusHandler = mockInputs[0].addEventListener.mock.calls.find(
-        (call: any) => call[0] === 'focus',
-      )![1];
+      const focusHandler = must(
+        mockInputs[0].addEventListener.mock.calls.find((call: any) => call[0] === 'focus'),
+      )[1];
       focusHandler();
 
       expect(state.userInteracting).toBe(true);
@@ -86,9 +88,9 @@ describe('State', () => {
       state.userInteracting = true;
 
       // Simulate blur event
-      const blurHandler = mockInputs[0].addEventListener.mock.calls.find(
-        (call: any) => call[0] === 'blur',
-      )![1];
+      const blurHandler = must(
+        mockInputs[0].addEventListener.mock.calls.find((call: any) => call[0] === 'blur'),
+      )[1];
       blurHandler();
 
       // Should still be true immediately
@@ -102,12 +104,12 @@ describe('State', () => {
     it('should handle blur timeout correctly', () => {
       state.trackUserInteraction(mockShadowRoot);
 
-      const focusHandler = mockInputs[0].addEventListener.mock.calls.find(
-        (call: any) => call[0] === 'focus',
-      )![1];
-      const blurHandler = mockInputs[0].addEventListener.mock.calls.find(
-        (call: any) => call[0] === 'blur',
-      )![1];
+      const focusHandler = must(
+        mockInputs[0].addEventListener.mock.calls.find((call: any) => call[0] === 'focus'),
+      )[1];
+      const blurHandler = must(
+        mockInputs[0].addEventListener.mock.calls.find((call: any) => call[0] === 'blur'),
+      )[1];
 
       // Focus first
       focusHandler();
@@ -261,180 +263,16 @@ describe('State', () => {
     });
   });
 
-  describe('debouncedRender', () => {
-    it('should warn when no render function is available', () => {
-      state.debouncedRender();
-
-      expect(console.warn).toHaveBeenCalledWith('No render function provided to debouncedRender');
-    });
-
-    it('should use stored callback when function is provided', () => {
-      // The debouncedRender always uses the stored callback, not the provided function
-      const mockStoredCallback = vi.fn();
-      const mockProvidedFunction = vi.fn();
-
-      state.setRenderCallback(mockStoredCallback);
-      state.debouncedRender(mockProvidedFunction);
-
-      vi.advanceTimersByTime(100);
-
-      // Should call the stored callback, not the provided function
-      expect(mockStoredCallback).toHaveBeenCalledTimes(1);
-      expect(mockProvidedFunction).not.toHaveBeenCalled();
-    });
-
-    it('should use stored callback when no function provided', () => {
-      const mockCallback = vi.fn();
-      state.setRenderCallback(mockCallback);
-
-      state.debouncedRender();
-      vi.advanceTimersByTime(100);
-
-      expect(mockCallback).toHaveBeenCalledTimes(1);
-    });
-
-    it('should debounce multiple calls', () => {
-      const mockCallback = vi.fn();
-      state.setRenderCallback(mockCallback);
-
-      state.debouncedRender();
-      state.debouncedRender();
-      state.debouncedRender();
-
-      // Should not have called yet
-      expect(mockCallback).not.toHaveBeenCalled();
-
-      vi.advanceTimersByTime(100);
-
-      // Should only call once
-      expect(mockCallback).toHaveBeenCalledTimes(1);
-    });
-
-    it('should respect custom delay', () => {
-      const mockCallback = vi.fn();
-      state.setRenderCallback(mockCallback);
-
-      state.debouncedRender(undefined, 200);
-
-      vi.advanceTimersByTime(100);
-      expect(mockCallback).not.toHaveBeenCalled();
-
-      vi.advanceTimersByTime(100);
-      expect(mockCallback).toHaveBeenCalledTimes(1);
-    });
-
-    it('should create debounced function only once', () => {
-      const mockCallback = vi.fn();
-      state.setRenderCallback(mockCallback);
-
-      // First call creates debounced function
-      state.debouncedRender(undefined, 100);
-
-      // Second call with different delay should still use original delay
-      state.debouncedRender(undefined, 200);
-
-      vi.advanceTimersByTime(100);
-      expect(mockCallback).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('setRenderCallback', () => {
-    it('should set the render callback', () => {
-      const mockCallback = vi.fn();
-
-      state.setRenderCallback(mockCallback);
-      state.debouncedRender();
-
-      vi.advanceTimersByTime(100);
-      expect(mockCallback).toHaveBeenCalledTimes(1);
-    });
-
-    it('should replace existing callback', () => {
-      const mockCallback1 = vi.fn();
-      const mockCallback2 = vi.fn();
-
-      state.setRenderCallback(mockCallback1);
-      state.setRenderCallback(mockCallback2);
-      state.debouncedRender();
-
-      vi.advanceTimersByTime(100);
-      expect(mockCallback1).not.toHaveBeenCalled();
-      expect(mockCallback2).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('debouncedRenderWithCallback', () => {
-    it('should call debouncedRender with provided function and delay', () => {
-      const mockRenderFunction = vi.fn();
-      const spy = vi.spyOn(state, 'debouncedRender');
-
-      state.debouncedRenderWithCallback(mockRenderFunction, 150);
-
-      expect(spy).toHaveBeenCalledWith(mockRenderFunction, 150);
-    });
-
-    it('should use default delay when not provided', () => {
-      const mockRenderFunction = vi.fn();
-      const spy = vi.spyOn(state, 'debouncedRender');
-
-      state.debouncedRenderWithCallback(mockRenderFunction);
-
-      expect(spy).toHaveBeenCalledWith(mockRenderFunction, 100);
-    });
-  });
-
-  describe('debouncedRenderDefault', () => {
-    it('should call debouncedRender with undefined and delay', () => {
-      const spy = vi.spyOn(state, 'debouncedRender');
-
-      state.debouncedRenderDefault(200);
-
-      expect(spy).toHaveBeenCalledWith(undefined, 200);
-    });
-
-    it('should use default delay when not provided', () => {
-      const spy = vi.spyOn(state, 'debouncedRender');
-
-      state.debouncedRenderDefault();
-
-      expect(spy).toHaveBeenCalledWith(undefined, 100);
-    });
-  });
-
   describe('cleanup', () => {
     it('should reset all state properties', () => {
-      const mockCallback = vi.fn();
-
-      // Set up some state
       state.userInteracting = true;
-      state.setRenderCallback(mockCallback);
-      state.debouncedRender(); // Creates timeout
 
       state.cleanup();
 
       expect(state.userInteracting).toBe(false);
-
-      // Should not call callback after cleanup
-      vi.advanceTimersByTime(200);
-      expect(mockCallback).not.toHaveBeenCalled();
     });
 
-    it('should clear active render timeout', () => {
-      const mockCallback = vi.fn();
-      state.setRenderCallback(mockCallback);
-
-      // Start a debounced render
-      state.debouncedRender();
-
-      // Cleanup before timeout completes
-      state.cleanup();
-
-      // Advance time - callback should not be called
-      vi.advanceTimersByTime(200);
-      expect(mockCallback).not.toHaveBeenCalled();
-    });
-
-    it('should handle cleanup when no timeout is active', () => {
+    it('should handle cleanup of a fresh state', () => {
       expect(() => {
         state.cleanup();
       }).not.toThrow();
@@ -443,8 +281,6 @@ describe('State', () => {
     });
 
     it('should handle multiple cleanup calls', () => {
-      const mockCallback = vi.fn();
-      state.setRenderCallback(mockCallback);
       state.userInteracting = true;
 
       state.cleanup();
@@ -456,27 +292,16 @@ describe('State', () => {
 
   describe('integration tests', () => {
     it('should handle complete user interaction workflow', () => {
-      const mockCallback = vi.fn();
-
-      // Set up tracking and callback
       state.trackUserInteraction(mockShadowRoot);
-      state.setRenderCallback(mockCallback);
 
       // Simulate user interaction
-      const focusHandler = mockInputs[0].addEventListener.mock.calls.find(
-        (call: any) => call[0] === 'focus',
-      )![1];
+      const focusHandler = must(
+        mockInputs[0].addEventListener.mock.calls.find((call: any) => call[0] === 'focus'),
+      )[1];
       focusHandler();
 
       expect(state.userInteracting).toBe(true);
 
-      // Trigger debounced render
-      state.debouncedRender();
-      vi.advanceTimersByTime(100);
-
-      expect(mockCallback).toHaveBeenCalledTimes(1);
-
-      // Cleanup
       state.cleanup();
       expect(state.userInteracting).toBe(false);
     });
@@ -685,28 +510,6 @@ describe('State - Additional mutation killing tests', () => {
     expect(state.hasRealEntityChange(mockHass, entityId)).toBe(false);
   });
 
-  // Kill NoCoverage mutant for renderTimeout cleanup
-  it('should clear renderTimeout in cleanup when timeout exists', () => {
-    // Set up a scenario where renderTimeout would be set
-    const mockCallback = vi.fn();
-    state.setRenderCallback(mockCallback);
-
-    // Create a timeout by calling debouncedRender
-    state.debouncedRender();
-
-    // Manually set renderTimeout to simulate the scenario
-    // Since renderTimeout is private, we'll test the cleanup behavior indirectly
-    state.cleanup();
-
-    // Advance time to see if callback gets called (it shouldn't after cleanup)
-    vi.advanceTimersByTime(200);
-    expect(mockCallback).not.toHaveBeenCalled();
-
-    // Test multiple cleanups don't crash
-    state.cleanup();
-    state.cleanup();
-  });
-
   it('should handle conditional state update scenarios', () => {
     const entityId = 'sensor.test';
 
@@ -731,5 +534,20 @@ describe('State - Additional mutation killing tests', () => {
 
     // Third call should still be false (proving state wasn't updated when changed=false)
     expect(state.hasRealEntityChange(mockHass, entityId)).toBe(false);
+  });
+
+  describe('expanded batch lists', () => {
+    it('toggles an item in and out of the expanded set', () => {
+      expect(state.toggleBatchesExpanded('Milk')).toBe(true);
+      expect(state.expandedBatchItems.has('Milk')).toBe(true);
+      expect(state.toggleBatchesExpanded('Milk')).toBe(false);
+      expect(state.expandedBatchItems.has('Milk')).toBe(false);
+    });
+
+    it('forgets expanded items on cleanup', () => {
+      state.toggleBatchesExpanded('Milk');
+      state.cleanup();
+      expect(state.expandedBatchItems.size).toBe(0);
+    });
   });
 });

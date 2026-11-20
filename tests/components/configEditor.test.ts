@@ -4,10 +4,12 @@ import { InventoryResolver } from '../../src/utils/inventoryResolver';
 import {
   createEntitySelector,
   createEntityInfo,
+  createLayoutToggle,
   createNoEntityMessage,
 } from '../../src/templates/configEditor';
-import { HomeAssistant, InventoryConfig } from '../../src/types/homeAssistant';
-import { createMockHomeAssistant, createMockHassEntity } from '../testHelpers';
+import { HomeAssistant } from '../../src/types/homeAssistant';
+import { InventoryConfig } from '../../src/types/inventory';
+import { createMockHomeAssistant, createMockHassEntity, must } from '../testHelpers';
 
 vi.mock('../../src/utils/inventoryResolver');
 vi.mock('../../src/templates/configEditor');
@@ -462,7 +464,7 @@ describe('ConfigEditor', () => {
     it('should update config and dispatch config-changed when a toggle changes', () => {
       configEditor['_toggleChanged']('show_header', false);
 
-      expect(configEditor['_config']!['show_header']).toBe(false);
+      expect(must(configEditor['_config'])['show_header']).toBe(false);
       expect(vi.mocked(configEditor.dispatchEvent)).toHaveBeenCalledWith(
         expect.objectContaining({
           type: 'config-changed',
@@ -487,8 +489,8 @@ describe('ConfigEditor', () => {
     it('should preserve other config properties when toggling', () => {
       configEditor['_toggleChanged']('show_header', false);
 
-      expect(configEditor['_config']!.entity).toBe('sensor.kitchen_inventory');
-      expect(configEditor['_config']!['show_search']).toBe(true);
+      expect(must(configEditor['_config']).entity).toBe('sensor.kitchen_inventory');
+      expect(must(configEditor['_config'])['show_search']).toBe(true);
     });
 
     it('should return early when config is null', () => {
@@ -508,6 +510,38 @@ describe('ConfigEditor', () => {
       configEditor['_toggleChanged']('show_header', true);
 
       expect(configEditor['_config']['show_header']).toBe(true);
+    });
+  });
+
+  describe('Layout switch', () => {
+    beforeEach(() => {
+      configEditor.hass = mockHass;
+      configEditor['_config'] = {
+        type: 'custom:simple-inventory-card',
+        entity: 'sensor.kitchen_inventory',
+      };
+      vi.mocked(InventoryResolver.findInventoryEntities).mockReturnValue([]);
+      vi.mocked(InventoryResolver.createEntityOptions).mockReturnValue([]);
+    });
+
+    it('writes layout: tiles, then list, when the switch is toggled', () => {
+      configEditor.render();
+      const call = vi.mocked(createLayoutToggle).mock.lastCall;
+      expect(call?.[0]).toBe(configEditor['_config']);
+      const onChanged = must(call?.[1]);
+
+      onChanged(true);
+      expect(vi.mocked(configEditor.dispatchEvent).mock.lastCall?.[0]).toMatchObject({
+        type: 'config-changed',
+        detail: { config: { entity: 'sensor.kitchen_inventory', layout: 'tiles' } },
+      });
+
+      onChanged(false);
+      expect(vi.mocked(configEditor.dispatchEvent).mock.lastCall?.[0]).toMatchObject({
+        type: 'config-changed',
+        detail: { config: { entity: 'sensor.kitchen_inventory', layout: 'list' } },
+      });
+      expect(configEditor['_config']?.layout).toBe('list');
     });
   });
 

@@ -1,12 +1,10 @@
 import { HomeAssistant, HassEntity } from '@/types/homeAssistant';
-import { Utilities } from '../utils/utilities';
 
 export class State {
   public userInteracting = false;
-  private renderTimeout: ReturnType<typeof setTimeout> | undefined = undefined;
+  /** Names of items whose details panel is open; survives full re-renders. */
+  public readonly expandedBatchItems = new Set<string>();
   private _lastEntityState: HassEntity | undefined = undefined;
-  private _renderCallback: (() => void) | undefined = undefined;
-  private _debouncedRenderFn: (() => void) | undefined = undefined;
 
   public trackUserInteraction(shadowRoot: ShadowRoot): void {
     const inputs = shadowRoot.querySelectorAll<HTMLElement>('input, select, textarea');
@@ -41,44 +39,17 @@ export class State {
     );
   }
 
-  public debouncedRender(renderFunction?: () => void, delay = 100): void {
-    // If a function is provided, use it; otherwise use the stored callback
-    const callback = renderFunction || this._renderCallback;
-
-    if (!callback) {
-      console.warn('No render function provided to debouncedRender');
-      return;
+  /** Open or close an item's details panel; returns whether it is now open. */
+  public toggleBatchesExpanded(itemName: string): boolean {
+    if (this.expandedBatchItems.delete(itemName)) {
+      return false;
     }
-
-    if (!this._debouncedRenderFn) {
-      this._debouncedRenderFn = Utilities.debounce(() => {
-        if (this._renderCallback) {
-          this._renderCallback();
-        }
-      }, delay);
-    }
-
-    this._debouncedRenderFn();
-  }
-
-  public setRenderCallback(callback: () => void): void {
-    this._renderCallback = callback;
-  }
-
-  public debouncedRenderWithCallback(renderFunction: () => void, delay = 100): void {
-    this.debouncedRender(renderFunction, delay);
-  }
-
-  public debouncedRenderDefault(delay = 100): void {
-    this.debouncedRender(undefined, delay);
+    this.expandedBatchItems.add(itemName);
+    return true;
   }
 
   public cleanup(): void {
-    if (this.renderTimeout) {
-      clearTimeout(this.renderTimeout);
-      this.renderTimeout = undefined;
-    }
-    this._renderCallback = undefined;
     this.userInteracting = false;
+    this.expandedBatchItems.clear();
   }
 }

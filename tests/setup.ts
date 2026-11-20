@@ -14,14 +14,21 @@ vi.mock('@ericblade/quagga2', () => ({
 }));
 
 // Mock Home Assistant globals
-global.customElements = {
+const customElementsMock: Pick<CustomElementRegistry, 'define' | 'get' | 'whenDefined'> = {
   define: vi.fn(),
   get: vi.fn(),
   whenDefined: vi.fn(),
-} as any;
+};
+// jsdom's `customElements` is a getter-only window property, and Vitest 5 forwards global
+// assignments to the window, so the mock is defined rather than assigned. Not `vi.stubGlobal`:
+// tests that call `vi.unstubAllGlobals()` would restore the real registry mid-file.
+Object.defineProperty(globalThis, 'customElements', {
+  value: customElementsMock,
+  configurable: true,
+  writable: true,
+});
 
-global.window = global.window || {};
-global.window.customCards = [];
+window.customCards = [];
 
 // Mock console to reduce noise in tests
 global.console = {
