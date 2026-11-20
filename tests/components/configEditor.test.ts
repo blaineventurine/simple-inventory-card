@@ -373,7 +373,7 @@ describe('ConfigEditor', () => {
         type: 'inventory-card',
         entity: 'sensor.old_entity',
         someOtherProperty: 'test',
-      } as any;
+      };
 
       configEditor['_entitySelected']('sensor.new_entity');
 
@@ -436,7 +436,9 @@ describe('ConfigEditor', () => {
     it('should return early when config is null', () => {
       configEditor['_config'] = undefined as any;
 
-      expect(() => configEditor['_toggleChanged']('show_header', false)).not.toThrow();
+      expect(() => {
+        configEditor['_toggleChanged']('show_header', false);
+      }).not.toThrow();
       expect(vi.mocked(configEditor.dispatchEvent)).not.toHaveBeenCalled();
     });
 
