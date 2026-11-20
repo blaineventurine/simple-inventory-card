@@ -25,7 +25,7 @@ vi.mock('../../src/services/translationManager', () => import('../mocks/translat
 
 describe('Config Editor Templates', () => {
   let mockHass: HomeAssistant;
-  let mockOnValueChanged: (event_: CustomEvent) => void;
+  let mockOnValueChanged: (entityId: string) => void;
   let mockTranslations: TranslationData;
 
   beforeEach(() => {
@@ -40,97 +40,6 @@ describe('Config Editor Templates', () => {
       },
     };
     vi.clearAllMocks();
-  });
-
-  describe('createEntitySelector', () => {
-    it('should create entity selector with all required properties', () => {
-      const entityOptions = [
-        { value: 'sensor.inventory1', label: 'Inventory 1' },
-        { value: 'sensor.inventory2', label: 'Inventory 2' },
-      ];
-      const selectedEntity = 'sensor.inventory1';
-
-      const result = createEntitySelector(
-        mockHass,
-        entityOptions,
-        selectedEntity,
-        mockOnValueChanged,
-        mockTranslations,
-      );
-
-      expect(html).toHaveBeenCalled();
-      expect(result).toHaveProperty('_$litType$', 1);
-
-      // Verify the template was called with correct parameters
-      const htmlCall = vi.mocked(html).mock.calls[0];
-      const templateString = htmlCall[0].join(''); // Join the template strings array
-      expect(templateString).toContain('ha-combo-box');
-      expect(htmlCall[1]).toBe(mockHass); // .hass
-      expect(htmlCall[2]).toBe('Inventory Entity (Required)'); // .label
-      expect(htmlCall[3]).toBe(entityOptions); // .items
-      expect(htmlCall[4]).toBe(selectedEntity); // .value
-      expect(htmlCall[5]).toBe(mockOnValueChanged); // @value-changed
-    });
-
-    it('should handle empty entity options', () => {
-      const entityOptions: Array<{ value: string; label: string }> = [];
-      const selectedEntity = '';
-
-      createEntitySelector(
-        mockHass,
-        entityOptions,
-        selectedEntity,
-        mockOnValueChanged,
-        mockTranslations,
-      );
-
-      expect(html).toHaveBeenCalled();
-      const htmlCall = vi.mocked(html).mock.calls[0];
-      expect(htmlCall[3]).toEqual([]); // .items should be empty array
-      expect(htmlCall[4]).toBe(''); // .value should be empty string
-    });
-
-    it('should handle null/undefined values gracefully', () => {
-      const entityOptions = [{ value: 'sensor.test', label: 'Test' }];
-
-      createEntitySelector(
-        mockHass,
-        entityOptions,
-        undefined as any,
-        mockOnValueChanged,
-        mockTranslations,
-      );
-
-      expect(html).toHaveBeenCalled();
-      const htmlCall = vi.mocked(html).mock.calls[0];
-      expect(htmlCall[4]).toBe(undefined); // .value should be null
-    });
-
-    it('should create proper template structure', () => {
-      const entityOptions = [{ value: 'sensor.test', label: 'Test' }];
-      const selectedEntity = 'sensor.test';
-
-      createEntitySelector(
-        mockHass,
-        entityOptions,
-        selectedEntity,
-        mockOnValueChanged,
-        mockTranslations,
-      );
-
-      const htmlCall = vi.mocked(html).mock.calls[0];
-      const templateString = htmlCall[0].join('');
-
-      expect(templateString).toContain('class="option"');
-      expect(templateString).toContain('class="row"');
-      expect(templateString).toContain('class="col"');
-      expect(templateString).toContain('ha-combo-box');
-      expect(templateString).toContain('.hass=');
-      expect(templateString).toContain('.label=');
-      expect(templateString).toContain('.items=');
-      expect(templateString).toContain('.value=');
-      expect(templateString).toContain('@value-changed=');
-    });
   });
 
   describe('createEntityInfo', () => {
@@ -334,17 +243,11 @@ describe('Config Editor Templates', () => {
       mockHass.states[selectedEntity] = mockEntity;
 
       // Call all template functions
-      createEntitySelector(
-        mockHass,
-        entityOptions,
-        selectedEntity,
-        mockOnValueChanged,
-        mockTranslations,
-      );
+      createEntitySelector(entityOptions, selectedEntity, mockOnValueChanged, mockTranslations);
       createEntityInfo(mockHass, selectedEntity, mockTranslations);
       createNoEntityMessage(mockTranslations);
 
-      expect(html).toHaveBeenCalledTimes(3);
+      expect(html).toHaveBeenCalledTimes(4);
     });
 
     it('should handle template creation with minimal Home Assistant object', () => {
@@ -355,7 +258,7 @@ describe('Config Editor Templates', () => {
       const entityOptions: Array<{ value: string; label: string }> = [];
 
       expect(() => {
-        createEntitySelector(minimalHass, entityOptions, '', mockOnValueChanged, mockTranslations);
+        createEntitySelector(entityOptions, '', mockOnValueChanged, mockTranslations);
         createEntityInfo(minimalHass, 'sensor.test', mockTranslations);
         createNoEntityMessage(mockTranslations);
       }).not.toThrow();
@@ -395,7 +298,7 @@ describe('Config Editor Templates', () => {
 
       const htmlCalls = vi.mocked(html).mock.calls;
       // The outer template call + one inner call per toggle
-      const toggleCalls = htmlCalls.filter((call) => call[0].join('').includes('ha-formfield'));
+      const toggleCalls = htmlCalls.filter((call) => call[0].join('').includes('toggle-row'));
       expect(toggleCalls.length).toBe(11);
       expect(toggleCalls.some((call) => call.slice(1).includes('Show item icons'))).toBe(true);
     });
@@ -466,13 +369,7 @@ describe('Config Editor Templates', () => {
       ];
 
       expect(() => {
-        createEntitySelector(
-          mockHass,
-          malformedOptions as any,
-          '',
-          mockOnValueChanged,
-          mockTranslations,
-        );
+        createEntitySelector(malformedOptions as any, '', mockOnValueChanged, mockTranslations);
       }).not.toThrow();
     });
 

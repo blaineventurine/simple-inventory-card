@@ -42,18 +42,13 @@ class ConfigEditor extends LitElement {
   private static _haComponentsPromise?: Promise<void>;
 
   /**
-   * ha-combo-box / ha-formfield / ha-switch are lazily registered by the HA
-   * frontend; in a fresh session nothing has loaded them before this editor
-   * renders, so they'd stay as undefined custom elements and display nothing.
-   * Instantiating the entities-card editor via the card helpers forces HA to
-   * import and register them (standard custom-card workaround).
+   * ha-switch is lazily registered by the HA frontend; in a fresh session nothing has
+   * loaded it before this editor renders, so it would stay an undefined custom element
+   * and display nothing. Instantiating the entities-card editor via the card helpers
+   * forces HA to import and register it (standard custom-card workaround).
    */
   private static _ensureHaComponents(): Promise<void> {
-    if (
-      customElements.get('ha-combo-box') &&
-      customElements.get('ha-formfield') &&
-      customElements.get('ha-switch')
-    ) {
+    if (customElements.get('ha-switch')) {
       return Promise.resolve();
     }
     this._haComponentsPromise ??= (async () => {
@@ -151,10 +146,9 @@ class ConfigEditor extends LitElement {
     return html`
       <div class="card-config">
         ${createEntitySelector(
-          this.hass,
           entityOptions,
           this._entity,
-          this._valueChanged.bind(this),
+          this._entitySelected.bind(this),
           this._translations,
         )}
         ${
@@ -202,12 +196,10 @@ class ConfigEditor extends LitElement {
     );
   }
 
-  private _valueChanged(event_: CustomEvent): void {
+  private _entitySelected(value: string): void {
     if (!this._config) {
       return;
     }
-
-    const value = event_.detail?.value;
 
     if (!value || this._entity === value) {
       return;

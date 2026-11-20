@@ -5,30 +5,36 @@ import { TranslationManager } from '@/services/translationManager';
 import { TranslationData } from '@/types/translatableComponent';
 
 export function createEntitySelector(
-  hass: HomeAssistant,
   entityOptions: Array<{ value: string; label: string }>,
   selectedEntity: string,
-  onValueChanged: (event_: CustomEvent) => void,
+  onEntitySelected: (entityId: string) => void,
   translations: TranslationData,
 ): TemplateResult {
+  const options =
+    selectedEntity && !entityOptions.some((option) => option.value === selectedEntity)
+      ? [...entityOptions, { value: selectedEntity, label: selectedEntity }]
+      : entityOptions;
   return html`
     <div class="option">
-      <div class="row">
-        <div class="col">
-          <ha-combo-box
-            .hass=${hass}
-            .label=${TranslationManager.localize(
-              translations,
-              'config.inventory_entity_required',
-              undefined,
-              'Inventory Entity (Required)',
-            )}
-            .items=${entityOptions}
-            .value=${selectedEntity}
-            @value-changed=${onValueChanged}
-          ></ha-combo-box>
-        </div>
-      </div>
+      <label class="entity-select">
+        <span class="entity-select-label">
+          ${TranslationManager.localize(
+            translations,
+            'config.inventory_entity_required',
+            undefined,
+            'Inventory Entity (Required)',
+          )}
+        </span>
+        <select @change=${(e: Event) => onEntitySelected((e.target as HTMLSelectElement).value)}>
+          ${selectedEntity ? '' : html`<option value="" disabled selected></option>`}
+          ${options.map(
+            (option) =>
+              html`<option value=${option.value} ?selected=${option.value === selectedEntity}>
+                ${option.label}
+              </option>`,
+          )}
+        </select>
+      </label>
     </div>
   `;
 }
@@ -126,24 +132,25 @@ export function createVisibilityToggles(
         )}
       </div>
       <div class="visibility-toggles">
-        ${VISIBILITY_TOGGLE_KEYS.map(
-          (key) => html`
-            <ha-formfield
-              .label=${TranslationManager.localize(
-                translations,
-                `config.${key}`,
-                undefined,
-                VISIBILITY_TOGGLE_FALLBACKS[key],
-              )}
-            >
+        ${VISIBILITY_TOGGLE_KEYS.map((key) => {
+          const label = TranslationManager.localize(
+            translations,
+            `config.${key}`,
+            undefined,
+            VISIBILITY_TOGGLE_FALLBACKS[key],
+          );
+          return html`
+            <label class="toggle-row">
               <ha-switch
+                aria-label=${label}
                 .checked=${config[key] !== false}
                 @change=${(e: Event) =>
                   onToggleChanged(key, (e.target as HTMLInputElement).checked)}
               ></ha-switch>
-            </ha-formfield>
-          `,
-        )}
+              <span>${label}</span>
+            </label>
+          `;
+        })}
       </div>
     </div>
   `;
@@ -158,17 +165,17 @@ export function createLayoutToggle(
   onLayoutChanged: (tiles: boolean) => void,
   translations: TranslationData,
 ): TemplateResult {
+  const label = TranslationManager.localize(
+    translations,
+    'config.layout_tiles',
+    undefined,
+    'Show items as tiles',
+  );
   return html`
     <div class="visibility-toggles layout-toggle">
-      <ha-formfield
-        .label=${TranslationManager.localize(
-          translations,
-          'config.layout_tiles',
-          undefined,
-          'Show items as tiles',
-        )}
-      >
+      <label class="toggle-row">
         <ha-switch
+          aria-label=${label}
           .checked=${config.layout === 'tiles'}
           @change=${(e: Event) => {
             // ha-switch is a custom element with a boolean `checked`, not an <input>.
@@ -178,7 +185,8 @@ export function createLayoutToggle(
             }
           }}
         ></ha-switch>
-      </ha-formfield>
+        <span>${label}</span>
+      </label>
     </div>
   `;
 }

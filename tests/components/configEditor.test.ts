@@ -234,7 +234,6 @@ describe('ConfigEditor', () => {
       configEditor.render();
 
       expect(createEntitySelector).toHaveBeenCalledWith(
-        mockHass,
         mockOptions,
         'sensor.inventory1',
         expect.any(Function),
@@ -289,11 +288,7 @@ describe('ConfigEditor', () => {
         entity: 'sensor.old_entity',
       };
 
-      const mockEvent = {
-        detail: { value: 'sensor.new_entity' },
-      } as CustomEvent;
-
-      configEditor['_valueChanged'](mockEvent);
+      configEditor['_entitySelected']('sensor.new_entity');
 
       expect(configEditor['_config'].entity).toBe('sensor.new_entity');
       expect(vi.mocked(configEditor.requestUpdate)).toHaveBeenCalled();
@@ -316,11 +311,7 @@ describe('ConfigEditor', () => {
         entity: 'sensor.old_entity',
       };
 
-      const mockEvent = {
-        detail: { value: 'sensor.new_entity' },
-      } as CustomEvent;
-
-      configEditor['_valueChanged'](mockEvent);
+      configEditor['_entitySelected']('sensor.new_entity');
 
       expect(vi.mocked(configEditor.dispatchEvent)).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -336,72 +327,31 @@ describe('ConfigEditor', () => {
 
     it('should return early when config is null', () => {
       configEditor['_config'] = undefined as any;
-      const mockEvent = {
-        detail: { value: 'sensor.new_entity' },
-      } as CustomEvent;
-
-      configEditor['_valueChanged'](mockEvent);
+      configEditor['_entitySelected']('sensor.new_entity');
 
       expect(vi.mocked(configEditor.dispatchEvent)).not.toHaveBeenCalled();
     });
 
     it('should return early when value has not changed', () => {
-      const mockEvent = {
-        detail: { value: 'sensor.old_entity' },
-      } as CustomEvent;
-
-      configEditor['_valueChanged'](mockEvent);
+      configEditor['_entitySelected']('sensor.old_entity');
 
       expect(vi.mocked(configEditor.dispatchEvent)).not.toHaveBeenCalled();
     });
 
-    it('should return early when value is empty string (spurious combo-box event)', () => {
-      // ha-combo-box (Vaadin) fires value-changed with '' when its items list changes.
-      // Without this guard the entity would be cleared on every hass state update.
+    it('should return early when the value is empty', () => {
       configEditor['_config'] = {
         type: 'custom:simple-inventory-card',
         entity: 'sensor.kitchen_inventory',
       };
 
-      const mockEvent = { detail: { value: '' } } as CustomEvent;
-      configEditor['_valueChanged'](mockEvent);
-
-      expect(configEditor['_config'].entity).toBe('sensor.kitchen_inventory');
-      expect(vi.mocked(configEditor.dispatchEvent)).not.toHaveBeenCalled();
-    });
-
-    it('should return early when value is null', () => {
-      configEditor['_config'] = {
-        type: 'custom:simple-inventory-card',
-        entity: 'sensor.kitchen_inventory',
-      };
-
-      const mockEvent = { detail: { value: null } } as unknown as CustomEvent;
-      configEditor['_valueChanged'](mockEvent);
-
-      expect(configEditor['_config'].entity).toBe('sensor.kitchen_inventory');
-      expect(vi.mocked(configEditor.dispatchEvent)).not.toHaveBeenCalled();
-    });
-
-    it('should return early when value is undefined', () => {
-      configEditor['_config'] = {
-        type: 'custom:simple-inventory-card',
-        entity: 'sensor.kitchen_inventory',
-      };
-
-      const mockEvent = { detail: { value: undefined } } as unknown as CustomEvent;
-      configEditor['_valueChanged'](mockEvent);
+      configEditor['_entitySelected']('');
 
       expect(configEditor['_config'].entity).toBe('sensor.kitchen_inventory');
       expect(vi.mocked(configEditor.dispatchEvent)).not.toHaveBeenCalled();
     });
 
     it('should dispatch config-changed event when value changes', () => {
-      const mockEvent = {
-        detail: { value: 'sensor.new_entity' },
-      } as CustomEvent;
-
-      configEditor['_valueChanged'](mockEvent);
+      configEditor['_entitySelected']('sensor.new_entity');
 
       expect(vi.mocked(configEditor.dispatchEvent)).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -425,11 +375,7 @@ describe('ConfigEditor', () => {
         someOtherProperty: 'test',
       } as any;
 
-      const mockEvent = {
-        detail: { value: 'sensor.new_entity' },
-      } as CustomEvent;
-
-      configEditor['_valueChanged'](mockEvent);
+      configEditor['_entitySelected']('sensor.new_entity');
 
       expect(vi.mocked(configEditor.dispatchEvent)).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -442,12 +388,6 @@ describe('ConfigEditor', () => {
           },
         }),
       );
-    });
-
-    it('should handle events with missing detail gracefully', () => {
-      const mockEvent = { detail: undefined } as any;
-
-      expect(() => configEditor['_valueChanged'](mockEvent)).not.toThrow();
     });
   });
 

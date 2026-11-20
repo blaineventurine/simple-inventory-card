@@ -24,8 +24,25 @@ export const configEditorStyles: CSSResult = css`
     margin-right: 0;
   }
 
-  ha-entity-picker {
+  .entity-select {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .entity-select-label {
+    font-size: 0.875rem;
+    color: var(--secondary-text-color);
+  }
+
+  .entity-select select {
     width: 100%;
+    padding: 12px;
+    font: inherit;
+    color: var(--primary-text-color);
+    background: var(--input-fill-color, var(--secondary-background-color));
+    border: 1px solid var(--divider-color);
+    border-radius: 4px;
   }
 
   .entity-info {
@@ -72,9 +89,12 @@ export const configEditorStyles: CSSResult = css`
     gap: 8px;
   }
 
-  .visibility-toggles ha-formfield {
+  .toggle-row {
     display: flex;
     align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    color: var(--primary-text-color);
   }
 
   .layout-toggle {
