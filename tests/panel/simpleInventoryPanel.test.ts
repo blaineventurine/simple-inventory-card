@@ -159,7 +159,9 @@ describe('simple-inventory-panel', () => {
   let mountedHass: HomeAssistant;
 
   const onLocation = (event: Event): void => {
-    if (event instanceof CustomEvent) locationEvents.push(event);
+    if (event instanceof CustomEvent) {
+      locationEvents.push(event);
+    }
   };
 
   function respond(result: InventoriesResult): void {
@@ -169,7 +171,9 @@ describe('simple-inventory-panel', () => {
   async function mount(path: string, options: { narrow?: boolean } = {}): Promise<void> {
     panel = new SimpleInventoryPanel();
     const shadow = panel.shadowRoot;
-    if (!(shadow instanceof HTMLElement)) throw new Error('no shadow root');
+    if (!(shadow instanceof HTMLElement)) {
+      throw new Error('no shadow root');
+    }
     root = shadow;
     document.body.appendChild(root);
     panel.narrow = options.narrow ?? false;
@@ -187,7 +191,9 @@ describe('simple-inventory-panel', () => {
   const tabs = (): HTMLElement[] => [...root.querySelectorAll<HTMLElement>('[role="tab"]')];
   const tab = (name: string): HTMLElement => {
     const found = tabs().find((element) => element.textContent === name);
-    if (!found) throw new Error(`no tab ${name}`);
+    if (!found) {
+      throw new Error(`no tab ${name}`);
+    }
     return found;
   };
   const cards = (): FakeCard[] => vi.mocked(createInventoryCard).mock.results.map((r) => r.value);
@@ -456,7 +462,9 @@ describe('simple-inventory-panel', () => {
 
     async function type(text: string): Promise<void> {
       const input = field();
-      if (!input) throw new Error('no search field');
+      if (!input) {
+        throw new Error('no search field');
+      }
       input.value = text;
       input.dispatchEvent(new Event('input', { bubbles: true }));
       await vi.runAllTimersAsync();
@@ -506,7 +514,9 @@ describe('simple-inventory-panel', () => {
       await mount('/kitchen_id');
       await openSearch();
       const input = field();
-      if (!input) throw new Error('no search field');
+      if (!input) {
+        throw new Error('no search field');
+      }
 
       input.value = 'b';
       input.dispatchEvent(new Event('input', { bubbles: true }));
@@ -705,7 +715,9 @@ describe('simple-inventory-panel', () => {
       vi.mocked(mountedHass.callService).mockImplementation(
         () =>
           new Promise((resolve) => {
-            done = () => resolve({});
+            done = () => {
+              resolve({});
+            };
           }),
       );
 
@@ -787,7 +799,9 @@ describe('simple-inventory-panel', () => {
       History.prototype.replaceState.call(history, null, '', '/simple-inventory/search?q=dairy');
       panel = new SimpleInventoryPanel();
       const shadow = panel.shadowRoot;
-      if (!(shadow instanceof HTMLElement)) throw new Error('no shadow root');
+      if (!(shadow instanceof HTMLElement)) {
+        throw new Error('no shadow root');
+      }
       root = shadow;
       document.body.appendChild(root);
       panel.route = { prefix: '/simple-inventory', path: '/search' };
@@ -828,7 +842,9 @@ describe('simple-inventory-panel', () => {
         root.querySelector<HTMLElement>('.search-scan-btn')?.click();
         await vi.runAllTimersAsync();
         const call = vi.mocked(startScanner).mock.calls.at(-1);
-        if (!call) throw new Error('the camera did not start');
+        if (!call) {
+          throw new Error('the camera did not start');
+        }
         return call[1];
       }
 

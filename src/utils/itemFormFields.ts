@@ -47,6 +47,7 @@ export type ItemFormKey = keyof RawFormData;
 /** Mapped over a key alias (not `keyof RawFormData`) so the optional icon is still a required row. */
 export type ItemFormFields = { [K in ItemFormKey]: ItemFormField<K> };
 
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- the element may be a not-yet-upgraded custom field without a value
 const readText = (element: HTMLInputElement | null): string => element?.value?.trim() ?? '';
 const readChecked = (element: HTMLInputElement | null): boolean => element?.checked ?? false;
 /** A number shown blank when it is 0 ("not set"). */
@@ -76,7 +77,7 @@ export const ITEM_FORM_FIELDS: ItemFormFields = {
     param: PARAMS.AUTO_ADD_ENABLED,
     value: { type: 'boolean' },
     read: readChecked,
-    format: (item) => item.auto_add_enabled ?? false,
+    format: (item) => item.auto_add_enabled,
     blank: DEFAULTS.AUTO_ADD_ENABLED,
   },
   autoAddIdToDescriptionEnabled: {
@@ -84,7 +85,7 @@ export const ITEM_FORM_FIELDS: ItemFormFields = {
     param: PARAMS.AUTO_ADD_ID_TO_DESCRIPTION_ENABLED,
     value: { type: 'boolean' },
     read: readChecked,
-    format: (item) => item.auto_add_id_to_description_enabled ?? false,
+    format: (item) => item.auto_add_id_to_description_enabled,
     blank: DEFAULTS.AUTO_ADD_ID_TO_DESCRIPTION_ENABLED,
   },
   autoAddToListQuantity: {
@@ -101,7 +102,7 @@ export const ITEM_FORM_FIELDS: ItemFormFields = {
     param: PARAMS.CATEGORY,
     value: { type: 'string', fallback: DEFAULTS.CATEGORY, maxLength: 50 },
     read: readText,
-    format: (item) => joined(item.categories, item.category ?? DEFAULTS.CATEGORY),
+    format: (item) => joined(item.categories, item.category),
     blank: DEFAULTS.CATEGORY,
   },
   description: {
@@ -109,7 +110,7 @@ export const ITEM_FORM_FIELDS: ItemFormFields = {
     param: PARAMS.DESCRIPTION,
     value: { type: 'string', fallback: DEFAULTS.DESCRIPTION, maxLength: 500 },
     read: readText,
-    format: (item) => item.description ?? DEFAULTS.DESCRIPTION,
+    format: (item) => item.description,
     blank: DEFAULTS.DESCRIPTION,
   },
   desiredQuantity: {
@@ -133,7 +134,7 @@ export const ITEM_FORM_FIELDS: ItemFormFields = {
     param: PARAMS.EXPIRY_DATE,
     value: { type: 'string', fallback: DEFAULTS.EXPIRY_DATE },
     read: readText,
-    format: (item) => item.expiry_date ?? DEFAULTS.EXPIRY_DATE,
+    format: (item) => item.expiry_date,
     blank: DEFAULTS.EXPIRY_DATE,
   },
   location: {
@@ -141,7 +142,7 @@ export const ITEM_FORM_FIELDS: ItemFormFields = {
     param: PARAMS.LOCATION,
     value: { type: 'string', fallback: DEFAULTS.LOCATION, maxLength: 50 },
     read: readText,
-    format: (item) => joined(item.locations, item.location ?? DEFAULTS.LOCATION),
+    format: (item) => joined(item.locations, item.location),
     blank: DEFAULTS.LOCATION,
   },
   name: {
@@ -149,7 +150,7 @@ export const ITEM_FORM_FIELDS: ItemFormFields = {
     param: PARAMS.NAME,
     value: { type: 'string', fallback: '', maxLength: 100 },
     read: readText,
-    format: (item) => item.name ?? '',
+    format: (item) => item.name,
     blank: '',
   },
   quantity: {
@@ -157,7 +158,7 @@ export const ITEM_FORM_FIELDS: ItemFormFields = {
     param: PARAMS.QUANTITY,
     value: { type: 'number', fallback: DEFAULTS.QUANTITY, max: 999_999 },
     read: readText,
-    format: (item) => (item.quantity ?? DEFAULTS.QUANTITY).toString(),
+    format: (item) => item.quantity.toString(),
     blank: DEFAULTS.QUANTITY.toString(),
   },
   todoList: {
@@ -165,7 +166,7 @@ export const ITEM_FORM_FIELDS: ItemFormFields = {
     param: PARAMS.TODO_LIST,
     value: { type: 'string', fallback: DEFAULTS.TODO_LIST, maxLength: 100 },
     read: readText,
-    format: (item) => item.todo_list ?? DEFAULTS.TODO_LIST,
+    format: (item) => item.todo_list,
     blank: DEFAULTS.TODO_LIST,
   },
   todoQuantityPlacement: {
@@ -189,7 +190,7 @@ export const ITEM_FORM_FIELDS: ItemFormFields = {
     param: PARAMS.UNIT,
     value: { type: 'string', fallback: DEFAULTS.UNIT, maxLength: 20 },
     read: readText,
-    format: (item) => item.unit ?? DEFAULTS.UNIT,
+    format: (item) => item.unit,
     blank: DEFAULTS.UNIT,
   },
   barcode: {
@@ -233,7 +234,8 @@ export const ITEM_FORM_KEYS: readonly ItemFormKey[] =
  * Builds one record over every form key, in table order; `undefined` leaves the key out (only
  * the optional icon ever is). `T` is a shape keyed like `RawFormData`.
  */
-export function collectItemForm<T extends { [K in ItemFormKey]?: unknown }>(
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters -- callers name the record shape they build
+export function collectItemForm<T extends Partial<Record<ItemFormKey, unknown>>>(
   valueOf: (key: ItemFormKey) => unknown,
 ): T {
   const entries = ITEM_FORM_KEYS.map((key) => [key, valueOf(key)] as const).filter(

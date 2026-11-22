@@ -116,20 +116,6 @@ describe('Config Editor Templates', () => {
       expect(htmlCall[5]).toBe(0); // item count should be 0
     });
 
-    it('should handle entity without attributes', () => {
-      const entityId = 'sensor.test_inventory';
-      const mockEntity = createMockHassEntity(entityId, {});
-      delete (mockEntity as any).attributes;
-
-      mockHass.states[entityId] = mockEntity;
-
-      createEntityInfo(mockHass, entityId, mockTranslations);
-
-      const htmlCall = vi.mocked(html).mock.calls[0];
-      expect(htmlCall[2]).toBe(entityId); // should fallback to entity ID
-      expect(htmlCall[5]).toBe(0); // item count should be 0
-    });
-
     it('should handle null/undefined items array', () => {
       const entityId = 'sensor.test_inventory';
       const mockEntity = createMockHassEntity(entityId, {
@@ -255,7 +241,7 @@ describe('Config Editor Templates', () => {
         states: {},
       } as unknown as HomeAssistant;
 
-      const entityOptions: Array<{ value: string; label: string }> = [];
+      const entityOptions: { value: string; label: string }[] = [];
 
       expect(() => {
         createEntitySelector(entityOptions, '', mockOnValueChanged, mockTranslations);

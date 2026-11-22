@@ -102,7 +102,7 @@ export class InventoryStore {
       this.applyPushedItems();
     },
     () => {
-      this.fetch(true);
+      void this.fetch(true);
     },
   );
 
@@ -196,15 +196,15 @@ export class InventoryStore {
     this.connectLiveUpdates();
 
     if (!oldHass) {
-      this.checkCompatibility();
-      this.loadTranslations().then(() => {
-        this.fetch();
+      void this.checkCompatibility();
+      void this.loadTranslations().then(() => {
+        void this.fetch();
       });
       return true;
     }
 
     if (oldHass.language !== hass.language || oldHass.selectedLanguage !== hass.selectedLanguage) {
-      this.loadTranslations().then(() => {
+      void this.loadTranslations().then(() => {
         if (!this.deferIfBlocked('background')) {
           this.render();
         }
@@ -234,10 +234,10 @@ export class InventoryStore {
       clearTimeout(this.debounceTimer);
       this.debounceTimer = setTimeout(() => {
         this.debounceTimer = undefined;
-        this.fetch(true);
+        void this.fetch(true);
       }, INTERACTION_REFRESH_DELAY_MS);
     } else {
-      this.fetch(true);
+      void this.fetch(true);
     }
   }
 
@@ -264,7 +264,7 @@ export class InventoryStore {
     for (const listener of this.listeners) {
       listener();
     }
-    this._renderedItems = JSON.stringify(Utilities.validateInventoryItems(this._items));
+    this._renderedItems = JSON.stringify(this._items);
   }
 
   /**
@@ -273,19 +273,26 @@ export class InventoryStore {
    */
   async fetch(background = false): Promise<void> {
     const hass = this._hass;
-    if (!hass || !this.entityId) return;
+    if (!hass || !this.entityId) {
+      return;
+    }
     if (this._paused) {
       this.resumeRefresh = true;
       return;
     }
-    if (this.deferIfBlocked(background ? 'background' : 'page')) return;
+    if (this.deferIfBlocked(background ? 'background' : 'page')) {
+      return;
+    }
     // This refresh supersedes any held work; a render deferred below holds it again.
     this.pending = 'none';
     this.heldPush = undefined;
     const inventoryId = InventoryResolver.getInventoryId(hass, this.entityId);
-    if (!inventoryId) return;
+    if (!inventoryId) {
+      return;
+    }
     try {
-      this._items = await this.services.getItems(inventoryId);
+      // Normalised once on arrival, so every reader can trust the InventoryItem field types.
+      this._items = Utilities.validateInventoryItems(await this.services.getItems(inventoryId));
       this._loaded = true;
     } catch (error) {
       console.warn('Failed to fetch inventory items:', error);
@@ -303,14 +310,16 @@ export class InventoryStore {
       }
     }
     // The user may have opened a form while the items were loading.
-    if (background && this.deferIfBlocked('background')) return;
+    if (background && this.deferIfBlocked('background')) {
+      return;
+    }
     this.render();
   }
 
   /** Refreshes shortly after a save (the user's own refresh). */
   refreshAfterSave(): void {
     this.scheduleSaveRefresh(() => {
-      this.fetch();
+      void this.fetch();
     });
   }
 
@@ -345,7 +354,7 @@ export class InventoryStore {
     this.connectLiveUpdates();
     if (this.resumeRefresh) {
       this.resumeRefresh = false;
-      this.fetch(true);
+      void this.fetch(true);
     }
   }
 
@@ -395,7 +404,7 @@ export class InventoryStore {
     }
     this.scheduleSaveRefresh(() => {
       if (refetch) {
-        this.fetch(true);
+        void this.fetch(true);
       } else {
         this.applyPushedItems();
       }
@@ -415,10 +424,11 @@ export class InventoryStore {
     if (this.pending === 'push') {
       this.pending = 'none';
     }
-    if (JSON.stringify(Utilities.validateInventoryItems(items)) === this._renderedItems) {
+    const valid = Utilities.validateInventoryItems(items);
+    if (JSON.stringify(valid) === this._renderedItems) {
       return;
     }
-    this._items = items;
+    this._items = valid;
     this.render();
   }
 

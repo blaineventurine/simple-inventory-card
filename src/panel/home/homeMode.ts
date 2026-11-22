@@ -59,7 +59,9 @@ export class HomeMode {
   }
 
   start(): void {
-    this.stopListening = this.deps.listen(() => this.schedule());
+    this.stopListening = this.deps.listen(() => {
+      this.schedule();
+    });
     void this.run();
   }
 
@@ -91,7 +93,9 @@ export class HomeMode {
   }
 
   private schedule(): void {
-    if (this.stopped) return;
+    if (this.stopped) {
+      return;
+    }
     clearTimeout(this.timer);
     this.timer = setTimeout(() => {
       this.timer = undefined;
@@ -100,11 +104,15 @@ export class HomeMode {
   }
 
   private async run(): Promise<void> {
-    if (this.stopped) return;
+    if (this.stopped) {
+      return;
+    }
     this.generation += 1;
     const generation = this.generation;
     const result = await this.deps.fetch();
-    if (generation !== this.generation) return;
+    if (generation !== this.generation) {
+      return;
+    }
     this.setState(
       result.status === 'ok'
         ? { status: 'ok', overview: result.overview }

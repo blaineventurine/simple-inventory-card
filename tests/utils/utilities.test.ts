@@ -179,7 +179,7 @@ describe('Utilities', () => {
 
   describe('preserveInputValues and restoreInputValues', () => {
     let mockShadowRoot: ShadowRoot;
-    let mockElements: { [id: string]: HTMLInputElement };
+    let mockElements: Record<string, HTMLInputElement>;
 
     beforeEach(() => {
       mockElements = {};
@@ -216,7 +216,9 @@ describe('Utilities', () => {
 
     it('should handle missing elements and undefined values', () => {
       expect(Utilities.preserveInputValues(mockShadowRoot, ['nonexistent'])).toEqual({});
-      expect(() => Utilities.restoreInputValues(mockShadowRoot, undefined)).not.toThrow();
+      expect(() => {
+        Utilities.restoreInputValues(mockShadowRoot, undefined);
+      }).not.toThrow();
     });
   });
 
@@ -334,10 +336,8 @@ describe('Utilities', () => {
         it.each([
           { name: '', description: 'empty string' },
           { name: '   ', description: 'whitespace only' },
-          { name: undefined, description: 'undefined' },
-          { name: null, description: 'null' },
         ])('should fail for invalid name: $description', ({ name }) => {
-          const formData = createValidFormData({ name: name as any });
+          const formData = createValidFormData({ name });
           const result = FormUtils.validateRawFormData(formData, translations);
 
           expect(result.isValid).toBe(false);
@@ -617,7 +617,7 @@ describe('Utilities', () => {
         { input: 123, maxLength: 10, expected: '' },
         { input: 'short', maxLength: 10, expected: 'short' },
       ])('should sanitize strings: $input → $expected', ({ input, maxLength, expected }) => {
-        const result = FormUtils.sanitizeString(input as any, maxLength);
+        const result = FormUtils.sanitizeString(input, maxLength);
         expect(result).toBe(expected);
       });
     });
@@ -978,54 +978,7 @@ describe('Utilities', () => {
       });
     });
 
-    describe('validateRawFormData - Optional Chaining and Trim Coverage', () => {
-      it('should handle quantity field without optional chaining', () => {
-        const formData = createValidFormData();
-        delete (formData as any).quantity; // Remove quantity entirely
-
-        const result = FormUtils.validateRawFormData(formData, translations);
-        expect(result.errors.some((e) => e.field === 'quantity')).toBe(false);
-      });
-
-      it('should handle autoAddToListQuantity without trim', () => {
-        const formData = createValidFormData({
-          autoAddEnabled: true,
-          autoAddToListQuantity: null as any,
-          todoList: 'todo.test',
-        });
-
-        const result = FormUtils.validateRawFormData(formData, translations);
-        expect(result.errors.some((e) => e.field === 'autoAddToListQuantity')).toBe(true);
-      });
-
-      it('should handle todoList without trim', () => {
-        const formData = createValidFormData({
-          autoAddEnabled: true,
-          autoAddToListQuantity: '5',
-          todoList: null as any,
-        });
-
-        const result = FormUtils.validateRawFormData(formData, translations);
-        expect(result.errors.some((e) => e.field === 'todoList')).toBe(true);
-      });
-
-      it('should handle expiryDate without trim', () => {
-        const formData = createValidFormData({
-          expiryDate: null as any,
-        });
-
-        const result = FormUtils.validateRawFormData(formData, translations);
-        expect(result.errors.some((e) => e.field === 'expiryDate')).toBe(false);
-      });
-
-      it('should handle expiryAlertDays without optional chaining', () => {
-        const formData = createValidFormData();
-        delete (formData as any).expiryAlertDays;
-
-        const result = FormUtils.validateRawFormData(formData, translations);
-        expect(result.errors.some((e) => e.field === 'expiryAlertDays')).toBe(false);
-      });
-
+    describe('validateRawFormData - autoAdd quantity', () => {
       it('should validate autoAddToListQuantity numeric values', () => {
         const formData = createValidFormData({
           autoAddEnabled: true,

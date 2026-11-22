@@ -64,7 +64,7 @@ function createBatchRow(
   formatValue: (value: number) => string,
 ): string {
   const quantity = `${formatQuantity(batch.quantity)} ${item.unit || ''}`.trim();
-  const parts: Array<{ text: string; tone?: Tone | undefined; className?: string }> = [
+  const parts: { text: string; tone?: Tone | undefined; className?: string }[] = [
     { text: quantity, className: 'batch-quantity' },
   ];
   if (config?.show_location !== false && batch.location !== '') {

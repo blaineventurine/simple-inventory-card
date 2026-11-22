@@ -46,7 +46,9 @@ export function createCompatibilityBanner(
   compatibility: BackendCompatibility,
   translations: TranslationData,
 ): string {
-  if (compatibility.status !== 'outdated') return '';
+  if (compatibility.status !== 'outdated') {
+    return '';
+  }
 
   const version =
     compatibility.version ??

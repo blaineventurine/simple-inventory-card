@@ -26,12 +26,16 @@ let cardDescription = 'A card to manage your inventories';
  */
 class SimpleInventoryCard extends LitElement {
   private _config: InventoryConfig | undefined = undefined;
-  private _todoLists: Array<{ id: string; name: string }> = [];
+  private _todoLists: { id: string; name: string }[] = [];
   private lifecycleManager: LifecycleManager;
   private renderingCoordinator: RenderingCoordinator;
   private readonly _store = new InventoryStore({
-    showError: (message) => showHassNotification(this.shadowRoot ?? this, message),
-    compatibilityChecked: () => this._applyCompatibilityBanner(),
+    showError: (message) => {
+      showHassNotification(this.shadowRoot ?? this, message);
+    },
+    compatibilityChecked: () => {
+      this._applyCompatibilityBanner();
+    },
   });
   /** The item `openItem` asked for, until the items are loaded and it opens (or is unknown). */
   private _pendingOpen: string | undefined = undefined;
@@ -43,7 +47,9 @@ class SimpleInventoryCard extends LitElement {
     const shadowRoot = this.attachShadow({ mode: 'open' });
     this.lifecycleManager = new LifecycleManager(shadowRoot);
     this.renderingCoordinator = new RenderingCoordinator(this.lifecycleManager, shadowRoot);
-    this._store.subscribe(() => this._renderView());
+    this._store.subscribe(() => {
+      this._renderView();
+    });
   }
 
   /**
@@ -53,7 +59,9 @@ class SimpleInventoryCard extends LitElement {
    */
   connectedCallback(): void {
     super.connectedCallback();
-    this._store.resume(() => this.lifecycleManager.resume());
+    this._store.resume(() => {
+      this.lifecycleManager.resume();
+    });
   }
 
   /**
@@ -116,7 +124,7 @@ class SimpleInventoryCard extends LitElement {
     const services = this.lifecycleManager.getServices();
     // Runs on every update to track the state, so a later fallback from live updates compares
     // against the latest one.
-    if (entityId && services && services.state.hasRealEntityChange(hass, entityId)) {
+    if (entityId && services?.state.hasRealEntityChange(hass, entityId)) {
       this._store.entityChanged(services.state.userInteracting);
     }
   }
@@ -127,6 +135,7 @@ class SimpleInventoryCard extends LitElement {
 
   /** Paints the store's current data (the store decided a render may run now). */
   private _renderView(): void {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- Lit sets renderRoot only once the element connects
     if (!this._config || !this._store.hass || !this.renderRoot) {
       return;
     }
@@ -134,10 +143,16 @@ class SimpleInventoryCard extends LitElement {
     if (!this.lifecycleManager.isReady()) {
       const services = this.lifecycleManager.initialize(() => this._getContext(), {
         render: () => {
-          this._fetchItems();
+          this._fetchItems().catch((error: unknown) => {
+            console.error('Error fetching items:', error);
+          });
         },
-        refreshAfterSave: () => this._store.refreshAfterSave(),
-        updateItems: (items, sortMethod) => this._updateItemsOnly(items, sortMethod),
+        refreshAfterSave: () => {
+          this._store.refreshAfterSave();
+        },
+        updateItems: (items, sortMethod) => {
+          this._updateItemsOnly(items, sortMethod);
+        },
         hold: (kind, reason) => this._store.hold(kind, reason),
       });
 
@@ -230,9 +245,13 @@ class SimpleInventoryCard extends LitElement {
   private _applyCompatibilityBanner(): void {
     // Only an outdated backend shows a banner, and the status never changes after the check.
     const compatibility = this._store.compatibility;
-    if (compatibility?.status !== 'outdated') return;
+    if (compatibility?.status !== 'outdated') {
+      return;
+    }
     const card = this.shadowRoot?.querySelector('ha-card');
-    if (!card) return;
+    if (!card) {
+      return;
+    }
     card.querySelector('#compat-banner')?.remove();
     card.insertAdjacentHTML(
       'afterbegin',
@@ -286,6 +305,7 @@ async function loadCardDescription(): Promise<void> {
     if (translatedDescription !== cardDescription) {
       cardDescription = translatedDescription;
 
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- window.customCards is owned by HA's frontend and may be replaced or unset
       const existingCard = window.customCards?.find(
         (card) => card.type === 'simple-inventory-card',
       );
@@ -298,7 +318,7 @@ async function loadCardDescription(): Promise<void> {
   }
 }
 
-loadCardDescription();
+void loadCardDescription();
 
 export { SimpleInventoryCard };
 
@@ -311,6 +331,7 @@ if (!customElements.get('simple-inventory-config-editor')) {
   customElements.define('simple-inventory-config-editor', ConfigEditor);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- undefined until a custom card registers itself
 window.customCards = window.customCards || [];
 const cardConfig = {
   type: 'simple-inventory-card',

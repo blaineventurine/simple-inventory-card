@@ -45,7 +45,7 @@ describe('card camera across detach / re-attach (real scanner module)', () => {
   let card: SimpleInventoryCard;
   let root: HTMLElement;
   /** Pending `Quagga.init` callbacks, oldest first. */
-  let pendingInits: Array<(err: Error | null) => void>;
+  let pendingInits: ((err: Error | null) => void)[];
 
   function makeHass(): HomeAssistant {
     const hass = createMockHomeAssistant({
@@ -83,14 +83,18 @@ describe('card camera across detach / re-attach (real scanner module)', () => {
 
   function element(id: string): HTMLElement {
     const el = root.querySelector<HTMLElement>(`#${id}`);
-    if (!el) throw new Error(`no #${id}`);
+    if (!el) {
+      throw new Error(`no #${id}`);
+    }
     return el;
   }
 
   /** Lets the camera that is opening finish opening. */
   async function finishInit(): Promise<void> {
     const finish = pendingInits.shift();
-    if (!finish) throw new Error('no camera is opening');
+    if (!finish) {
+      throw new Error('no camera is opening');
+    }
     finish(null);
     await vi.advanceTimersByTimeAsync(0);
   }
@@ -106,7 +110,9 @@ describe('card camera across detach / re-attach (real scanner module)', () => {
     pendingInits = [];
     vi.mocked(Quagga.init).mockReset();
     vi.mocked(Quagga.init).mockImplementation((_config, callback) => {
-      pendingInits.push((err) => callback?.(err));
+      pendingInits.push((err) => {
+        callback?.(err);
+      });
       return Promise.resolve();
     });
     vi.mocked(Quagga.start).mockClear();
@@ -245,7 +251,9 @@ describe('card camera across detach / re-attach (real scanner module)', () => {
   describe('a camera that does not open (real photo chooser)', () => {
     const photoInput = (): HTMLInputElement => {
       const input = document.body.querySelector<HTMLInputElement>('input[type="file"]');
-      if (!input) throw new Error('no photo input');
+      if (!input) {
+        throw new Error('no photo input');
+      }
       return input;
     };
 
@@ -271,7 +279,9 @@ describe('card camera across detach / re-attach (real scanner module)', () => {
     });
 
     afterEach(() => {
-      document.body.querySelectorAll('input[type="file"]').forEach((input) => input.remove());
+      document.body.querySelectorAll('input[type="file"]').forEach((input) => {
+        input.remove();
+      });
       vi.unstubAllGlobals();
     });
 

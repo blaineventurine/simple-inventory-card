@@ -82,13 +82,15 @@ describe('barcodeScanner', () => {
 
   it('should be safe to call stopScanner when not running', () => {
     expect(isScannerActive()).toBe(false);
-    expect(() => stopScanner()).not.toThrow();
+    expect(() => {
+      stopScanner();
+    }).not.toThrow();
     expect(mockStop).not.toHaveBeenCalled();
   });
 
   describe('a camera that is still opening', () => {
     /** `Quagga.init` callbacks not answered yet, oldest first. */
-    let pending: Array<(err: Error | null) => void>;
+    let pending: ((err: Error | null) => void)[];
 
     /** Lets queued starts reach `Quagga.init`. */
     async function settle(): Promise<void> {
@@ -100,7 +102,9 @@ describe('barcodeScanner', () => {
     beforeEach(() => {
       pending = [];
       mockInit.mockImplementation((_config, cb) => {
-        pending.push((err) => cb?.(err));
+        pending.push((err) => {
+          cb?.(err);
+        });
         return Promise.resolve();
       });
     });
@@ -437,9 +441,9 @@ describe('native scanner (Home Assistant companion app)', () => {
     });
     startNativeScanner(external, texts, handlers);
 
-    expect(() => appSends('bar_code/scan_result', { rawValue: '1', format: 'ean_13' })).toThrow(
-      'boom',
-    );
+    expect(() => {
+      appSends('bar_code/scan_result', { rawValue: '1', format: 'ean_13' });
+    }).toThrow('boom');
     expect(haReceive).toHaveBeenCalledOnce();
   });
 
@@ -502,8 +506,9 @@ describe('native scanner (Home Assistant companion app)', () => {
       expect(card.startNativeScanner).not.toBe(panel.startNativeScanner);
       const cardDetected = vi.fn();
       const panelDetected = vi.fn();
-      const start = (copy: typeof card, onDetected: (code: string) => void): void =>
+      const start = (copy: typeof card, onDetected: (code: string) => void): void => {
         copy.startNativeScanner(external, texts, { onDetected, onChoosePhoto: vi.fn() });
+      };
 
       start(card, cardDetected);
       const wrapper = window.externalBus;
@@ -562,9 +567,9 @@ describe('native scanner (Home Assistant companion app)', () => {
         onChoosePhoto: vi.fn(),
       });
 
-      expect(() => appSends('bar_code/scan_result', { rawValue: '1', format: 'ean_13' })).toThrow(
-        'boom',
-      );
+      expect(() => {
+        appSends('bar_code/scan_result', { rawValue: '1', format: 'ean_13' });
+      }).toThrow('boom');
       expect(panelDetected).toHaveBeenCalledWith('1');
       expect(haReceive).toHaveBeenCalledOnce();
     });
@@ -606,7 +611,7 @@ describe('scanSupport', () => {
 });
 
 describe('chooseBarcodePhoto', () => {
-  let detect: Mock<() => Promise<Array<{ rawValue: string }>>>;
+  let detect: Mock<() => Promise<{ rawValue: string }[]>>;
   let click: MockInstance<() => void>;
 
   const fileInputs = (): HTMLInputElement[] => [
@@ -615,7 +620,9 @@ describe('chooseBarcodePhoto', () => {
 
   /** Chooses `files` in the input, as the browser does after the user picked. */
   function choose(input: HTMLInputElement | undefined, files: File[]): void {
-    if (!input) throw new Error('no photo input');
+    if (!input) {
+      throw new Error('no photo input');
+    }
     Object.defineProperty(input, 'files', { value: files, configurable: true });
     input.dispatchEvent(new Event('change'));
   }
@@ -636,7 +643,9 @@ describe('chooseBarcodePhoto', () => {
   });
 
   afterEach(() => {
-    fileInputs().forEach((input) => input.remove());
+    fileInputs().forEach((input) => {
+      input.remove();
+    });
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
   });
@@ -733,7 +742,7 @@ describe('decodeFromFile', () => {
         Object.defineProperty(imgMock, 'src', {
           set(_: string) {
             // Fire onload asynchronously (after img.onload is assigned)
-            Promise.resolve().then(() => imgMock.onload?.());
+            void Promise.resolve().then(() => imgMock.onload?.());
           },
           get() {
             return '';

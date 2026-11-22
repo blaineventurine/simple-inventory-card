@@ -52,7 +52,7 @@ export function createItemTileTemplate(
   const images = rowOptions?.images;
   const photoPath =
     images && config?.show_icon !== false
-      ? itemImagePath(item, rowOptions?.tileImages === true ? 'tile' : 'full')
+      ? itemImagePath(item, rowOptions.tileImages === true ? 'tile' : 'full')
       : null;
   const media = photoPath
     ? photo(photoPath, images?.cached(photoPath), 'si-tile__photo')

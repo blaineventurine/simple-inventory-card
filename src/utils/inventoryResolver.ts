@@ -3,6 +3,7 @@ import { HassEntity, HomeAssistant } from '../types/homeAssistant';
 
 export const InventoryResolver = {
   getInventoryName(state: HassEntity | undefined, entityId: string): string {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- Home Assistant state: entities and attributes may be missing at runtime
     if (state?.attributes?.friendly_name?.trim()) {
       return state.attributes.friendly_name;
     }
@@ -23,6 +24,7 @@ export const InventoryResolver = {
   },
 
   getInventoryDescription(state: HassEntity | undefined): string | undefined {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- Home Assistant state: entities and attributes may be missing at runtime
     if (state?.attributes?.description) {
       return state.attributes.description;
     }
@@ -31,10 +33,12 @@ export const InventoryResolver = {
 
   getInventoryId(hass: HomeAssistant, entityId: string): string {
     const state = hass.states[entityId];
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- Home Assistant state: entities and attributes may be missing at runtime
     if (state?.attributes?.inventory_id) {
       return state.attributes.inventory_id;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- Home Assistant state: entities and attributes may be missing at runtime
     if (state?.attributes?.unique_id) {
       const uniqueId = state.attributes.unique_id;
       if (typeof uniqueId === 'string' && uniqueId.startsWith('inventory_')) {
@@ -46,16 +50,18 @@ export const InventoryResolver = {
     return parts.length > 1 ? parts[1] : entityId;
   },
 
-  extractTodoLists(hass: HomeAssistant): Array<{ id: string; name: string }> {
+  extractTodoLists(hass: HomeAssistant): { id: string; name: string }[] {
     return Object.keys(hass.states)
       .filter((entityId) => entityId.startsWith('todo.'))
       .map((entityId) => ({
         id: entityId,
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- Home Assistant state: entities and attributes may be missing at runtime
         name: hass.states[entityId].attributes?.friendly_name || entityId.split('.')[1],
       }));
   },
 
   findInventoryEntities(hass: HomeAssistant): string[] {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- Home Assistant state: entities and attributes may be missing at runtime
     return Object.keys(hass?.states || {})
       .filter((entityId) => {
         if (!entityId.startsWith('sensor.')) {
@@ -63,16 +69,18 @@ export const InventoryResolver = {
         }
 
         const hasInventoryInName = entityId.includes('inventory');
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- Home Assistant state: entities and attributes may be missing at runtime
         const hasItemsAttribute = hass?.states[entityId]?.attributes?.inventory_id !== undefined;
 
         return hasInventoryInName && hasItemsAttribute;
       })
-      .sort();
+      .sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
   },
 
   createEntityOptions(hass: HomeAssistant, entityIds: string[]) {
     return entityIds.map((entity) => ({
       value: entity,
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- Home Assistant state: entities and attributes may be missing at runtime
       label: hass.states[entity]?.attributes?.friendly_name || entity,
     }));
   },

@@ -75,7 +75,9 @@ export class LiveUpdates {
   disconnect(): void {
     this.connection?.removeEventListener('ready', this.handleReconnect);
     // The connection may be gone already; there is nothing left to unsubscribe from then.
-    this.unsubscribe?.().catch(() => {});
+    this.unsubscribe?.().catch(() => {
+      // no-op: nothing to do when the connection already dropped the subscription
+    });
     this.reset();
     this.connection = undefined;
     this.inventoryId = '';
@@ -112,7 +114,9 @@ export class LiveUpdates {
       )
       .then((unsubscribe) => {
         if (generation !== this.generation) {
-          unsubscribe().catch(() => {});
+          unsubscribe().catch(() => {
+            // no-op: a superseded subscription that fails to cancel needs no handling
+          });
           return;
         }
         this.unsubscribe = unsubscribe;

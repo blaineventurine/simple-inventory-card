@@ -168,7 +168,7 @@ export class ItemImageField {
     Object.assign(loader, { hass: this.getContext().hass, selector: MEDIA_SELECTOR });
     this.root.append(loader);
     for (const name of MEDIA_ELEMENTS) {
-      customElements.whenDefined(name).then(() => {
+      void customElements.whenDefined(name).then(() => {
         if (mediaPickerElement() === undefined) {
           return;
         }
@@ -371,7 +371,7 @@ export class ItemImageField {
     });
     this.mediaPrefix = prefix;
     if ('_pickMedia' in picker && typeof picker._pickMedia === 'function') {
-      picker._pickMedia();
+      (picker as { _pickMedia: () => void })._pickMedia();
     }
   }
 
@@ -456,6 +456,8 @@ export class ItemImageField {
         return this.localize('image.pending_media', 'The image from media is saved when you save.');
       case 'remove':
         return this.localize('image.pending_remove', 'The image is removed when you save.');
+      case undefined:
+        break;
     }
     const ids = imageFieldIds(prefix);
     const offer = this.root.getElementById(ids.offer);

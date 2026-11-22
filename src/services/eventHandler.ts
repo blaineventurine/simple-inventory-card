@@ -1,5 +1,6 @@
 import { ELEMENTS, ACTIONS, DEFAULTS, ITEM_EVENTS } from '../utils/constants';
 import { InventoryItem } from '@/types/inventory';
+import type { HassEntity } from '@/types/homeAssistant';
 import { Services } from './services';
 import { Modals } from './modals';
 import { Filters } from './filters';
@@ -170,7 +171,7 @@ export class EventHandler {
     }
 
     this.boundClickHandler = (event: Event) => {
-      this.handleClick(event).catch((error) => {
+      this.handleClick(event).catch((error: unknown) => {
         console.error('Error in handleClick:', error);
       });
     };
@@ -180,7 +181,7 @@ export class EventHandler {
     };
 
     this.boundKeydownHandler = (event: Event) => {
-      this.handleKeydown(event).catch((error) => {
+      this.handleKeydown(event).catch((error: unknown) => {
         console.error('Error in handleKeydown:', error);
       });
     };
@@ -189,9 +190,9 @@ export class EventHandler {
     this.boundInputHandler = (event: Event) => {
       const target = event.target;
       if (target instanceof HTMLInputElement && target.id === ELEMENTS.SEARCH_INPUT) {
-        this.filters.scheduleSearch(this.getContext().config.entity, target.value, () =>
-          this.handleSearchChange(),
-        );
+        this.filters.scheduleSearch(this.getContext().config.entity, target.value, () => {
+          this.handleSearchChange();
+        });
       }
     };
 
@@ -283,7 +284,7 @@ export class EventHandler {
     const target = event.target as HTMLElement;
 
     if (target instanceof HTMLInputElement && target.type === 'checkbox') {
-      const dropdown = target.closest?.('.multi-select-dropdown') as HTMLElement | null;
+      const dropdown = target.closest<HTMLElement>('.multi-select-dropdown');
       if (dropdown) {
         this.handleFilterMultiSelectChange(dropdown);
         return;
@@ -309,7 +310,7 @@ export class EventHandler {
       (target.id.includes('auto') || target.id.includes('AUTO_ADD'))
     ) {
       setTimeout(() => {
-        const controls = target.parentElement?.querySelector('.auto-add-controls') as HTMLElement;
+        const controls = target.parentElement?.querySelector<HTMLElement>('.auto-add-controls');
         if (controls) {
           controls.hidden = !target.checked;
         }
@@ -349,8 +350,10 @@ export class EventHandler {
 
   private handleSearchChange(): void {
     const { hass, config } = this.getContext();
-    const state = hass.states[config.entity];
-    if (!state) return;
+    const state = hass.states[config.entity] as HassEntity | undefined;
+    if (!state) {
+      return;
+    }
 
     this.applyFiltersWithoutRender();
     this.filters.updateFilterIndicators(
@@ -361,8 +364,12 @@ export class EventHandler {
 
   private headerActions(): ActionGroup<HeaderAction> {
     return {
-      [ACTIONS.OPEN_ADD_MODAL]: () => this.openAddModal(),
-      [ACTIONS.TOGGLE_OVERFLOW_MENU]: () => this.toggleOverflowMenu(),
+      [ACTIONS.OPEN_ADD_MODAL]: () => {
+        this.openAddModal();
+      },
+      [ACTIONS.TOGGLE_OVERFLOW_MENU]: () => {
+        this.toggleOverflowMenu();
+      },
       [ACTIONS.EXPORT_INVENTORY]: async () => {
         this.closeOverflowMenu();
         await this.importExportHandler.handleExport();
@@ -376,34 +383,54 @@ export class EventHandler {
           this.applyExpiryBadgeFilter(control.dataset.expiry);
         }
       },
-      [ACTIONS.TOGGLE_ADVANCED_FILTERS]: () => this.toggleAdvancedFilters(),
-      [ACTIONS.CLEAR_FILTERS]: () => this.clearFilters(),
+      [ACTIONS.TOGGLE_ADVANCED_FILTERS]: () => {
+        this.toggleAdvancedFilters();
+      },
+      [ACTIONS.CLEAR_FILTERS]: () => {
+        this.clearFilters();
+      },
       [ACTIONS.REMOVE_FILTER]: (control) => {
         if (control.dataset.filterRemove) {
           this.removeFilter(control.dataset.filterRemove);
         }
       },
-      [ACTIONS.TOGGLE_FILTER_DROPDOWN]: (control) => this.toggleMultiSelectDropdown(control),
-      [ACTIONS.TOGGLE_LAYOUT]: (control) => this.toggleLayout(control),
-      [ACTIONS.DETAIL_BACK]: (control) => this.closeItemPage(control),
-      [ACTIONS.OPEN_ITEM]: (control) => this.openItemPage(control),
+      [ACTIONS.TOGGLE_FILTER_DROPDOWN]: (control) => {
+        this.toggleMultiSelectDropdown(control);
+      },
+      [ACTIONS.TOGGLE_LAYOUT]: (control) => {
+        this.toggleLayout(control);
+      },
+      [ACTIONS.DETAIL_BACK]: (control) => {
+        this.closeItemPage(control);
+      },
+      [ACTIONS.OPEN_ITEM]: (control) => {
+        this.openItemPage(control);
+      },
     };
   }
 
   private scanActions(): ActionGroup<ScanAction> {
     return {
       [ACTIONS.OPEN_SCAN]: () => this.scanHandler.showScanPanel(),
-      [ACTIONS.CLOSE_SCAN]: () => this.scanHandler.hideScanPanel(),
+      [ACTIONS.CLOSE_SCAN]: () => {
+        this.scanHandler.hideScanPanel();
+      },
       [ACTIONS.SCAN_CHOOSE_PHOTO]: () => this.scanHandler.choosePhoto(),
       [ACTIONS.SCAN_GO]: () => this.scanHandler.handleScanGo(),
-      [ACTIONS.SCAN_ADD_ITEM]: () => this.handleScanAddItem(),
+      [ACTIONS.SCAN_ADD_ITEM]: () => {
+        this.handleScanAddItem();
+      },
     };
   }
 
   private sheetActions(): ActionGroup<SheetAction> {
     return {
-      [ACTIONS.CLOSE_ADD_MODAL]: () => this.modals.closeAddModal(),
-      [ACTIONS.CLOSE_EDIT_MODAL]: () => this.modals.closeEditModal(),
+      [ACTIONS.CLOSE_ADD_MODAL]: () => {
+        this.modals.closeAddModal();
+      },
+      [ACTIONS.CLOSE_EDIT_MODAL]: () => {
+        this.modals.closeEditModal();
+      },
       [ACTIONS.ADD_ITEM]: (control) => withBusy(control, () => this.handleAddItem()),
       [ACTIONS.ADD_AS_BATCH]: async (control) => {
         control.setAttribute('data-processing', 'true');
@@ -423,7 +450,9 @@ export class EventHandler {
 
   private batchEditorActions(): ActionGroup<BatchEditorAction> {
     return {
-      [ACTIONS.ADD_BATCH_ROW]: () => this.modals.addBatchRow(),
+      [ACTIONS.ADD_BATCH_ROW]: () => {
+        this.modals.addBatchRow();
+      },
       [ACTIONS.DISCARD_BATCH_ROW]: (control) => {
         if (control.dataset.batchDiscard) {
           this.modals.discardBatchRow(control.dataset.batchDiscard);
@@ -482,9 +511,9 @@ export class EventHandler {
     try {
       this.filters.clearFilters(this.getContext().config.entity);
 
-      const searchInput = this.renderRoot.querySelector(
+      const searchInput = this.renderRoot.querySelector<HTMLInputElement>(
         `#${ELEMENTS.SEARCH_INPUT}`,
-      ) as HTMLInputElement | null;
+      );
       if (searchInput) {
         searchInput.value = '';
       }
@@ -541,7 +570,8 @@ export class EventHandler {
   }
 
   private handleFilterMultiSelectChange(dropdown: HTMLElement): void {
-    const filterKey = MULTI_SELECT_FILTER_KEYS[dropdown.id];
+    const filterKey = MULTI_SELECT_FILTER_KEYS[dropdown.id] as
+      (typeof MULTI_SELECT_FILTER_KEYS)[string] | undefined;
     if (!filterKey) {
       return;
     }
@@ -569,9 +599,9 @@ export class EventHandler {
 
   private applyFiltersWithoutRender(): void {
     const filters = this.filters.getCurrentFilters(this.getContext().config.entity);
-    const sortMethodElement = this.renderRoot.querySelector(
+    const sortMethodElement = this.renderRoot.querySelector<HTMLSelectElement>(
       `#${ELEMENTS.SORT_METHOD}`,
-    ) as HTMLSelectElement | null;
+    );
     const sortMethod = sortMethodElement?.value || filters.sortMethod || DEFAULTS.SORT_METHOD;
 
     const allItems = Utilities.validateInventoryItems(this.getContext().items);
@@ -628,7 +658,9 @@ export class EventHandler {
    */
   private openItemPage(control: HTMLElement): void {
     const { name, itemId } = control.dataset;
-    if (!name) return;
+    if (!name) {
+      return;
+    }
     if (!itemId || !this.renderRoot.host.hasAttribute('embedded')) {
       this.itemActions.openEdit(name);
       return;
@@ -648,14 +680,18 @@ export class EventHandler {
 
   private async handleEditModalHistory(): Promise<void> {
     const itemName = this.modals.getCurrentEditingItem();
-    if (!itemName) return;
+    if (!itemName) {
+      return;
+    }
     this.modals.closeEditModal();
     await this.historyHandler.showItemHistory(itemName);
   }
 
   private async handleEditModalDelete(): Promise<void> {
     const itemName = this.modals.getCurrentEditingItem();
-    if (!itemName) return;
+    if (!itemName) {
+      return;
+    }
     const confirmMessage = TranslationManager.localize(
       this.getContext().translations,
       'actions.confirm_remove',
@@ -677,7 +713,9 @@ export class EventHandler {
 
   private toggleOverflowMenu(): void {
     const menu = this.renderRoot.getElementById(ELEMENTS.OVERFLOW_MENU);
-    if (!menu) return;
+    if (!menu) {
+      return;
+    }
     const isVisible = !menu.hidden;
     this.setOverflowMenuOpen(menu, !isVisible);
     if (!isVisible) {
@@ -712,12 +750,12 @@ export class EventHandler {
   /** Opens the add sheet with the inventory's locations and categories and barcode lookups. */
   private openAddModal(): void {
     const { locations, categories } = itemOptions(this.getContext().items);
-    this.modals.openAddModal(this.getContext().translations, locations, categories, (barcode) =>
-      this.barcodeProductHandler.handleBarcodeProductLookup(barcode),
-    );
+    this.modals.openAddModal(this.getContext().translations, locations, categories, (barcode) => {
+      this.barcodeProductHandler.handleBarcodeProductLookup(barcode);
+    });
   }
 
-  private async handleScanAddItem(): Promise<void> {
+  private handleScanAddItem(): void {
     const barcode = this.scanHandler.getScannedBarcode();
     this.scanHandler.hideScanPanel();
     this.openAddModal();
@@ -727,9 +765,7 @@ export class EventHandler {
         const hiddenInput = this.renderRoot.getElementById(
           `add-${ELEMENTS.BARCODE}`,
         ) as HTMLInputElement | null;
-        const chipsContainer = this.renderRoot.getElementById(
-          'add-barcode-chips',
-        ) as HTMLElement | null;
+        const chipsContainer = this.renderRoot.getElementById('add-barcode-chips');
 
         if (hiddenInput) {
           hiddenInput.value = barcode;

@@ -21,7 +21,7 @@ export interface ItemDetailOptions {
   /** The integration moves stock between locations: batch rows offer Move. */
   transfers: boolean;
   /** HA's to-do lists, for the auto-add rule's list name. */
-  todoLists: ReadonlyArray<{ id: string; name: string }>;
+  todoLists: readonly { id: string; name: string }[];
   /** Formats a price (HA's currency). */
   formatValue: (value: number) => string;
 }

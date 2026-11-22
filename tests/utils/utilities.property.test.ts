@@ -43,7 +43,7 @@ describe('Utilities - Property-Based Tests', () => {
           fc.oneof(fc.constant(null), fc.constant(undefined), fc.integer(), fc.boolean()),
           fc.integer({ min: 1, max: 50 }),
           (input, maxLength) => {
-            const result = FormUtils.sanitizeString(input as any, maxLength);
+            const result = FormUtils.sanitizeString(input, maxLength);
             expect(result).toBe('');
           },
         ),

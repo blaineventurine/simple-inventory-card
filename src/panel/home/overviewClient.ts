@@ -49,10 +49,10 @@ export interface OverviewEntry<Reason> extends LocatedItem {
 /** The `simple_inventory/overview` result; each item is in its most urgent section only. */
 export interface Overview {
   inventories: InventoryOverview[];
-  expired: Array<OverviewEntry<ExpiredReason>>;
-  expiring_soon: Array<OverviewEntry<ExpiringReason>>;
-  out_of_stock: Array<OverviewEntry<Record<string, never>>>;
-  low_stock: Array<OverviewEntry<LowStockReason>>;
+  expired: OverviewEntry<ExpiredReason>[];
+  expiring_soon: OverviewEntry<ExpiringReason>[];
+  out_of_stock: OverviewEntry<Record<string, never>>[];
+  low_stock: OverviewEntry<LowStockReason>[];
 }
 
 export type OverviewResult =

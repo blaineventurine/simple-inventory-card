@@ -36,7 +36,9 @@ class ConfigEditor extends LitElement {
 
   connectedCallback(): void {
     super.connectedCallback();
-    void ConfigEditor._ensureHaComponents().then(() => this.requestUpdate());
+    void ConfigEditor._ensureHaComponents().then(() => {
+      this.requestUpdate();
+    });
   }
 
   private static _haComponentsPromise?: Promise<void>;
@@ -59,6 +61,7 @@ class ConfigEditor extends LitElement {
         }
         const card = await helpers.createCardElement({ type: 'entities', entities: [] });
         // getConfigElement is a static whose dynamic import registers the ha-* elements
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- HA's frontend helper may resolve without a card
         const ctor = card?.constructor as
           { getConfigElement?: () => HTMLElement | Promise<HTMLElement> } | undefined;
         await ctor?.getConfigElement?.();
@@ -69,10 +72,12 @@ class ConfigEditor extends LitElement {
     return this._haComponentsPromise;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises -- Lit ignores the promise; _loadTranslations catches its own errors and tests await it
   async firstUpdated() {
     await this._loadTranslations();
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises -- Lit ignores the promise; _loadTranslations catches its own errors and tests await it
   async updated(changedProps: Map<string | number | symbol, unknown>) {
     // Auto-select the first available inventory entity for new cards.
     // Guarded by _configSetExternally so this never fires before setConfig is called,
@@ -100,6 +105,7 @@ class ConfigEditor extends LitElement {
     if (changedProps.has('hass') && this.hass) {
       const oldHass = changedProps.get('hass') as HomeAssistant | undefined;
       if (
+        // eslint-disable-next-line @typescript-eslint/prefer-optional-chain -- a missing oldHass must reload even when hass.language is unset
         !oldHass ||
         oldHass.language !== this.hass.language ||
         oldHass.selectedLanguage !== this.hass.selectedLanguage
@@ -164,7 +170,9 @@ class ConfigEditor extends LitElement {
                 this._translations,
               )}${createLayoutToggle(
                 this._config,
-                (tiles: boolean) => this._toggleChanged('layout', tiles ? 'tiles' : 'list'),
+                (tiles: boolean) => {
+                  this._toggleChanged('layout', tiles ? 'tiles' : 'list');
+                },
                 this._translations,
               )}`
             : ''

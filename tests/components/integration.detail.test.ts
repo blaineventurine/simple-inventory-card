@@ -113,8 +113,8 @@ describe('item detail view in the card (integration)', () => {
   let host: Element;
   let items: InventoryItem[];
   let connection: FakeConnection;
-  let wsCalls: Array<{ type: string; item_name?: string; window_days?: number }>;
-  let releaseLoads: Array<() => void> | undefined;
+  let wsCalls: { type: string; item_name?: string; window_days?: number }[];
+  let releaseLoads: (() => void)[] | undefined;
   let scrollTo: ReturnType<typeof vi.spyOn>;
 
   function makeHass(): HomeAssistant {
@@ -135,7 +135,9 @@ describe('item detail view in the card (integration)', () => {
         if (releaseLoads) {
           // Promise.withResolvers() is unavailable under this project's TS lib target (< ES2024).
           return new Promise((resolve) => {
-            releaseLoads?.push(() => resolve(answer));
+            releaseLoads?.push(() => {
+              resolve(answer);
+            });
           });
         }
         return Promise.resolve(answer);
@@ -249,7 +251,9 @@ describe('item detail view in the card (integration)', () => {
       await vi.advanceTimersByTimeAsync(300);
       expect(host.getAttribute('view')).not.toBe('detail');
 
-      releaseLoads.splice(0).forEach((release) => release());
+      releaseLoads.splice(0).forEach((release) => {
+        release();
+      });
       await vi.advanceTimersByTimeAsync(0);
 
       expect(host.getAttribute('view')).toBe('detail');
@@ -290,7 +294,9 @@ describe('item detail view in the card (integration)', () => {
       await mount();
       card.showItem('apples');
       card.showList();
-      releaseLoads.splice(0).forEach((release) => release());
+      releaseLoads.splice(0).forEach((release) => {
+        release();
+      });
       await vi.advanceTimersByTimeAsync(0);
 
       expect(host.getAttribute('view')).toBe('list');

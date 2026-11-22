@@ -2,7 +2,7 @@ import { TranslationData } from '@/types/translatableComponent';
 import { ELEMENTS, SORT_METHODS } from '../utils/constants';
 import { TranslationManager } from '@/services/translationManager';
 
-const SORT_OPTIONS: ReadonlyArray<{ value: string; key: string; fallback: string }> = [
+const SORT_OPTIONS: readonly { value: string; key: string; fallback: string }[] = [
   { value: SORT_METHODS.NAME, key: 'sort.name', fallback: 'Name' },
   { value: SORT_METHODS.CATEGORY, key: 'sort.category', fallback: 'Category' },
   { value: SORT_METHODS.LOCATION, key: 'sort.location', fallback: 'Location' },
